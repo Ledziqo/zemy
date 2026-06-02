@@ -41,6 +41,32 @@ If the hosting panel points the domain at the project root instead, keep the roo
 the server reaches Laravel's front controller instead of returning a directory
 listing `403 Forbidden` page.
 
+After deploying from GitHub, the live server also needs the Laravel runtime files
+that are not committed to the repository:
+
+```bash
+php composer.phar install --no-dev --optimize-autoloader
+cp .env.example .env
+php artisan key:generate
+php artisan migrate --seed
+php artisan config:cache
+php artisan route:cache
+php artisan view:cache
+```
+
+Set these live `.env` values before caching config:
+
+```env
+APP_ENV=production
+APP_DEBUG=false
+APP_URL=https://zemtab.com
+DB_DATABASE=your_live_database
+DB_USERNAME=your_live_database_user
+DB_PASSWORD=your_live_database_password
+```
+
+Make sure `storage/` and `bootstrap/cache/` are writable by PHP.
+
 ## Test URLs
 
 - Landing page: `/`
