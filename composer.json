@@ -41,7 +41,11 @@
     "allow-plugins": {
       "pestphp/pest-plugin": true,
       "php-http/discovery": true
-    }
+    },
+    "platform": {
+      "php": "8.3.30"
+    },
+    "disable-tls": false
   },
   "minimum-stability": "stable",
   "prefer-stable": true
