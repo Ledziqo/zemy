@@ -342,6 +342,7 @@
 </script>
 
 @push('structured-data')
+@verbatim
 <script type="application/ld+json">
 {
     "@context": "https://schema.org",
@@ -359,8 +360,8 @@
     },
     "aggregateRating": { "@type": "AggregateRating", "ratingValue": "4.8", "ratingCount": "12" },
     "description": "ZemTab is a modern QR menu, table ordering, waiter request, and restaurant dashboard system built for restaurants in Ethiopia. Guests scan, order, and pay from their phone. No app download needed.",
-    "url": "{{ url('/') }}",
-    "image": "{{ asset('logo/zemtab-full-transparent.png') }}",
+    "url": "https://zemtab.com",
+    "image": "https://zemtab.com/logo/zemtab-full-transparent.png",
     "inLanguage": "en",
     "countriesSupported": "ET"
 }
@@ -371,9 +372,9 @@
     "@context": "https://schema.org",
     "@type": "Organization",
     "name": "ZemTab",
-    "url": "{{ url('/') }}",
-    "logo": "{{ asset('logo/zemtab-full-transparent.png') }}",
-    "email": "hello@zemtab.test",
+    "url": "https://zemtab.com",
+    "logo": "https://zemtab.com/logo/zemtab-full-transparent.png",
+    "email": "hello@zemtab.com",
     "address": { "@type": "PostalAddress", "addressLocality": "Addis Ababa", "addressCountry": "ET" },
     "sameAs": []
 }
@@ -385,9 +386,9 @@
     "@type": "LocalBusiness",
     "name": "ZemTab",
     "description": "QR Menu & Table Ordering system for restaurants, cafes, and lounges in Ethiopia.",
-    "url": "{{ url('/') }}",
+    "url": "https://zemtab.com",
     "telephone": "",
-    "email": "hello@zemtab.test",
+    "email": "hello@zemtab.com",
     "address": { "@type": "PostalAddress", "addressLocality": "Addis Ababa", "addressCountry": "Ethiopia" },
     "geo": { "@type": "GeoCoordinates", "latitude": "9.0192", "longitude": "38.7525" },
     "areaServed": { "@type": "Country", "name": "Ethiopia" },
@@ -400,10 +401,10 @@
     "@context": "https://schema.org",
     "@type": "WebSite",
     "name": "ZemTab",
-    "url": "{{ url('/') }}",
+    "url": "https://zemtab.com",
     "potentialAction": {
         "@type": "SearchAction",
-        "target": { "@type": "EntryPoint", "urlTemplate": "{{ url('/') }}/r/{restaurant_slug}/table/{table_number}" },
+        "target": { "@type": "EntryPoint", "urlTemplate": "https://zemtab.com/r/{restaurant_slug}/table/{table_number}" },
         "query-input": "required name=restaurant_slug,table_number"
     }
 }
@@ -423,5 +424,6 @@
     ]
 }
 </script>
+@endverbatim
 @endpush
 @endsection
