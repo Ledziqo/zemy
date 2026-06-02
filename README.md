@@ -32,6 +32,15 @@ php artisan serve
 
 Open `http://127.0.0.1:8000`.
 
+## Production / Shared Hosting
+
+For Laravel, the domain document root should ideally point to the `public` directory.
+
+If the hosting panel points the domain at the project root instead, keep the root
+`.htaccess` file in this repository. It rewrites web requests into `public/` so
+the server reaches Laravel's front controller instead of returning a directory
+listing `403 Forbidden` page.
+
 ## Test URLs
 
 - Landing page: `/`
