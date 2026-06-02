@@ -11,6 +11,7 @@ use Illuminate\Support\Facades\Route;
 
 Route::get('/', [PublicController::class, 'landing'])->name('home');
 Route::post('/demo-request', [PublicController::class, 'storeDemoRequest'])->name('demo-requests.store');
+Route::get('/sitemap.xml', [PublicController::class, 'sitemap'])->name('sitemap');
 
 Route::get('/login', [AuthController::class, 'showLogin'])->name('login');
 Route::post('/login', [AuthController::class, 'login'])->name('login.store');

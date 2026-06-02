@@ -1,4 +1,9 @@
-@extends('layouts.app', ['title' => 'Order sent - ZemTab'])
+@extends('layouts.app', [
+    'title' => 'Order Confirmed — '.$restaurant->name.' | ZemTab',
+    'description' => 'Your order has been sent successfully to '.$restaurant->name.'. Table '.$table.'. Your waiter will be with you shortly.',
+    'robots' => 'noindex, nofollow',
+    'canonical' => route('menu.confirmation', [$restaurant->slug, $table]),
+])
 
 @section('content')
 <main class="grid min-h-screen place-items-center bg-white px-5 text-zem-ink">

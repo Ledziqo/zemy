@@ -1,4 +1,8 @@
-@extends('layouts.app', ['title' => 'Login - ZemTab'])
+@extends('layouts.app', [
+    'title' => 'Restaurant Login — ZemTab',
+    'description' => 'Sign in to your ZemTab restaurant dashboard. Manage your digital QR menu, table orders, and staff operations.',
+    'robots' => 'noindex, nofollow',
+])
 
 @section('content')
 <main class="grid min-h-screen place-items-center bg-[radial-gradient(circle_at_top,rgba(239,35,60,.25),transparent_35%),#050505] px-5 py-10">

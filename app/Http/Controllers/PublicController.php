@@ -3,7 +3,9 @@
 namespace App\Http\Controllers;
 
 use App\Models\DemoRequest;
+use App\Models\Restaurant;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Response;
 
 class PublicController extends Controller
 {
@@ -24,5 +26,18 @@ class PublicController extends Controller
         ]));
 
         return back()->with('success', 'Thanks. ZemTab will contact you shortly.');
+    }
+
+    public function sitemap()
+    {
+        $restaurants = Restaurant::where('is_active', true)
+            ->with(['tables' => fn ($query) => $query->where('is_active', true)])
+            ->get();
+
+        $xml = view('public.sitemap', compact('restaurants'))->render();
+
+        return Response::make($xml, 200, [
+            'Content-Type' => 'application/xml; charset=UTF-8',
+        ]);
     }
 }

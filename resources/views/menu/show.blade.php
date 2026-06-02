@@ -1,7 +1,30 @@
-@extends('layouts.app', ['title' => $restaurant->name.' Menu - ZemTab'])
+@extends('layouts.app', [
+    'title' => $restaurant->name.' Menu — Table '.$table->table_number.' | ZemTab',
+    'description' => 'View the digital QR menu for '.$restaurant->name.' in '.$restaurant->location.'. Table '.$table->table_number.'. Order directly from your phone with ZemTab — no app download needed.',
+    'keywords' => $restaurant->name.' menu, '.$restaurant->location.' restaurant, QR menu, table ordering, digital menu Ethiopia, ZemTab',
+    'canonical' => route('menu.show', [$restaurant->slug, $table->table_number]),
+    'ogType' => 'website',
+    'ogImage' => $restaurant->cover_image_path ? asset($restaurant->cover_image_path) : asset('logo/zemtab-full-transparent.png'),
+    'robots' => 'index, follow',
+])
 
 @section('content')
 <main x-data="menuCart()" class="min-h-screen bg-white pb-32 text-zem-ink">
+
+    {{-- Breadcrumb Navigation (Hidden visually but available to screen readers and structured data) --}}
+    <nav aria-label="Breadcrumb" class="sr-only">
+        <ol itemscope itemtype="https://schema.org/BreadcrumbList">
+            <li itemprop="itemListElement" itemscope itemtype="https://schema.org/ListItem">
+                <a itemprop="item" href="{{ url('/') }}"><span itemprop="name">ZemTab</span></a>
+                <meta itemprop="position" content="1" />
+            </li>
+            <li itemprop="itemListElement" itemscope itemtype="https://schema.org/ListItem">
+                <a itemprop="item" href="{{ route('menu.show', [$restaurant->slug, $table->table_number]) }}"><span itemprop="name">{{ $restaurant->name }} Menu</span></a>
+                <meta itemprop="position" content="2" />
+            </li>
+        </ol>
+    </nav>
+
     <header class="sticky top-0 z-30 border-b border-black/10 bg-white/90 px-4 py-4 backdrop-blur-xl">
         <div class="mx-auto max-w-3xl">
             <div class="flex items-center justify-between gap-3">
@@ -38,22 +61,25 @@
                 <h2 class="mb-3 font-display text-2xl font-extrabold">{{ $category->name }}</h2>
                 <div class="space-y-3">
                     @foreach($category->menuItems as $item)
-                        <article class="grid grid-cols-[88px_1fr] gap-3 rounded-2xl border border-black/10 bg-white p-3 shadow-sm">
-                            <div class="grid h-24 place-items-center rounded-xl bg-gradient-to-br from-black to-zem-gold text-2xl font-extrabold text-white">{{ strtoupper(substr($item->name, 0, 1)) }}</div>
+                        <article class="grid grid-cols-[88px_1fr] gap-3 rounded-2xl border border-black/10 bg-white p-3 shadow-sm" itemscope itemtype="https://schema.org/MenuItem">
+                            <div class="grid h-24 place-items-center rounded-xl bg-gradient-to-br from-black to-zem-gold text-2xl font-extrabold text-white" aria-hidden="true">{{ strtoupper(substr($item->name, 0, 1)) }}</div>
                             <div>
                                 <div class="flex items-start justify-between gap-2">
                                     <div>
-                                        <h3 class="font-extrabold">{{ $item->name }}</h3>
-                                        <p class="mt-1 line-clamp-2 text-sm text-neutral-500">{{ $item->description }}</p>
+                                        <h3 class="font-extrabold" itemprop="name">{{ $item->name }}</h3>
+                                        <p class="mt-1 line-clamp-2 text-sm text-neutral-500" itemprop="description">{{ $item->description }}</p>
                                     </div>
-                                    <p class="whitespace-nowrap font-extrabold text-zem-gold">{{ number_format($item->price) }} ETB</p>
+                                    <p class="whitespace-nowrap font-extrabold text-zem-gold" itemprop="offers" itemscope itemtype="https://schema.org/Offer">
+                                        <span itemprop="price" content="{{ $item->price }}">{{ number_format($item->price) }}</span>
+                                        <span itemprop="priceCurrency" content="ETB">ETB</span>
+                                    </p>
                                 </div>
                                 <div class="mt-3 flex items-center justify-between">
                                     @if($item->is_available)
-                                        <span class="text-xs font-extrabold text-green-700">Available</span>
+                                        <span class="text-xs font-extrabold text-green-700" itemprop="availability" content="https://schema.org/InStock">Available</span>
                                         <button type="button" @click="add({ id: {{ $item->id }}, name: @js($item->name), price: {{ $item->price }} })" class="rounded-lg bg-black px-4 py-2 text-sm font-extrabold text-white">Add</button>
                                     @else
-                                        <span class="rounded-full bg-red-100 px-3 py-1 text-xs font-extrabold text-red-700">Unavailable</span>
+                                        <span class="rounded-full bg-red-100 px-3 py-1 text-xs font-extrabold text-red-700" itemprop="availability" content="https://schema.org/OutOfStock">Unavailable</span>
                                     @endif
                                 </div>
                             </div>
@@ -100,6 +126,75 @@
     </div>
 </main>
 
+@push('structured-data')
+<script type="application/ld+json">
+{
+    "@context": "https://schema.org",
+    "@type": "Restaurant",
+    "name": "{{ $restaurant->name }}",
+    "description": "Digital QR menu for {{ $restaurant->name }} in {{ $restaurant->location }}. Order directly from your table with ZemTab.",
+    "url": "{{ route('menu.show', [$restaurant->slug, $table->table_number]) }}",
+    "image": "{{ $restaurant->logo_path ? asset($restaurant->logo_path) : asset('logo/zemtab-full-transparent.png') }}",
+    "address": {
+        "@type": "PostalAddress",
+        "addressLocality": "{{ $restaurant->location }}",
+        "addressCountry": "Ethiopia"
+    },
+    "menu": "{{ route('menu.show', [$restaurant->slug, $table->table_number]) }}",
+    "servesCuisine": "Various",
+    "currenciesAccepted": "ETB",
+    "paymentAccepted": "Cash, Mobile Money, Bank Transfer",
+    "priceRange": "$$"
+}
+</script>
+
+<script type="application/ld+json">
+{
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    "itemListElement": [
+        {
+            "@type": "ListItem",
+            "position": 1,
+            "name": "ZemTab",
+            "item": "{{ url('/') }}"
+        },
+        {
+            "@type": "ListItem",
+            "position": 2,
+            "name": "{{ $restaurant->name }} Menu",
+            "item": "{{ route('menu.show', [$restaurant->slug, $table->table_number]) }}"
+        }
+    ]
+}
+</script>
+
+<script type="application/ld+json">
+{
+    "@context": "https://schema.org",
+    "@type": "Menu",
+    "name": "{{ $restaurant->name }} Digital Menu",
+    "hasMenuItem": [
+        @foreach($categories as $category)
+        @foreach($category->menuItems as $item)
+        {
+            "@type": "MenuItem",
+            "name": "{{ $item->name }}",
+            "description": "{{ $item->description }}",
+            "offers": {
+                "@type": "Offer",
+                "price": "{{ $item->price }}",
+                "priceCurrency": "ETB",
+                "availability": "{{ $item->is_available ? 'https://schema.org/InStock' : 'https://schema.org/OutOfStock' }}"
+            }
+        }@if(!$loop->last || !$loop->parent->last),@endif
+        @endforeach
+        @endforeach
+    ]
+}
+</script>
+@endpush
+
 <script>
 function menuCart() {
     return {
@@ -114,7 +209,7 @@ function menuCart() {
             const holder = document.getElementById('cart-fields');
             holder.innerHTML = '';
             this.items.forEach((item, index) => {
-                holder.insertAdjacentHTML('beforeend', `<input type="hidden" name="items[${index}][id]" value="${item.id}"><input type="hidden" name="items[${index}][quantity]" value="${item.quantity}"><input type="hidden" name="items[${index}][note]" value="${(item.note || '').replace(/"/g, '&quot;')}">`);
+                holder.insertAdjacentHTML('beforeend', `<input type="hidden" name="items[${index}][id]" value="${item.id}"><input type="hidden" name="items[${index}][quantity]" value="${item.quantity}"><input type="hidden" name="items[${index}][note]" value="${(item.note || '').replace(/"/g, '"')}">`);
             });
         }
     }

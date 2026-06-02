@@ -24,8 +24,11 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="robots" content="noindex, nofollow">
+    <meta name="googlebot" content="noindex, nofollow">
     <title>{{ $title ?? 'ZemTab Dashboard' }}</title>
     <link rel="icon" type="image/png" href="{{ asset('logo/zemtab-icon-transparent.png') }}">
+    <link rel="canonical" href="{{ url()->current() }}">
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
         tailwind.config = { theme: { extend: { colors: { zem: { bg: '#050505', card: '#101010', gold: '#ef233c', cream: '#ffffff', muted: '#a3a3a3', green: '#16a34a', border: '#262626', red: '#ef233c', redDark: '#b91c1c', ink: '#0a0a0a' } }, fontFamily: { sans: ['Inter', 'ui-sans-serif', 'system-ui'], display: ['Sora', 'Inter', 'ui-sans-serif'] } } } }

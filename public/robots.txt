@@ -1,0 +1,10 @@
+User-agent: *
+Allow: /
+Disallow: /login
+Disallow: /restaurant/
+Disallow: /admin/
+Disallow: /demo-request
+
+Crawl-delay: 2
+
+Sitemap: /sitemap.xml
