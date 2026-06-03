@@ -4,6 +4,7 @@ namespace App\Http\Middleware;
 
 use Closure;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Schema;
 use Symfony\Component\HttpFoundation\Response;
 
 class EnsureRestaurantDashboardAccess
@@ -13,7 +14,13 @@ class EnsureRestaurantDashboardAccess
         $restaurant = $request->user()?->restaurant;
         abort_unless($restaurant, 403);
 
-        $latestSubscription = $restaurant->subscriptions()->latest()->first();
+        if (! Schema::hasColumn('restaurants', 'dashboard_access_status')) {
+            return $next($request);
+        }
+
+        $latestSubscription = Schema::hasTable('subscriptions')
+            ? $restaurant->subscriptions()->latest()->first()
+            : null;
         $status = $restaurant->dashboard_access_status ?? 'active';
 
         if ($status !== 'active' || $latestSubscription?->status === 'unpaid') {

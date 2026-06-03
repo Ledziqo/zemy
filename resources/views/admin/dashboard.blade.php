@@ -10,7 +10,7 @@
     <div class="flex items-center justify-between"><h2 class="font-display text-xl font-bold">Restaurants</h2><a class="text-sm font-bold text-zem-gold" href="{{ route('admin.restaurants.index') }}">Manage all</a></div>
     <div class="mt-4 grid gap-3 md:grid-cols-2">
         @foreach($restaurants as $restaurant)
-            @php($subscription = $restaurant->subscriptions->sortByDesc('created_at')->first())
+            @php($subscription = $hasSubscriptions ? $restaurant->subscriptions->sortByDesc('created_at')->first() : null)
             <div class="rounded-md border border-zem-border bg-zem-bg p-3">
                 <div class="flex flex-wrap items-center justify-between gap-2"><strong>{{ $restaurant->name }}</strong><x-status :status="$hasDashboardAccessStatus ? ($restaurant->dashboard_access_status ?? 'active') : 'active'" /></div>
                 <p class="mt-1 text-sm text-zem-muted">{{ $restaurant->location ?: 'No location' }} - {{ $subscription?->status ?? 'no subscription' }}</p>

@@ -13,6 +13,7 @@ class DashboardController extends Controller
 {
     public function index()
     {
+        $hasSubscriptions = Schema::hasTable('subscriptions');
         $hasDashboardAccessStatus = Schema::hasColumn('restaurants', 'dashboard_access_status');
 
         return view('admin.dashboard', [
@@ -20,12 +21,13 @@ class DashboardController extends Controller
             'activeRestaurants' => Restaurant::where('is_active', true)->count(),
             'totalOrders' => Order::count(),
             'pendingDemoRequests' => DemoRequest::where('status', 'new')->count(),
-            'activeSubscriptions' => Subscription::where('status', 'active')->count(),
-            'unpaidSubscriptions' => Subscription::where('status', 'unpaid')->count(),
+            'activeSubscriptions' => $hasSubscriptions ? Subscription::where('status', 'active')->count() : 0,
+            'unpaidSubscriptions' => $hasSubscriptions ? Subscription::where('status', 'unpaid')->count() : 0,
             'revokedRestaurants' => $hasDashboardAccessStatus ? Restaurant::where('dashboard_access_status', 'revoked')->count() : 0,
             'recentOrders' => Order::with('restaurant', 'items')->latest()->limit(10)->get(),
-            'restaurants' => Restaurant::with('subscriptions')->latest()->limit(12)->get(),
+            'restaurants' => $hasSubscriptions ? Restaurant::with('subscriptions')->latest()->limit(12)->get() : Restaurant::latest()->limit(12)->get(),
             'hasDashboardAccessStatus' => $hasDashboardAccessStatus,
+            'hasSubscriptions' => $hasSubscriptions,
         ]);
     }
 }
