@@ -36,7 +36,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Sora:wght@600;700;800&display=swap" rel="stylesheet">
     <style>[x-cloak]{display:none!important} input,select,textarea,button{font-size:16px}</style>
 </head>
-<body class="bg-zem-bg text-zem-cream font-sans antialiased">
+<body class="bg-zem-bg text-zem-cream font-sans antialiased" @isset($autoRefreshSeconds) data-auto-refresh="{{ $autoRefreshSeconds }}" @endisset>
 <div class="min-h-screen bg-[radial-gradient(circle_at_top_right,rgba(239,35,60,.18),transparent_28%),linear-gradient(180deg,#050505,#0a0a0a)] lg:flex">
     <aside class="border-b border-zem-border bg-zem-card/95 backdrop-blur lg:fixed lg:inset-y-0 lg:w-72 lg:border-b-0 lg:border-r">
         <div class="flex items-center justify-between px-5 py-5 lg:block">
@@ -59,8 +59,39 @@
         </header>
         @if(session('success'))<div class="mb-5 rounded-lg border border-zem-green/40 bg-zem-green/15 px-4 py-3 text-sm text-zem-cream">{{ session('success') }}</div>@endif
         @if($errors->any())<div class="mb-5 rounded-lg border border-red-500/40 bg-red-950/60 px-4 py-3 text-sm">{{ $errors->first() }}</div>@endif
+        @isset($autoRefreshSeconds)
+            <div class="mb-5 flex flex-wrap items-center justify-between gap-3 rounded-md border border-zem-border bg-zem-card px-4 py-3 text-sm text-zem-muted">
+                <span>Auto-refreshing every {{ $autoRefreshSeconds }} seconds. Pauses while editing.</span>
+                <a href="{{ url()->current() }}" class="font-bold text-zem-gold">Refresh now</a>
+            </div>
+        @endisset
         @yield('content')
     </main>
 </div>
+<script>
+(() => {
+    const seconds = Number(document.body.dataset.autoRefresh || 0);
+    if (!seconds) return;
+
+    let dirty = false;
+    document.addEventListener('input', (event) => {
+        if (event.target.closest('form')) dirty = true;
+    });
+    document.addEventListener('change', (event) => {
+        if (event.target.closest('form')) dirty = true;
+    });
+    document.addEventListener('submit', () => {
+        dirty = false;
+    });
+
+    setInterval(() => {
+        const active = document.activeElement;
+        const editing = active && ['INPUT', 'SELECT', 'TEXTAREA', 'BUTTON'].includes(active.tagName);
+        if (!dirty && !editing && document.visibilityState === 'visible') {
+            window.location.reload();
+        }
+    }, seconds * 1000);
+})();
+</script>
 </body>
 </html>

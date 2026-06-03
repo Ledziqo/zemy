@@ -15,7 +15,11 @@ class ServiceRequestController extends Controller
         $restaurant = $this->restaurant($request);
         return view('restaurant.service_requests.index', [
             'restaurant' => $restaurant,
-            'requests' => $restaurant->serviceRequests()->latest()->paginate(50),
+            'requests' => $restaurant->serviceRequests()
+                ->orderByRaw("FIELD(status, 'pending', 'acknowledged', 'completed')")
+                ->latest()
+                ->paginate(75),
+            'activeRequests' => $restaurant->serviceRequests()->whereIn('status', ['pending', 'acknowledged'])->count(),
         ]);
     }
 

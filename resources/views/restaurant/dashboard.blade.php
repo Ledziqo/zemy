@@ -1,4 +1,4 @@
-@extends('layouts.dashboard', ['heading' => $restaurant->name, 'eyebrow' => 'Restaurant Overview'])
+@extends('layouts.dashboard', ['heading' => $restaurant->name, 'eyebrow' => 'Restaurant Overview', 'autoRefreshSeconds' => 10])
 
 @section('content')
 <div class="grid gap-4 md:grid-cols-5">

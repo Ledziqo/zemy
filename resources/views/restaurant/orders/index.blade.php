@@ -1,4 +1,4 @@
-@extends('layouts.dashboard', ['heading' => 'Orders', 'eyebrow' => 'Live-style order board'])
+@extends('layouts.dashboard', ['heading' => 'Orders', 'eyebrow' => 'Live order board', 'autoRefreshSeconds' => 5])
 
 @section('content')
 <div class="mb-4 flex justify-end"><a href="{{ route('restaurant.orders.index') }}" class="rounded-md border border-zem-border px-4 py-2 text-sm font-bold">Refresh</a></div>
