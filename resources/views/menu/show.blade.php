@@ -18,15 +18,23 @@
         'telebirr' => filled($settings['telebirr_number'] ?? null) ? 'Send Telebirr payment to '.$settings['telebirr_number'].'.' : 'Ask staff for the Telebirr number.',
         'cbe' => filled($settings['cbe_account_number'] ?? null) ? 'Transfer to CBE account '.$settings['cbe_account_number'].'.' : 'Ask staff for the CBE account number.',
     ];
+    $logoUrl = $restaurant->logo_path ? (\Illuminate\Support\Str::startsWith($restaurant->logo_path, ['http://', 'https://', 'uploads/']) ? (str_starts_with($restaurant->logo_path, 'uploads/') ? asset($restaurant->logo_path) : $restaurant->logo_path) : asset('storage/'.$restaurant->logo_path)) : null;
 @endphp
 <main x-data="menuCart({ paymentDetails: @js($paymentDetails) })" class="min-h-screen bg-neutral-100 pb-28 text-zem-ink">
     <header class="sticky top-0 z-30 border-b border-black/10 bg-white/95 px-4 py-3 shadow-sm backdrop-blur">
         <div class="mx-auto max-w-5xl">
             <div class="flex items-center justify-between gap-3">
-                <div class="min-w-0">
-                    <p class="text-xs font-extrabold uppercase tracking-widest text-zem-gold">Table {{ $table->table_number }}</p>
-                    <h1 class="truncate font-display text-2xl font-extrabold">{{ $restaurant->name }}</h1>
-                    <p class="truncate text-sm text-neutral-500">{{ $restaurant->location ?: 'Digital menu' }}</p>
+                <div class="flex min-w-0 items-center gap-3">
+                    @if($logoUrl)
+                        <img src="{{ $logoUrl }}" alt="{{ $restaurant->name }} logo" class="h-14 w-14 shrink-0 rounded-xl border border-black/10 bg-white object-contain p-1">
+                    @else
+                        <div class="grid h-14 w-14 shrink-0 place-items-center rounded-xl bg-black text-xl font-extrabold text-white">{{ strtoupper(substr($restaurant->name, 0, 1)) }}</div>
+                    @endif
+                    <div class="min-w-0">
+                        <p class="text-xs font-extrabold uppercase tracking-widest text-zem-gold">Table {{ $table->table_number }}</p>
+                        <h1 class="truncate font-display text-2xl font-extrabold">{{ $restaurant->name }}</h1>
+                        <p class="truncate text-sm text-neutral-500">{{ $restaurant->location ?: 'Digital menu' }}</p>
+                    </div>
                 </div>
                 <button type="button" @click="open = true" class="rounded-xl bg-black px-4 py-3 text-sm font-extrabold text-white">
                     Cart <span x-text="count()"></span>

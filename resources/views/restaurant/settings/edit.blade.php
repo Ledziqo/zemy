@@ -1,8 +1,20 @@
 @extends('layouts.dashboard', ['heading' => 'Settings'])
 
 @section('content')
-<form method="post" action="{{ route('restaurant.settings.update') }}" class="grid max-w-5xl gap-4 rounded-md border border-zem-border bg-zem-card p-5 md:grid-cols-2 xl:grid-cols-3">
+@php($logoUrl = $restaurant->logo_path ? (\Illuminate\Support\Str::startsWith($restaurant->logo_path, ['http://', 'https://', 'uploads/']) ? (str_starts_with($restaurant->logo_path, 'uploads/') ? asset($restaurant->logo_path) : $restaurant->logo_path) : asset('storage/'.$restaurant->logo_path)) : null)
+<form method="post" action="{{ route('restaurant.settings.update') }}" enctype="multipart/form-data" class="grid max-w-5xl gap-4 rounded-md border border-zem-border bg-zem-card p-5 md:grid-cols-2 xl:grid-cols-3">
     @csrf @method('PATCH')
+    <div class="rounded-md border border-zem-border bg-zem-bg p-4 md:col-span-2 xl:col-span-3">
+        <p class="text-sm font-bold text-zem-muted">Restaurant logo shown on scanned menu</p>
+        <div class="mt-3 flex flex-wrap items-center gap-4">
+            @if($logoUrl)
+                <img src="{{ $logoUrl }}" alt="{{ $restaurant->name }} logo" class="h-20 w-20 rounded-md border border-zem-border bg-white object-contain p-2">
+            @else
+                <div class="grid h-20 w-20 place-items-center rounded-md border border-zem-border bg-zem-card text-2xl font-extrabold">{{ strtoupper(substr($restaurant->name, 0, 1)) }}</div>
+            @endif
+            <input name="logo" type="file" accept="image/*" class="rounded-md border border-zem-border bg-zem-card px-3 py-3 text-sm">
+        </div>
+    </div>
     <input name="name" value="{{ $restaurant->name }}" class="rounded-md border border-zem-border bg-zem-bg px-3 py-2">
     <input name="slug" value="{{ $restaurant->slug }}" class="rounded-md border border-zem-border bg-zem-bg px-3 py-2">
     <input name="phone" value="{{ $restaurant->phone }}" placeholder="Phone" class="rounded-md border border-zem-border bg-zem-bg px-3 py-2">

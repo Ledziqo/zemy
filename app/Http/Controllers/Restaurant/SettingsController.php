@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Restaurant;
 
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
+use Illuminate\Support\Str;
 
 class SettingsController extends Controller
 {
@@ -21,6 +22,7 @@ class SettingsController extends Controller
             'phone' => ['nullable', 'string', 'max:50'],
             'location' => ['nullable', 'string', 'max:255'],
             'logo_path' => ['nullable', 'string', 'max:255'],
+            'logo' => ['nullable', 'image', 'max:4096'],
             'cover_image_path' => ['nullable', 'string', 'max:255'],
             'primary_color' => ['nullable', 'string', 'max:20'],
             'service_charge_percentage' => ['nullable', 'numeric', 'min:0'],
@@ -32,9 +34,15 @@ class SettingsController extends Controller
         ]);
 
         $settings = $restaurant->settings ?? [];
+        if ($request->hasFile('logo')) {
+            $file = $request->file('logo');
+            $filename = Str::uuid().'.'.$file->getClientOriginalExtension();
+            $file->move(public_path('uploads/restaurants'), $filename);
+            $data['logo_path'] = 'uploads/restaurants/'.$filename;
+        }
 
         $restaurant->update([
-            ...collect($data)->except(['service_charge_percentage', 'vat_percentage', 'payment_methods', 'telebirr_number', 'cbe_account_number'])->all(),
+            ...collect($data)->except(['service_charge_percentage', 'vat_percentage', 'payment_methods', 'telebirr_number', 'cbe_account_number', 'logo'])->all(),
             'settings' => array_merge($settings, [
                 'service_charge_percentage' => $data['service_charge_percentage'] ?? 0,
                 'vat_percentage' => $data['vat_percentage'] ?? 0,

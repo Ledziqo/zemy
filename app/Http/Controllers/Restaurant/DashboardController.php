@@ -24,8 +24,10 @@ class DashboardController extends Controller
             'todayOrders' => (clone $todayOrders)->count(),
             'newOrders' => (clone $todayOrders)->where('status', 'new')->count(),
             'preparingOrders' => (clone $todayOrders)->where('status', 'preparing')->count(),
-            'servedOrders' => (clone $todayOrders)->where('status', 'served')->count(),
+            'servedOrders' => (clone $todayOrders)->whereIn('status', ['served', 'paid', 'completed'])->count(),
+            'completedOrders' => (clone $todayOrders)->where('status', 'completed')->count(),
             'revenue' => (clone $todayOrders)->whereIn('status', ['paid', 'completed'])->sum('total'),
+            'allOrders' => $restaurant->orders()->count(),
             'recentOrders' => $restaurant->orders()->with('items')->latest()->limit(8)->get(),
         ]);
     }
