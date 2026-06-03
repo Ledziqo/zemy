@@ -73,6 +73,7 @@
         }
     </script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Sora:wght@600;700;800&display=swap" rel="stylesheet">
+    <style>[x-cloak]{display:none!important}</style>
 </head>
 <body class="bg-zem-bg text-zem-cream font-sans antialiased">
     <div class="min-h-screen">

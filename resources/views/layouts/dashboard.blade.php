@@ -34,6 +34,7 @@
         tailwind.config = { theme: { extend: { colors: { zem: { bg: '#050505', card: '#101010', gold: '#ef233c', cream: '#ffffff', muted: '#a3a3a3', green: '#16a34a', border: '#262626', red: '#ef233c', redDark: '#b91c1c', ink: '#0a0a0a' } }, fontFamily: { sans: ['Inter', 'ui-sans-serif', 'system-ui'], display: ['Sora', 'Inter', 'ui-sans-serif'] } } } }
     </script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Sora:wght@600;700;800&display=swap" rel="stylesheet">
+    <style>[x-cloak]{display:none!important} input,select,textarea,button{font-size:16px}</style>
 </head>
 <body class="bg-zem-bg text-zem-cream font-sans antialiased">
 <div class="min-h-screen bg-[radial-gradient(circle_at_top_right,rgba(239,35,60,.18),transparent_28%),linear-gradient(180deg,#050505,#0a0a0a)] lg:flex">
@@ -48,7 +49,7 @@
             @endforeach
         </nav>
     </aside>
-    <main class="w-full px-4 py-6 lg:ml-72 lg:px-8">
+    <main class="w-full px-4 py-6 md:px-6 lg:ml-72 lg:px-8">
         <header class="mb-6 flex flex-wrap items-center justify-between gap-3 border-b border-white/10 pb-6">
             <div>
                 <p class="text-sm uppercase tracking-widest text-zem-gold">{{ $eyebrow ?? ($isAdmin ? 'SaaS Admin' : 'Restaurant Dashboard') }}</p>

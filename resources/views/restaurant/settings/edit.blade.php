@@ -1,7 +1,7 @@
 @extends('layouts.dashboard', ['heading' => 'Settings'])
 
 @section('content')
-<form method="post" action="{{ route('restaurant.settings.update') }}" class="grid max-w-3xl gap-4 rounded-md border border-zem-border bg-zem-card p-5 md:grid-cols-2">
+<form method="post" action="{{ route('restaurant.settings.update') }}" class="grid max-w-5xl gap-4 rounded-md border border-zem-border bg-zem-card p-5 md:grid-cols-2 xl:grid-cols-3">
     @csrf @method('PATCH')
     <input name="name" value="{{ $restaurant->name }}" class="rounded-md border border-zem-border bg-zem-bg px-3 py-2">
     <input name="slug" value="{{ $restaurant->slug }}" class="rounded-md border border-zem-border bg-zem-bg px-3 py-2">
@@ -21,6 +21,13 @@
             <label class="flex items-center gap-2"><input name="payment_methods[]" type="checkbox" value="cbe" @checked(in_array('cbe', $paymentMethods, true))> CBE</label>
         </div>
     </fieldset>
-    <button class="rounded-md bg-zem-gold px-4 py-3 font-bold text-white md:col-span-2">Save settings</button>
+    <fieldset class="rounded-md border border-zem-border bg-zem-bg p-4 md:col-span-2 xl:col-span-3">
+        <legend class="px-2 text-sm font-bold text-zem-muted">Payment account details shown at checkout</legend>
+        <div class="mt-2 grid gap-3 md:grid-cols-2">
+            <input name="telebirr_number" value="{{ $restaurant->settings['telebirr_number'] ?? '' }}" placeholder="Telebirr phone number" class="rounded-md border border-zem-border bg-zem-card px-3 py-3">
+            <input name="cbe_account_number" value="{{ $restaurant->settings['cbe_account_number'] ?? '' }}" placeholder="CBE account number" class="rounded-md border border-zem-border bg-zem-card px-3 py-3">
+        </div>
+    </fieldset>
+    <button class="rounded-md bg-zem-gold px-4 py-3 font-bold text-white md:col-span-2 xl:col-span-3">Save settings</button>
 </form>
 @endsection

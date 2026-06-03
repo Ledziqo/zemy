@@ -5,7 +5,7 @@ namespace App\Http\Controllers\Restaurant;
 use App\Http\Controllers\Controller;
 use App\Models\MenuItem;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Str;
 
 class MenuItemController extends Controller
 {
@@ -60,7 +60,10 @@ class MenuItemController extends Controller
         ]);
 
         if ($request->hasFile('image')) {
-            $data['image_path'] = Storage::disk('public')->put('menu-items', $request->file('image'));
+            $file = $request->file('image');
+            $filename = Str::uuid().'.'.$file->getClientOriginalExtension();
+            $file->move(public_path('uploads/menu-items'), $filename);
+            $data['image_path'] = 'uploads/menu-items/'.$filename;
         }
 
         unset($data['image']);
