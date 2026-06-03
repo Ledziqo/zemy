@@ -11,10 +11,29 @@
 <main class="mx-auto grid min-h-screen max-w-3xl place-items-center px-5 py-10">
     <section class="w-full rounded-2xl border border-white/10 bg-white/[.04] p-6">
         <h1 class="text-2xl font-extrabold">ZemTab database setup</h1>
-        <p class="mt-3 text-sm text-neutral-400">Use this when you cannot run server commands. It runs migrations, seeds demo accounts, and clears cached config/views.</p>
+        <p class="mt-3 text-sm text-neutral-400">Use this when you cannot run server commands. First enter the database values from your hosting panel, then run setup.</p>
 
         <form method="post" action="/setup/run" class="mt-6">
             @csrf
+            @php($db = $db ?? ['host' => 'srv2081.hstgr.io', 'database' => 'u409029281_zemtab', 'username' => 'u409029281_zemtab'])
+            <div class="mb-5 grid gap-3 md:grid-cols-2">
+                <label class="grid gap-1 text-sm">
+                    <span class="font-bold">DB Host</span>
+                    <input name="db_host" value="{{ old('db_host', $db['host'] ?? 'srv2081.hstgr.io') }}" placeholder="srv2081.hstgr.io" class="rounded-lg border border-white/10 bg-black px-3 py-2">
+                </label>
+                <label class="grid gap-1 text-sm">
+                    <span class="font-bold">DB Name</span>
+                    <input name="db_database" value="{{ old('db_database', $db['database'] ?? 'u409029281_zemtab') }}" class="rounded-lg border border-white/10 bg-black px-3 py-2">
+                </label>
+                <label class="grid gap-1 text-sm">
+                    <span class="font-bold">DB Username</span>
+                    <input name="db_username" value="{{ old('db_username', $db['username'] ?? 'u409029281_zemtab') }}" class="rounded-lg border border-white/10 bg-black px-3 py-2">
+                </label>
+                <label class="grid gap-1 text-sm">
+                    <span class="font-bold">DB Password</span>
+                    <input name="db_password" type="password" placeholder="Enter exact database password" class="rounded-lg border border-white/10 bg-black px-3 py-2">
+                </label>
+            </div>
             <button class="rounded-lg bg-[#ef233c] px-5 py-3 font-extrabold text-white">Run setup now</button>
             <a href="/login" class="ml-3 text-sm font-bold text-neutral-300">Back to login</a>
         </form>

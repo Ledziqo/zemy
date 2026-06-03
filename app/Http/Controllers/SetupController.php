@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\File;
 use Throwable;
 
 class SetupController extends Controller
@@ -17,6 +18,7 @@ class SetupController extends Controller
     public function run(Request $request)
     {
         $output = [];
+        $this->applySubmittedDatabaseConfig($request, $output);
 
         try {
             $this->runSetupCommands($output);
@@ -45,6 +47,7 @@ class SetupController extends Controller
             return view('setup.show', [
                 'success' => false,
                 'output' => $this->friendlyError($exception),
+                'db' => $this->currentDatabaseConfig(),
             ]);
         }
     }
@@ -70,5 +73,78 @@ class SetupController extends Controller
         }
 
         return $message;
+    }
+
+    private function applySubmittedDatabaseConfig(Request $request, array &$output): void
+    {
+        $data = $request->validate([
+            'db_host' => ['nullable', 'string', 'max:255'],
+            'db_database' => ['nullable', 'string', 'max:255'],
+            'db_username' => ['nullable', 'string', 'max:255'],
+            'db_password' => ['nullable', 'string', 'max:255'],
+        ]);
+
+        $updates = [];
+        foreach ([
+            'DB_HOST' => 'db_host',
+            'DB_DATABASE' => 'db_database',
+            'DB_USERNAME' => 'db_username',
+            'DB_PASSWORD' => 'db_password',
+        ] as $envKey => $inputKey) {
+            if (($data[$inputKey] ?? '') !== '') {
+                $updates[$envKey] = $data[$inputKey];
+            }
+        }
+
+        if ($updates === []) {
+            return;
+        }
+
+        $this->updateEnv($updates);
+
+        config([
+            'database.connections.mysql.host' => $updates['DB_HOST'] ?? config('database.connections.mysql.host'),
+            'database.connections.mysql.database' => $updates['DB_DATABASE'] ?? config('database.connections.mysql.database'),
+            'database.connections.mysql.username' => $updates['DB_USERNAME'] ?? config('database.connections.mysql.username'),
+            'database.connections.mysql.password' => $updates['DB_PASSWORD'] ?? config('database.connections.mysql.password'),
+        ]);
+        DB::purge('mysql');
+
+        $output[] = 'Database settings were saved before setup ran.';
+    }
+
+    private function updateEnv(array $updates): void
+    {
+        $path = base_path('.env');
+        if (! File::exists($path) || ! File::isWritable($path)) {
+            return;
+        }
+
+        $contents = File::get($path);
+
+        foreach ($updates as $key => $value) {
+            $line = $key.'='.$this->escapeEnvValue($value);
+            if (preg_match('/^'.$key.'=.*/m', $contents)) {
+                $contents = preg_replace('/^'.$key.'=.*/m', $line, $contents);
+            } else {
+                $contents .= PHP_EOL.$line;
+            }
+        }
+
+        File::put($path, $contents);
+    }
+
+    private function escapeEnvValue(string $value): string
+    {
+        return preg_match('/\s|#|"|\'/', $value) ? '"'.str_replace('"', '\"', $value).'"' : $value;
+    }
+
+    private function currentDatabaseConfig(): array
+    {
+        return [
+            'host' => config('database.connections.mysql.host'),
+            'database' => config('database.connections.mysql.database'),
+            'username' => config('database.connections.mysql.username'),
+        ];
     }
 }

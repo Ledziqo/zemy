@@ -15,7 +15,7 @@ return [
         'mysql' => [
             'driver' => 'mysql',
             'url' => env('DB_URL'),
-            'host' => env('DB_HOST', 'localhost') === '127.0.0.1' ? 'localhost' : env('DB_HOST', 'localhost'),
+            'host' => env('DB_HOST', 'localhost'),
             'port' => env('DB_PORT', '3306'),
             'database' => env('DB_DATABASE', 'zemtab'),
             'username' => env('DB_USERNAME', 'root'),
