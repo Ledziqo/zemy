@@ -31,12 +31,16 @@
             </nav>
             {{-- Mobile Menu Toggle --}}
             <div class="flex items-center gap-3 md:hidden">
+                <a href="{{ route('login') }}" class="rounded-lg border border-white/15 px-3 py-2 text-xs font-extrabold text-white">Login</a>
                 <a href="#demo" class="rounded-lg bg-zem-gold px-3 py-2 text-xs font-extrabold text-white">Demo</a>
                 <button id="mobile-menu-toggle" class="rounded-lg border border-white/15 p-2 text-white" aria-label="Open menu" aria-expanded="false" aria-controls="mobile-menu">
                     <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M4 6h16M4 12h16M4 18h16"/></svg>
                 </button>
             </div>
-            <a href="#demo" class="hidden rounded-lg bg-white px-4 py-2 text-sm font-extrabold text-black transition hover:bg-zem-gold hover:text-white md:inline-flex">Request Demo</a>
+            <div class="hidden items-center gap-3 md:flex">
+                <a href="{{ route('login') }}" class="rounded-lg border border-white/15 px-4 py-2 text-sm font-extrabold text-white transition hover:border-zem-gold hover:bg-zem-gold/10">Login</a>
+                <a href="#demo" class="rounded-lg bg-white px-4 py-2 text-sm font-extrabold text-black transition hover:bg-zem-gold hover:text-white">Request Demo</a>
+            </div>
         </div>
         {{-- Mobile Menu Drawer --}}
         <div id="mobile-menu" class="hidden border-t border-white/10 bg-black/95 px-5 py-4 md:hidden">
@@ -46,6 +50,7 @@
                 <a class="transition hover:text-white" href="#pricing">Pricing</a>
                 <a class="transition hover:text-white" href="#faq">FAQ</a>
                 <a class="transition hover:text-white" href="#demo">Request Demo</a>
+                <a class="transition hover:text-white" href="{{ route('login') }}">Login</a>
             </nav>
         </div>
     </header>
@@ -62,6 +67,7 @@
                 <p class="mt-5 max-w-2xl text-xl leading-8 text-zem-muted">A modern QR menu, table ordering, waiter request, and restaurant dashboard system built for faster service and cleaner operations.</p>
                 <div class="mt-9 flex flex-wrap gap-3">
                     <a href="#demo" class="rounded-lg bg-zem-gold px-6 py-3 font-extrabold text-white shadow-xl shadow-zem-gold/25 transition hover:bg-red-700">Request Demo</a>
+                    <a href="{{ route('login') }}" class="rounded-lg border border-zem-gold bg-zem-gold/10 px-6 py-3 font-extrabold text-white transition hover:bg-zem-gold">Login</a>
                     <a href="#features" class="rounded-lg border border-white/15 bg-white/5 px-6 py-3 font-extrabold text-white transition hover:border-zem-gold hover:bg-zem-gold/10">See Features</a>
                 </div>
                 <div class="mt-12 grid max-w-2xl grid-cols-3 gap-3">
