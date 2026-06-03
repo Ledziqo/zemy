@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Restaurant;
 use App\Http\Controllers\Controller;
 use App\Models\MenuItem;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Storage;
 
 class MenuItemController extends Controller
 {
@@ -51,10 +52,23 @@ class MenuItemController extends Controller
             'name' => ['required', 'string', 'max:255'],
             'description' => ['nullable', 'string'],
             'price' => ['required', 'numeric', 'min:0'],
+            'image' => ['nullable', 'image', 'max:4096'],
             'image_path' => ['nullable', 'string', 'max:255'],
             'sort_order' => ['nullable', 'integer'],
             'is_available' => ['nullable', 'boolean'],
             'is_featured' => ['nullable', 'boolean'],
-        ]) + ['restaurant_id' => $restaurantId, 'is_available' => $request->boolean('is_available'), 'is_featured' => $request->boolean('is_featured')];
+        ]);
+
+        if ($request->hasFile('image')) {
+            $data['image_path'] = Storage::disk('public')->put('menu-items', $request->file('image'));
+        }
+
+        unset($data['image']);
+
+        return $data + [
+            'restaurant_id' => $restaurantId,
+            'is_available' => $request->boolean('is_available'),
+            'is_featured' => $request->boolean('is_featured'),
+        ];
     }
 }

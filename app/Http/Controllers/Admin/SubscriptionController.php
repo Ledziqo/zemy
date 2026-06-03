@@ -25,7 +25,16 @@ class SubscriptionController extends Controller
 
     public function update(Request $request, Subscription $subscription)
     {
-        $subscription->update($this->validated($request));
+        $data = $this->validated($request);
+        $subscription->update($data);
+
+        $restaurant = $subscription->restaurant;
+        if ($data['status'] === 'active') {
+            $restaurant->update(['dashboard_access_status' => 'active']);
+        } elseif ($data['status'] === 'unpaid' && $restaurant->dashboard_access_status !== 'revoked') {
+            $restaurant->update(['dashboard_access_status' => 'payment_required']);
+        }
+
         return back()->with('success', 'Subscription updated.');
     }
 

@@ -18,7 +18,10 @@ class DashboardController extends Controller
             'totalOrders' => Order::count(),
             'pendingDemoRequests' => DemoRequest::where('status', 'new')->count(),
             'activeSubscriptions' => Subscription::where('status', 'active')->count(),
+            'unpaidSubscriptions' => Subscription::where('status', 'unpaid')->count(),
+            'revokedRestaurants' => Restaurant::where('dashboard_access_status', 'revoked')->count(),
             'recentOrders' => Order::with('restaurant', 'items')->latest()->limit(10)->get(),
+            'restaurants' => Restaurant::with('subscriptions')->latest()->limit(12)->get(),
         ]);
     }
 }

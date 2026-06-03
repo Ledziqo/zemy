@@ -6,9 +6,11 @@ use Illuminate\Database\Eloquent\Model;
 
 class Restaurant extends Model
 {
+    public const DASHBOARD_ACCESS_STATUSES = ['active', 'payment_required', 'revoked'];
+
     protected $fillable = [
         'name', 'slug', 'phone', 'email', 'location', 'logo_path', 'cover_image_path',
-        'primary_color', 'is_active', 'settings',
+        'primary_color', 'is_active', 'dashboard_access_status', 'settings',
     ];
 
     protected function casts(): array

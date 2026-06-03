@@ -4,6 +4,7 @@
   "type": "project",
   "require": {
     "php": "^8.2",
+    "endroid/qr-code": "^6.0",
     "laravel/framework": "^12.0",
     "laravel/tinker": "^2.10"
   },

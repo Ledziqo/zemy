@@ -27,6 +27,9 @@ class AuthController extends Controller
 
         return match (Auth::user()->role) {
             'admin' => redirect()->route('admin.dashboard'),
+            'restaurant_owner', 'staff' => Auth::user()->restaurant?->dashboard_access_status === 'active'
+                ? redirect()->route('restaurant.dashboard')
+                : redirect()->route('restaurant.access-required'),
             default => redirect()->route('restaurant.dashboard'),
         };
     }

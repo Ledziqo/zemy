@@ -29,7 +29,12 @@ class DatabaseSeeder extends Seeder
                 'location' => 'Bole, Addis Ababa',
                 'primary_color' => '#D89B35',
                 'is_active' => true,
-                'settings' => ['service_charge_percentage' => 0, 'vat_percentage' => 0],
+                'dashboard_access_status' => 'active',
+                'settings' => [
+                    'service_charge_percentage' => 0,
+                    'vat_percentage' => 0,
+                    'payment_methods' => ['cash', 'telebirr', 'cbe'],
+                ],
             ]
         );
 
@@ -112,7 +117,7 @@ class DatabaseSeeder extends Seeder
 
         Subscription::updateOrCreate(
             ['restaurant_id' => $restaurant->id, 'plan_name' => 'Pro'],
-            ['monthly_price' => 5000, 'status' => 'trial', 'starts_at' => now(), 'ends_at' => now()->addMonth()]
+            ['monthly_price' => 5000, 'status' => 'active', 'starts_at' => now(), 'ends_at' => now()->addMonth()]
         );
     }
 }

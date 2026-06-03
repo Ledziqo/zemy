@@ -21,7 +21,7 @@ class OrderController extends Controller
             'customer_name' => ['nullable', 'string', 'max:255'],
             'customer_phone' => ['nullable', 'string', 'max:50'],
             'note' => ['nullable', 'string', 'max:2000'],
-            'payment_method' => ['nullable', Rule::in(['cash', 'cashier', 'telebirr_manual', 'bank_transfer_manual', 'other_mobile_money'])],
+            'payment_method' => ['nullable', Rule::in($restaurant->settings['payment_methods'] ?? ['cash', 'telebirr', 'cbe'])],
             'items' => ['required', 'array', 'min:1'],
             'items.*.id' => ['required', 'integer', 'exists:menu_items,id'],
             'items.*.quantity' => ['required', 'integer', 'min:1', 'max:50'],
@@ -79,7 +79,7 @@ class OrderController extends Controller
             }
 
             if (! empty($data['payment_method'])) {
-                // TODO: Add Chapa, SantimPay, Telebirr, and bank transfer verification integrations here.
+                // Manual payment capture for the MVP; automated verification can be added later.
                 Payment::create([
                     'restaurant_id' => $restaurant->id,
                     'order_id' => $order->id,

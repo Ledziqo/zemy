@@ -4,6 +4,8 @@ namespace App\Http\Controllers\Restaurant;
 
 use App\Http\Controllers\Controller;
 use App\Models\RestaurantTable;
+use Endroid\QrCode\Builder\Builder;
+use Endroid\QrCode\Writer\SvgWriter;
 use Illuminate\Http\Request;
 
 class TableController extends Controller
@@ -34,6 +36,24 @@ class TableController extends Controller
         abort_unless($table->restaurant_id === $this->restaurant($request)->id, 403);
         $table->delete();
         return back()->with('success', 'Table deleted.');
+    }
+
+    public function qr(Request $request, RestaurantTable $table)
+    {
+        $restaurant = $this->restaurant($request);
+        abort_unless($table->restaurant_id === $restaurant->id, 403);
+
+        $result = (new Builder(
+            writer: new SvgWriter(),
+            data: route('menu.show', [$restaurant->slug, $table->table_number]),
+            size: 360,
+            margin: 18,
+        ))->build();
+
+        return response($result->getString(), 200, [
+            'Content-Type' => $result->getMimeType(),
+            'Content-Disposition' => 'inline; filename="zemtab-'.$restaurant->slug.'-table-'.$table->table_number.'.svg"',
+        ]);
     }
 
     private function validated(Request $request): array
