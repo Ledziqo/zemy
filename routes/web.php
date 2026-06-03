@@ -7,6 +7,7 @@ use App\Http\Controllers\OrderController;
 use App\Http\Controllers\PublicController;
 use App\Http\Controllers\Restaurant;
 use App\Http\Controllers\ServiceRequestController;
+use App\Http\Controllers\SetupController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', [PublicController::class, 'landing'])->name('home');
@@ -16,6 +17,8 @@ Route::get('/sitemap.xml', [PublicController::class, 'sitemap'])->name('sitemap'
 Route::get('/login', [AuthController::class, 'showLogin'])->name('login');
 Route::post('/login', [AuthController::class, 'login'])->name('login.store');
 Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
+Route::get('/setup', [SetupController::class, 'show'])->name('setup.show');
+Route::post('/setup/run', [SetupController::class, 'run'])->name('setup.run');
 
 Route::get('/r/{restaurant_slug}/table/{table_number}', [MenuController::class, 'show'])->name('menu.show');
 Route::post('/r/{restaurant_slug}/table/{table_number}/orders', [OrderController::class, 'store'])->name('orders.store');
