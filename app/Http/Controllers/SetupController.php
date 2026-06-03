@@ -179,8 +179,8 @@ class SetupController extends Controller
                 continue;
             }
 
-            $allTablesExist = collect($tables)->every(fn ($table) => Schema::hasTable($table));
-            if ($allTablesExist) {
+            $anyTableExists = collect($tables)->contains(fn ($table) => Schema::hasTable($table));
+            if ($anyTableExists) {
                 DB::table('migrations')->insert([
                     'migration' => $migration,
                     'batch' => $batch,
