@@ -6,6 +6,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\File;
+use Illuminate\Support\Facades\Schema;
 use Throwable;
 
 class SetupController extends Controller
@@ -54,6 +55,8 @@ class SetupController extends Controller
 
     private function runSetupCommands(array &$output): void
     {
+        $this->baselineExistingDatabase($output);
+
         Artisan::call('migrate', ['--force' => true]);
         $output[] = Artisan::output();
 
@@ -146,5 +149,44 @@ class SetupController extends Controller
             'database' => config('database.connections.mysql.database'),
             'username' => config('database.connections.mysql.username'),
         ];
+    }
+
+    private function baselineExistingDatabase(array &$output): void
+    {
+        if (! Schema::hasTable('users')) {
+            return;
+        }
+
+        if (! Schema::hasTable('migrations')) {
+            Schema::create('migrations', function ($table) {
+                $table->id();
+                $table->string('migration');
+                $table->integer('batch');
+            });
+        }
+
+        $knownMigrations = [
+            '0001_01_01_000000_create_users_table' => ['users', 'password_reset_tokens', 'sessions'],
+            '0001_01_01_000001_create_cache_table' => ['cache', 'cache_locks'],
+            '0001_01_01_000002_create_jobs_table' => ['jobs', 'job_batches', 'failed_jobs'],
+            '2026_06_01_000000_create_zemtab_tables' => ['restaurants', 'categories', 'menu_items', 'restaurant_tables', 'orders', 'order_items', 'service_requests', 'demo_requests', 'subscriptions', 'payments'],
+        ];
+
+        $batch = (int) DB::table('migrations')->max('batch') ?: 1;
+
+        foreach ($knownMigrations as $migration => $tables) {
+            if (DB::table('migrations')->where('migration', $migration)->exists()) {
+                continue;
+            }
+
+            $allTablesExist = collect($tables)->every(fn ($table) => Schema::hasTable($table));
+            if ($allTablesExist) {
+                DB::table('migrations')->insert([
+                    'migration' => $migration,
+                    'batch' => $batch,
+                ]);
+                $output[] = 'Marked existing migration as complete: '.$migration;
+            }
+        }
     }
 }
