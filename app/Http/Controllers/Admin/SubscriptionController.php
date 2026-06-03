@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Restaurant;
 use App\Models\Subscription;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Schema;
 
 class SubscriptionController extends Controller
 {
@@ -28,11 +29,13 @@ class SubscriptionController extends Controller
         $data = $this->validated($request);
         $subscription->update($data);
 
-        $restaurant = $subscription->restaurant;
-        if ($data['status'] === 'active') {
-            $restaurant->update(['dashboard_access_status' => 'active']);
-        } elseif ($data['status'] === 'unpaid' && $restaurant->dashboard_access_status !== 'revoked') {
-            $restaurant->update(['dashboard_access_status' => 'payment_required']);
+        if (Schema::hasColumn('restaurants', 'dashboard_access_status')) {
+            $restaurant = $subscription->restaurant;
+            if ($data['status'] === 'active') {
+                $restaurant->update(['dashboard_access_status' => 'active']);
+            } elseif ($data['status'] === 'unpaid' && $restaurant->dashboard_access_status !== 'revoked') {
+                $restaurant->update(['dashboard_access_status' => 'payment_required']);
+            }
         }
 
         return back()->with('success', 'Subscription updated.');

@@ -12,7 +12,7 @@
         @foreach($restaurants as $restaurant)
             @php($subscription = $restaurant->subscriptions->sortByDesc('created_at')->first())
             <div class="rounded-md border border-zem-border bg-zem-bg p-3">
-                <div class="flex flex-wrap items-center justify-between gap-2"><strong>{{ $restaurant->name }}</strong><x-status :status="$restaurant->dashboard_access_status" /></div>
+                <div class="flex flex-wrap items-center justify-between gap-2"><strong>{{ $restaurant->name }}</strong><x-status :status="$hasDashboardAccessStatus ? ($restaurant->dashboard_access_status ?? 'active') : 'active'" /></div>
                 <p class="mt-1 text-sm text-zem-muted">{{ $restaurant->location ?: 'No location' }} - {{ $subscription?->status ?? 'no subscription' }}</p>
             </div>
         @endforeach

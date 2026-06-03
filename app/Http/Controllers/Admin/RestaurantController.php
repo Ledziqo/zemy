@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Restaurant;
 use App\Models\Subscription;
 use App\Models\User;
+use Illuminate\Support\Facades\Schema;
 use Illuminate\Validation\Rule;
 use Illuminate\Http\Request;
 
@@ -21,7 +22,12 @@ class RestaurantController extends Controller
 
     public function store(Request $request)
     {
-        Restaurant::create($this->validated($request));
+        $data = $this->validated($request);
+        if (! Schema::hasColumn('restaurants', 'dashboard_access_status')) {
+            unset($data['dashboard_access_status']);
+        }
+
+        Restaurant::create($data);
         return back()->with('success', 'Restaurant created.');
     }
 
@@ -30,6 +36,10 @@ class RestaurantController extends Controller
         $data = $this->validated($request, $restaurant->id);
         $subscriptionStatus = $data['subscription_status'] ?? null;
         unset($data['subscription_status']);
+
+        if (! Schema::hasColumn('restaurants', 'dashboard_access_status')) {
+            unset($data['dashboard_access_status']);
+        }
 
         $restaurant->update($data);
 
@@ -44,7 +54,11 @@ class RestaurantController extends Controller
                 ]
             );
 
-            if ($subscriptionStatus === 'unpaid' && $restaurant->dashboard_access_status === 'active') {
+            if (
+                Schema::hasColumn('restaurants', 'dashboard_access_status')
+                && $subscriptionStatus === 'unpaid'
+                && ($restaurant->dashboard_access_status ?? 'active') === 'active'
+            ) {
                 $restaurant->update(['dashboard_access_status' => 'payment_required']);
             }
         }

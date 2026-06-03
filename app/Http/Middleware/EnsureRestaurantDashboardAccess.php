@@ -14,7 +14,7 @@ class EnsureRestaurantDashboardAccess
         abort_unless($restaurant, 403);
 
         $latestSubscription = $restaurant->subscriptions()->latest()->first();
-        $status = $restaurant->dashboard_access_status;
+        $status = $restaurant->dashboard_access_status ?? 'active';
 
         if ($status !== 'active' || $latestSubscription?->status === 'unpaid') {
             return redirect()->route('restaurant.access-required');
