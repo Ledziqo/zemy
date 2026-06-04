@@ -302,7 +302,7 @@
             <div class="grid gap-8 md:grid-cols-4">
                 <div class="md:col-span-2">
                     <a href="/" class="inline-flex items-center">
-                        <img src="{{ asset('logo/zemtab-text-transparent.png') }}" alt="ZemTab" class="h-8 w-auto">
+                        <img src="{{ asset('logo/zemtab-text-transparent-dark.png') }}" alt="ZemTab" class="h-8 w-auto">
                     </a>
                     <p class="mt-3 max-w-sm leading-6">German-made QR Menu & Table Ordering for modern restaurants, cafes, and lounges across Ethiopia.</p>
                     <p class="mt-3">Based in <span itemprop="address" itemscope itemtype="https://schema.org/PostalAddress"><span itemprop="addressLocality">Addis Ababa</span>, <span itemprop="addressCountry">Ethiopia</span></span>.</p>
