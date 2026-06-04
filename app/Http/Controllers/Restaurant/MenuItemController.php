@@ -53,13 +53,19 @@ class MenuItemController extends Controller
             'description' => ['nullable', 'string'],
             'price' => ['required', 'numeric', 'min:0'],
             'image' => ['nullable', 'image', 'max:4096'],
+            'cropped_image' => ['nullable', 'string'],
             'image_path' => ['nullable', 'string', 'max:255'],
             'sort_order' => ['nullable', 'integer'],
             'is_available' => ['nullable', 'boolean'],
             'is_featured' => ['nullable', 'boolean'],
         ]);
 
-        if ($request->hasFile('image')) {
+        if ($request->filled('cropped_image')) {
+            $imagePath = $this->storeCroppedImage($request->input('cropped_image'));
+            if ($imagePath) {
+                $data['image_path'] = $imagePath;
+            }
+        } elseif ($request->hasFile('image')) {
             $file = $request->file('image');
             $filename = Str::uuid().'.'.$file->getClientOriginalExtension();
             $destination = public_path('uploads/menu-items');
@@ -70,12 +76,37 @@ class MenuItemController extends Controller
             $data['image_path'] = 'uploads/menu-items/'.$filename;
         }
 
-        unset($data['image']);
+        unset($data['image'], $data['cropped_image']);
 
         return $data + [
             'restaurant_id' => $restaurantId,
             'is_available' => $request->boolean('is_available'),
             'is_featured' => $request->boolean('is_featured'),
         ];
+    }
+
+    private function storeCroppedImage(string $dataUrl): ?string
+    {
+        if (! preg_match('/^data:image\/(jpeg|jpg|png|webp);base64,/', $dataUrl, $matches)) {
+            return null;
+        }
+
+        $extension = $matches[1] === 'jpeg' ? 'jpg' : $matches[1];
+        $base64 = substr($dataUrl, strpos($dataUrl, ',') + 1);
+        $binary = base64_decode($base64, true);
+
+        if ($binary === false) {
+            return null;
+        }
+
+        $destination = public_path('uploads/menu-items');
+        if (! is_dir($destination)) {
+            mkdir($destination, 0755, true);
+        }
+
+        $filename = Str::uuid().'.'.$extension;
+        file_put_contents($destination.DIRECTORY_SEPARATOR.$filename, $binary);
+
+        return 'uploads/menu-items/'.$filename;
     }
 }
