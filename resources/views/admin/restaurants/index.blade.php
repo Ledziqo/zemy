@@ -45,13 +45,33 @@
             <button class="rounded-md bg-zem-gold px-4 py-2 font-bold text-white">Save access</button>
             <a href="{{ route('menu.show', [$restaurant->slug, 1]) }}" class="rounded-md border border-zem-border px-4 py-2 text-center">View table 1</a>
         </form>
-        <form method="post" action="{{ route('admin.restaurants.password.update', $restaurant) }}" class="mt-3 grid gap-3 border-t border-zem-border pt-3 md:grid-cols-[1fr_auto]">
+        <form method="post" action="{{ route('admin.restaurants.password.update', $restaurant) }}" class="mt-3 border-t border-zem-border pt-3" data-password-form>
             @csrf @method('PATCH')
-            <input name="password" type="password" required minlength="8" placeholder="New restaurant login password" class="rounded-md border border-zem-border bg-zem-bg px-3 py-2">
-            <button class="rounded-md border border-zem-gold px-4 py-2 font-bold text-white transition hover:bg-zem-gold">Change password</button>
+            <button type="button" class="rounded-md border border-zem-gold px-4 py-2 font-bold text-white transition hover:bg-zem-gold" data-password-toggle>Change password</button>
+            <div class="mt-3 hidden grid gap-3 md:grid-cols-[1fr_auto]" data-password-fields>
+                <input name="password" type="password" required minlength="8" placeholder="New restaurant login password" class="rounded-md border border-zem-border bg-zem-bg px-3 py-2" disabled data-password-input>
+                <button class="rounded-md bg-zem-gold px-4 py-2 font-bold text-white">Save new password</button>
+            </div>
         </form>
     </article>
 @endforeach
 </div>
 <div class="mt-5">{{ $restaurants->links() }}</div>
+<script>
+    document.addEventListener('click', function(event) {
+        const toggle = event.target.closest('[data-password-toggle]');
+        if (! toggle) return;
+
+        const form = toggle.closest('[data-password-form]');
+        const fields = form.querySelector('[data-password-fields]');
+        const input = form.querySelector('[data-password-input]');
+
+        fields.classList.toggle('hidden');
+        input.disabled = fields.classList.contains('hidden');
+
+        if (! input.disabled) {
+            input.focus();
+        }
+    });
+</script>
 @endsection
