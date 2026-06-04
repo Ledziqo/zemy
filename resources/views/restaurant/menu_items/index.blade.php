@@ -73,7 +73,16 @@
                     <select name="category_id" class="rounded-md border border-zem-border bg-zem-card px-3 py-2">@foreach($categories as $category)<option value="{{ $category->id }}" @selected($menuItem->category_id===$category->id)>{{ $category->name }}</option>@endforeach</select>
                     <input name="name" value="{{ $menuItem->name }}" class="rounded-md border border-zem-border bg-zem-card px-3 py-2">
                     <input name="price" value="{{ $menuItem->price }}" type="number" step="0.01" class="rounded-md border border-zem-border bg-zem-card px-3 py-2">
-                    <input name="image" type="file" accept="image/*" class="rounded-md border border-zem-border bg-zem-card px-3 py-2 text-sm" data-image-crop-input>
+                    <div class="rounded-md border border-zem-border bg-zem-card p-3">
+                        <p class="text-xs font-bold uppercase tracking-widest text-zem-muted">Photo</p>
+                        <input name="image" type="file" accept="image/*" class="hidden" data-image-crop-input>
+                        <div class="mt-2 flex flex-wrap gap-2">
+                            <button type="button" class="rounded-md border border-zem-border px-3 py-2 text-sm font-bold text-white hover:border-zem-gold" data-photo-edit-button data-current-image="{{ $imageUrl }}">{{ $imageUrl ? 'Edit photo' : 'Add photo' }}</button>
+                            @if($imageUrl)
+                                <button type="button" class="rounded-md border border-zem-border px-3 py-2 text-sm font-bold text-white hover:border-zem-gold" data-photo-replace-button>Replace photo</button>
+                            @endif
+                        </div>
+                    </div>
                     <input name="cropped_image" type="hidden" data-cropped-image>
                     <textarea name="description" class="rounded-md border border-zem-border bg-zem-card px-3 py-2">{{ $menuItem->description }}</textarea>
                     <div class="flex flex-wrap gap-4 text-sm">
@@ -82,6 +91,12 @@
                     </div>
                     <button class="rounded-md bg-zem-gold px-4 py-2 font-bold text-white">Save</button>
                 </form>
+                @if($imageUrl)
+                    <form method="post" action="{{ route('restaurant.menu-items.remove-photo', $menuItem) }}" class="mt-3">
+                        @csrf @method('PATCH')
+                        <button class="w-full rounded-md border border-red-500/40 px-4 py-2 text-sm font-bold text-red-200 hover:bg-red-700 hover:text-white">Remove photo</button>
+                    </form>
+                @endif
                 <form method="post" action="{{ route('restaurant.menu-items.destroy', $menuItem) }}" class="mt-3">@csrf @method('DELETE')<button class="rounded-md border border-red-500/40 px-4 py-2 text-sm font-bold text-red-200">Delete item</button></form>
             </details>
         </div>

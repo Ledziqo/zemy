@@ -27,8 +27,6 @@
     <input name="slug" value="{{ $restaurant->slug }}" placeholder="Restaurant link name" class="rounded-md border border-zem-border bg-zem-bg px-3 py-2">
     <input name="phone" value="{{ $restaurant->phone }}" placeholder="Phone" class="rounded-md border border-zem-border bg-zem-bg px-3 py-2">
     <input name="location" value="{{ $restaurant->location }}" placeholder="Location" class="rounded-md border border-zem-border bg-zem-bg px-3 py-2">
-    <input name="logo_path" value="{{ $restaurant->logo_path }}" placeholder="Logo path" class="rounded-md border border-zem-border bg-zem-bg px-3 py-2">
-    <input name="cover_image_path" value="{{ $restaurant->cover_image_path }}" placeholder="Cover image path" class="rounded-md border border-zem-border bg-zem-bg px-3 py-2">
     <label class="flex items-center justify-between gap-3 rounded-md border border-zem-border bg-zem-bg px-3 py-2 text-zem-muted">
         <span>Menu theme color</span>
         <input name="primary_color" value="{{ $primaryColor }}" type="color" class="h-10 w-20 cursor-pointer rounded border border-zem-border bg-zem-card p-1">
