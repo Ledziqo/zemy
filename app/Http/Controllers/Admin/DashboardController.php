@@ -24,8 +24,9 @@ class DashboardController extends Controller
             'activeSubscriptions' => $hasSubscriptions ? Subscription::where('status', 'active')->count() : 0,
             'unpaidSubscriptions' => $hasSubscriptions ? Subscription::where('status', 'unpaid')->count() : 0,
             'revokedRestaurants' => $hasDashboardAccessStatus ? Restaurant::where('dashboard_access_status', 'revoked')->count() : 0,
-            'recentOrders' => Order::with('restaurant', 'items')->latest()->limit(10)->get(),
-            'restaurants' => $hasSubscriptions ? Restaurant::with('subscriptions')->latest()->limit(12)->get() : Restaurant::latest()->limit(12)->get(),
+            'restaurants' => $hasSubscriptions
+                ? Restaurant::with('subscriptions')->withCount('orders')->latest()->limit(12)->get()
+                : Restaurant::withCount('orders')->latest()->limit(12)->get(),
             'hasDashboardAccessStatus' => $hasDashboardAccessStatus,
             'hasSubscriptions' => $hasSubscriptions,
         ]);

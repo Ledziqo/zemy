@@ -7,7 +7,6 @@
             ['Users', route('admin.users.index')],
             ['Demo Requests', route('admin.demo-requests.index')],
             ['Subscriptions', route('admin.subscriptions.index')],
-            ['Orders', route('admin.orders.index')],
         ]
         : [
             ['Overview', route('restaurant.dashboard')],

@@ -49,5 +49,4 @@ Route::middleware(['auth', 'role:admin'])->prefix('admin')->name('admin.')->grou
     Route::get('/demo-requests', [Admin\DemoRequestController::class, 'index'])->name('demo-requests.index');
     Route::patch('/demo-requests/{demoRequest}', [Admin\DemoRequestController::class, 'update'])->name('demo-requests.update');
     Route::resource('/subscriptions', Admin\SubscriptionController::class)->only(['index', 'store', 'update']);
-    Route::get('/orders', [Admin\OrderController::class, 'index'])->name('orders.index');
 });

@@ -15,8 +15,8 @@
             <input name="logo" type="file" accept="image/*" class="rounded-md border border-zem-border bg-zem-card px-3 py-3 text-sm">
         </div>
     </div>
-    <input name="name" value="{{ $restaurant->name }}" class="rounded-md border border-zem-border bg-zem-bg px-3 py-2">
-    <input name="slug" value="{{ $restaurant->slug }}" class="rounded-md border border-zem-border bg-zem-bg px-3 py-2">
+    <input name="name" value="{{ $restaurant->name }}" placeholder="Restaurant name" class="rounded-md border border-zem-border bg-zem-bg px-3 py-2">
+    <input name="slug" value="{{ $restaurant->slug }}" placeholder="Restaurant link name" class="rounded-md border border-zem-border bg-zem-bg px-3 py-2">
     <input name="phone" value="{{ $restaurant->phone }}" placeholder="Phone" class="rounded-md border border-zem-border bg-zem-bg px-3 py-2">
     <input name="location" value="{{ $restaurant->location }}" placeholder="Location" class="rounded-md border border-zem-border bg-zem-bg px-3 py-2">
     <input name="logo_path" value="{{ $restaurant->logo_path }}" placeholder="Logo path" class="rounded-md border border-zem-border bg-zem-bg px-3 py-2">

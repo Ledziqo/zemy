@@ -2,7 +2,7 @@
 
 @section('content')
 <div class="grid gap-4 md:grid-cols-5">
-    @foreach([['Restaurants',$totalRestaurants],['Active',$activeRestaurants],['Orders',$totalOrders],['Demo requests',$pendingDemoRequests],['Paid subs',$activeSubscriptions],['Unpaid',$unpaidSubscriptions],['Revoked',$revokedRestaurants]] as $card)
+    @foreach([['Restaurants',$totalRestaurants],['Active',$activeRestaurants],['Customer orders',$totalOrders],['Demo requests',$pendingDemoRequests],['Paid subs',$activeSubscriptions],['Unpaid',$unpaidSubscriptions],['Revoked',$revokedRestaurants]] as $card)
         <div class="rounded-md border border-zem-border bg-zem-card p-4"><p class="text-sm text-zem-muted">{{ $card[0] }}</p><p class="mt-2 text-2xl font-extrabold">{{ $card[1] }}</p></div>
     @endforeach
 </div>
@@ -12,14 +12,18 @@
         @foreach($restaurants as $restaurant)
             @php($subscription = $hasSubscriptions ? $restaurant->subscriptions->sortByDesc('created_at')->first() : null)
             <div class="rounded-md border border-zem-border bg-zem-bg p-3">
-                <div class="flex flex-wrap items-center justify-between gap-2"><strong>{{ $restaurant->name }}</strong><x-status :status="$hasDashboardAccessStatus ? ($restaurant->dashboard_access_status ?? 'active') : 'active'" /></div>
-                <p class="mt-1 text-sm text-zem-muted">{{ $restaurant->location ?: 'No location' }} - {{ $subscription?->status ?? 'no subscription' }}</p>
+                <div class="flex flex-wrap items-center justify-between gap-2">
+                    <strong>{{ $restaurant->name }}</strong>
+                    <span class="rounded-full border border-zem-border bg-black px-3 py-1 text-xs font-bold text-zem-muted">{{ number_format($restaurant->orders_count) }} orders</span>
+                </div>
+                <div class="mt-2 flex flex-wrap items-center gap-2 text-sm text-zem-muted">
+                    <span>{{ $restaurant->location ?: 'No location' }}</span>
+                    <span>-</span>
+                    <span>{{ $subscription?->status ?? 'no subscription' }}</span>
+                    <x-status :status="$hasDashboardAccessStatus ? ($restaurant->dashboard_access_status ?? 'active') : 'active'" />
+                </div>
             </div>
         @endforeach
     </div>
-</section>
-<section class="mt-6 rounded-md border border-zem-border bg-zem-card p-4">
-    <h2 class="font-display text-xl font-bold">Recent orders</h2>
-    <div class="mt-4 grid gap-3">@foreach($recentOrders as $order)<div class="rounded-md border border-zem-border bg-zem-bg p-3"><strong>#{{ $order->id }} · {{ $order->restaurant->name }}</strong><p class="text-sm text-zem-muted">Table {{ $order->table_number }} · {{ number_format($order->total) }} ETB</p></div>@endforeach</div>
 </section>
 @endsection
