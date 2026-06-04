@@ -1,6 +1,7 @@
 @extends('layouts.dashboard', ['heading' => $restaurant->name, 'eyebrow' => 'Restaurant Overview', 'autoRefreshSeconds' => 10])
 
 @section('content')
+@include('restaurant.partials.order_sound_alerts', ['latestOrderId' => $latestOrderId])
 <div class="grid gap-4 md:grid-cols-3 xl:grid-cols-6">
     @foreach([['Today orders',$todayOrders],['All orders',$allOrders],['New',$newOrders],['Preparing',$preparingOrders],['Served / done',$servedOrders],['Completed',$completedOrders],['Revenue',number_format($revenue).' ETB']] as $card)
         <div class="rounded-md border border-zem-border bg-zem-card p-4"><p class="text-sm text-zem-muted">{{ $card[0] }}</p><p class="mt-2 text-2xl font-extrabold">{{ $card[1] }}</p></div>

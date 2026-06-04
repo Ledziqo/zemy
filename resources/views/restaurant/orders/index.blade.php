@@ -1,6 +1,7 @@
 @extends('layouts.dashboard', ['heading' => 'Orders', 'eyebrow' => 'Live order board', 'autoRefreshSeconds' => 5])
 
 @section('content')
+@include('restaurant.partials.order_sound_alerts', ['latestOrderId' => $latestOrderId])
 <div class="mb-4 flex justify-end"><a href="{{ route('restaurant.orders.index') }}" class="rounded-md border border-zem-border px-4 py-2 text-sm font-bold">Refresh</a></div>
 <div class="grid gap-4 xl:grid-cols-2">
 @foreach($orders as $order)

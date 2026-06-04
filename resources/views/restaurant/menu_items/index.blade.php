@@ -27,19 +27,33 @@
             @else
                 <div class="grid h-full place-items-center bg-[linear-gradient(135deg,#111,#2a0710)] text-5xl font-extrabold text-white">{{ strtoupper(substr($menuItem->name, 0, 1)) }}</div>
             @endif
-            <div class="absolute left-3 top-3"><x-status :status="$menuItem->is_available ? 'active' : 'cancelled'" /></div>
-            <form method="post" action="{{ route('restaurant.menu-items.update', $menuItem) }}" enctype="multipart/form-data" class="absolute bottom-3 left-3">
+            <form method="post" action="{{ route('restaurant.menu-items.availability', $menuItem) }}" class="absolute left-3 top-3">
                 @csrf @method('PATCH')
-                <input name="category_id" type="hidden" value="{{ $menuItem->category_id }}">
-                <input name="name" type="hidden" value="{{ $menuItem->name }}">
-                <input name="price" type="hidden" value="{{ $menuItem->price }}">
-                <input name="description" type="hidden" value="{{ $menuItem->description }}">
-                @if($menuItem->is_available)<input name="is_available" type="hidden" value="1">@endif
-                @if($menuItem->is_featured)<input name="is_featured" type="hidden" value="1">@endif
-                <input name="image" type="file" accept="image/*" class="hidden" data-image-crop-input data-auto-submit-on-crop>
-                <input name="cropped_image" type="hidden" data-cropped-image>
-                <button type="button" class="rounded-full bg-black/80 px-3 py-1 text-xs font-extrabold text-white backdrop-blur transition hover:bg-zem-gold" data-photo-edit-button data-current-image="{{ $imageUrl }}">Edit photo</button>
+                <button class="rounded-full border px-3 py-1 text-xs font-extrabold backdrop-blur transition {{ $menuItem->is_available ? 'border-green-500/30 bg-green-500/15 text-green-200 hover:bg-green-500/30' : 'border-red-500/30 bg-red-500/15 text-red-200 hover:bg-red-500/30' }}">{{ $menuItem->is_available ? 'Available' : 'Unavailable' }}</button>
             </form>
+            <div class="absolute bottom-3 left-3 flex flex-wrap gap-2">
+                <form method="post" action="{{ route('restaurant.menu-items.update', $menuItem) }}" enctype="multipart/form-data" class="flex flex-wrap gap-2">
+                    @csrf @method('PATCH')
+                    <input name="category_id" type="hidden" value="{{ $menuItem->category_id }}">
+                    <input name="name" type="hidden" value="{{ $menuItem->name }}">
+                    <input name="price" type="hidden" value="{{ $menuItem->price }}">
+                    <input name="description" type="hidden" value="{{ $menuItem->description }}">
+                    @if($menuItem->is_available)<input name="is_available" type="hidden" value="1">@endif
+                    @if($menuItem->is_featured)<input name="is_featured" type="hidden" value="1">@endif
+                    <input name="image" type="file" accept="image/*" class="hidden" data-image-crop-input data-auto-submit-on-crop>
+                    <input name="cropped_image" type="hidden" data-cropped-image>
+                    <button type="button" class="rounded-full bg-black/80 px-3 py-1 text-xs font-extrabold text-white backdrop-blur transition hover:bg-zem-gold" data-photo-edit-button data-current-image="{{ $imageUrl }}">{{ $imageUrl ? 'Edit photo' : 'Add photo' }}</button>
+                    @if($imageUrl)
+                        <button type="button" class="rounded-full bg-black/80 px-3 py-1 text-xs font-extrabold text-white backdrop-blur transition hover:bg-zem-gold" data-photo-replace-button>Replace</button>
+                    @endif
+                </form>
+                @if($imageUrl)
+                    <form method="post" action="{{ route('restaurant.menu-items.remove-photo', $menuItem) }}">
+                        @csrf @method('PATCH')
+                        <button class="rounded-full bg-black/80 px-3 py-1 text-xs font-extrabold text-red-200 backdrop-blur transition hover:bg-red-700 hover:text-white">Remove</button>
+                    </form>
+                @endif
+            </div>
             <div class="absolute bottom-3 right-3 rounded-full bg-black/80 px-3 py-1 text-sm font-extrabold text-white">{{ number_format($menuItem->price) }} ETB</div>
         </div>
         <div class="p-4">
@@ -174,6 +188,13 @@
                 activeHidden = form.querySelector('[data-cropped-image]');
                 shouldAutoSubmit = true;
                 openCropper(currentImage);
+            });
+        });
+
+        document.querySelectorAll('[data-photo-replace-button]').forEach((button) => {
+            button.addEventListener('click', () => {
+                const input = button.closest('form').querySelector('[data-image-crop-input]');
+                input.click();
             });
         });
 

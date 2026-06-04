@@ -18,6 +18,16 @@ class TableController extends Controller
         return view('restaurant.tables.index', ['restaurant' => $restaurant, 'tables' => $restaurant->tables()->orderByRaw('CAST(table_number AS UNSIGNED)')->paginate(50)]);
     }
 
+    public function setupPack(Request $request)
+    {
+        $restaurant = $this->restaurant($request);
+
+        return view('restaurant.tables.setup_pack', [
+            'restaurant' => $restaurant,
+            'tables' => $restaurant->tables()->where('is_active', true)->orderByRaw('CAST(table_number AS UNSIGNED)')->get(),
+        ]);
+    }
+
     public function store(Request $request)
     {
         $this->restaurant($request)->tables()->create($this->validated($request));

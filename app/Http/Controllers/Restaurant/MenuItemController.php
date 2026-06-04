@@ -38,6 +38,24 @@ class MenuItemController extends Controller
         return back()->with('success', 'Menu item updated.');
     }
 
+    public function toggleAvailability(Request $request, MenuItem $menuItem)
+    {
+        abort_unless($menuItem->restaurant_id === $this->restaurant($request)->id, 403);
+
+        $menuItem->update(['is_available' => ! $menuItem->is_available]);
+
+        return back()->with('success', $menuItem->is_available ? 'Item marked available.' : 'Item marked unavailable.');
+    }
+
+    public function removePhoto(Request $request, MenuItem $menuItem)
+    {
+        abort_unless($menuItem->restaurant_id === $this->restaurant($request)->id, 403);
+
+        $menuItem->update(['image_path' => null]);
+
+        return back()->with('success', 'Menu item photo removed.');
+    }
+
     public function destroy(Request $request, MenuItem $menuItem)
     {
         abort_unless($menuItem->restaurant_id === $this->restaurant($request)->id, 403);

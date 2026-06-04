@@ -10,6 +10,7 @@
         ]
         : [
             ['Overview', route('restaurant.dashboard')],
+            ['Analytics', route('restaurant.analytics')],
             ['Orders', route('restaurant.orders.index')],
             ['Menu Items', route('restaurant.menu-items.index')],
             ['Categories', route('restaurant.categories.index')],

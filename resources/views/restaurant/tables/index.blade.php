@@ -1,6 +1,9 @@
 @extends('layouts.dashboard', ['heading' => 'Tables / QR Codes'])
 
 @section('content')
+<div class="mb-4 flex justify-end">
+    <a href="{{ route('restaurant.tables.setup-pack') }}" target="_blank" class="rounded-md border border-zem-gold px-4 py-2 text-sm font-bold text-white transition hover:bg-zem-gold">Print setup pack</a>
+</div>
 <form method="post" action="{{ route('restaurant.tables.store') }}" class="mb-6 grid gap-3 rounded-md border border-zem-border bg-zem-card p-4 md:grid-cols-[1fr_1fr_auto_auto]">
     @csrf
     <input name="table_number" required placeholder="Table number, e.g. 1" class="rounded-md border border-zem-border bg-zem-bg px-3 py-3">

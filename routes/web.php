@@ -29,11 +29,15 @@ Route::middleware(['auth', 'role:restaurant_owner,staff'])->prefix('restaurant')
     Route::get('/access-required', [Restaurant\AccessController::class, 'show'])->name('access-required');
     Route::middleware('restaurant.access')->group(function () {
         Route::get('/dashboard', [Restaurant\DashboardController::class, 'index'])->name('dashboard');
+        Route::get('/analytics', [Restaurant\DashboardController::class, 'analytics'])->name('analytics');
         Route::get('/orders', [Restaurant\DashboardController::class, 'orders'])->name('orders.index');
         Route::patch('/orders/{order}', [Restaurant\DashboardController::class, 'updateOrder'])->name('orders.update');
+        Route::patch('/menu-items/{menu_item}/availability', [Restaurant\MenuItemController::class, 'toggleAvailability'])->name('menu-items.availability');
+        Route::patch('/menu-items/{menu_item}/remove-photo', [Restaurant\MenuItemController::class, 'removePhoto'])->name('menu-items.remove-photo');
         Route::resource('/menu-items', Restaurant\MenuItemController::class)->only(['index', 'store', 'update', 'destroy']);
         Route::resource('/categories', Restaurant\CategoryController::class)->only(['index', 'store', 'update', 'destroy']);
         Route::get('/tables/{table}/qr', [Restaurant\TableController::class, 'qr'])->name('tables.qr');
+        Route::get('/tables/qr/setup-pack', [Restaurant\TableController::class, 'setupPack'])->name('tables.setup-pack');
         Route::resource('/tables', Restaurant\TableController::class)->only(['index', 'store', 'update', 'destroy']);
         Route::get('/service-requests', [Restaurant\ServiceRequestController::class, 'index'])->name('service-requests.index');
         Route::patch('/service-requests/{serviceRequest}', [Restaurant\ServiceRequestController::class, 'update'])->name('service-requests.update');
