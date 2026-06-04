@@ -42,7 +42,7 @@
                     @if($menuItem->is_featured)<input name="is_featured" type="hidden" value="1">@endif
                     <input name="image" type="file" accept="image/*" class="hidden" data-image-crop-input data-auto-submit-on-crop>
                     <input name="cropped_image" type="hidden" data-cropped-image>
-                    <button type="button" class="rounded-full bg-black/80 px-3 py-1 text-xs font-extrabold text-white backdrop-blur transition hover:bg-zem-gold" data-photo-edit-button data-current-image="{{ $imageUrl }}">{{ $imageUrl ? 'Edit photo' : 'Add photo' }}</button>
+                    <button type="button" class="rounded-full bg-black/80 px-3 py-1 text-xs font-extrabold text-white backdrop-blur transition hover:bg-zem-gold" data-photo-edit-button data-current-image="{{ $imageUrl }}" @if($imageUrl) data-remove-photo-url="{{ route('restaurant.menu-items.remove-photo', $menuItem) }}" @endif>{{ $imageUrl ? 'Edit photo' : 'Add photo' }}</button>
                 </form>
             </div>
             <div class="absolute bottom-3 right-3 rounded-full bg-black/80 px-3 py-1 text-sm font-extrabold text-white">{{ number_format($menuItem->price) }} ETB</div>
@@ -68,7 +68,7 @@
                         <p class="text-xs font-bold uppercase tracking-widest text-zem-muted">Photo</p>
                         <input name="image" type="file" accept="image/*" class="hidden" data-image-crop-input>
                         <div class="mt-2 flex flex-wrap gap-2">
-                            <button type="button" class="rounded-md border border-zem-border px-3 py-2 text-sm font-bold text-white hover:border-zem-gold" data-photo-edit-button data-current-image="{{ $imageUrl }}">{{ $imageUrl ? 'Edit photo' : 'Add photo' }}</button>
+                            <button type="button" class="rounded-md border border-zem-border px-3 py-2 text-sm font-bold text-white hover:border-zem-gold" data-photo-edit-button data-current-image="{{ $imageUrl }}" @if($imageUrl) data-remove-photo-url="{{ route('restaurant.menu-items.remove-photo', $menuItem) }}" @endif>{{ $imageUrl ? 'Edit photo' : 'Add photo' }}</button>
                             @if($imageUrl)
                                 <button type="button" class="rounded-md border border-zem-border px-3 py-2 text-sm font-bold text-white hover:border-zem-gold" data-photo-replace-button>Replace photo</button>
                             @endif
@@ -107,10 +107,12 @@
         <div class="mt-4 max-h-[62vh] overflow-hidden rounded-lg bg-black">
             <img id="image-crop-target" alt="Crop preview" class="max-h-[62vh] w-full object-contain">
         </div>
-        <div class="mt-4 grid gap-3 sm:grid-cols-2 md:grid-cols-[auto_auto_auto_auto]">
+        <div class="mt-4 grid gap-3 sm:grid-cols-2 md:grid-cols-[auto_auto_auto_auto_auto_auto]">
             <button type="button" class="rounded-md border border-zem-border px-4 py-2 font-bold text-white hover:border-zem-gold" data-crop-zoom-out>Zoom out</button>
             <button type="button" class="rounded-md border border-zem-border px-4 py-2 font-bold text-white hover:border-zem-gold" data-crop-zoom-in>Zoom in</button>
             <button type="button" class="rounded-md border border-zem-border px-4 py-2 font-bold text-white hover:border-zem-gold" data-crop-reset>Reset</button>
+            <button type="button" class="rounded-md border border-zem-border px-4 py-2 font-bold text-white hover:border-zem-gold" data-crop-replace>Replace photo</button>
+            <button type="button" class="hidden rounded-md border border-red-500/40 px-4 py-2 font-bold text-red-200 hover:bg-red-700 hover:text-white" data-crop-remove>Remove photo</button>
             <button type="button" class="rounded-md bg-zem-gold px-4 py-2 font-bold text-white" data-crop-apply>Use cropped photo</button>
         </div>
     </div>
@@ -124,11 +126,13 @@
         let activeInput = null;
         let activeHidden = null;
         let activeForm = null;
+        let activeRemoveUrl = null;
         let shouldAutoSubmit = false;
 
         function openCropper(source) {
             modal.classList.remove('hidden');
             modal.classList.add('flex');
+            modal.querySelector('[data-crop-remove]').classList.toggle('hidden', ! activeRemoveUrl);
             if (cropper) cropper.destroy();
             image.onload = () => {
                 cropper = new Cropper(image, {
@@ -159,6 +163,7 @@
             activeInput = null;
             activeHidden = null;
             activeForm = null;
+            activeRemoveUrl = null;
             shouldAutoSubmit = false;
         }
 
@@ -170,6 +175,7 @@
                 activeInput = input;
                 activeForm = input.closest('form');
                 activeHidden = activeForm.querySelector('[data-cropped-image]');
+                activeRemoveUrl = null;
                 shouldAutoSubmit = input.hasAttribute('data-auto-submit-on-crop');
 
                 const reader = new FileReader();
@@ -192,6 +198,7 @@
                 activeInput = input;
                 activeForm = form;
                 activeHidden = form.querySelector('[data-cropped-image]');
+                activeRemoveUrl = button.dataset.removePhotoUrl || null;
                 shouldAutoSubmit = true;
                 openCropper(currentImage);
             });
@@ -217,6 +224,27 @@
         modal.querySelector('[data-crop-reset]').addEventListener('click', () => {
             if (! cropper) return;
             cropper.reset();
+        });
+
+        modal.querySelector('[data-crop-replace]').addEventListener('click', () => {
+            if (! activeInput) return;
+            activeInput.click();
+        });
+
+        modal.querySelector('[data-crop-remove]').addEventListener('click', () => {
+            if (! activeRemoveUrl || ! activeForm) return;
+            const token = activeForm.querySelector('input[name="_token"]')?.value;
+            if (! token) return;
+
+            const form = document.createElement('form');
+            form.method = 'post';
+            form.action = activeRemoveUrl;
+            form.innerHTML = `
+                <input type="hidden" name="_token" value="${token}">
+                <input type="hidden" name="_method" value="PATCH">
+            `;
+            document.body.appendChild(form);
+            form.submit();
         });
 
         modal.querySelector('[data-crop-cancel]').addEventListener('click', () => closeCropper(true));
