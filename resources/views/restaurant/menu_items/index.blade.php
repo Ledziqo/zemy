@@ -43,16 +43,7 @@
                     <input name="image" type="file" accept="image/*" class="hidden" data-image-crop-input data-auto-submit-on-crop>
                     <input name="cropped_image" type="hidden" data-cropped-image>
                     <button type="button" class="rounded-full bg-black/80 px-3 py-1 text-xs font-extrabold text-white backdrop-blur transition hover:bg-zem-gold" data-photo-edit-button data-current-image="{{ $imageUrl }}">{{ $imageUrl ? 'Edit photo' : 'Add photo' }}</button>
-                    @if($imageUrl)
-                        <button type="button" class="rounded-full bg-black/80 px-3 py-1 text-xs font-extrabold text-white backdrop-blur transition hover:bg-zem-gold" data-photo-replace-button>Replace</button>
-                    @endif
                 </form>
-                @if($imageUrl)
-                    <form method="post" action="{{ route('restaurant.menu-items.remove-photo', $menuItem) }}">
-                        @csrf @method('PATCH')
-                        <button class="rounded-full bg-black/80 px-3 py-1 text-xs font-extrabold text-red-200 backdrop-blur transition hover:bg-red-700 hover:text-white">Remove</button>
-                    </form>
-                @endif
             </div>
             <div class="absolute bottom-3 right-3 rounded-full bg-black/80 px-3 py-1 text-sm font-extrabold text-white">{{ number_format($menuItem->price) }} ETB</div>
         </div>
