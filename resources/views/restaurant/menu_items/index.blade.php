@@ -38,7 +38,7 @@
                 @if($menuItem->is_featured)<input name="is_featured" type="hidden" value="1">@endif
                 <input name="image" type="file" accept="image/*" class="hidden" data-image-crop-input data-auto-submit-on-crop>
                 <input name="cropped_image" type="hidden" data-cropped-image>
-                <button type="button" class="rounded-full bg-black/80 px-3 py-1 text-xs font-extrabold text-white backdrop-blur transition hover:bg-zem-gold" data-photo-edit-button>Edit photo</button>
+                <button type="button" class="rounded-full bg-black/80 px-3 py-1 text-xs font-extrabold text-white backdrop-blur transition hover:bg-zem-gold" data-photo-edit-button data-current-image="{{ $imageUrl }}">Edit photo</button>
             </form>
             <div class="absolute bottom-3 right-3 rounded-full bg-black/80 px-3 py-1 text-sm font-extrabold text-white">{{ number_format($menuItem->price) }} ETB</div>
         </div>
@@ -103,6 +103,27 @@
         let cropper = null;
         let activeInput = null;
         let activeHidden = null;
+        let activeForm = null;
+        let shouldAutoSubmit = false;
+
+        function openCropper(source) {
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+            if (cropper) cropper.destroy();
+            image.onload = () => {
+                cropper = new Cropper(image, {
+                    aspectRatio: 1,
+                    viewMode: 1,
+                    dragMode: 'move',
+                    autoCropArea: 1,
+                    background: false,
+                    responsive: true,
+                    zoomOnWheel: true,
+                });
+                image.onload = null;
+            };
+            image.src = source;
+        }
 
         function closeCropper(clearFile = false) {
             modal.classList.add('hidden');
@@ -117,6 +138,8 @@
             }
             activeInput = null;
             activeHidden = null;
+            activeForm = null;
+            shouldAutoSubmit = false;
         }
 
         document.querySelectorAll('[data-image-crop-input]').forEach((input) => {
@@ -125,32 +148,32 @@
                 if (! file) return;
 
                 activeInput = input;
-                activeHidden = input.closest('form').querySelector('[data-cropped-image]');
+                activeForm = input.closest('form');
+                activeHidden = activeForm.querySelector('[data-cropped-image]');
+                shouldAutoSubmit = input.hasAttribute('data-auto-submit-on-crop');
 
                 const reader = new FileReader();
-                reader.onload = () => {
-                    image.src = reader.result;
-                    modal.classList.remove('hidden');
-                    modal.classList.add('flex');
-                    if (cropper) cropper.destroy();
-                    cropper = new Cropper(image, {
-                        aspectRatio: 1,
-                        viewMode: 1,
-                        dragMode: 'move',
-                        autoCropArea: 1,
-                        background: false,
-                        responsive: true,
-                        zoomOnWheel: true,
-                    });
-                };
+                reader.onload = () => openCropper(reader.result);
                 reader.readAsDataURL(file);
             });
         });
 
         document.querySelectorAll('[data-photo-edit-button]').forEach((button) => {
             button.addEventListener('click', () => {
-                const input = button.closest('form').querySelector('[data-image-crop-input]');
-                input.click();
+                const form = button.closest('form');
+                const input = form.querySelector('[data-image-crop-input]');
+                const currentImage = button.dataset.currentImage;
+
+                if (! currentImage) {
+                    input.click();
+                    return;
+                }
+
+                activeInput = input;
+                activeForm = form;
+                activeHidden = form.querySelector('[data-cropped-image]');
+                shouldAutoSubmit = true;
+                openCropper(currentImage);
             });
         });
 
@@ -179,8 +202,8 @@
                 imageSmoothingEnabled: true,
                 imageSmoothingQuality: 'high',
             }).toDataURL('image/jpeg', 0.88);
-            const shouldSubmit = activeInput?.hasAttribute('data-auto-submit-on-crop');
-            const form = activeInput?.closest('form');
+            const form = activeForm;
+            const shouldSubmit = shouldAutoSubmit;
             closeCropper();
             if (shouldSubmit && form) {
                 form.submit();
