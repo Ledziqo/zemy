@@ -8,6 +8,7 @@ use App\Models\Subscription;
 use App\Models\User;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
+use Illuminate\Validation\ValidationException;
 use Illuminate\Validation\Rule;
 use Illuminate\Http\Request;
 
@@ -16,7 +17,7 @@ class RestaurantController extends Controller
     public function index()
     {
         return view('admin.restaurants.index', [
-            'restaurants' => Restaurant::with('subscriptions')->withCount('orders')->latest()->paginate(50),
+            'restaurants' => Restaurant::with(['subscriptions', 'users'])->withCount('orders')->latest()->paginate(50),
             'owners' => User::whereIn('role', ['restaurant_owner', 'staff'])->orderBy('name')->get(),
         ]);
     }
@@ -81,6 +82,40 @@ class RestaurantController extends Controller
         }
 
         return back()->with('success', 'Restaurant updated.');
+    }
+
+    public function updatePassword(Request $request, Restaurant $restaurant)
+    {
+        $data = $request->validate([
+            'password' => ['required', 'string', 'min:8', 'max:255'],
+        ]);
+
+        $user = $restaurant->users()->first();
+
+        if (! $user) {
+            if (! $restaurant->email) {
+                throw ValidationException::withMessages([
+                    'password' => 'Add an owner login email before creating a password for this restaurant.',
+                ]);
+            }
+
+            if (User::where('email', $restaurant->email)->exists()) {
+                throw ValidationException::withMessages([
+                    'password' => 'This restaurant email is already used by another login account.',
+                ]);
+            }
+
+            $user = $restaurant->users()->create([
+                'name' => $restaurant->name.' Owner',
+                'email' => $restaurant->email,
+                'password' => $data['password'],
+                'role' => 'restaurant_owner',
+            ]);
+        } else {
+            $user->update(['password' => $data['password']]);
+        }
+
+        return back()->with('success', 'Restaurant login password updated.');
     }
 
     public function destroy(Restaurant $restaurant)
