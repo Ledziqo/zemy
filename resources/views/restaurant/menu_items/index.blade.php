@@ -28,6 +28,18 @@
                 <div class="grid h-full place-items-center bg-[linear-gradient(135deg,#111,#2a0710)] text-5xl font-extrabold text-white">{{ strtoupper(substr($menuItem->name, 0, 1)) }}</div>
             @endif
             <div class="absolute left-3 top-3"><x-status :status="$menuItem->is_available ? 'active' : 'cancelled'" /></div>
+            <form method="post" action="{{ route('restaurant.menu-items.update', $menuItem) }}" enctype="multipart/form-data" class="absolute bottom-3 left-3">
+                @csrf @method('PATCH')
+                <input name="category_id" type="hidden" value="{{ $menuItem->category_id }}">
+                <input name="name" type="hidden" value="{{ $menuItem->name }}">
+                <input name="price" type="hidden" value="{{ $menuItem->price }}">
+                <input name="description" type="hidden" value="{{ $menuItem->description }}">
+                @if($menuItem->is_available)<input name="is_available" type="hidden" value="1">@endif
+                @if($menuItem->is_featured)<input name="is_featured" type="hidden" value="1">@endif
+                <input name="image" type="file" accept="image/*" class="hidden" data-image-crop-input data-auto-submit-on-crop>
+                <input name="cropped_image" type="hidden" data-cropped-image>
+                <button type="button" class="rounded-full bg-black/80 px-3 py-1 text-xs font-extrabold text-white backdrop-blur transition hover:bg-zem-gold" data-photo-edit-button>Edit photo</button>
+            </form>
             <div class="absolute bottom-3 right-3 rounded-full bg-black/80 px-3 py-1 text-sm font-extrabold text-white">{{ number_format($menuItem->price) }} ETB</div>
         </div>
         <div class="p-4">
@@ -135,6 +147,13 @@
             });
         });
 
+        document.querySelectorAll('[data-photo-edit-button]').forEach((button) => {
+            button.addEventListener('click', () => {
+                const input = button.closest('form').querySelector('[data-image-crop-input]');
+                input.click();
+            });
+        });
+
         modal.querySelector('[data-crop-zoom-out]').addEventListener('click', () => {
             if (! cropper) return;
             cropper.zoom(-0.1);
@@ -160,7 +179,12 @@
                 imageSmoothingEnabled: true,
                 imageSmoothingQuality: 'high',
             }).toDataURL('image/jpeg', 0.88);
+            const shouldSubmit = activeInput?.hasAttribute('data-auto-submit-on-crop');
+            const form = activeInput?.closest('form');
             closeCropper();
+            if (shouldSubmit && form) {
+                form.submit();
+            }
         });
     })();
 </script>
