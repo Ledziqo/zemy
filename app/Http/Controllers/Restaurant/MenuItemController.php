@@ -47,7 +47,7 @@ class MenuItemController extends Controller
 
     private function validated(Request $request, int $restaurantId): array
     {
-        return $request->validate([
+        $data = $request->validate([
             'category_id' => ['required', 'exists:categories,id'],
             'name' => ['required', 'string', 'max:255'],
             'description' => ['nullable', 'string'],
@@ -62,7 +62,11 @@ class MenuItemController extends Controller
         if ($request->hasFile('image')) {
             $file = $request->file('image');
             $filename = Str::uuid().'.'.$file->getClientOriginalExtension();
-            $file->move(public_path('uploads/menu-items'), $filename);
+            $destination = public_path('uploads/menu-items');
+            if (! is_dir($destination)) {
+                mkdir($destination, 0755, true);
+            }
+            $file->move($destination, $filename);
             $data['image_path'] = 'uploads/menu-items/'.$filename;
         }
 
