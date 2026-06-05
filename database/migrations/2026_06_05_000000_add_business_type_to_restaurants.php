@@ -7,23 +7,23 @@ use Illuminate\Support\Facades\Schema;
 return new class extends Migration {
     public function up(): void
     {
-        if (Schema::hasColumn('restaurants', 'dashboard_access_status')) {
+        if (Schema::hasColumn('restaurants', 'business_type')) {
             return;
         }
 
         Schema::table('restaurants', function (Blueprint $table) {
-            $table->string('dashboard_access_status')->default('active')->after('is_active');
+            $table->string('business_type')->default('restaurant')->after('slug');
         });
     }
 
     public function down(): void
     {
-        if (! Schema::hasColumn('restaurants', 'dashboard_access_status')) {
+        if (! Schema::hasColumn('restaurants', 'business_type')) {
             return;
         }
 
         Schema::table('restaurants', function (Blueprint $table) {
-            $table->dropColumn('dashboard_access_status');
+            $table->dropColumn('business_type');
         });
     }
 };

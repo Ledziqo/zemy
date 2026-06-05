@@ -24,6 +24,7 @@ class DatabaseSeeder extends Seeder
             ['slug' => 'bole-bistro'],
             [
                 'name' => 'Bole Bistro Demo',
+                'business_type' => 'restaurant',
                 'phone' => '+251 911 000 000',
                 'email' => 'hello@bolebistro.test',
                 'location' => 'Bole, Addis Ababa',

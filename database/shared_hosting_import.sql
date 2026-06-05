@@ -75,6 +75,7 @@ CREATE TABLE restaurants (
   id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
   name VARCHAR(255) NOT NULL,
   slug VARCHAR(255) NOT NULL UNIQUE,
+  business_type VARCHAR(255) NOT NULL DEFAULT 'restaurant',
   phone VARCHAR(255) NULL,
   email VARCHAR(255) NULL,
   location VARCHAR(255) NULL,
@@ -219,8 +220,8 @@ CREATE TABLE payments (
   CONSTRAINT payments_order_id_foreign FOREIGN KEY (order_id) REFERENCES orders(id) ON DELETE SET NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
-INSERT INTO restaurants (id, name, slug, phone, email, location, primary_color, is_active, settings, created_at, updated_at)
-VALUES (1, 'Bole Bistro Demo', 'bole-bistro', '+251 911 000 000', 'hello@bolebistro.test', 'Bole, Addis Ababa', '#D89B35', 1, '{"service_charge_percentage":0,"vat_percentage":0}', NOW(), NOW());
+INSERT INTO restaurants (id, name, slug, business_type, phone, email, location, primary_color, is_active, settings, created_at, updated_at)
+VALUES (1, 'Bole Bistro Demo', 'bole-bistro', 'restaurant', '+251 911 000 000', 'hello@bolebistro.test', 'Bole, Addis Ababa', '#D89B35', 1, '{"service_charge_percentage":0,"vat_percentage":0}', NOW(), NOW());
 
 INSERT INTO users (name, email, password, role, restaurant_id, created_at, updated_at) VALUES
 ('ZemTab Admin', 'admin@zemtab.test', '$2y$12$2dry7dPnG7EbP54KQW0dwefJMvY7dOVCYOj.wcSeVt6Cq6s/wotTq', 'admin', NULL, NOW(), NOW()),

@@ -7,9 +7,10 @@ use Illuminate\Database\Eloquent\Model;
 class Restaurant extends Model
 {
     public const DASHBOARD_ACCESS_STATUSES = ['active', 'payment_required', 'revoked'];
+    public const BUSINESS_TYPES = ['restaurant', 'hotel'];
 
     protected $fillable = [
-        'name', 'slug', 'phone', 'email', 'location', 'logo_path', 'cover_image_path',
+        'name', 'slug', 'business_type', 'phone', 'email', 'location', 'logo_path', 'cover_image_path',
         'primary_color', 'is_active', 'dashboard_access_status', 'settings',
     ];
 
@@ -25,4 +26,43 @@ class Restaurant extends Model
     public function orders() { return $this->hasMany(Order::class); }
     public function serviceRequests() { return $this->hasMany(ServiceRequest::class); }
     public function subscriptions() { return $this->hasMany(Subscription::class); }
+
+    public function isHotel(): bool
+    {
+        return $this->business_type === 'hotel';
+    }
+
+    public function businessTypeLabel(): string
+    {
+        return $this->isHotel() ? 'Hotel' : 'Restaurant';
+    }
+
+    public function locationLabel(bool $plural = false): string
+    {
+        if ($this->isHotel()) {
+            return $plural ? 'rooms' : 'room';
+        }
+
+        return $plural ? 'tables' : 'table';
+    }
+
+    public function locationLabelTitle(bool $plural = false): string
+    {
+        return ucfirst($this->locationLabel($plural));
+    }
+
+    public function staffRequestLabel(): string
+    {
+        return $this->isHotel() ? 'Call Staff' : 'Call Waiter';
+    }
+
+    public function requestTypeLabel(string $type): string
+    {
+        return match ($type) {
+            'call_waiter' => $this->staffRequestLabel(),
+            'request_bill' => $this->isHotel() ? 'Request Room Bill' : 'Request Bill',
+            'request_water' => 'Request Water',
+            default => 'Other',
+        };
+    }
 }

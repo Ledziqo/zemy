@@ -1,9 +1,11 @@
 @php
     $isAdmin = request()->is('admin/*');
+    $dashboardRestaurant = $isAdmin ? null : auth()->user()?->restaurant;
+    $placePlural = $dashboardRestaurant?->locationLabelTitle(true) ?? 'Tables';
     $links = $isAdmin
         ? [
             ['Admin', route('admin.dashboard')],
-            ['Restaurants', route('admin.restaurants.index')],
+            ['Restaurants & Hotels', route('admin.restaurants.index')],
             ['Users', route('admin.users.index')],
             ['Demo Requests', route('admin.demo-requests.index')],
             ['Subscriptions', route('admin.subscriptions.index')],
@@ -14,7 +16,7 @@
             ['Orders', route('restaurant.orders.index')],
             ['Menu Items', route('restaurant.menu-items.index')],
             ['Categories', route('restaurant.categories.index')],
-            ['Tables / QR', route('restaurant.tables.index')],
+            [$placePlural.' / QR', route('restaurant.tables.index')],
             ['Service Requests', route('restaurant.service-requests.index')],
             ['Settings', route('restaurant.settings.edit')],
         ];
@@ -52,7 +54,7 @@
     <main class="w-full px-4 py-6 md:px-6 lg:ml-72 lg:px-8">
         <header class="mb-6 flex flex-wrap items-center justify-between gap-3 border-b border-white/10 pb-6">
             <div>
-                <p class="text-sm uppercase tracking-widest text-zem-gold">{{ $eyebrow ?? ($isAdmin ? 'SaaS Admin' : 'Restaurant Dashboard') }}</p>
+                <p class="text-sm uppercase tracking-widest text-zem-gold">{{ $eyebrow ?? ($isAdmin ? 'SaaS Admin' : ($dashboardRestaurant?->businessTypeLabel().' Dashboard')) }}</p>
                 <h1 class="font-display text-2xl font-bold md:text-4xl">{{ $heading ?? 'Dashboard' }}</h1>
             </div>
             <div class="rounded-full border border-zem-border bg-white/5 px-4 py-2 text-sm text-zem-muted">{{ auth()->user()->name }}</div>

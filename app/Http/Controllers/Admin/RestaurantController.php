@@ -32,6 +32,10 @@ class RestaurantController extends Controller
             unset($data['dashboard_access_status']);
         }
 
+        if (! Schema::hasColumn('restaurants', 'business_type')) {
+            unset($data['business_type']);
+        }
+
         DB::transaction(function () use ($data, $ownerPassword) {
             $restaurant = Restaurant::create($data);
 
@@ -57,6 +61,10 @@ class RestaurantController extends Controller
 
         if (! Schema::hasColumn('restaurants', 'dashboard_access_status')) {
             unset($data['dashboard_access_status']);
+        }
+
+        if (! Schema::hasColumn('restaurants', 'business_type')) {
+            unset($data['business_type']);
         }
 
         $restaurant->update($data);
@@ -135,6 +143,7 @@ class RestaurantController extends Controller
         return $request->validate([
             'name' => ['required', 'string', 'max:255'],
             'slug' => ['required', 'alpha_dash', 'max:255', Rule::unique('restaurants', 'slug')->ignore($restaurantId)],
+            'business_type' => [Rule::requiredIf(Schema::hasColumn('restaurants', 'business_type')), 'nullable', Rule::in(Restaurant::BUSINESS_TYPES)],
             'phone' => ['nullable', 'string', 'max:50'],
             'email' => $emailRules,
             'owner_password' => [$restaurantId === null ? 'nullable' : 'prohibited', 'string', 'min:8', 'max:255'],

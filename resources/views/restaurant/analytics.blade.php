@@ -1,6 +1,7 @@
-@extends('layouts.dashboard', ['heading' => 'Analytics', 'eyebrow' => 'Restaurant Growth'])
+@extends('layouts.dashboard', ['heading' => 'Analytics', 'eyebrow' => $restaurant->businessTypeLabel().' Growth'])
 
 @section('content')
+@php($placeTitle = $restaurant->locationLabelTitle())
 <div class="grid gap-4 md:grid-cols-5">
     @foreach([['Today orders',$todayOrders],['Today revenue',number_format($todayRevenue).' ETB'],['30-day orders',$last30Orders],['30-day revenue',number_format($last30Revenue).' ETB'],['Completed',$completedOrders]] as $card)
         <div class="rounded-md border border-zem-border bg-zem-card p-4"><p class="text-sm text-zem-muted">{{ $card[0] }}</p><p class="mt-2 text-2xl font-extrabold">{{ $card[1] }}</p></div>
@@ -23,15 +24,15 @@
     </section>
 
     <section class="rounded-md border border-zem-border bg-zem-card p-4">
-        <h2 class="font-display text-xl font-bold">Busiest tables</h2>
+        <h2 class="font-display text-xl font-bold">Busiest {{ $restaurant->locationLabel(true) }}</h2>
         <div class="mt-4 grid gap-3">
             @forelse($busiestTables as $table)
                 <div class="flex flex-wrap items-center justify-between gap-3 rounded-md bg-zem-bg px-3 py-2 text-sm">
-                    <strong>Table {{ $table->table_number }}</strong>
+                    <strong>{{ $placeTitle }} {{ $table->table_number }}</strong>
                     <span class="text-zem-muted">{{ number_format($table->orders_count) }} orders - {{ number_format($table->revenue_total) }} ETB</span>
                 </div>
             @empty
-                <p class="text-sm text-zem-muted">No table activity in the last 30 days yet.</p>
+                <p class="text-sm text-zem-muted">No {{ $restaurant->locationLabel() }} activity in the last 30 days yet.</p>
             @endforelse
         </div>
     </section>

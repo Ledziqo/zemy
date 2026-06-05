@@ -1,6 +1,7 @@
-@extends('layouts.dashboard', ['heading' => 'Service Requests', 'eyebrow' => 'Live table requests', 'autoRefreshSeconds' => 5])
+@extends('layouts.dashboard', ['heading' => 'Service Requests', 'eyebrow' => 'Live '.$restaurant->locationLabel().' requests', 'autoRefreshSeconds' => 5])
 
 @section('content')
+@php($placeTitle = $restaurant->locationLabelTitle())
 <div class="mb-4 grid gap-3 md:grid-cols-3">
     <div class="rounded-md border border-zem-border bg-zem-card p-4">
         <p class="text-sm text-zem-muted">Active requests</p>
@@ -17,7 +18,7 @@
     <form method="post" action="{{ route('restaurant.service-requests.update', $requestRow) }}" class="grid gap-3 rounded-md border border-zem-border bg-zem-card p-4 md:grid-cols-[1fr_auto_auto_auto] md:items-center">
         @csrf @method('PATCH')
         <div>
-            <strong>Table {{ $requestRow->table_number }} - {{ str_replace('_', ' ', $requestRow->type) }}</strong>
+            <strong>{{ $placeTitle }} {{ $requestRow->table_number }} - {{ $restaurant->requestTypeLabel($requestRow->type) }}</strong>
             <p class="text-sm text-zem-muted">{{ $requestRow->created_at->diffForHumans() }} {{ $requestRow->note ? '- '.$requestRow->note : '' }}</p>
         </div>
         <x-status :status="$requestRow->status" />

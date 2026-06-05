@@ -6,10 +6,11 @@
 @php($primaryColor = $restaurant->primary_color ?: '#ef233c')
 @php($serviceCharge = (float) ($restaurant->settings['service_charge_percentage'] ?? 0))
 @php($vat = (float) ($restaurant->settings['vat_percentage'] ?? 0))
+@php($businessType = strtolower($restaurant->businessTypeLabel()))
 <form method="post" action="{{ route('restaurant.settings.update') }}" enctype="multipart/form-data" class="grid max-w-5xl gap-4 rounded-md border border-zem-border bg-zem-card p-5 md:grid-cols-2 xl:grid-cols-3">
     @csrf @method('PATCH')
     <div class="rounded-md border border-zem-border bg-zem-bg p-4 md:col-span-2 xl:col-span-3">
-        <p class="text-sm font-bold text-zem-muted">Restaurant logo shown on scanned menu</p>
+        <p class="text-sm font-bold text-zem-muted">{{ $restaurant->businessTypeLabel() }} logo shown on scanned menu</p>
         <div class="mt-3 flex flex-wrap items-center gap-4">
             @if($logoUrl)
                 <img src="{{ $logoUrl }}" alt="{{ $restaurant->name }} logo" class="h-24 w-24 rounded-md border border-zem-border bg-zem-card object-cover">
@@ -23,8 +24,8 @@
             <input name="cropped_logo" type="hidden" data-cropped-logo>
         </div>
     </div>
-    <input name="name" value="{{ $restaurant->name }}" placeholder="Restaurant name" class="rounded-md border border-zem-border bg-zem-bg px-3 py-2">
-    <input name="slug" value="{{ $restaurant->slug }}" placeholder="Restaurant link name" class="rounded-md border border-zem-border bg-zem-bg px-3 py-2">
+    <input name="name" value="{{ $restaurant->name }}" placeholder="{{ $restaurant->businessTypeLabel() }} name" class="rounded-md border border-zem-border bg-zem-bg px-3 py-2">
+    <input name="slug" value="{{ $restaurant->slug }}" placeholder="{{ $restaurant->businessTypeLabel() }} link name" class="rounded-md border border-zem-border bg-zem-bg px-3 py-2">
     <input name="phone" value="{{ $restaurant->phone }}" placeholder="Phone" class="rounded-md border border-zem-border bg-zem-bg px-3 py-2">
     <input name="location" value="{{ $restaurant->location }}" placeholder="Location" class="rounded-md border border-zem-border bg-zem-bg px-3 py-2">
     <label class="flex items-center justify-between gap-3 rounded-md border border-zem-border bg-zem-bg px-3 py-2 text-zem-muted">
@@ -56,7 +57,7 @@
     <div class="w-full max-w-3xl rounded-xl border border-zem-border bg-zem-card p-4 shadow-2xl">
         <div class="flex flex-wrap items-center justify-between gap-3">
             <div>
-                <h2 class="font-display text-xl font-bold">Adjust restaurant logo</h2>
+                <h2 class="font-display text-xl font-bold">Adjust {{ $businessType }} logo</h2>
                 <p class="mt-1 text-sm text-zem-muted">Drag the image and use zoom to remove extra space around the logo.</p>
             </div>
             <button type="button" class="rounded-md border border-zem-border px-3 py-2 text-sm font-bold text-zem-muted hover:text-white" data-logo-crop-cancel>Cancel</button>

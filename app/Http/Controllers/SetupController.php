@@ -188,5 +188,24 @@ class SetupController extends Controller
                 $output[] = 'Marked existing migration as complete: '.$migration;
             }
         }
+
+        $knownColumnMigrations = [
+            '2026_06_03_000000_add_dashboard_access_to_restaurants' => ['restaurants', 'dashboard_access_status'],
+            '2026_06_05_000000_add_business_type_to_restaurants' => ['restaurants', 'business_type'],
+        ];
+
+        foreach ($knownColumnMigrations as $migration => [$table, $column]) {
+            if (DB::table('migrations')->where('migration', $migration)->exists()) {
+                continue;
+            }
+
+            if (Schema::hasColumn($table, $column)) {
+                DB::table('migrations')->insert([
+                    'migration' => $migration,
+                    'batch' => $batch,
+                ]);
+                $output[] = 'Marked existing column migration as complete: '.$migration;
+            }
+        }
     }
 }

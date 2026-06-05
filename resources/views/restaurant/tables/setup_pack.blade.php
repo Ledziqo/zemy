@@ -16,6 +16,8 @@
 </head>
 <body class="bg-neutral-100 p-5 text-neutral-950">
 @php($logoUrl = $restaurant->logo_path ? (\Illuminate\Support\Str::startsWith($restaurant->logo_path, ['http://', 'https://', 'uploads/']) ? (str_starts_with($restaurant->logo_path, 'uploads/') ? asset($restaurant->logo_path) : $restaurant->logo_path) : asset('storage/'.$restaurant->logo_path)) : null)
+@php($place = $restaurant->locationLabel())
+@php($placeTitle = $restaurant->locationLabelTitle())
 <div class="no-print mb-5 flex flex-wrap items-center justify-between gap-3">
     <div>
         <h1 class="text-2xl font-black">{{ $restaurant->name }} QR setup pack</h1>
@@ -34,18 +36,18 @@
                 @endif
                 <h2 class="text-2xl font-black">{{ $restaurant->name }}</h2>
             </div>
-            <p class="mt-5 text-sm font-black uppercase tracking-[.25em] text-red-600">Scan to order</p>
+            <p class="mt-5 text-sm font-black uppercase tracking-[.25em] text-red-600">{{ $restaurant->isHotel() ? 'Scan for room service' : 'Scan to order' }}</p>
             <div class="mt-4 grid place-items-center rounded-xl border border-neutral-200 p-4">
-                <img src="{{ route('restaurant.tables.qr', $table) }}" alt="QR code for table {{ $table->table_number }}" class="h-64 w-64">
+                <img src="{{ route('restaurant.tables.qr', $table) }}" alt="QR code for {{ $place }} {{ $table->table_number }}" class="h-64 w-64">
             </div>
-            <p class="mt-5 text-4xl font-black">Table {{ $table->table_number }}</p>
+            <p class="mt-5 text-4xl font-black">{{ $placeTitle }} {{ $table->table_number }}</p>
             @if($table->table_name)
                 <p class="mt-1 text-lg font-bold text-neutral-600">{{ $table->table_name }}</p>
             @endif
             <p class="mt-4 break-all text-xs text-neutral-500">{{ $menuUrl }}</p>
         </article>
     @empty
-        <p class="rounded-xl bg-white p-5 text-neutral-600">No active tables are available for this setup pack.</p>
+        <p class="rounded-xl bg-white p-5 text-neutral-600">No active {{ $restaurant->locationLabel(true) }} are available for this setup pack.</p>
     @endforelse
 </main>
 </body>

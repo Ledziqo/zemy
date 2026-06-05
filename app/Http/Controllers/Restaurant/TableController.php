@@ -30,22 +30,25 @@ class TableController extends Controller
 
     public function store(Request $request)
     {
-        $this->restaurant($request)->tables()->create($this->validated($request));
-        return back()->with('success', 'Table added.');
+        $restaurant = $this->restaurant($request);
+        $restaurant->tables()->create($this->validated($request));
+        return back()->with('success', $restaurant->locationLabelTitle().' added.');
     }
 
     public function update(Request $request, RestaurantTable $table)
     {
-        abort_unless($table->restaurant_id === $this->restaurant($request)->id, 403);
+        $restaurant = $this->restaurant($request);
+        abort_unless($table->restaurant_id === $restaurant->id, 403);
         $table->update($this->validated($request));
-        return back()->with('success', 'Table updated.');
+        return back()->with('success', $restaurant->locationLabelTitle().' updated.');
     }
 
     public function destroy(Request $request, RestaurantTable $table)
     {
-        abort_unless($table->restaurant_id === $this->restaurant($request)->id, 403);
+        $restaurant = $this->restaurant($request);
+        abort_unless($table->restaurant_id === $restaurant->id, 403);
         $table->delete();
-        return back()->with('success', 'Table deleted.');
+        return back()->with('success', $restaurant->locationLabelTitle().' deleted.');
     }
 
     public function qr(Request $request, RestaurantTable $table)
@@ -62,7 +65,7 @@ class TableController extends Controller
 
         return response($result->getString(), 200, [
             'Content-Type' => $result->getMimeType(),
-            'Content-Disposition' => 'inline; filename="zemtab-'.$restaurant->slug.'-table-'.$table->table_number.'.svg"',
+            'Content-Disposition' => 'inline; filename="zemtab-'.$restaurant->slug.'-'.$restaurant->locationLabel().'-'.$table->table_number.'.svg"',
         ]);
     }
 

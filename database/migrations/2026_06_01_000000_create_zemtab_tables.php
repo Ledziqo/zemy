@@ -11,6 +11,7 @@ return new class extends Migration {
             $table->id();
             $table->string('name');
             $table->string('slug')->unique();
+            $table->string('business_type')->default('restaurant');
             $table->string('phone')->nullable();
             $table->string('email')->nullable();
             $table->string('location')->nullable();

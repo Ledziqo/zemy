@@ -1,7 +1,7 @@
 @extends('layouts.app', [
-    'title' => $restaurant->name.' Menu - Table '.$table->table_number.' | ZemTab',
-    'description' => 'View the digital QR menu for '.$restaurant->name.'. Table '.$table->table_number.'.',
-    'keywords' => $restaurant->name.' menu, QR menu, table ordering, ZemTab',
+    'title' => $restaurant->name.' Menu - '.$restaurant->locationLabelTitle().' '.$table->table_number.' | ZemTab',
+    'description' => 'View the digital QR menu for '.$restaurant->name.'. '.$restaurant->locationLabelTitle().' '.$table->table_number.'.',
+    'keywords' => $restaurant->name.' menu, QR menu, '.$restaurant->locationLabel().' ordering, ZemTab',
     'canonical' => route('menu.show', [$restaurant->slug, $table->table_number]),
     'ogType' => 'website',
     'ogImage' => $restaurant->cover_image_path ? asset($restaurant->cover_image_path) : asset('logo/zemtab-full-transparent.png'),
@@ -19,6 +19,7 @@
         'cbe' => filled($settings['cbe_account_number'] ?? null) ? 'Transfer to CBE account '.$settings['cbe_account_number'].'.' : 'Ask staff for the CBE account number.',
     ];
     $logoUrl = $restaurant->logo_path ? (\Illuminate\Support\Str::startsWith($restaurant->logo_path, ['http://', 'https://', 'uploads/']) ? (str_starts_with($restaurant->logo_path, 'uploads/') ? asset($restaurant->logo_path) : $restaurant->logo_path) : asset('storage/'.$restaurant->logo_path)) : null;
+    $placeTitle = $restaurant->locationLabelTitle();
 @endphp
 <main x-data="menuCart({ paymentDetails: @js($paymentDetails) })" class="min-h-screen bg-neutral-100 pb-28 text-zem-ink">
     <header class="sticky top-0 z-30 border-b border-black/10 bg-white/95 px-4 py-3 shadow-sm backdrop-blur">
@@ -31,7 +32,7 @@
                         <div class="grid h-14 w-14 shrink-0 place-items-center rounded-xl bg-black text-xl font-extrabold text-white">{{ strtoupper(substr($restaurant->name, 0, 1)) }}</div>
                     @endif
                     <div class="min-w-0">
-                        <p class="text-xs font-extrabold uppercase tracking-widest text-zem-gold">Table {{ $table->table_number }}</p>
+                        <p class="text-xs font-extrabold uppercase tracking-widest text-zem-gold">{{ $placeTitle }} {{ $table->table_number }}</p>
                         <h1 class="truncate font-display text-2xl font-extrabold">{{ $restaurant->name }}</h1>
                         <p class="truncate text-sm text-neutral-500">{{ $restaurant->location ?: 'Digital menu' }}</p>
                     </div>
@@ -53,8 +54,8 @@
         @if(session('success'))<div class="mb-4 rounded-xl bg-zem-green px-4 py-3 text-sm font-bold text-white">{{ session('success') }}</div>@endif
         @if($errors->any())<div class="mb-4 rounded-xl bg-red-600 px-4 py-3 text-sm font-bold text-white">{{ $errors->first() }}</div>@endif
         <div class="grid grid-cols-2 gap-3">
-            <form method="post" action="{{ route('service-requests.store', [$restaurant->slug, $table->table_number]) }}">@csrf<input type="hidden" name="type" value="call_waiter"><button class="w-full rounded-xl bg-black px-4 py-3 font-extrabold text-white">Call Waiter</button></form>
-            <form method="post" action="{{ route('service-requests.store', [$restaurant->slug, $table->table_number]) }}">@csrf<input type="hidden" name="type" value="request_bill"><button class="w-full rounded-xl bg-zem-gold px-4 py-3 font-extrabold text-white">Request Bill</button></form>
+            <form method="post" action="{{ route('service-requests.store', [$restaurant->slug, $table->table_number]) }}">@csrf<input type="hidden" name="type" value="call_waiter"><button class="w-full rounded-xl bg-black px-4 py-3 font-extrabold text-white">{{ $restaurant->staffRequestLabel() }}</button></form>
+            <form method="post" action="{{ route('service-requests.store', [$restaurant->slug, $table->table_number]) }}">@csrf<input type="hidden" name="type" value="request_bill"><button class="w-full rounded-xl bg-zem-gold px-4 py-3 font-extrabold text-white">{{ $restaurant->isHotel() ? 'Request Room Bill' : 'Request Bill' }}</button></form>
         </div>
     </section>
 
