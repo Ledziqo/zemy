@@ -21,7 +21,7 @@
     @csrf @method('PATCH')
     <div>
         <p class="font-bold text-white">Menu order</p>
-        <p class="text-sm text-zem-muted">Drag items into the order customers should see, then save.</p>
+        <p class="text-sm text-zem-muted">Drag one item onto another to swap them. The new order saves automatically.</p>
     </div>
     <div class="hidden" data-reorder-fields></div>
     <button class="rounded-md bg-zem-gold px-4 py-3 font-bold text-white">Save item order</button>
@@ -337,6 +337,7 @@
             if (! dragged || ! target || target === dragged) return;
 
             swapItems(dragged, target);
+            form.requestSubmit();
         });
 
         form.addEventListener('submit', () => {
