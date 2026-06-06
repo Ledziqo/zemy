@@ -13,11 +13,10 @@
         : [
             ['Overview', route('restaurant.dashboard')],
             ['Analytics', route('restaurant.analytics')],
-            ['Orders', route('restaurant.orders.index')],
+            ['Work Board', route('restaurant.orders.index')],
             ['Menu Items', route('restaurant.menu-items.index')],
             ['Categories', route('restaurant.categories.index')],
             [$placePlural.' / QR', route('restaurant.tables.index')],
-            ['Service Requests', route('restaurant.service-requests.index')],
             ['Settings', route('restaurant.settings.edit')],
         ];
 @endphp

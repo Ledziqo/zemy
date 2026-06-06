@@ -51,9 +51,9 @@
                 </button>
             </div>
             <nav class="mt-3 flex gap-2 overflow-x-auto pb-1">
-                <a href="#all" class="whitespace-nowrap rounded-full bg-zem-gold px-4 py-2 text-sm font-extrabold text-white">All</a>
+                <a href="#all" @click="activeCategory = 'all'" :class="activeCategory === 'all' ? 'bg-zem-gold text-white' : 'border border-black/10 bg-white text-neutral-700'" class="whitespace-nowrap rounded-full px-4 py-2 text-sm font-extrabold transition">All</a>
                 @foreach($categories as $category)
-                    <a href="#cat-{{ $category->id }}" class="whitespace-nowrap rounded-full border border-black/10 bg-white px-4 py-2 text-sm font-extrabold text-neutral-700">{{ $category->name }}</a>
+                    <a href="#cat-{{ $category->id }}" @click="activeCategory = 'cat-{{ $category->id }}'" :class="activeCategory === 'cat-{{ $category->id }}' ? 'bg-zem-gold text-white' : 'border border-black/10 bg-white text-neutral-700'" class="whitespace-nowrap rounded-full px-4 py-2 text-sm font-extrabold transition">{{ $category->name }}</a>
                 @endforeach
             </nav>
         </div>
@@ -106,37 +106,53 @@
                     </div>
                 </div>
 
-                @if($visitTotal > 0)
-                    <div class="mt-4 rounded-xl border border-zem-gold/30 bg-zem-gold/10 p-3">
-                        <h3 class="font-extrabold">Pay at the end</h3>
-                        <div class="mt-3 grid gap-3 md:grid-cols-2">
-                            @foreach(['telebirr' => 'Telebirr', 'cbe' => 'CBE'] as $method => $label)
-                                @if(in_array($method, $enabledPaymentMethods, true))
-                                    <div class="rounded-xl bg-white p-3">
-                                        <div class="flex items-start gap-3">
-                                            @if($paymentQrUrls[$method])
-                                                <img src="{{ $paymentQrUrls[$method] }}" alt="{{ $label }} payment QR" class="h-24 w-24 shrink-0 rounded-lg border border-black/10 object-contain p-1">
-                                            @endif
-                                            <div class="min-w-0">
-                                                <p class="font-extrabold">{{ $label }}</p>
-                                                <p class="break-words text-sm text-neutral-600">{{ $method === 'telebirr' ? ($settings['telebirr_number'] ?? 'Ask staff for the number.') : ($settings['cbe_account_number'] ?? 'Ask staff for the account number.') }}</p>
-                                            </div>
-                                        </div>
-                                    </div>
-                                @endif
-                            @endforeach
-                        </div>
-                        <form method="post" action="{{ route('payment-proofs.store', [$restaurant->slug, $table->table_number]) }}" enctype="multipart/form-data" class="mt-3 grid gap-3 md:grid-cols-[1fr_1fr_auto]">
-                            @csrf
-                            <select name="method" required class="rounded-lg border border-black/10 bg-white px-3 py-3 font-semibold outline-none focus:border-zem-gold">
-                                <option value="">Payment method</option>
-                                @if(in_array('telebirr', $enabledPaymentMethods, true))<option value="telebirr">Telebirr</option>@endif
-                                @if(in_array('cbe', $enabledPaymentMethods, true))<option value="cbe">CBE</option>@endif
-                            </select>
-                            <input name="proof" type="file" accept="image/*" required class="rounded-lg border border-black/10 bg-white px-3 py-3 text-sm outline-none focus:border-zem-gold">
-                            <button class="rounded-lg bg-black px-4 py-3 font-extrabold text-white">Upload proof</button>
-                        </form>
+            </div>
+        </section>
+    @endif
+
+    @if(in_array('telebirr', $enabledPaymentMethods, true) || in_array('cbe', $enabledPaymentMethods, true))
+        <section id="payment-info" class="mx-auto max-w-5xl px-4 pb-4">
+            <div class="rounded-2xl border border-zem-gold/30 bg-white p-4 shadow-sm">
+                <div class="flex flex-wrap items-start justify-between gap-3">
+                    <div>
+                        <p class="text-xs font-extrabold uppercase tracking-widest text-zem-gold">Payment information</p>
+                        <h2 class="font-display text-2xl font-extrabold">Pay when you are done</h2>
+                        <p class="mt-1 text-sm text-neutral-600">Use Telebirr or CBE details below, then show the screenshot to staff. Request bill only calls staff to confirm your final amount.</p>
                     </div>
+                    @if($visitTotal > 0)
+                        <p class="rounded-full bg-zem-gold px-3 py-2 text-sm font-extrabold text-white">Current total: {{ number_format($visitTotal) }} ETB</p>
+                    @endif
+                </div>
+                <div class="mt-4 grid gap-3 md:grid-cols-2">
+                    @foreach(['telebirr' => 'Telebirr', 'cbe' => 'CBE'] as $method => $label)
+                        @if(in_array($method, $enabledPaymentMethods, true))
+                            <div class="rounded-xl border border-black/10 bg-neutral-50 p-3">
+                                <div class="flex items-start gap-3">
+                                    @if($paymentQrUrls[$method])
+                                        <img src="{{ $paymentQrUrls[$method] }}" alt="{{ $label }} payment QR" class="h-28 w-28 shrink-0 rounded-lg border border-black/10 bg-white object-contain p-1">
+                                    @else
+                                        <div class="grid h-28 w-28 shrink-0 place-items-center rounded-lg border border-black/10 bg-white p-2 text-center text-xs font-bold text-neutral-500">QR not added</div>
+                                    @endif
+                                    <div class="min-w-0">
+                                        <p class="font-extrabold">{{ $label }}</p>
+                                        <p class="mt-1 break-words text-sm text-neutral-600">{{ $method === 'telebirr' ? ($settings['telebirr_number'] ?? 'Ask staff for the number.') : ($settings['cbe_account_number'] ?? 'Ask staff for the account number.') }}</p>
+                                    </div>
+                                </div>
+                            </div>
+                        @endif
+                    @endforeach
+                </div>
+                @if($visitTotal > 0)
+                    <form method="post" action="{{ route('payment-proofs.store', [$restaurant->slug, $table->table_number]) }}" enctype="multipart/form-data" class="mt-3 grid gap-3 md:grid-cols-[1fr_1fr_auto]">
+                        @csrf
+                        <select name="method" required class="rounded-lg border border-black/10 bg-white px-3 py-3 font-semibold outline-none focus:border-zem-gold">
+                            <option value="">Payment method</option>
+                            @if(in_array('telebirr', $enabledPaymentMethods, true))<option value="telebirr">Telebirr</option>@endif
+                            @if(in_array('cbe', $enabledPaymentMethods, true))<option value="cbe">CBE</option>@endif
+                        </select>
+                        <input name="proof" type="file" accept="image/*" required class="rounded-lg border border-black/10 bg-white px-3 py-3 text-sm outline-none focus:border-zem-gold">
+                        <button class="rounded-lg bg-black px-4 py-3 font-extrabold text-white">Upload proof</button>
+                    </form>
                 @endif
             </div>
         </section>
@@ -218,8 +234,8 @@
 function menuCart(config) {
     return {
         open: false,
+        activeCategory: 'all',
         items: [],
-        paymentMethod: '',
         paymentDetails: config.paymentDetails || {},
         add(item) { const existing = this.items.find(i => i.id === item.id); existing ? existing.quantity++ : this.items.push({...item, quantity: 1, note: ''}); },
         dec(id) { const item = this.items.find(i => i.id === id); if (!item) return; item.quantity--; if (item.quantity <= 0) this.items = this.items.filter(i => i.id !== id); },

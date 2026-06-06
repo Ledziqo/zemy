@@ -41,6 +41,12 @@ class DashboardController extends Controller
         return view('restaurant.orders.index', [
             'restaurant' => $restaurant,
             'orders' => $restaurant->orders()->with(['items', 'guestSession.payments'])->latest()->paginate(30),
+            'requests' => $restaurant->serviceRequests()
+                ->orderByRaw("FIELD(status, 'pending', 'acknowledged', 'completed')")
+                ->latest()
+                ->limit(40)
+                ->get(),
+            'activeRequests' => $restaurant->serviceRequests()->whereIn('status', ['pending', 'acknowledged'])->count(),
             'statuses' => Order::STATUSES,
             'latestOrderId' => $restaurant->orders()->max('id') ?? 0,
         ]);

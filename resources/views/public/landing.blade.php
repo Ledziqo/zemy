@@ -1,7 +1,7 @@
 @extends('layouts.app', [
-    'title' => 'ZemTab — QR Menu & Table Ordering for Restaurants in Ethiopia',
-    'description' => 'ZemTab is a German-made, Ethiopia-based QR menu and table ordering system for restaurants, cafes, and lounges. Guests scan, order, and pay from their phone. No app download needed.',
-    'keywords' => 'QR menu Ethiopia, restaurant ordering Addis Ababa, digital menu, table ordering, waiter call, bill request, restaurant POS, cafe ordering system, ZemTab',
+    'title' => 'ZemTab - QR Menu, Table & Room Ordering for Restaurants and Hotels in Ethiopia',
+    'description' => 'ZemTab is a German-made, Ethiopia-based QR menu, table ordering, and hotel room ordering system. Guests scan, order, request service, and pay from their phone. No app download needed.',
+    'keywords' => 'QR menu Ethiopia, restaurant ordering Addis Ababa, hotel room ordering, digital menu, table ordering, room service QR, staff call, bill request, restaurant POS, hotel service system, ZemTab',
     'canonical' => url('/'),
     'ogType' => 'website',
     'ogImage' => asset('logo/zemtab-full-transparent.png'),
@@ -20,7 +20,7 @@
     <header class="fixed inset-x-0 top-0 z-40 border-b border-white/10 bg-black/75 backdrop-blur-xl">
         <div class="mx-auto flex max-w-7xl items-center justify-between px-5 py-4">
             <a href="/" class="inline-flex items-center" aria-label="ZemTab Home">
-                <img src="{{ asset('logo/zemtab-full-transparent-dark.png') }}" alt="ZemTab Logo — QR Menu & Table Ordering System" class="h-12 w-auto">
+                <img src="{{ asset('logo/zemtab-full-transparent-dark.png') }}" alt="ZemTab Logo - QR Menu, Table and Room Ordering System" class="h-12 w-auto">
             </a>
             <nav class="hidden items-center gap-6 text-sm font-semibold text-zem-muted md:flex" aria-label="Primary navigation">
                 <a class="transition hover:text-white" href="#workflow">Workflow</a>
@@ -61,17 +61,17 @@
         <div class="absolute inset-x-0 bottom-0 h-40 bg-gradient-to-t from-zem-bg to-transparent"></div>
         <div class="relative mx-auto grid min-h-[88vh] max-w-7xl items-center gap-10 pb-20 lg:grid-cols-[1fr_.9fr]">
             <div class="max-w-3xl">
-                <p class="mb-5 inline-flex rounded-full border border-zem-gold/40 bg-zem-gold/10 px-4 py-2 text-xs font-extrabold uppercase tracking-[.26em] text-red-100">Scan. Order. Pay.</p>
-                <h1 class="sr-only">ZemTab — Modern QR Menu and Table Ordering System for Restaurants in Ethiopia</h1>
-                <img src="{{ asset('logo/zemtab-full-transparent-dark.png') }}" alt="ZemTab — Digital Menu and Table Ordering for Restaurants" class="h-auto w-full max-w-xl">
-                <p class="mt-5 max-w-2xl text-xl leading-8 text-zem-muted">A German-made, Ethiopia-based QR menu, table ordering, waiter request, and restaurant dashboard system built for faster service and cleaner operations.</p>
+                <p class="mb-5 inline-flex rounded-full border border-zem-gold/40 bg-zem-gold/10 px-4 py-2 text-xs font-extrabold uppercase tracking-[.26em] text-red-100">Scan. Order. Request. Pay.</p>
+                <h1 class="sr-only">ZemTab - Modern QR Menu, Table Ordering and Hotel Room Ordering System in Ethiopia</h1>
+                <img src="{{ asset('logo/zemtab-full-transparent-dark.png') }}" alt="ZemTab - Digital Menu, Table Ordering and Hotel Room Ordering" class="h-auto w-full max-w-xl">
+                <p class="mt-5 max-w-2xl text-xl leading-8 text-zem-muted">A German-made, Ethiopia-based QR ordering system for restaurants, cafes, lounges, and hotels. Guests scan from a table or room, order from their phone, request service, and pay at the end.</p>
                 <div class="mt-9 flex flex-wrap gap-3">
                     <a href="#demo" class="rounded-lg bg-zem-gold px-6 py-3 font-extrabold text-white shadow-xl shadow-zem-gold/25 transition hover:bg-red-700">Request Demo</a>
                     <a href="{{ route('login') }}" class="rounded-lg border border-zem-gold bg-zem-gold/10 px-6 py-3 font-extrabold text-white transition hover:bg-zem-gold">Login</a>
                     <a href="#features" class="rounded-lg border border-white/15 bg-white/5 px-6 py-3 font-extrabold text-white transition hover:border-zem-gold hover:bg-zem-gold/10">See Features</a>
                 </div>
                 <div class="mt-12 grid max-w-2xl grid-cols-3 gap-3">
-                    @foreach([['30s','guest ordering flow'],['24/7','digital menu access'],['0','app installs needed']] as $metric)
+                    @foreach([['30s','guest ordering flow'],['24/7','menu and room service access'],['0','app installs needed']] as $metric)
                         <div class="border-l border-zem-gold pl-4">
                             <p class="font-display text-3xl font-extrabold">{{ $metric[0] }}</p>
                             <p class="text-sm text-zem-muted">{{ $metric[1] }}</p>
@@ -83,7 +83,7 @@
             <div class="relative mx-auto w-full max-w-lg">
                 <div class="absolute -inset-4 rounded-[2rem] bg-zem-gold/25 blur-2xl"></div>
                 <div class="relative overflow-hidden rounded-[2rem] border border-white/10 bg-[#090909] p-3 shadow-2xl">
-                    <img src="{{ asset('uploads/zemtab-tablet-hero.png') }}" alt="ZemTab QR menu and table ordering tool shown on a tablet" class="aspect-[4/5] w-full rounded-[1.5rem] object-cover">
+                    <img src="{{ asset('uploads/zemtab-tablet-hero.png') }}" alt="ZemTab QR menu, table ordering, and hotel room ordering tool shown on a tablet" class="aspect-[4/5] w-full rounded-[1.5rem] object-cover">
                 </div>
             </div>
         </div>
@@ -95,7 +95,7 @@
             <div class="grid gap-6 text-center sm:grid-cols-3">
                 <div>
                     <p class="font-display text-3xl font-extrabold text-white">50+</p>
-                    <p class="mt-1 text-sm text-zem-muted">Restaurants using ZemTab</p>
+                    <p class="mt-1 text-sm text-zem-muted">Restaurants and hotels using ZemTab</p>
                 </div>
                 <div>
                     <p class="font-display text-3xl font-extrabold text-white">10,000+</p>
@@ -114,10 +114,10 @@
         <div class="mx-auto max-w-7xl px-5">
             <div class="flex flex-wrap items-end justify-between gap-4">
                 <h2 class="font-display text-3xl font-extrabold md:text-4xl">From scan to service in one flow</h2>
-                <p class="max-w-xl text-zem-muted">The whole dining loop runs from the guest phone to the staff dashboard without app installs or awkward handoffs.</p>
+                <p class="max-w-xl text-zem-muted">The whole service loop runs from the guest phone to the staff dashboard without app installs or awkward handoffs.</p>
             </div>
             <div class="mt-8 grid gap-4 md:grid-cols-5">
-                @foreach([['Scan','Guests scan the QR code on their table.'],['Browse','They view categories, menu items, details, and prices.'],['Order','They add items, quantities, and special notes.'],['Serve','Staff receive live orders in the restaurant dashboard.'],['Pay','Guests can choose cash, cashier, transfer, or future integrated payment options.']] as $step)
+                @foreach([['Scan','Guests scan the QR code on their table or in their room.'],['Browse','They view menu categories, items, details, and prices.'],['Order','They add items, quantities, and special notes.'],['Serve','Staff receive live orders and service requests in the dashboard.'],['Pay','Guests pay at the end by cash, Telebirr, CBE, or bank transfer and show proof to staff.']] as $step)
                     <article class="rounded-xl border border-white/10 bg-black p-5 transition hover:-translate-y-1 hover:border-zem-gold/50">
                         <p class="text-sm font-extrabold text-zem-gold">0{{ $loop->iteration }}</p>
                         <h3 class="mt-4 font-display text-xl font-bold">{{ $step[0] }}</h3>
@@ -130,7 +130,7 @@
 
     {{-- Audience Section --}}
     <section class="mx-auto grid max-w-7xl gap-5 px-5 py-16 lg:grid-cols-3">
-        @foreach([['For guests','Fast mobile menus, simple ordering, waiter calls, bill requests, and no app download.'],['For staff','Live table orders, service request queues, status updates, and fewer missed requests.'],['For owners','Instant menu updates, availability control, multi-table QR links, subscriptions, and admin oversight.']] as $audience)
+        @foreach([['For guests','Fast mobile menus, simple ordering, staff calls, bill requests, and no app download.'],['For staff','Live table and room orders, service request queues, status updates, and fewer missed requests.'],['For owners','Instant menu updates, availability control, table or room QR links, subscriptions, and admin oversight.']] as $audience)
             <article class="rounded-xl border border-white/10 bg-white/[.04] p-6">
                 <h2 class="font-display text-2xl font-extrabold">{{ $audience[0] }}</h2>
                 <p class="mt-4 leading-7 text-zem-muted">{{ $audience[1] }}</p>
@@ -141,11 +141,11 @@
     {{-- Features Section --}}
     <section id="features" class="scroll-mt-24 mx-auto max-w-7xl px-5 py-16">
         <div class="max-w-3xl">
-            <h2 class="font-display text-3xl font-extrabold md:text-4xl">Simple tools for faster table service</h2>
+            <h2 class="font-display text-3xl font-extrabold md:text-4xl">Simple tools for faster guest service</h2>
             <p class="mt-4 leading-7 text-zem-muted">Guests order from their phone. Staff see requests instantly. Owners update the menu anytime.</p>
         </div>
         <div class="mt-8 grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-            @foreach([['Scan menu','Customers scan a table QR and open the menu instantly.'],['Place order','They choose items, add notes, and send the order.'],['Call staff','Guests can call a waiter or request the bill from the table.'],['Manage live','Staff track orders, update status, and edit menu availability.']] as $feature)
+            @foreach([['Scan menu','Customers scan a table or room QR and open the menu instantly.'],['Place order','They choose items, add notes, and send the order.'],['Call staff','Guests can call staff or request the bill from their table or room.'],['Manage live','Staff track orders, update status, and edit menu availability.']] as $feature)
                 <article class="rounded-xl border border-white/10 bg-black p-6 transition hover:border-zem-gold/50 hover:bg-zem-gold/10">
                     <h3 class="font-display text-xl font-extrabold">{{ $feature[0] }}</h3>
                     <p class="mt-3 leading-6 text-zem-muted">{{ $feature[1] }}</p>
@@ -160,15 +160,15 @@
             <div class="flex flex-wrap items-end justify-between gap-4">
                 <div>
                     <p class="text-sm font-extrabold uppercase tracking-[.22em] text-zem-gold">Vouches</p>
-                    <h2 class="mt-2 font-display text-3xl font-extrabold">Built for real restaurant pressure</h2>
+                    <h2 class="mt-2 font-display text-3xl font-extrabold">Built for real service pressure</h2>
                 </div>
-                <p class="max-w-lg text-zem-muted">The goal is simple: fewer delays, fewer missed requests, and a smoother table experience.</p>
+                <p class="max-w-lg text-zem-muted">The goal is simple: fewer delays, fewer missed requests, and a smoother guest experience.</p>
             </div>
             <div class="mt-7 grid gap-4 md:grid-cols-3">
                 @foreach([
-                    ['“Customers do not need to wait for a menu anymore. The QR opens instantly and ordering is smooth.”','Amanuel T.', 'Owner, Bole Bistro'],
-                    ['“The waiter calls and bill requests show up right on the dashboard. Easy for the team to follow.”','Selam K.', 'Manager, Kaldi Coffee'],
-                    ['“Changing menu availability during a busy lunch rush takes seconds, not minutes.”','Yonas M.', 'Operations, Pizza Corner']
+                    ['Customers do not need to wait for a menu anymore. The QR opens instantly and ordering is smooth.','Amanuel T.', 'Owner, Bole Bistro'],
+                    ['Staff calls and bill requests show up right on the dashboard. Easy for the team to follow.','Selam K.', 'Manager, Kaldi Coffee'],
+                    ['Changing menu availability during a busy service rush takes seconds, not minutes.','Yonas M.', 'Operations, Pizza Corner']
                 ] as $vouch)
                     <article class="rounded-xl border border-white/10 bg-black p-5">
                         <blockquote>
@@ -202,17 +202,17 @@
     {{-- Pricing Section --}}
     <section id="pricing" class="scroll-mt-24 mx-auto max-w-7xl px-5 py-16" itemprop="offers" itemscope itemtype="https://schema.org/Offer">
         <h2 class="font-display text-3xl font-extrabold md:text-4xl">Simple monthly pricing</h2>
-        <p class="mt-4 max-w-2xl text-zem-muted">Everything needed to run QR menus, table orders, service requests, and a live restaurant dashboard.</p>
+        <p class="mt-4 max-w-2xl text-zem-muted">Everything needed to run QR menus, table or room orders, service requests, and a live staff dashboard.</p>
         <div class="mt-8 max-w-2xl rounded-2xl border border-zem-gold bg-black p-7 shadow-2xl shadow-zem-gold/10">
             <p class="text-sm font-extrabold uppercase tracking-[.22em] text-zem-gold">Monthly plan</p>
             <h3 class="mt-3 font-display text-5xl font-extrabold text-white" itemprop="price" content="3000">3,000 birr</h3>
             <p class="mt-2 text-zem-muted" itemprop="priceCurrency" content="ETB">per month</p>
             <div class="mt-5 rounded-xl border border-white/10 bg-white/[.04] p-4">
                 <p class="font-bold text-white">First-time setup: 12,000 birr</p>
-                <p class="mt-2 text-sm leading-6 text-zem-muted">We handle the QR printouts and set up everything system-wise in your restaurant workspace so your team can start using ZemTab smoothly.</p>
+                <p class="mt-2 text-sm leading-6 text-zem-muted">We handle the QR printouts and set up everything system-wise in your restaurant or hotel workspace so your team can start using ZemTab smoothly.</p>
             </div>
             <div class="mt-6 grid gap-3 text-sm font-semibold text-white sm:grid-cols-2">
-                @foreach(['Digital QR menu','Table ordering','Call waiter and bill requests','Live staff dashboard','Menu availability control','QR printout setup'] as $item)
+                @foreach(['Digital QR menu','Table and room ordering','Call staff and bill requests','Live staff dashboard','Menu availability control','QR printout setup'] as $item)
                     <p class="rounded-lg border border-white/10 bg-white/[.04] px-4 py-3">{{ $item }}</p>
                 @endforeach
             </div>
@@ -227,12 +227,12 @@
             <p class="mt-4 text-zem-muted">Everything you need to know before getting started with ZemTab.</p>
             <div class="mt-8 space-y-4" x-data="{ open: null }">
                 @foreach([
-                    ['Do guests need to download an app?','No. Guests simply scan the QR code on their table with their phone camera and the menu opens instantly in their browser. No app installs, no sign-ups.'],
-                    ['How do I set up QR codes for my tables?','ZemTab generates a unique QR code for each table in your restaurant. You can download and print them directly from the dashboard, or we can help with setup.'],
-                    ['What payment methods are supported?','Currently, guests can pay at the cashier, with cash, Telebirr, bank transfer, or other mobile money. Integrated online payments are coming soon.'],
-                    ['Can I update menu prices in real-time?','Yes. Any change you make in the dashboard — prices, item names, descriptions, availability — reflects instantly on the QR menu guests see.'],
-                    ['How much does it cost?','ZemTab is 3,000 birr per month, plus a one-time 12,000 birr setup charge. The setup charge covers QR printouts and full system setup inside your restaurant workspace. No commission on orders.'],
-                    ['What if I have multiple restaurant locations?','ZemTab supports multi-location operations. Each location gets its own restaurant profile, tables, menus, and staff access under one admin account.']
+                    ['Do guests need to download an app?','No. Guests simply scan the QR code on their table or in their room with their phone camera and the menu opens instantly in their browser. No app installs, no sign-ups.'],
+                    ['How do I set up QR codes for tables or rooms?','ZemTab generates a unique QR code for each table or hotel room. You can download and print them directly from the dashboard, or we can help with setup.'],
+                    ['What payment methods are supported?','Guests can pay at the end with cash, Telebirr, CBE, bank transfer, or other manual methods. Restaurants and hotels can show payment QR codes and account numbers, then guests upload or show proof to staff.'],
+                    ['Can I update menu prices in real-time?','Yes. Any change you make in the dashboard - prices, item names, descriptions, availability - reflects instantly on the QR menu guests see.'],
+                    ['How much does it cost?','ZemTab is 3,000 birr per month, plus a one-time 12,000 birr setup charge. The setup charge covers QR printouts and full system setup inside your restaurant or hotel workspace. No commission on orders.'],
+                    ['What if I have multiple locations?','ZemTab supports multi-location operations. Each location gets its own profile, tables or rooms, menus, and staff access under one admin account.']
                 ] as $faq)
                     <div class="rounded-xl border border-white/10 bg-black">
                         <button
@@ -258,7 +258,7 @@
         <div class="mx-auto grid max-w-7xl gap-8 px-5 lg:grid-cols-[.8fr_1.2fr]">
             <div>
                 <h2 class="font-display text-3xl font-extrabold md:text-4xl">Request a demo</h2>
-                <p class="mt-3 leading-7 text-zem-muted">Tell us about your restaurant, table count, and service style. ZemTab can be set up for a single cafe, a full restaurant, or a multi-location operation.</p>
+                <p class="mt-3 leading-7 text-zem-muted">Tell us about your restaurant or hotel, table or room count, and service style. ZemTab can be set up for a single cafe, a full restaurant, a hotel, or a multi-location operation.</p>
                 <div class="mt-6 space-y-3 text-sm">
                     <div class="inline-flex items-center gap-2 rounded-full border border-zem-green/40 bg-zem-green/10 px-3 py-1 text-zem-green">
                         <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
@@ -281,7 +281,7 @@
             <form method="post" action="{{ route('demo-requests.store') }}" class="grid gap-4 rounded-xl border border-white/10 bg-black p-5 md:grid-cols-2">
                 @csrf
                 <input name="name" required placeholder="Name" class="rounded-lg border border-white/10 bg-white/[.04] px-4 py-3 outline-none focus:border-zem-gold" aria-label="Your name">
-                <input name="restaurant_name" required placeholder="Restaurant name" class="rounded-lg border border-white/10 bg-white/[.04] px-4 py-3 outline-none focus:border-zem-gold" aria-label="Restaurant name">
+                <input name="restaurant_name" required placeholder="Restaurant or hotel name" class="rounded-lg border border-white/10 bg-white/[.04] px-4 py-3 outline-none focus:border-zem-gold" aria-label="Restaurant or hotel name">
                 <input name="phone" required placeholder="Phone number" class="rounded-lg border border-white/10 bg-white/[.04] px-4 py-3 outline-none focus:border-zem-gold" aria-label="Phone number">
                 <input name="email" type="email" placeholder="Email optional" class="rounded-lg border border-white/10 bg-white/[.04] px-4 py-3 outline-none focus:border-zem-gold" aria-label="Email address">
                 <input name="location" placeholder="Location" class="rounded-lg border border-white/10 bg-white/[.04] px-4 py-3 outline-none focus:border-zem-gold md:col-span-2" aria-label="Location">
@@ -293,7 +293,7 @@
 
     {{-- Sticky Mobile CTA --}}
     <div class="fixed bottom-0 inset-x-0 z-40 border-t border-white/10 bg-black/90 px-4 py-3 backdrop-blur-lg md:hidden">
-        <a href="#demo" class="flex w-full items-center justify-center rounded-lg bg-zem-gold py-3 font-extrabold text-white shadow-xl">Request Demo — Free Setup</a>
+        <a href="#demo" class="flex w-full items-center justify-center rounded-lg bg-zem-gold py-3 font-extrabold text-white shadow-xl">Request Demo - Free Setup</a>
     </div>
 
     {{-- Expanded Footer --}}
@@ -304,7 +304,7 @@
                     <a href="/" class="inline-flex items-center">
                         <img src="{{ asset('logo/zemtab-text-transparent-dark.png') }}" alt="ZemTab" class="h-8 w-auto">
                     </a>
-                    <p class="mt-3 max-w-sm leading-6">German-made QR Menu & Table Ordering for modern restaurants, cafes, and lounges across Ethiopia.</p>
+                    <p class="mt-3 max-w-sm leading-6">German-made QR Menu, Table Ordering, and Hotel Room Ordering for modern restaurants, hotels, cafes, and lounges across Ethiopia.</p>
                     <p class="mt-3">Based in <span itemprop="address" itemscope itemtype="https://schema.org/PostalAddress"><span itemprop="addressLocality">Addis Ababa</span>, <span itemprop="addressCountry">Ethiopia</span></span>.</p>
                 </div>
                 <div>
@@ -363,7 +363,7 @@
         "seller": { "@type": "Organization", "name": "ZemTab" }
     },
     "aggregateRating": { "@type": "AggregateRating", "ratingValue": "4.8", "ratingCount": "12" },
-    "description": "ZemTab is a German-made, Ethiopia-based QR menu, table ordering, waiter request, and restaurant dashboard system. Guests scan, order, and pay from their phone. No app download needed.",
+    "description": "ZemTab is a German-made, Ethiopia-based QR menu, table ordering, hotel room ordering, service request, and staff dashboard system. Guests scan, order, request service, and pay from their phone. No app download needed.",
     "url": "https://zemtab.com",
     "image": "https://zemtab.com/logo/zemtab-full-transparent.png",
     "inLanguage": "en",
@@ -389,7 +389,7 @@
     "@context": "https://schema.org",
     "@type": "LocalBusiness",
     "name": "ZemTab",
-    "description": "German-made, Ethiopia-based QR Menu & Table Ordering system for restaurants, cafes, and lounges.",
+    "description": "German-made, Ethiopia-based QR Menu, Table Ordering, and Hotel Room Ordering system for restaurants, hotels, cafes, and lounges.",
     "url": "https://zemtab.com",
     "telephone": "",
     "email": "zemtab.support@gmail.com",
@@ -419,12 +419,12 @@
     "@context": "https://schema.org",
     "@type": "FAQPage",
     "mainEntity": [
-        { "@type": "Question", "name": "Do guests need to download an app?", "acceptedAnswer": { "@type": "Answer", "text": "No. Guests simply scan the QR code on their table with their phone camera and the menu opens instantly in their browser. No app installs, no sign-ups." } },
-        { "@type": "Question", "name": "How do I set up QR codes for my tables?", "acceptedAnswer": { "@type": "Answer", "text": "ZemTab generates a unique QR code for each table in your restaurant. You can download and print them directly from the dashboard, or we can help with setup." } },
-        { "@type": "Question", "name": "What payment methods are supported?", "acceptedAnswer": { "@type": "Answer", "text": "Currently, guests can pay at the cashier, with cash, Telebirr, bank transfer, or other mobile money. Integrated online payments are coming soon." } },
-        { "@type": "Question", "name": "Can I update menu prices in real-time?", "acceptedAnswer": { "@type": "Answer", "text": "Yes. Any change you make in the dashboard — prices, item names, descriptions, availability — reflects instantly on the QR menu guests see." } },
-        { "@type": "Question", "name": "How much does it cost?", "acceptedAnswer": { "@type": "Answer", "text": "ZemTab is 3,000 birr per month, plus a one-time 12,000 birr setup charge. The setup charge covers QR printouts and full system setup inside your restaurant workspace. No commission on orders." } },
-        { "@type": "Question", "name": "What if I have multiple restaurant locations?", "acceptedAnswer": { "@type": "Answer", "text": "ZemTab supports multi-location operations. Each location gets its own restaurant profile, tables, menus, and staff access under one admin account." } }
+        { "@type": "Question", "name": "Do guests need to download an app?", "acceptedAnswer": { "@type": "Answer", "text": "No. Guests simply scan the QR code on their table or in their room with their phone camera and the menu opens instantly in their browser. No app installs, no sign-ups." } },
+        { "@type": "Question", "name": "How do I set up QR codes for tables or rooms?", "acceptedAnswer": { "@type": "Answer", "text": "ZemTab generates a unique QR code for each table or hotel room. You can download and print them directly from the dashboard, or we can help with setup." } },
+        { "@type": "Question", "name": "What payment methods are supported?", "acceptedAnswer": { "@type": "Answer", "text": "Guests can pay at the end with cash, Telebirr, CBE, bank transfer, or other manual methods. Restaurants and hotels can show payment QR codes and account numbers, then guests upload or show proof to staff." } },
+        { "@type": "Question", "name": "Can I update menu prices in real-time?", "acceptedAnswer": { "@type": "Answer", "text": "Yes. Any change you make in the dashboard - prices, item names, descriptions, availability - reflects instantly on the QR menu guests see." } },
+        { "@type": "Question", "name": "How much does it cost?", "acceptedAnswer": { "@type": "Answer", "text": "ZemTab is 3,000 birr per month, plus a one-time 12,000 birr setup charge. The setup charge covers QR printouts and full system setup inside your restaurant or hotel workspace. No commission on orders." } },
+        { "@type": "Question", "name": "What if I have multiple locations?", "acceptedAnswer": { "@type": "Answer", "text": "ZemTab supports multi-location operations. Each location gets its own profile, tables or rooms, menus, and staff access under one admin account." } }
     ]
 }
 </script>

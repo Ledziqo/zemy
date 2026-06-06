@@ -9,7 +9,7 @@
     @endforeach
 </div>
 <section class="mt-6 rounded-md border border-zem-border bg-zem-card p-4">
-    <div class="flex items-center justify-between"><h2 class="font-display text-xl font-bold">Recent orders</h2><a class="text-sm font-bold text-zem-gold" href="{{ route('restaurant.orders.index') }}">View all</a></div>
+    <div class="flex items-center justify-between"><h2 class="font-display text-xl font-bold">Recent orders</h2><a class="text-sm font-bold text-zem-gold" href="{{ route('restaurant.orders.index') }}">Open work board</a></div>
     <div class="mt-4 grid gap-3">
         @forelse($recentOrders as $order)
             <div class="rounded-md border border-zem-border bg-zem-bg p-4">
