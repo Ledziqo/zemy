@@ -14,5 +14,5 @@ class Category extends Model
     }
 
     public function restaurant() { return $this->belongsTo(Restaurant::class); }
-    public function menuItems() { return $this->hasMany(MenuItem::class)->orderBy('sort_order')->orderBy('name'); }
+    public function menuItems() { return $this->hasMany(MenuItem::class)->orderBy('sort_order')->orderBy('id'); }
 }

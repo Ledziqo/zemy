@@ -16,7 +16,7 @@ class MenuItemController extends Controller
         $restaurant = $this->restaurant($request);
         return view('restaurant.menu_items.index', [
             'restaurant' => $restaurant,
-            'items' => $restaurant->menuItems()->with('category')->orderBy('category_id')->orderBy('sort_order')->paginate(50),
+            'items' => $restaurant->menuItems()->with('category')->orderBy('category_id')->orderBy('sort_order')->orderBy('id')->paginate(50),
             'categories' => $restaurant->categories,
             'item' => new MenuItem(['is_available' => true]),
         ]);
@@ -26,6 +26,7 @@ class MenuItemController extends Controller
     {
         $restaurant = $this->restaurant($request);
         $data = $this->validated($request, $restaurant->id);
+        $data['sort_order'] ??= ((int) $restaurant->menuItems()->max('sort_order')) + 10;
         $restaurant->menuItems()->create($data);
         return back()->with('success', 'Menu item added.');
     }
@@ -36,6 +37,29 @@ class MenuItemController extends Controller
         abort_unless($menuItem->restaurant_id === $restaurant->id, 403);
         $menuItem->update($this->validated($request, $restaurant->id));
         return back()->with('success', 'Menu item updated.');
+    }
+
+    public function reorder(Request $request)
+    {
+        $restaurant = $this->restaurant($request);
+
+        $data = $request->validate([
+            'items' => ['required', 'array', 'min:1'],
+            'items.*' => ['integer'],
+        ]);
+
+        $items = $restaurant->menuItems()
+            ->whereIn('id', $data['items'])
+            ->get()
+            ->keyBy('id');
+
+        abort_unless($items->count() === count(array_unique($data['items'])), 403);
+
+        foreach (array_values($data['items']) as $index => $itemId) {
+            $items[$itemId]->update(['sort_order' => ($index + 1) * 10]);
+        }
+
+        return back()->with('success', 'Menu item order saved.');
     }
 
     public function toggleAvailability(Request $request, MenuItem $menuItem)

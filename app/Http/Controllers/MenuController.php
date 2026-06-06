@@ -11,7 +11,7 @@ class MenuController extends Controller
     public function show(Request $request, GuestVisitManager $visits, string $restaurant_slug, string $table_number)
     {
         $restaurant = Restaurant::where('slug', $restaurant_slug)->where('is_active', true)
-            ->with(['categories.menuItems' => fn ($query) => $query->orderBy('sort_order')->orderBy('name')])
+            ->with(['categories.menuItems' => fn ($query) => $query->orderBy('sort_order')->orderBy('id')])
             ->firstOrFail();
 
         $restaurantTable = $restaurant->tables()->where('table_number', $table_number)->where('is_active', true)->firstOrFail();

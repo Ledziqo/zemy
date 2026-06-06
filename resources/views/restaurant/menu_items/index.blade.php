@@ -17,10 +17,20 @@
     <button class="rounded-md bg-zem-gold px-4 py-3 font-bold text-white">Add item</button>
 </form>
 
-<div class="grid gap-4 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4">
+<form method="post" action="{{ route('restaurant.menu-items.reorder') }}" class="mb-4 flex flex-wrap items-center justify-between gap-3 rounded-md border border-zem-border bg-zem-card p-4" data-reorder-form>
+    @csrf @method('PATCH')
+    <div>
+        <p class="font-bold text-white">Menu order</p>
+        <p class="text-sm text-zem-muted">Drag items into the order customers should see, then save.</p>
+    </div>
+    <div class="hidden" data-reorder-fields></div>
+    <button class="rounded-md bg-zem-gold px-4 py-3 font-bold text-white">Save item order</button>
+</form>
+
+<div class="grid gap-4 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4" data-reorder-list>
 @foreach($items as $menuItem)
     @php($imageUrl = $menuItem->image_path ? (\Illuminate\Support\Str::startsWith($menuItem->image_path, ['http://', 'https://', 'uploads/']) ? (str_starts_with($menuItem->image_path, 'uploads/') ? asset($menuItem->image_path) : $menuItem->image_path) : asset('storage/'.$menuItem->image_path)) : null)
-    <article class="overflow-hidden rounded-md border border-zem-border bg-zem-card">
+    <article class="overflow-hidden rounded-md border border-zem-border bg-zem-card transition" draggable="true" data-reorder-item data-menu-item-id="{{ $menuItem->id }}">
         <div class="relative aspect-square bg-zem-bg">
             @if($imageUrl)
                 <img src="{{ $imageUrl }}" alt="{{ $menuItem->name }}" class="h-full w-full object-cover">
@@ -53,7 +63,10 @@
                     <p class="text-xs font-bold uppercase tracking-widest text-zem-gold">{{ $menuItem->category?->name }}</p>
                     <h2 class="mt-1 font-display text-xl font-bold">{{ $menuItem->name }}</h2>
                 </div>
-                @if($menuItem->is_featured)<span class="rounded-full border border-zem-gold/40 px-2 py-1 text-xs font-bold text-zem-gold">Featured</span>@endif
+                <div class="flex flex-col items-end gap-2">
+                    <span class="cursor-grab rounded-md border border-zem-border px-2 py-1 text-xs font-bold text-zem-muted active:cursor-grabbing" title="Drag to reorder">Drag</span>
+                    @if($menuItem->is_featured)<span class="rounded-full border border-zem-gold/40 px-2 py-1 text-xs font-bold text-zem-gold">Featured</span>@endif
+                </div>
             </div>
             <p class="mt-2 min-h-10 text-sm text-zem-muted">{{ $menuItem->description ?: 'No description yet.' }}</p>
 
@@ -263,6 +276,66 @@
             if (shouldSubmit && form) {
                 form.submit();
             }
+        });
+    })();
+</script>
+<script>
+    (() => {
+        const list = document.querySelector('[data-reorder-list]');
+        const form = document.querySelector('[data-reorder-form]');
+        const fields = document.querySelector('[data-reorder-fields]');
+        if (! list || ! form || ! fields) return;
+
+        let dragged = null;
+
+        function itemAfterPointer(y) {
+            const items = [...list.querySelectorAll('[data-reorder-item]:not(.opacity-40)')];
+            return items.reduce((closest, item) => {
+                const box = item.getBoundingClientRect();
+                const offset = y - box.top - box.height / 2;
+                if (offset < 0 && offset > closest.offset) {
+                    return { offset, item };
+                }
+                return closest;
+            }, { offset: Number.NEGATIVE_INFINITY, item: null }).item;
+        }
+
+        list.addEventListener('dragstart', (event) => {
+            const item = event.target.closest('[data-reorder-item]');
+            if (! item) return;
+            dragged = item;
+            event.dataTransfer.effectAllowed = 'move';
+            event.dataTransfer.setData('text/plain', item.dataset.menuItemId);
+            item.classList.add('opacity-40', 'ring-2', 'ring-zem-gold');
+        });
+
+        list.addEventListener('dragend', () => {
+            if (dragged) {
+                dragged.classList.remove('opacity-40', 'ring-2', 'ring-zem-gold');
+            }
+            dragged = null;
+        });
+
+        list.addEventListener('dragover', (event) => {
+            event.preventDefault();
+            if (! dragged) return;
+            const after = itemAfterPointer(event.clientY);
+            if (after) {
+                list.insertBefore(dragged, after);
+            } else {
+                list.appendChild(dragged);
+            }
+        });
+
+        form.addEventListener('submit', () => {
+            fields.innerHTML = '';
+            list.querySelectorAll('[data-reorder-item]').forEach((item) => {
+                const input = document.createElement('input');
+                input.type = 'hidden';
+                input.name = 'items[]';
+                input.value = item.dataset.menuItemId;
+                fields.appendChild(input);
+            });
         });
     })();
 </script>
