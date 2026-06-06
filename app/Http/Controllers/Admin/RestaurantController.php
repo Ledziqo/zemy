@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Restaurant;
 use App\Models\Subscription;
 use App\Models\User;
+use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Validation\ValidationException;
@@ -16,6 +17,8 @@ class RestaurantController extends Controller
 {
     public function index()
     {
+        $this->ensureBusinessTypeColumn();
+
         return view('admin.restaurants.index', [
             'restaurants' => Restaurant::with(['subscriptions', 'users'])->withCount('orders')->latest()->paginate(50),
             'owners' => User::whereIn('role', ['restaurant_owner', 'staff'])->orderBy('name')->get(),
@@ -24,6 +27,8 @@ class RestaurantController extends Controller
 
     public function store(Request $request)
     {
+        $this->ensureBusinessTypeColumn();
+
         $data = $this->validated($request);
         $ownerPassword = $data['owner_password'] ?? null;
         unset($data['owner_password'], $data['subscription_status']);
@@ -55,6 +60,8 @@ class RestaurantController extends Controller
 
     public function update(Request $request, Restaurant $restaurant)
     {
+        $this->ensureBusinessTypeColumn();
+
         $data = $this->validated($request, $restaurant->id);
         $subscriptionStatus = $data['subscription_status'] ?? null;
         unset($data['subscription_status'], $data['owner_password']);
@@ -152,5 +159,16 @@ class RestaurantController extends Controller
             'dashboard_access_status' => ['nullable', Rule::in(Restaurant::DASHBOARD_ACCESS_STATUSES)],
             'subscription_status' => ['nullable', 'in:active,unpaid,trial,cancelled'],
         ]) + ['is_active' => $request->boolean('is_active')];
+    }
+
+    private function ensureBusinessTypeColumn(): void
+    {
+        if (! Schema::hasTable('restaurants') || Schema::hasColumn('restaurants', 'business_type')) {
+            return;
+        }
+
+        Schema::table('restaurants', function (Blueprint $table) {
+            $table->string('business_type')->default('restaurant')->after('slug');
+        });
     }
 }
