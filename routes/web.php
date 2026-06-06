@@ -21,7 +21,9 @@ Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
 Route::get('/setup', [SetupController::class, 'show'])->name('setup.show');
 Route::post('/setup/run', [SetupController::class, 'run'])->name('setup.run');
 
-Route::get('/r/{restaurant_slug}/table/{table_number}', [MenuController::class, 'show'])->name('menu.show');
+Route::get('/r/{restaurant_slug}/table/{table_number}', [MenuController::class, 'show'])
+    ->middleware('throttle:60,1')
+    ->name('menu.show');
 Route::post('/r/{restaurant_slug}/table/{table_number}/orders', [OrderController::class, 'store'])->name('orders.store');
 Route::post('/r/{restaurant_slug}/table/{table_number}/service-requests', [ServiceRequestController::class, 'store'])->name('service-requests.store');
 Route::post('/r/{restaurant_slug}/table/{table_number}/payment-proof', [PaymentProofController::class, 'store'])->name('payment-proofs.store');
