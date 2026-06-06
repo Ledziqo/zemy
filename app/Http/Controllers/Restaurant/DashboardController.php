@@ -40,7 +40,7 @@ class DashboardController extends Controller
 
         return view('restaurant.orders.index', [
             'restaurant' => $restaurant,
-            'orders' => $restaurant->orders()->with('items')->latest()->paginate(30),
+            'orders' => $restaurant->orders()->with(['items', 'guestSession.payments'])->latest()->paginate(30),
             'statuses' => Order::STATUSES,
             'latestOrderId' => $restaurant->orders()->max('id') ?? 0,
         ]);

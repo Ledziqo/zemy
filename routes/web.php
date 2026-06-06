@@ -4,6 +4,7 @@ use App\Http\Controllers\Admin;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\MenuController;
 use App\Http\Controllers\OrderController;
+use App\Http\Controllers\PaymentProofController;
 use App\Http\Controllers\PublicController;
 use App\Http\Controllers\Restaurant;
 use App\Http\Controllers\ServiceRequestController;
@@ -23,6 +24,7 @@ Route::post('/setup/run', [SetupController::class, 'run'])->name('setup.run');
 Route::get('/r/{restaurant_slug}/table/{table_number}', [MenuController::class, 'show'])->name('menu.show');
 Route::post('/r/{restaurant_slug}/table/{table_number}/orders', [OrderController::class, 'store'])->name('orders.store');
 Route::post('/r/{restaurant_slug}/table/{table_number}/service-requests', [ServiceRequestController::class, 'store'])->name('service-requests.store');
+Route::post('/r/{restaurant_slug}/table/{table_number}/payment-proof', [PaymentProofController::class, 'store'])->name('payment-proofs.store');
 Route::get('/r/{restaurant_slug}/table/{table_number}/confirmation', [MenuController::class, 'confirmation'])->name('menu.confirmation');
 
 Route::middleware(['auth', 'role:restaurant_owner,staff'])->prefix('restaurant')->name('restaurant.')->group(function () {

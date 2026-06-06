@@ -25,13 +25,15 @@ class SettingsController extends Controller
             'logo' => ['nullable', 'image', 'max:4096'],
             'cropped_logo' => ['nullable', 'string'],
             'cover_image_path' => ['nullable', 'string', 'max:255'],
-            'primary_color' => ['nullable', 'string', 'max:20'],
+            'primary_color' => ['nullable', 'regex:/^#[0-9A-Fa-f]{6}$/'],
             'service_charge_percentage' => ['nullable', 'numeric', 'min:0'],
             'vat_percentage' => ['nullable', 'numeric', 'min:0'],
             'payment_methods' => ['nullable', 'array'],
             'payment_methods.*' => ['in:cash,telebirr,cbe'],
             'telebirr_number' => ['nullable', 'string', 'max:100'],
             'cbe_account_number' => ['nullable', 'string', 'max:100'],
+            'telebirr_qr' => ['nullable', 'image', 'max:4096'],
+            'cbe_qr' => ['nullable', 'image', 'max:4096'],
         ]);
 
         $settings = $restaurant->settings ?? [];
@@ -47,14 +49,24 @@ class SettingsController extends Controller
             $data['logo_path'] = 'uploads/restaurants/'.$filename;
         }
 
+        if ($request->hasFile('telebirr_qr')) {
+            $data['telebirr_qr_path'] = $this->storeUploadedImage($request->file('telebirr_qr'), 'payment-qr');
+        }
+
+        if ($request->hasFile('cbe_qr')) {
+            $data['cbe_qr_path'] = $this->storeUploadedImage($request->file('cbe_qr'), 'payment-qr');
+        }
+
         $restaurant->update([
-            ...collect($data)->except(['service_charge_percentage', 'vat_percentage', 'payment_methods', 'telebirr_number', 'cbe_account_number', 'logo', 'cropped_logo'])->all(),
+            ...collect($data)->except(['service_charge_percentage', 'vat_percentage', 'payment_methods', 'telebirr_number', 'cbe_account_number', 'telebirr_qr', 'telebirr_qr_path', 'cbe_qr', 'cbe_qr_path', 'logo', 'cropped_logo'])->all(),
             'settings' => array_merge($settings, [
                 'service_charge_percentage' => $data['service_charge_percentage'] ?? 0,
                 'vat_percentage' => $data['vat_percentage'] ?? 0,
                 'payment_methods' => array_values($data['payment_methods'] ?? []),
                 'telebirr_number' => $data['telebirr_number'] ?? null,
                 'cbe_account_number' => $data['cbe_account_number'] ?? null,
+                'telebirr_qr_path' => $data['telebirr_qr_path'] ?? ($settings['telebirr_qr_path'] ?? null),
+                'cbe_qr_path' => $data['cbe_qr_path'] ?? ($settings['cbe_qr_path'] ?? null),
             ]),
         ]);
 
@@ -87,5 +99,18 @@ class SettingsController extends Controller
         file_put_contents($directory.'/'.$filename, $bytes);
 
         return 'uploads/restaurants/'.$filename;
+    }
+
+    private function storeUploadedImage($file, string $folder): string
+    {
+        $directory = public_path('uploads/'.$folder);
+        if (! is_dir($directory)) {
+            mkdir($directory, 0755, true);
+        }
+
+        $filename = Str::uuid().'.'.$file->getClientOriginalExtension();
+        $file->move($directory, $filename);
+
+        return 'uploads/'.$folder.'/'.$filename;
     }
 }

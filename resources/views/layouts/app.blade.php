@@ -1,5 +1,9 @@
+@php
+    $accentColor = $accentColor ?? '#ef233c';
+    $accentColor = is_string($accentColor) && preg_match('/^#[0-9A-Fa-f]{6}$/', $accentColor) ? $accentColor : '#ef233c';
+@endphp
 <!doctype html>
-<html lang="{{ app()->getLocale() }}">
+<html lang="{{ app()->getLocale() }}" style="--zem-accent: {{ $accentColor }};">
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=5">
@@ -11,7 +15,7 @@
     <meta name="keywords" content="{{ $keywords ?? 'QR menu, restaurant ordering, table ordering, Ethiopia, Addis Ababa, restaurant app, digital menu, waiter call, bill request, restaurant POS, food ordering' }}">
     <meta name="author" content="ZemTab">
     <meta name="robots" content="{{ $robots ?? 'index, follow' }}">
-    <meta name="theme-color" content="#050505">
+    <meta name="theme-color" content="{{ $accentColor }}">
 
     {{-- Canonical URL --}}
     <link rel="canonical" href="{{ $canonical ?? url()->current() }}">
@@ -57,7 +61,7 @@
                         zem: {
                             bg: '#050505',
                             card: '#101010',
-                            gold: '#ef233c',
+                            gold: @js($accentColor),
                             cream: '#ffffff',
                             muted: '#a3a3a3',
                             green: '#16a34a',

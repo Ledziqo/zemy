@@ -57,12 +57,15 @@ class SetupController extends Controller
     {
         $this->baselineExistingDatabase($output);
 
+        $output[] = 'Applying database migrations and updates...';
         Artisan::call('migrate', ['--force' => true]);
         $output[] = Artisan::output();
 
+        $output[] = 'Refreshing default demo/admin data...';
         Artisan::call('db:seed', ['--force' => true]);
         $output[] = Artisan::output();
 
+        $output[] = 'Clearing cached config/routes/views...';
         Artisan::call('optimize:clear');
         $output[] = Artisan::output();
     }

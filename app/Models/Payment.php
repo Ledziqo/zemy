@@ -6,7 +6,10 @@ use Illuminate\Database\Eloquent\Model;
 
 class Payment extends Model
 {
-    protected $fillable = ['restaurant_id', 'order_id', 'amount', 'method', 'status', 'reference', 'metadata'];
+    protected $fillable = [
+        'restaurant_id', 'order_id', 'guest_session_id', 'amount', 'method', 'status', 'reference',
+        'proof_image_path', 'metadata',
+    ];
 
     protected function casts(): array
     {
@@ -15,4 +18,5 @@ class Payment extends Model
 
     public function restaurant() { return $this->belongsTo(Restaurant::class); }
     public function order() { return $this->belongsTo(Order::class); }
+    public function guestSession() { return $this->belongsTo(GuestSession::class); }
 }

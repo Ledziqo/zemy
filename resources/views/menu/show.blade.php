@@ -6,6 +6,7 @@
     'ogType' => 'website',
     'ogImage' => $restaurant->cover_image_path ? asset($restaurant->cover_image_path) : asset('logo/zemtab-full-transparent.png'),
     'robots' => 'index, follow',
+    'accentColor' => $restaurant->primary_color,
 ])
 
 @section('content')
@@ -20,6 +21,14 @@
     ];
     $logoUrl = $restaurant->logo_path ? (\Illuminate\Support\Str::startsWith($restaurant->logo_path, ['http://', 'https://', 'uploads/']) ? (str_starts_with($restaurant->logo_path, 'uploads/') ? asset($restaurant->logo_path) : $restaurant->logo_path) : asset('storage/'.$restaurant->logo_path)) : null;
     $placeTitle = $restaurant->locationLabelTitle();
+    $visitOrders = $visit?->orders?->sortByDesc('created_at') ?? collect();
+    $visitRequests = $visit?->serviceRequests ?? collect();
+    $visitPayments = $visit?->payments ?? collect();
+    $visitTotal = $visitOrders->whereNotIn('status', ['cancelled'])->sum(fn ($order) => (float) $order->total);
+    $paymentQrUrls = [
+        'telebirr' => ! empty($settings['telebirr_qr_path'] ?? null) ? asset($settings['telebirr_qr_path']) : null,
+        'cbe' => ! empty($settings['cbe_qr_path'] ?? null) ? asset($settings['cbe_qr_path']) : null,
+    ];
 @endphp
 <main x-data="menuCart({ paymentDetails: @js($paymentDetails) })" class="min-h-screen bg-neutral-100 pb-28 text-zem-ink">
     <header class="sticky top-0 z-30 border-b border-black/10 bg-white/95 px-4 py-3 shadow-sm backdrop-blur">
@@ -59,6 +68,80 @@
         </div>
     </section>
 
+    @if($visitOrders->isNotEmpty() || $visitPayments->isNotEmpty())
+        <section class="mx-auto max-w-5xl px-4 pb-4">
+            <div class="rounded-2xl border border-black/10 bg-white p-4 shadow-sm">
+                <div class="flex flex-wrap items-center justify-between gap-3">
+                    <div>
+                        <p class="text-xs font-extrabold uppercase tracking-widest text-zem-gold">Your visit</p>
+                        <h2 class="font-display text-2xl font-extrabold">{{ number_format($visitTotal) }} ETB</h2>
+                    </div>
+                    <p class="rounded-full bg-neutral-100 px-3 py-2 text-xs font-bold text-neutral-600">Active until {{ $visit->expires_at->format('H:i') }}</p>
+                </div>
+
+                <div class="mt-4 grid gap-3 md:grid-cols-2">
+                    <div class="rounded-xl bg-neutral-50 p-3">
+                        <h3 class="font-extrabold">Orders</h3>
+                        <div class="mt-2 space-y-2">
+                            @foreach($visitOrders->take(4) as $order)
+                                <div class="rounded-lg border border-black/10 bg-white p-3 text-sm">
+                                    <div class="flex items-center justify-between gap-3"><strong>#{{ $order->id }} - {{ ucfirst($order->status) }}</strong><strong>{{ number_format($order->total) }} ETB</strong></div>
+                                    <p class="mt-1 text-neutral-500">{{ $order->items->sum('quantity') }} item(s) - {{ $order->created_at->format('H:i') }}</p>
+                                </div>
+                            @endforeach
+                        </div>
+                    </div>
+                    <div class="rounded-xl bg-neutral-50 p-3">
+                        <h3 class="font-extrabold">Requests & payment</h3>
+                        <div class="mt-2 space-y-2 text-sm">
+                            @forelse($visitRequests->take(3) as $requestRow)
+                                <p class="rounded-lg border border-black/10 bg-white p-3">{{ $restaurant->requestTypeLabel($requestRow->type) }} - {{ ucfirst($requestRow->status) }}</p>
+                            @empty
+                                <p class="rounded-lg border border-black/10 bg-white p-3 text-neutral-500">No service requests yet.</p>
+                            @endforelse
+                            @foreach($visitPayments->take(2) as $payment)
+                                <p class="rounded-lg border border-zem-gold/30 bg-zem-gold/10 p-3 font-semibold">{{ strtoupper($payment->method) }} proof uploaded - {{ ucfirst($payment->status) }}</p>
+                            @endforeach
+                        </div>
+                    </div>
+                </div>
+
+                @if($visitTotal > 0)
+                    <div class="mt-4 rounded-xl border border-zem-gold/30 bg-zem-gold/10 p-3">
+                        <h3 class="font-extrabold">Pay at the end</h3>
+                        <div class="mt-3 grid gap-3 md:grid-cols-2">
+                            @foreach(['telebirr' => 'Telebirr', 'cbe' => 'CBE'] as $method => $label)
+                                @if(in_array($method, $enabledPaymentMethods, true))
+                                    <div class="rounded-xl bg-white p-3">
+                                        <div class="flex items-start gap-3">
+                                            @if($paymentQrUrls[$method])
+                                                <img src="{{ $paymentQrUrls[$method] }}" alt="{{ $label }} payment QR" class="h-24 w-24 shrink-0 rounded-lg border border-black/10 object-contain p-1">
+                                            @endif
+                                            <div class="min-w-0">
+                                                <p class="font-extrabold">{{ $label }}</p>
+                                                <p class="break-words text-sm text-neutral-600">{{ $method === 'telebirr' ? ($settings['telebirr_number'] ?? 'Ask staff for the number.') : ($settings['cbe_account_number'] ?? 'Ask staff for the account number.') }}</p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                @endif
+                            @endforeach
+                        </div>
+                        <form method="post" action="{{ route('payment-proofs.store', [$restaurant->slug, $table->table_number]) }}" enctype="multipart/form-data" class="mt-3 grid gap-3 md:grid-cols-[1fr_1fr_auto]">
+                            @csrf
+                            <select name="method" required class="rounded-lg border border-black/10 bg-white px-3 py-3 font-semibold outline-none focus:border-zem-gold">
+                                <option value="">Payment method</option>
+                                @if(in_array('telebirr', $enabledPaymentMethods, true))<option value="telebirr">Telebirr</option>@endif
+                                @if(in_array('cbe', $enabledPaymentMethods, true))<option value="cbe">CBE</option>@endif
+                            </select>
+                            <input name="proof" type="file" accept="image/*" required class="rounded-lg border border-black/10 bg-white px-3 py-3 text-sm outline-none focus:border-zem-gold">
+                            <button class="rounded-lg bg-black px-4 py-3 font-extrabold text-white">Upload proof</button>
+                        </form>
+                    </div>
+                @endif
+            </div>
+        </section>
+    @endif
+
     <section id="all" class="mx-auto max-w-5xl space-y-8 px-4">
         @foreach($categories as $category)
             <section id="cat-{{ $category->id }}" class="scroll-mt-28">
@@ -71,7 +154,7 @@
                                 @if($imageUrl)
                                     <img src="{{ $imageUrl }}" alt="{{ $item->name }}" class="h-full w-full object-cover">
                                 @else
-                                    <div class="grid h-full place-items-center bg-[linear-gradient(135deg,#111,#ef233c)] text-5xl font-extrabold text-white">{{ strtoupper(substr($item->name, 0, 1)) }}</div>
+                                    <div class="grid h-full place-items-center text-5xl font-extrabold text-white" style="background: linear-gradient(135deg, #111, var(--zem-accent));">{{ strtoupper(substr($item->name, 0, 1)) }}</div>
                                 @endif
                             </div>
                             <div class="p-3">
@@ -122,15 +205,6 @@
 
                 <div class="mt-5 grid gap-3">
                     <textarea name="note" rows="3" placeholder="Order note" class="rounded-lg border border-black/10 px-3 py-3 outline-none focus:border-zem-gold"></textarea>
-                    <select name="payment_method" x-model="paymentMethod" class="rounded-lg border border-black/10 px-3 py-3 outline-none focus:border-zem-gold">
-                        <option value="">Choose payment method later</option>
-                        @foreach($enabledPaymentMethods as $method)
-                            <option value="{{ $method }}">{{ $paymentLabels[$method] ?? ucfirst($method) }}</option>
-                        @endforeach
-                    </select>
-                    <div x-show="paymentMethod" class="rounded-xl border border-zem-gold/30 bg-zem-gold/10 p-4 text-sm font-semibold text-neutral-800">
-                        <p x-text="paymentDetails[paymentMethod] || 'Staff will confirm payment details.'"></p>
-                    </div>
                     <div id="cart-fields"></div>
                     <div class="flex items-center justify-between text-lg font-extrabold"><span>Total</span><span x-text="money(total())"></span></div>
                     <button class="rounded-xl bg-zem-gold py-4 font-extrabold text-white" :disabled="items.length === 0">Place order</button>

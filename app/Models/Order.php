@@ -9,7 +9,7 @@ class Order extends Model
     public const STATUSES = ['new', 'preparing', 'served', 'paid', 'completed', 'cancelled'];
 
     protected $fillable = [
-        'restaurant_id', 'table_id', 'table_number', 'customer_name', 'customer_phone', 'note',
+        'restaurant_id', 'table_id', 'guest_session_id', 'table_number', 'customer_name', 'customer_phone', 'note',
         'status', 'payment_method', 'payment_status', 'subtotal', 'service_charge', 'tax', 'total',
     ];
 
@@ -25,6 +25,7 @@ class Order extends Model
 
     public function restaurant() { return $this->belongsTo(Restaurant::class); }
     public function table() { return $this->belongsTo(RestaurantTable::class, 'table_id'); }
+    public function guestSession() { return $this->belongsTo(GuestSession::class); }
     public function items() { return $this->hasMany(OrderItem::class); }
     public function payment() { return $this->hasOne(Payment::class); }
 }

@@ -34,7 +34,9 @@
     </label>
     <input name="service_charge_percentage" value="{{ $serviceCharge > 0 ? $serviceCharge : '' }}" type="number" step="0.01" placeholder="Service charge %" class="rounded-md border border-zem-border bg-zem-bg px-3 py-2">
     <input name="vat_percentage" value="{{ $vat > 0 ? $vat : '' }}" type="number" step="0.01" placeholder="VAT %" class="rounded-md border border-zem-border bg-zem-bg px-3 py-2">
-    @php($paymentMethods = $restaurant->settings['payment_methods'] ?? ['cash', 'telebirr', 'cbe'])
+@php($paymentMethods = $restaurant->settings['payment_methods'] ?? ['cash', 'telebirr', 'cbe'])
+@php($telebirrQrUrl = ! empty($restaurant->settings['telebirr_qr_path']) ? asset($restaurant->settings['telebirr_qr_path']) : null)
+@php($cbeQrUrl = ! empty($restaurant->settings['cbe_qr_path']) ? asset($restaurant->settings['cbe_qr_path']) : null)
     <fieldset class="rounded-md border border-zem-border bg-zem-bg p-4 md:col-span-2">
         <legend class="px-2 text-sm font-bold text-zem-muted">Accepted customer payment methods</legend>
         <div class="mt-2 flex flex-wrap gap-4">
@@ -48,6 +50,16 @@
         <div class="mt-2 grid gap-3 md:grid-cols-2">
             <input name="telebirr_number" value="{{ $restaurant->settings['telebirr_number'] ?? '' }}" placeholder="Telebirr phone number" class="rounded-md border border-zem-border bg-zem-card px-3 py-3">
             <input name="cbe_account_number" value="{{ $restaurant->settings['cbe_account_number'] ?? '' }}" placeholder="CBE account number" class="rounded-md border border-zem-border bg-zem-card px-3 py-3">
+            <label class="grid gap-2 rounded-md border border-zem-border bg-zem-card p-3 text-sm text-zem-muted">
+                <span class="font-bold text-white">Telebirr QR image</span>
+                @if($telebirrQrUrl)<img src="{{ $telebirrQrUrl }}" alt="Telebirr QR" class="h-28 w-28 rounded-md bg-white object-contain p-2">@endif
+                <input name="telebirr_qr" type="file" accept="image/*" class="text-sm">
+            </label>
+            <label class="grid gap-2 rounded-md border border-zem-border bg-zem-card p-3 text-sm text-zem-muted">
+                <span class="font-bold text-white">CBE QR image</span>
+                @if($cbeQrUrl)<img src="{{ $cbeQrUrl }}" alt="CBE QR" class="h-28 w-28 rounded-md bg-white object-contain p-2">@endif
+                <input name="cbe_qr" type="file" accept="image/*" class="text-sm">
+            </label>
         </div>
     </fieldset>
     <button class="rounded-md bg-zem-gold px-4 py-3 font-bold text-white md:col-span-2 xl:col-span-3">Save settings</button>

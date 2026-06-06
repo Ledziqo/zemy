@@ -10,8 +10,8 @@
 <body class="bg-[#050505] text-white">
 <main class="mx-auto grid min-h-screen max-w-3xl place-items-center px-5 py-10">
     <section class="w-full rounded-2xl border border-white/10 bg-white/[.04] p-6">
-        <h1 class="text-2xl font-extrabold">ZemTab database setup</h1>
-        <p class="mt-3 text-sm text-neutral-400">Use this when you cannot run server commands. First enter the database values from your hosting panel, then run setup.</p>
+        <h1 class="text-2xl font-extrabold">ZemTab database setup & updates</h1>
+        <p class="mt-3 text-sm text-neutral-400">Use this when you cannot run server commands. It applies new database updates, refreshes setup data, and clears cached files.</p>
 
         <form method="post" action="/setup/run" class="mt-6">
             @csrf
@@ -34,7 +34,7 @@
                     <input name="db_password" type="password" placeholder="Enter exact database password" class="rounded-lg border border-white/10 bg-black px-3 py-2">
                 </label>
             </div>
-            <button class="rounded-lg bg-[#ef233c] px-5 py-3 font-extrabold text-white">Run setup now</button>
+            <button class="rounded-lg bg-[#ef233c] px-5 py-3 font-extrabold text-white">Run setup / updates now</button>
             <a href="/login" class="ml-3 text-sm font-bold text-neutral-300">Back to login</a>
         </form>
 

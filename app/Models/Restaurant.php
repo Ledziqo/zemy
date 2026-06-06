@@ -26,6 +26,7 @@ class Restaurant extends Model
     public function orders() { return $this->hasMany(Order::class); }
     public function serviceRequests() { return $this->hasMany(ServiceRequest::class); }
     public function subscriptions() { return $this->hasMany(Subscription::class); }
+    public function guestSessions() { return $this->hasMany(GuestSession::class); }
 
     public function isHotel(): bool
     {

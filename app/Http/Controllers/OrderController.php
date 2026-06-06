@@ -4,18 +4,19 @@ namespace App\Http\Controllers;
 
 use App\Models\MenuItem;
 use App\Models\Order;
-use App\Models\Payment;
 use App\Models\Restaurant;
+use App\Support\GuestVisitManager;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\Rule;
 
 class OrderController extends Controller
 {
-    public function store(Request $request, string $restaurant_slug, string $table_number)
+    public function store(Request $request, GuestVisitManager $visits, string $restaurant_slug, string $table_number)
     {
         $restaurant = Restaurant::where('slug', $restaurant_slug)->where('is_active', true)->firstOrFail();
         $restaurantTable = $restaurant->tables()->where('table_number', $table_number)->where('is_active', true)->firstOrFail();
+        $visit = $visits->resolve($request, $restaurant, $restaurantTable);
 
         $data = $request->validate([
             'customer_name' => ['nullable', 'string', 'max:255'],
@@ -38,7 +39,7 @@ class OrderController extends Controller
             return back()->withErrors(['items' => 'Some selected items are no longer available.']);
         }
 
-        $order = DB::transaction(function () use ($data, $restaurant, $restaurantTable, $table_number, $menuItems) {
+        $order = DB::transaction(function () use ($data, $restaurant, $restaurantTable, $visit, $table_number, $menuItems) {
             $subtotal = 0;
             foreach ($data['items'] as $line) {
                 $item = $menuItems[$line['id']];
@@ -53,6 +54,7 @@ class OrderController extends Controller
             $order = Order::create([
                 'restaurant_id' => $restaurant->id,
                 'table_id' => $restaurantTable->id,
+                'guest_session_id' => $visit->id,
                 'table_number' => $table_number,
                 'customer_name' => $data['customer_name'] ?? null,
                 'customer_phone' => $data['customer_phone'] ?? null,
@@ -78,21 +80,11 @@ class OrderController extends Controller
                 ]);
             }
 
-            if (! empty($data['payment_method'])) {
-                // Manual payment capture for the MVP; automated verification can be added later.
-                Payment::create([
-                    'restaurant_id' => $restaurant->id,
-                    'order_id' => $order->id,
-                    'amount' => $total,
-                    'method' => $data['payment_method'],
-                    'status' => 'pending',
-                    'metadata' => ['source' => 'customer_menu_mvp'],
-                ]);
-            }
-
             return $order;
         });
 
-        return redirect()->route('menu.confirmation', [$restaurant->slug, $table_number])->with('order_id', $order->id);
+        return redirect()->route('menu.confirmation', [$restaurant->slug, $table_number])
+            ->with('order_id', $order->id)
+            ->withCookie($visits->cookie($visit));
     }
 }
