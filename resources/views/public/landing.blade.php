@@ -83,7 +83,7 @@
             <div class="relative mx-auto w-full max-w-lg">
                 <div class="absolute -inset-4 rounded-[2rem] bg-zem-gold/25 blur-2xl"></div>
                 <div class="relative overflow-hidden rounded-[2rem] border border-white/10 bg-[#090909] p-3 shadow-2xl">
-                    <img src="{{ asset('uploads/zemtab-tablet-hero.png') }}" alt="ZemTab QR menu, table ordering, and hotel room ordering tool shown on a tablet" class="aspect-[4/5] w-full rounded-[1.5rem] object-cover">
+                    <img src="{{ asset('uploads/zemtab-phone-showcase-hero.png') }}" alt="ZemTab QR menu, table ordering, and hotel room ordering shown on an iPhone" class="aspect-[4/5] w-full rounded-[1.5rem] object-cover">
                 </div>
             </div>
         </div>
