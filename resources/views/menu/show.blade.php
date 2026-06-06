@@ -110,18 +110,16 @@
         </section>
     @endif
 
-    @if(in_array('telebirr', $enabledPaymentMethods, true) || in_array('cbe', $enabledPaymentMethods, true))
+    @if($visitTotal > 0 && (in_array('telebirr', $enabledPaymentMethods, true) || in_array('cbe', $enabledPaymentMethods, true)))
         <section id="payment-info" class="mx-auto max-w-5xl px-4 pb-4">
             <div class="rounded-2xl border border-zem-gold/30 bg-white p-4 shadow-sm">
                 <div class="flex flex-wrap items-start justify-between gap-3">
                     <div>
                         <p class="text-xs font-extrabold uppercase tracking-widest text-zem-gold">Payment information</p>
                         <h2 class="font-display text-2xl font-extrabold">Pay when you are done</h2>
-                        <p class="mt-1 text-sm text-neutral-600">Use Telebirr or CBE details below, then show the screenshot to staff. Request bill only calls staff to confirm your final amount.</p>
+                        <p class="mt-1 text-sm text-neutral-600">Use Telebirr or CBE details below, then show the payment screenshot to staff. Request bill only calls staff to confirm your final amount.</p>
                     </div>
-                    @if($visitTotal > 0)
-                        <p class="rounded-full bg-zem-gold px-3 py-2 text-sm font-extrabold text-white">Current total: {{ number_format($visitTotal) }} ETB</p>
-                    @endif
+                    <p class="rounded-full bg-zem-gold px-3 py-2 text-sm font-extrabold text-white">Current total: {{ number_format($visitTotal) }} ETB</p>
                 </div>
                 <div class="mt-4 grid gap-3 md:grid-cols-2">
                     @foreach(['telebirr' => 'Telebirr', 'cbe' => 'CBE'] as $method => $label)
@@ -142,18 +140,6 @@
                         @endif
                     @endforeach
                 </div>
-                @if($visitTotal > 0)
-                    <form method="post" action="{{ route('payment-proofs.store', [$restaurant->slug, $table->table_number]) }}" enctype="multipart/form-data" class="mt-3 grid gap-3 md:grid-cols-[1fr_1fr_auto]">
-                        @csrf
-                        <select name="method" required class="rounded-lg border border-black/10 bg-white px-3 py-3 font-semibold outline-none focus:border-zem-gold">
-                            <option value="">Payment method</option>
-                            @if(in_array('telebirr', $enabledPaymentMethods, true))<option value="telebirr">Telebirr</option>@endif
-                            @if(in_array('cbe', $enabledPaymentMethods, true))<option value="cbe">CBE</option>@endif
-                        </select>
-                        <input name="proof" type="file" accept="image/*" required class="rounded-lg border border-black/10 bg-white px-3 py-3 text-sm outline-none focus:border-zem-gold">
-                        <button class="rounded-lg bg-black px-4 py-3 font-extrabold text-white">Upload proof</button>
-                    </form>
-                @endif
             </div>
         </section>
     @endif
