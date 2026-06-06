@@ -288,16 +288,20 @@
 
         let dragged = null;
 
-        function itemAfterPointer(y) {
-            const items = [...list.querySelectorAll('[data-reorder-item]:not(.opacity-40)')];
-            return items.reduce((closest, item) => {
-                const box = item.getBoundingClientRect();
-                const offset = y - box.top - box.height / 2;
-                if (offset < 0 && offset > closest.offset) {
-                    return { offset, item };
-                }
-                return closest;
-            }, { offset: Number.NEGATIVE_INFINITY, item: null }).item;
+        function clearDropTargets() {
+            list.querySelectorAll('[data-reorder-item]').forEach((item) => {
+                item.classList.remove('ring-2', 'ring-white');
+            });
+        }
+
+        function swapItems(first, second) {
+            const firstMarker = document.createElement('span');
+            const secondMarker = document.createElement('span');
+
+            first.before(firstMarker);
+            second.before(secondMarker);
+            firstMarker.replaceWith(second);
+            secondMarker.replaceWith(first);
         }
 
         list.addEventListener('dragstart', (event) => {
@@ -313,18 +317,26 @@
             if (dragged) {
                 dragged.classList.remove('opacity-40', 'ring-2', 'ring-zem-gold');
             }
+            clearDropTargets();
             dragged = null;
         });
 
         list.addEventListener('dragover', (event) => {
             event.preventDefault();
-            if (! dragged) return;
-            const after = itemAfterPointer(event.clientY);
-            if (after) {
-                list.insertBefore(dragged, after);
-            } else {
-                list.appendChild(dragged);
+            const target = event.target.closest('[data-reorder-item]');
+            clearDropTargets();
+            if (dragged && target && target !== dragged) {
+                target.classList.add('ring-2', 'ring-white');
             }
+        });
+
+        list.addEventListener('drop', (event) => {
+            event.preventDefault();
+            const target = event.target.closest('[data-reorder-item]');
+            clearDropTargets();
+            if (! dragged || ! target || target === dragged) return;
+
+            swapItems(dragged, target);
         });
 
         form.addEventListener('submit', () => {
