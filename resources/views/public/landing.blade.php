@@ -57,7 +57,8 @@
 
     {{-- Hero Section --}}
     <section class="relative px-5 pt-28" aria-label="Hero">
-        <div class="absolute inset-0 bg-[radial-gradient(circle_at_18%_18%,rgba(232,93,93,.16),transparent_30%),radial-gradient(circle_at_82%_8%,rgba(255,255,255,.9),transparent_24%),linear-gradient(135deg,#F7F7F4_0%,#FFFFFF_48%,#F1F1EE_100%)]"></div>
+        <div class="absolute inset-0 bg-[radial-gradient(circle_at_18%_20%,rgba(232,93,93,.18),transparent_30%),radial-gradient(circle_at_82%_16%,rgba(255,255,255,.96),transparent_26%),linear-gradient(135deg,#F7F7F4_0%,#FFFFFF_44%,#F1F1EE_100%)]"></div>
+        <div class="absolute inset-y-0 right-0 hidden w-1/2 bg-[linear-gradient(90deg,transparent,rgba(232,93,93,.08)_42%,rgba(35,35,35,.05))] lg:block"></div>
         <div class="absolute inset-x-0 bottom-0 h-40 bg-gradient-to-t from-zem-bg to-transparent"></div>
         <div class="relative mx-auto grid min-h-[88vh] max-w-7xl items-center gap-10 pb-20 lg:grid-cols-[1fr_.9fr]">
             <div class="max-w-3xl">
@@ -80,10 +81,11 @@
                 </div>
             </div>
 
-            <div class="relative mx-auto w-full max-w-lg">
-                <div class="absolute -inset-4 rounded-[2rem] bg-zem-gold/25 blur-2xl"></div>
-                <div class="relative overflow-hidden rounded-[2rem] border border-zem-border bg-white p-3 shadow-2xl">
-                    <img src="{{ asset('uploads/zemtab-phone-showcase-hero.png') }}" alt="ZemTab QR menu, table ordering, and hotel room ordering shown on an iPhone" class="aspect-[4/5] w-full rounded-[1.5rem] object-cover">
+            <div class="relative mx-auto w-full max-w-xl">
+                <div class="absolute -inset-5 rounded-[2rem] bg-zem-gold/20 blur-3xl"></div>
+                <div class="absolute -bottom-7 left-8 right-8 h-16 rounded-full bg-zem-charcoal/10 blur-2xl"></div>
+                <div class="relative overflow-hidden rounded-[1.75rem] border border-white bg-white shadow-2xl shadow-zem-charcoal/15 ring-1 ring-zem-border">
+                    <img src="{{ asset('uploads/zemtab-handheld-menu-hero.png') }}" alt="ZemTab QR menu and table ordering shown on a phone held in a cafe" class="aspect-[4/3] w-full object-cover object-[58%_50%]">
                 </div>
             </div>
         </div>
