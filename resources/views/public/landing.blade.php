@@ -85,7 +85,7 @@
                 <div class="absolute -inset-5 rounded-[2rem] bg-zem-gold/20 blur-3xl"></div>
                 <div class="absolute -bottom-7 left-8 right-8 h-16 rounded-full bg-zem-charcoal/10 blur-2xl"></div>
                 <div class="relative overflow-hidden rounded-[1.75rem] border border-white bg-white shadow-2xl shadow-zem-charcoal/15 ring-1 ring-zem-border">
-                    <img src="{{ asset('uploads/zemtab-handheld-menu-hero.png') }}" alt="ZemTab QR menu and table ordering shown on a phone held in a cafe" class="aspect-[4/3] w-full object-cover object-[58%_50%]">
+                    <img src="{{ asset('uploads/zemtab-handheld-menu-hero-sharp.png') }}" alt="ZemTab QR menu and table ordering shown on a phone held in a cafe" class="aspect-[4/3] w-full object-cover object-[58%_50%]">
                 </div>
             </div>
         </div>
