@@ -4,11 +4,11 @@
     'keywords' => 'QR menu Ethiopia, restaurant ordering Addis Ababa, hotel room ordering, digital menu, table ordering, room service QR, staff call, bill request, restaurant POS, hotel service system, ZemTab',
     'canonical' => url('/'),
     'ogType' => 'website',
-    'ogImage' => asset('logo/zemtab-full-transparent.png'),
+    'ogImage' => asset('logo/zemtab-full-transparent-porcelain-coral.png'),
 ])
 
 @section('content')
-<main class="scroll-smooth overflow-hidden bg-zem-bg text-white" itemscope itemtype="https://schema.org/SoftwareApplication">
+<main class="scroll-smooth overflow-hidden bg-zem-bg text-zem-cream" itemscope itemtype="https://schema.org/SoftwareApplication">
     <meta itemprop="name" content="ZemTab">
     <meta itemprop="applicationCategory" content="BusinessApplication">
     <meta itemprop="operatingSystem" content="Any (Web-based)">
@@ -17,58 +17,58 @@
     <meta itemprop="countriesSupported" content="ET">
 
     {{-- Sticky Header --}}
-    <header class="fixed inset-x-0 top-0 z-40 border-b border-white/10 bg-black/75 backdrop-blur-xl">
+    <header class="fixed inset-x-0 top-0 z-40 border-b border-zem-border bg-white/90 shadow-sm backdrop-blur-xl">
         <div class="mx-auto flex max-w-7xl items-center justify-between px-5 py-4">
             <a href="/" class="inline-flex items-center" aria-label="ZemTab Home">
-                <img src="{{ asset('logo/zemtab-full-transparent-dark.png') }}" alt="ZemTab Logo - QR Menu, Table and Room Ordering System" class="h-12 w-auto">
+                <img src="{{ asset('logo/zemtab-full-transparent-porcelain-coral.png') }}" alt="ZemTab Logo - QR Menu, Table and Room Ordering System" class="h-12 w-auto">
             </a>
             <nav class="hidden items-center gap-6 text-sm font-semibold text-zem-muted md:flex" aria-label="Primary navigation">
-                <a class="transition hover:text-white" href="#workflow">Workflow</a>
-                <a class="transition hover:text-white" href="#features">Features</a>
-                <a class="transition hover:text-white" href="#pricing">Pricing</a>
-                <a class="transition hover:text-white" href="#faq">FAQ</a>
-                <a class="transition hover:text-white" href="#demo">Demo</a>
+                <a class="transition hover:text-zem-gold" href="#workflow">Workflow</a>
+                <a class="transition hover:text-zem-gold" href="#features">Features</a>
+                <a class="transition hover:text-zem-gold" href="#pricing">Pricing</a>
+                <a class="transition hover:text-zem-gold" href="#faq">FAQ</a>
+                <a class="transition hover:text-zem-gold" href="#demo">Demo</a>
             </nav>
             {{-- Mobile Menu Toggle --}}
             <div class="flex items-center gap-3 md:hidden">
-                <a href="{{ route('login') }}" class="rounded-lg border border-white/15 px-3 py-2 text-xs font-extrabold text-white">Login</a>
+                <a href="{{ route('login') }}" class="rounded-lg border border-zem-border px-3 py-2 text-xs font-extrabold text-zem-cream">Login</a>
                 <a href="#demo" class="rounded-lg bg-zem-gold px-3 py-2 text-xs font-extrabold text-white">Demo</a>
-                <button id="mobile-menu-toggle" class="rounded-lg border border-white/15 p-2 text-white" aria-label="Open menu" aria-expanded="false" aria-controls="mobile-menu">
+                <button id="mobile-menu-toggle" class="rounded-lg border border-zem-border p-2 text-zem-cream" aria-label="Open menu" aria-expanded="false" aria-controls="mobile-menu">
                     <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M4 6h16M4 12h16M4 18h16"/></svg>
                 </button>
             </div>
             <div class="hidden items-center gap-3 md:flex">
-                <a href="{{ route('login') }}" class="rounded-lg border border-white/15 px-4 py-2 text-sm font-extrabold text-white transition hover:border-zem-gold hover:bg-zem-gold/10">Login</a>
-                <a href="#demo" class="rounded-lg bg-white px-4 py-2 text-sm font-extrabold text-black transition hover:bg-zem-gold hover:text-white">Request Demo</a>
+                <a href="{{ route('login') }}" class="rounded-lg border border-zem-border px-4 py-2 text-sm font-extrabold text-zem-cream transition hover:border-zem-gold hover:bg-zem-gold/10">Login</a>
+                <a href="#demo" class="rounded-lg bg-zem-charcoal px-4 py-2 text-sm font-extrabold text-white transition hover:bg-zem-gold">Request Demo</a>
             </div>
         </div>
         {{-- Mobile Menu Drawer --}}
-        <div id="mobile-menu" class="hidden border-t border-white/10 bg-black/95 px-5 py-4 md:hidden">
+        <div id="mobile-menu" class="hidden border-t border-zem-border bg-white/95 px-5 py-4 shadow-lg md:hidden">
             <nav class="flex flex-col gap-3 text-sm font-semibold text-zem-muted" aria-label="Mobile navigation">
-                <a class="transition hover:text-white" href="#workflow">Workflow</a>
-                <a class="transition hover:text-white" href="#features">Features</a>
-                <a class="transition hover:text-white" href="#pricing">Pricing</a>
-                <a class="transition hover:text-white" href="#faq">FAQ</a>
-                <a class="transition hover:text-white" href="#demo">Request Demo</a>
-                <a class="transition hover:text-white" href="{{ route('login') }}">Login</a>
+                <a class="transition hover:text-zem-gold" href="#workflow">Workflow</a>
+                <a class="transition hover:text-zem-gold" href="#features">Features</a>
+                <a class="transition hover:text-zem-gold" href="#pricing">Pricing</a>
+                <a class="transition hover:text-zem-gold" href="#faq">FAQ</a>
+                <a class="transition hover:text-zem-gold" href="#demo">Request Demo</a>
+                <a class="transition hover:text-zem-gold" href="{{ route('login') }}">Login</a>
             </nav>
         </div>
     </header>
 
     {{-- Hero Section --}}
     <section class="relative px-5 pt-28" aria-label="Hero">
-        <div class="absolute inset-0 bg-[radial-gradient(circle_at_20%_18%,rgba(239,35,60,.32),transparent_32%),radial-gradient(circle_at_78%_8%,rgba(255,255,255,.12),transparent_22%),linear-gradient(135deg,#050505_0%,#111_45%,#050505_100%)]"></div>
+        <div class="absolute inset-0 bg-[radial-gradient(circle_at_18%_18%,rgba(232,93,93,.16),transparent_30%),radial-gradient(circle_at_82%_8%,rgba(255,255,255,.9),transparent_24%),linear-gradient(135deg,#F7F7F4_0%,#FFFFFF_48%,#F1F1EE_100%)]"></div>
         <div class="absolute inset-x-0 bottom-0 h-40 bg-gradient-to-t from-zem-bg to-transparent"></div>
         <div class="relative mx-auto grid min-h-[88vh] max-w-7xl items-center gap-10 pb-20 lg:grid-cols-[1fr_.9fr]">
             <div class="max-w-3xl">
-                <p class="mb-5 inline-flex rounded-full border border-zem-gold/40 bg-zem-gold/10 px-4 py-2 text-xs font-extrabold uppercase tracking-[.26em] text-red-100">Scan. Order. Request. Pay.</p>
+                <p class="mb-5 inline-flex rounded-full border border-zem-gold/30 bg-zem-gold/10 px-4 py-2 text-xs font-extrabold uppercase tracking-[.26em] text-zem-gold">Scan. Order. Request. Pay.</p>
                 <h1 class="sr-only">ZemTab - Modern QR Menu, Table Ordering and Hotel Room Ordering System in Ethiopia</h1>
-                <img src="{{ asset('logo/zemtab-full-transparent-dark.png') }}" alt="ZemTab - Digital Menu, Table Ordering and Hotel Room Ordering" class="h-auto w-full max-w-xl">
+                <img src="{{ asset('logo/zemtab-full-transparent-porcelain-coral.png') }}" alt="ZemTab - Digital Menu, Table Ordering and Hotel Room Ordering" class="h-auto w-full max-w-xl">
                 <p class="mt-5 max-w-2xl text-xl leading-8 text-zem-muted">A German-made, Ethiopia-based QR ordering system for restaurants, cafes, lounges, and hotels. Guests scan from a table or room, order from their phone, request service, and pay at the end.</p>
                 <div class="mt-9 flex flex-wrap gap-3">
-                    <a href="#demo" class="rounded-lg bg-zem-gold px-6 py-3 font-extrabold text-white shadow-xl shadow-zem-gold/25 transition hover:bg-red-700">Request Demo</a>
-                    <a href="{{ route('login') }}" class="rounded-lg border border-zem-gold bg-zem-gold/10 px-6 py-3 font-extrabold text-white transition hover:bg-zem-gold">Login</a>
-                    <a href="#features" class="rounded-lg border border-white/15 bg-white/5 px-6 py-3 font-extrabold text-white transition hover:border-zem-gold hover:bg-zem-gold/10">See Features</a>
+                    <a href="#demo" class="rounded-lg bg-zem-gold px-6 py-3 font-extrabold text-white shadow-xl shadow-zem-gold/20 transition hover:bg-zem-redDark">Request Demo</a>
+                    <a href="{{ route('login') }}" class="rounded-lg border border-zem-gold bg-zem-gold/10 px-6 py-3 font-extrabold text-zem-gold transition hover:bg-zem-gold hover:text-white">Login</a>
+                    <a href="#features" class="rounded-lg border border-zem-border bg-white px-6 py-3 font-extrabold text-zem-cream transition hover:border-zem-gold hover:bg-zem-gold/10">See Features</a>
                 </div>
                 <div class="mt-12 grid max-w-2xl grid-cols-3 gap-3">
                     @foreach([['30s','guest ordering flow'],['24/7','menu and room service access'],['0','app installs needed']] as $metric)
@@ -82,7 +82,7 @@
 
             <div class="relative mx-auto w-full max-w-lg">
                 <div class="absolute -inset-4 rounded-[2rem] bg-zem-gold/25 blur-2xl"></div>
-                <div class="relative overflow-hidden rounded-[2rem] border border-white/10 bg-[#090909] p-3 shadow-2xl">
+                <div class="relative overflow-hidden rounded-[2rem] border border-zem-border bg-white p-3 shadow-2xl">
                     <img src="{{ asset('uploads/zemtab-phone-showcase-hero.png') }}" alt="ZemTab QR menu, table ordering, and hotel room ordering shown on an iPhone" class="aspect-[4/5] w-full rounded-[1.5rem] object-cover">
                 </div>
             </div>
@@ -90,19 +90,19 @@
     </section>
 
     {{-- Social Proof / Stats Bar --}}
-    <section class="border-y border-white/10 bg-white/[.03] py-10">
+    <section class="border-y border-zem-border bg-zem-soft py-10">
         <div class="mx-auto max-w-7xl px-5">
             <div class="grid gap-6 text-center sm:grid-cols-3">
                 <div>
-                    <p class="font-display text-3xl font-extrabold text-white">50+</p>
+                    <p class="font-display text-3xl font-extrabold text-zem-cream">50+</p>
                     <p class="mt-1 text-sm text-zem-muted">Restaurants and hotels using ZemTab</p>
                 </div>
                 <div>
-                    <p class="font-display text-3xl font-extrabold text-white">10,000+</p>
+                    <p class="font-display text-3xl font-extrabold text-zem-cream">10,000+</p>
                     <p class="mt-1 text-sm text-zem-muted">Orders processed</p>
                 </div>
                 <div>
-                    <p class="font-display text-3xl font-extrabold text-white">Addis Ababa</p>
+                    <p class="font-display text-3xl font-extrabold text-zem-cream">Addis Ababa</p>
                     <p class="mt-1 text-sm text-zem-muted">German-made, based in Ethiopia</p>
                 </div>
             </div>
@@ -110,7 +110,7 @@
     </section>
 
     {{-- Workflow Section --}}
-    <section id="workflow" class="scroll-mt-24 border-y border-white/10 bg-white/[.03] py-16">
+    <section id="workflow" class="scroll-mt-24 border-y border-zem-border bg-zem-soft py-16">
         <div class="mx-auto max-w-7xl px-5">
             <div class="flex flex-wrap items-end justify-between gap-4">
                 <h2 class="font-display text-3xl font-extrabold md:text-4xl">From scan to service in one flow</h2>
@@ -118,7 +118,7 @@
             </div>
             <div class="mt-8 grid gap-4 md:grid-cols-5">
                 @foreach([['Scan','Guests scan the QR code on their table or in their room.'],['Browse','They view menu categories, items, details, and prices.'],['Order','They add items, quantities, and special notes.'],['Serve','Staff receive live orders and service requests in the dashboard.'],['Pay','Guests pay at the end by cash, Telebirr, CBE, or bank transfer and show proof to staff.']] as $step)
-                    <article class="rounded-xl border border-white/10 bg-black p-5 transition hover:-translate-y-1 hover:border-zem-gold/50">
+                    <article class="rounded-xl border border-zem-border bg-white p-5 transition hover:-translate-y-1 hover:border-zem-gold/50">
                         <p class="text-sm font-extrabold text-zem-gold">0{{ $loop->iteration }}</p>
                         <h3 class="mt-4 font-display text-xl font-bold">{{ $step[0] }}</h3>
                         <p class="mt-3 text-sm leading-6 text-zem-muted">{{ $step[1] }}</p>
@@ -131,7 +131,7 @@
     {{-- Audience Section --}}
     <section class="mx-auto grid max-w-7xl gap-5 px-5 py-16 lg:grid-cols-3">
         @foreach([['For guests','Fast mobile menus, simple ordering, staff calls, bill requests, and no app download.'],['For staff','Live table and room orders, service request queues, status updates, and fewer missed requests.'],['For owners','Instant menu updates, availability control, table or room QR links, subscriptions, and admin oversight.']] as $audience)
-            <article class="rounded-xl border border-white/10 bg-white/[.04] p-6">
+            <article class="rounded-xl border border-zem-border bg-white p-6">
                 <h2 class="font-display text-2xl font-extrabold">{{ $audience[0] }}</h2>
                 <p class="mt-4 leading-7 text-zem-muted">{{ $audience[1] }}</p>
             </article>
@@ -146,7 +146,7 @@
         </div>
         <div class="mt-8 grid gap-4 md:grid-cols-2 lg:grid-cols-4">
             @foreach([['Scan menu','Customers scan a table or room QR and open the menu instantly.'],['Place order','They choose items, add notes, and send the order.'],['Call staff','Guests can call staff or request the bill from their table or room.'],['Manage live','Staff track orders, update status, and edit menu availability.']] as $feature)
-                <article class="rounded-xl border border-white/10 bg-black p-6 transition hover:border-zem-gold/50 hover:bg-zem-gold/10">
+                <article class="rounded-xl border border-zem-border bg-white p-6 transition hover:border-zem-gold/50 hover:bg-zem-gold/10">
                     <h3 class="font-display text-xl font-extrabold">{{ $feature[0] }}</h3>
                     <p class="mt-3 leading-6 text-zem-muted">{{ $feature[1] }}</p>
                 </article>
@@ -156,7 +156,7 @@
 
     {{-- Testimonials / Vouches Section --}}
     <section class="mx-auto max-w-7xl px-5 pb-16">
-        <div class="rounded-2xl border border-white/10 bg-white/[.04] p-6 md:p-8">
+        <div class="rounded-2xl border border-zem-border bg-white p-6 md:p-8">
             <div class="flex flex-wrap items-end justify-between gap-4">
                 <div>
                     <p class="text-sm font-extrabold uppercase tracking-[.22em] text-zem-gold">Vouches</p>
@@ -170,14 +170,14 @@
                     ['Staff calls and bill requests show up right on the dashboard. Easy for the team to follow.','Selam K.', 'Manager, Kaldi Coffee'],
                     ['Changing menu availability during a busy service rush takes seconds, not minutes.','Yonas M.', 'Operations, Pizza Corner']
                 ] as $vouch)
-                    <article class="rounded-xl border border-white/10 bg-black p-5">
+                    <article class="rounded-xl border border-zem-border bg-white p-5">
                         <blockquote>
-                            <p class="leading-7 text-white">{{ $vouch[0] }}</p>
+                            <p class="leading-7 text-zem-cream">{{ $vouch[0] }}</p>
                         </blockquote>
                         <div class="mt-4 flex items-center gap-3">
                             <div class="grid h-9 w-9 place-items-center rounded-full bg-zem-gold text-xs font-extrabold text-white">{{ strtoupper(substr($vouch[1], 0, 1)) }}</div>
                             <div>
-                                <p class="text-sm font-bold text-white">{{ $vouch[1] }}</p>
+                                <p class="text-sm font-bold text-zem-cream">{{ $vouch[1] }}</p>
                                 <p class="text-xs text-zem-muted">{{ $vouch[2] }}</p>
                             </div>
                         </div>
@@ -188,12 +188,12 @@
     </section>
 
     {{-- Ideal For Section --}}
-    <section class="border-y border-white/10 bg-white/[.03] py-16">
+    <section class="border-y border-zem-border bg-zem-soft py-16">
         <div class="mx-auto max-w-7xl px-5">
             <h2 class="font-display text-3xl font-extrabold md:text-4xl">Ideal for</h2>
             <div class="mt-7 flex flex-wrap gap-3">
                 @foreach(['Restaurants','Cafes','Lounges','Hotels','Coffee shops','Pizza and burger shops','Mall restaurants','Food courts'] as $who)
-                    <span class="rounded-full border border-white/10 bg-black px-4 py-2 text-sm font-bold text-zem-muted">{{ $who }}</span>
+                    <span class="rounded-full border border-zem-border bg-white px-4 py-2 text-sm font-bold text-zem-muted">{{ $who }}</span>
                 @endforeach
             </div>
         </div>
@@ -203,25 +203,25 @@
     <section id="pricing" class="scroll-mt-24 mx-auto max-w-7xl px-5 py-16" itemprop="offers" itemscope itemtype="https://schema.org/Offer">
         <h2 class="font-display text-3xl font-extrabold md:text-4xl">Simple monthly pricing</h2>
         <p class="mt-4 max-w-2xl text-zem-muted">Everything needed to run QR menus, table or room orders, service requests, and a live staff dashboard.</p>
-        <div class="mt-8 max-w-2xl rounded-2xl border border-zem-gold bg-black p-7 shadow-2xl shadow-zem-gold/10">
+        <div class="mt-8 max-w-2xl rounded-2xl border border-zem-gold bg-white p-7 shadow-2xl shadow-zem-gold/10">
             <p class="text-sm font-extrabold uppercase tracking-[.22em] text-zem-gold">Monthly plan</p>
-            <h3 class="mt-3 font-display text-5xl font-extrabold text-white" itemprop="price" content="3000">3,000 birr</h3>
+            <h3 class="mt-3 font-display text-5xl font-extrabold text-zem-cream" itemprop="price" content="3000">3,000 birr</h3>
             <p class="mt-2 text-zem-muted" itemprop="priceCurrency" content="ETB">per month</p>
-            <div class="mt-5 rounded-xl border border-white/10 bg-white/[.04] p-4">
-                <p class="font-bold text-white">First-time setup: 12,000 birr</p>
+            <div class="mt-5 rounded-xl border border-zem-border bg-white p-4">
+                <p class="font-bold text-zem-cream">First-time setup: 12,000 birr</p>
                 <p class="mt-2 text-sm leading-6 text-zem-muted">We handle the QR printouts and set up everything system-wise in your restaurant or hotel workspace so your team can start using ZemTab smoothly.</p>
             </div>
-            <div class="mt-6 grid gap-3 text-sm font-semibold text-white sm:grid-cols-2">
+            <div class="mt-6 grid gap-3 text-sm font-semibold text-zem-cream sm:grid-cols-2">
                 @foreach(['Digital QR menu','Table and room ordering','Call staff and bill requests','Live staff dashboard','Menu availability control','QR printout setup'] as $item)
-                    <p class="rounded-lg border border-white/10 bg-white/[.04] px-4 py-3">{{ $item }}</p>
+                    <p class="rounded-lg border border-zem-border bg-white px-4 py-3">{{ $item }}</p>
                 @endforeach
             </div>
-            <a href="#demo" class="mt-7 inline-flex rounded-lg bg-zem-gold px-6 py-3 font-extrabold text-white transition hover:bg-red-700">Request Demo</a>
+            <a href="#demo" class="mt-7 inline-flex rounded-lg bg-zem-gold px-6 py-3 font-extrabold text-white transition hover:bg-zem-redDark">Request Demo</a>
         </div>
     </section>
 
     {{-- FAQ Section --}}
-    <section id="faq" class="scroll-mt-24 border-t border-white/10 bg-white/[.03] py-16">
+    <section id="faq" class="scroll-mt-24 border-t border-zem-border bg-zem-soft py-16">
         <div class="mx-auto max-w-3xl px-5">
             <h2 class="font-display text-3xl font-extrabold md:text-4xl">Frequently asked questions</h2>
             <p class="mt-4 text-zem-muted">Everything you need to know before getting started with ZemTab.</p>
@@ -234,17 +234,17 @@
                     ['How much does it cost?','ZemTab is 3,000 birr per month, plus a one-time 12,000 birr setup charge. The setup charge covers QR printouts and full system setup inside your restaurant or hotel workspace. No commission on orders.'],
                     ['What if I have multiple locations?','ZemTab supports multi-location operations. Each location gets its own profile, tables or rooms, menus, and staff access under one admin account.']
                 ] as $faq)
-                    <div class="rounded-xl border border-white/10 bg-black">
+                    <div class="rounded-xl border border-zem-border bg-white">
                         <button
                             @click="open === {{ $loop->index }} ? open = null : open = {{ $loop->index }}"
-                            class="flex w-full items-center justify-between px-5 py-4 text-left font-semibold text-white transition hover:text-zem-gold"
+                            class="flex w-full items-center justify-between px-5 py-4 text-left font-semibold text-zem-cream transition hover:text-zem-gold"
                             :aria-expanded="open === {{ $loop->index }}"
                             aria-controls="faq-{{ $loop->index }}"
                         >
                             <span>{{ $faq[0] }}</span>
                             <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 transition-transform" :class="open === {{ $loop->index }} ? 'rotate-180' : ''" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7"/></svg>
                         </button>
-                        <div id="faq-{{ $loop->index }}" x-show="open === {{ $loop->index }}" x-collapse class="border-t border-white/10 px-5 py-4 text-sm leading-7 text-zem-muted">
+                        <div id="faq-{{ $loop->index }}" x-show="open === {{ $loop->index }}" x-collapse class="border-t border-zem-border px-5 py-4 text-sm leading-7 text-zem-muted">
                             {{ $faq[1] }}
                         </div>
                     </div>
@@ -254,7 +254,7 @@
     </section>
 
     {{-- Demo Request Section --}}
-    <section id="demo" class="scroll-mt-24 border-t border-white/10 bg-white/[.03] py-16">
+    <section id="demo" class="scroll-mt-24 border-t border-zem-border bg-zem-soft py-16">
         <div class="mx-auto grid max-w-7xl gap-8 px-5 lg:grid-cols-[.8fr_1.2fr]">
             <div>
                 <h2 class="font-display text-3xl font-extrabold md:text-4xl">Request a demo</h2>
@@ -274,57 +274,57 @@
                     </div>
                 </div>
                 <address class="mt-6 not-italic text-sm text-zem-muted">
-                    <p><strong>Email:</strong> <a href="mailto:zemtab.support@gmail.com" class="text-white hover:text-zem-gold">zemtab.support@gmail.com</a></p>
+                    <p><strong>Email:</strong> <a href="mailto:zemtab.support@gmail.com" class="text-zem-cream hover:text-zem-gold">zemtab.support@gmail.com</a></p>
                     <p class="mt-1"><strong>Availability:</strong> Addis Ababa, Ethiopia</p>
                 </address>
             </div>
-            <form method="post" action="{{ route('demo-requests.store') }}" class="grid gap-4 rounded-xl border border-white/10 bg-black p-5 md:grid-cols-2">
+            <form method="post" action="{{ route('demo-requests.store') }}" class="grid gap-4 rounded-xl border border-zem-border bg-white p-5 md:grid-cols-2">
                 @csrf
-                <input name="name" required placeholder="Name" class="rounded-lg border border-white/10 bg-white/[.04] px-4 py-3 outline-none focus:border-zem-gold" aria-label="Your name">
-                <input name="restaurant_name" required placeholder="Restaurant or hotel name" class="rounded-lg border border-white/10 bg-white/[.04] px-4 py-3 outline-none focus:border-zem-gold" aria-label="Restaurant or hotel name">
-                <input name="phone" required placeholder="Phone number" class="rounded-lg border border-white/10 bg-white/[.04] px-4 py-3 outline-none focus:border-zem-gold" aria-label="Phone number">
-                <input name="email" type="email" placeholder="Email optional" class="rounded-lg border border-white/10 bg-white/[.04] px-4 py-3 outline-none focus:border-zem-gold" aria-label="Email address">
-                <input name="location" placeholder="Location" class="rounded-lg border border-white/10 bg-white/[.04] px-4 py-3 outline-none focus:border-zem-gold md:col-span-2" aria-label="Location">
-                <textarea name="message" placeholder="Message" rows="4" class="rounded-lg border border-white/10 bg-white/[.04] px-4 py-3 outline-none focus:border-zem-gold md:col-span-2" aria-label="Message"></textarea>
-                <button class="rounded-lg bg-zem-gold px-6 py-3 font-extrabold text-white transition hover:bg-red-700 md:col-span-2">Send request</button>
+                <input name="name" required placeholder="Name" class="rounded-lg border border-zem-border bg-white px-4 py-3 outline-none focus:border-zem-gold" aria-label="Your name">
+                <input name="restaurant_name" required placeholder="Restaurant or hotel name" class="rounded-lg border border-zem-border bg-white px-4 py-3 outline-none focus:border-zem-gold" aria-label="Restaurant or hotel name">
+                <input name="phone" required placeholder="Phone number" class="rounded-lg border border-zem-border bg-white px-4 py-3 outline-none focus:border-zem-gold" aria-label="Phone number">
+                <input name="email" type="email" placeholder="Email optional" class="rounded-lg border border-zem-border bg-white px-4 py-3 outline-none focus:border-zem-gold" aria-label="Email address">
+                <input name="location" placeholder="Location" class="rounded-lg border border-zem-border bg-white px-4 py-3 outline-none focus:border-zem-gold md:col-span-2" aria-label="Location">
+                <textarea name="message" placeholder="Message" rows="4" class="rounded-lg border border-zem-border bg-white px-4 py-3 outline-none focus:border-zem-gold md:col-span-2" aria-label="Message"></textarea>
+                <button class="rounded-lg bg-zem-gold px-6 py-3 font-extrabold text-white transition hover:bg-zem-redDark md:col-span-2">Send request</button>
             </form>
         </div>
     </section>
 
     {{-- Sticky Mobile CTA --}}
-    <div class="fixed bottom-0 inset-x-0 z-40 border-t border-white/10 bg-black/90 px-4 py-3 backdrop-blur-lg md:hidden">
+    <div class="fixed bottom-0 inset-x-0 z-40 border-t border-zem-border bg-white/95 px-4 py-3 backdrop-blur-lg md:hidden">
         <a href="#demo" class="flex w-full items-center justify-center rounded-lg bg-zem-gold py-3 font-extrabold text-white shadow-xl">Request Demo - Free Setup</a>
     </div>
 
     {{-- Expanded Footer --}}
-    <footer class="border-t border-white/10 px-5 py-12 text-center text-sm text-zem-muted md:text-left" itemscope itemtype="https://schema.org/Organization">
+    <footer class="border-t border-zem-border px-5 py-12 text-center text-sm text-zem-muted md:text-left" itemscope itemtype="https://schema.org/Organization">
         <div class="mx-auto max-w-7xl">
             <div class="grid gap-8 md:grid-cols-4">
                 <div class="md:col-span-2">
                     <a href="/" class="inline-flex items-center">
-                        <img src="{{ asset('logo/zemtab-text-transparent-dark.png') }}" alt="ZemTab" class="h-8 w-auto">
+                        <img src="{{ asset('logo/zemtab-text-transparent-porcelain-coral.png') }}" alt="ZemTab" class="h-8 w-auto">
                     </a>
                     <p class="mt-3 max-w-sm leading-6">German-made QR Menu, Table Ordering, and Hotel Room Ordering for modern restaurants, hotels, cafes, and lounges across Ethiopia.</p>
                     <p class="mt-3">Based in <span itemprop="address" itemscope itemtype="https://schema.org/PostalAddress"><span itemprop="addressLocality">Addis Ababa</span>, <span itemprop="addressCountry">Ethiopia</span></span>.</p>
                 </div>
                 <div>
-                    <p class="mb-3 font-bold text-white">Product</p>
+                    <p class="mb-3 font-bold text-zem-cream">Product</p>
                     <ul class="space-y-2">
-                        <li><a href="#workflow" class="transition hover:text-white">Workflow</a></li>
-                        <li><a href="#features" class="transition hover:text-white">Features</a></li>
-                        <li><a href="#pricing" class="transition hover:text-white">Pricing</a></li>
-                        <li><a href="#faq" class="transition hover:text-white">FAQ</a></li>
+                        <li><a href="#workflow" class="transition hover:text-zem-gold">Workflow</a></li>
+                        <li><a href="#features" class="transition hover:text-zem-gold">Features</a></li>
+                        <li><a href="#pricing" class="transition hover:text-zem-gold">Pricing</a></li>
+                        <li><a href="#faq" class="transition hover:text-zem-gold">FAQ</a></li>
                     </ul>
                 </div>
                 <div>
-                    <p class="mb-3 font-bold text-white">Contact</p>
+                    <p class="mb-3 font-bold text-zem-cream">Contact</p>
                     <ul class="space-y-2">
-                        <li><a href="mailto:zemtab.support@gmail.com" itemprop="email" class="transition hover:text-white">zemtab.support@gmail.com</a></li>
-                        <li><a href="#demo" class="transition hover:text-white">Request Demo</a></li>
+                        <li><a href="mailto:zemtab.support@gmail.com" itemprop="email" class="transition hover:text-zem-gold">zemtab.support@gmail.com</a></li>
+                        <li><a href="#demo" class="transition hover:text-zem-gold">Request Demo</a></li>
                     </ul>
                 </div>
             </div>
-            <div class="mt-10 border-t border-white/10 pt-6 text-xs text-zem-muted">
+            <div class="mt-10 border-t border-zem-border pt-6 text-xs text-zem-muted">
                 <p>&copy; {{ date('Y') }} <span itemprop="name">ZemTab</span>. All rights reserved.</p>
             </div>
         </div>
@@ -365,7 +365,7 @@
     "aggregateRating": { "@type": "AggregateRating", "ratingValue": "4.8", "ratingCount": "12" },
     "description": "ZemTab is a German-made, Ethiopia-based QR menu, table ordering, hotel room ordering, service request, and staff dashboard system. Guests scan, order, request service, and pay from their phone. No app download needed.",
     "url": "https://zemtab.com",
-    "image": "https://zemtab.com/logo/zemtab-full-transparent.png",
+    "image": "https://zemtab.com/logo/zemtab-full-transparent-porcelain-coral.png",
     "inLanguage": "en",
     "countriesSupported": "ET"
 }
@@ -377,7 +377,7 @@
     "@type": "Organization",
     "name": "ZemTab",
     "url": "https://zemtab.com",
-    "logo": "https://zemtab.com/logo/zemtab-full-transparent.png",
+    "logo": "https://zemtab.com/logo/zemtab-full-transparent-porcelain-coral.png",
     "email": "zemtab.support@gmail.com",
     "address": { "@type": "PostalAddress", "addressLocality": "Addis Ababa", "addressCountry": "ET" },
     "sameAs": []
@@ -431,3 +431,5 @@
 @endverbatim
 @endpush
 @endsection
+
+

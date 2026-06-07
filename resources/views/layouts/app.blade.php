@@ -1,6 +1,6 @@
 @php
-    $accentColor = $accentColor ?? '#ef233c';
-    $accentColor = is_string($accentColor) && preg_match('/^#[0-9A-Fa-f]{6}$/', $accentColor) ? $accentColor : '#ef233c';
+    $accentColor = $accentColor ?? '#E85D5D';
+    $accentColor = is_string($accentColor) && preg_match('/^#[0-9A-Fa-f]{6}$/', $accentColor) ? $accentColor : '#E85D5D';
 @endphp
 <!doctype html>
 <html lang="{{ app()->getLocale() }}" style="--zem-accent: {{ $accentColor }};">
@@ -21,15 +21,15 @@
     <link rel="canonical" href="{{ $canonical ?? url()->current() }}">
 
     {{-- Favicon --}}
-    <link rel="icon" type="image/png" href="{{ asset('logo/zemtab-icon-transparent.png') }}">
-    <link rel="apple-touch-icon" href="{{ asset('logo/zemtab-icon-transparent.png') }}">
+    <link rel="icon" type="image/png" href="{{ asset('logo/zemtab-icon-transparent-porcelain-coral.png') }}">
+    <link rel="apple-touch-icon" href="{{ asset('logo/zemtab-icon-transparent-porcelain-coral.png') }}">
 
     {{-- Open Graph / Facebook --}}
     <meta property="og:type" content="{{ $ogType ?? 'website' }}">
     <meta property="og:url" content="{{ $canonical ?? url()->current() }}">
     <meta property="og:title" content="{{ $title ?? 'ZemTab' }}">
     <meta property="og:description" content="{{ $description ?? 'ZemTab is a modern QR menu, table ordering, waiter request, and restaurant dashboard system built for restaurants in Ethiopia. Scan. Order. Pay.' }}">
-    <meta property="og:image" content="{{ $ogImage ?? asset('logo/zemtab-full-transparent.png') }}">
+    <meta property="og:image" content="{{ $ogImage ?? asset('logo/zemtab-full-transparent-porcelain-coral.png') }}">
     <meta property="og:locale" content="en_ET">
     <meta property="og:site_name" content="ZemTab">
 
@@ -38,7 +38,7 @@
     <meta name="twitter:url" content="{{ $canonical ?? url()->current() }}">
     <meta name="twitter:title" content="{{ $title ?? 'ZemTab' }}">
     <meta name="twitter:description" content="{{ $description ?? 'ZemTab is a modern QR menu, table ordering, waiter request, and restaurant dashboard system built for restaurants in Ethiopia. Scan. Order. Pay.' }}">
-    <meta name="twitter:image" content="{{ $ogImage ?? asset('logo/zemtab-full-transparent.png') }}">
+    <meta name="twitter:image" content="{{ $ogImage ?? asset('logo/zemtab-full-transparent-porcelain-coral.png') }}">
 
     {{-- Performance: DNS Prefetch & Preconnect --}}
     <link rel="dns-prefetch" href="//fonts.googleapis.com">
@@ -59,16 +59,20 @@
                 extend: {
                     colors: {
                         zem: {
-                            bg: '#050505',
-                            card: '#101010',
+                            bg: '#F7F7F4',
+                            card: '#FFFFFF',
                             gold: @js($accentColor),
-                            cream: '#ffffff',
-                            muted: '#a3a3a3',
+                            cream: '#18181B',
+                            muted: '#71717A',
                             green: '#16a34a',
-                            border: '#262626',
-                            red: '#ef233c',
-                            redDark: '#b91c1c',
-                            ink: '#0a0a0a'
+                            border: '#DADAD6',
+                            red: '#E85D5D',
+                            redDark: '#B94040',
+                            ink: '#18181B',
+                            coral: '#E85D5D',
+                            charcoal: '#232323',
+                            porcelain: '#F7F7F4',
+                            soft: '#F1F1EE'
                         }
                     },
                     fontFamily: { sans: ['Inter', 'ui-sans-serif', 'system-ui'], display: ['Sora', 'Inter', 'ui-sans-serif'] }

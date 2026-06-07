@@ -28,35 +28,35 @@
     <meta name="robots" content="noindex, nofollow">
     <meta name="googlebot" content="noindex, nofollow">
     <title>{{ $title ?? 'ZemTab Dashboard' }}</title>
-    <link rel="icon" type="image/png" href="{{ asset('logo/zemtab-icon-transparent.png') }}">
+    <link rel="icon" type="image/png" href="{{ asset('logo/zemtab-icon-transparent-porcelain-coral.png') }}">
     <link rel="canonical" href="{{ url()->current() }}">
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
-        tailwind.config = { theme: { extend: { colors: { zem: { bg: '#050505', card: '#101010', gold: '#ef233c', cream: '#ffffff', muted: '#a3a3a3', green: '#16a34a', border: '#262626', red: '#ef233c', redDark: '#b91c1c', ink: '#0a0a0a' } }, fontFamily: { sans: ['Inter', 'ui-sans-serif', 'system-ui'], display: ['Sora', 'Inter', 'ui-sans-serif'] } } } }
+        tailwind.config = { theme: { extend: { colors: { zem: { bg: '#F7F7F4', card: '#FFFFFF', gold: '#E85D5D', cream: '#18181B', muted: '#71717A', green: '#16a34a', border: '#DADAD6', red: '#E85D5D', redDark: '#B94040', ink: '#18181B', coral: '#E85D5D', charcoal: '#232323', porcelain: '#F7F7F4', soft: '#F1F1EE' } }, fontFamily: { sans: ['Inter', 'ui-sans-serif', 'system-ui'], display: ['Sora', 'Inter', 'ui-sans-serif'] } } } }
     </script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Sora:wght@600;700;800&display=swap" rel="stylesheet">
     <style>[x-cloak]{display:none!important} input,select,textarea,button{font-size:16px}</style>
 </head>
 <body class="bg-zem-bg text-zem-cream font-sans antialiased" @isset($autoRefreshSeconds) data-auto-refresh="{{ $autoRefreshSeconds }}" @endisset>
-<div class="min-h-screen bg-[radial-gradient(circle_at_top_right,rgba(239,35,60,.18),transparent_28%),linear-gradient(180deg,#050505,#0a0a0a)] lg:flex">
+<div class="min-h-screen bg-[radial-gradient(circle_at_top_right,rgba(232,93,93,.18),transparent_28%),linear-gradient(180deg,#F7F7F4,#F1F1EE)] lg:flex">
     <aside class="border-b border-zem-border bg-zem-card/95 backdrop-blur lg:fixed lg:inset-y-0 lg:w-72 lg:border-b-0 lg:border-r">
         <div class="flex items-center justify-between px-5 py-5 lg:block">
-            <a href="{{ route('home') }}" class="inline-flex items-center"><img src="{{ asset('logo/zemtab-full-transparent-dark.png') }}" alt="ZemTab" class="h-12 w-auto"></a>
-            <form method="post" action="{{ route('logout') }}">@csrf<button class="rounded-lg border border-zem-border px-3 py-2 text-sm text-zem-muted transition hover:border-zem-gold hover:text-white">Logout</button></form>
+            <a href="{{ route('home') }}" class="inline-flex items-center"><img src="{{ asset('logo/zemtab-full-transparent-porcelain-coral.png') }}" alt="ZemTab" class="h-12 w-auto"></a>
+            <form method="post" action="{{ route('logout') }}">@csrf<button class="rounded-lg border border-zem-border px-3 py-2 text-sm text-zem-muted transition hover:border-zem-gold hover:text-zem-gold">Logout</button></form>
         </div>
         <nav class="flex gap-2 overflow-x-auto px-4 pb-4 lg:block lg:space-y-1">
             @foreach($links as [$label, $url])
-                <a href="{{ $url }}" class="block whitespace-nowrap rounded-lg px-3 py-2 text-sm font-semibold transition {{ url()->current() === $url ? 'bg-zem-gold text-white shadow-lg shadow-zem-gold/20' : 'text-zem-muted hover:bg-white/5 hover:text-zem-cream' }}">{{ $label }}</a>
+                <a href="{{ $url }}" class="block whitespace-nowrap rounded-lg px-3 py-2 text-sm font-semibold transition {{ url()->current() === $url ? 'bg-zem-gold text-white shadow-lg shadow-zem-gold/20' : 'text-zem-muted hover:bg-zem-soft hover:text-zem-cream' }}">{{ $label }}</a>
             @endforeach
         </nav>
     </aside>
     <main class="w-full px-4 py-6 md:px-6 lg:ml-72 lg:px-8">
-        <header class="mb-6 flex flex-wrap items-center justify-between gap-3 border-b border-white/10 pb-6">
+        <header class="mb-6 flex flex-wrap items-center justify-between gap-3 border-b border-zem-border pb-6">
             <div>
                 <p class="text-sm uppercase tracking-widest text-zem-gold">{{ $eyebrow ?? ($isAdmin ? 'SaaS Admin' : ($dashboardRestaurant?->businessTypeLabel().' Dashboard')) }}</p>
                 <h1 class="font-display text-2xl font-bold md:text-4xl">{{ $heading ?? 'Dashboard' }}</h1>
             </div>
-            <div class="rounded-full border border-zem-border bg-white/5 px-4 py-2 text-sm text-zem-muted">{{ auth()->user()->name }}</div>
+            <div class="rounded-full border border-zem-border bg-white px-4 py-2 text-sm text-zem-muted">{{ auth()->user()->name }}</div>
         </header>
         @if(session('success'))<div class="mb-5 rounded-lg border border-zem-green/40 bg-zem-green/15 px-4 py-3 text-sm text-zem-cream">{{ session('success') }}</div>@endif
         @if($errors->any())<div class="mb-5 rounded-lg border border-red-500/40 bg-red-950/60 px-4 py-3 text-sm">{{ $errors->first() }}</div>@endif
@@ -96,3 +96,4 @@
 </script>
 </body>
 </html>
+
