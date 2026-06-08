@@ -3,7 +3,7 @@
 @section('content')
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/cropperjs@1.6.2/dist/cropper.min.css">
 @php($logoUrl = $restaurant->logo_path ? (\Illuminate\Support\Str::startsWith($restaurant->logo_path, ['http://', 'https://', 'uploads/']) ? (str_starts_with($restaurant->logo_path, 'uploads/') ? asset($restaurant->logo_path) : $restaurant->logo_path) : asset('storage/'.$restaurant->logo_path)) : null)
-@php($primaryColor = $restaurant->primary_color ?: '#F83E4C')
+@php($primaryColor = $restaurant->primary_color ?: '#F84C47')
 @php($serviceCharge = (float) ($restaurant->settings['service_charge_percentage'] ?? 0))
 @php($vat = (float) ($restaurant->settings['vat_percentage'] ?? 0))
 @php($businessType = strtolower($restaurant->businessTypeLabel()))
@@ -51,12 +51,12 @@
             <input name="telebirr_number" value="{{ $restaurant->settings['telebirr_number'] ?? '' }}" placeholder="Telebirr phone number" class="rounded-md border border-zem-border bg-zem-card px-3 py-3">
             <input name="cbe_account_number" value="{{ $restaurant->settings['cbe_account_number'] ?? '' }}" placeholder="CBE account number" class="rounded-md border border-zem-border bg-zem-card px-3 py-3">
             <label class="grid gap-2 rounded-md border border-zem-border bg-zem-card p-3 text-sm text-zem-muted">
-                <span class="font-bold text-white">Telebirr QR image</span>
+                <span class="font-bold text-zem-cream">Telebirr QR image</span>
                 @if($telebirrQrUrl)<img src="{{ $telebirrQrUrl }}" alt="Telebirr QR" class="h-28 w-28 rounded-md bg-white object-contain p-2">@endif
                 <input name="telebirr_qr" type="file" accept="image/*" class="text-sm">
             </label>
             <label class="grid gap-2 rounded-md border border-zem-border bg-zem-card p-3 text-sm text-zem-muted">
-                <span class="font-bold text-white">CBE QR image</span>
+                <span class="font-bold text-zem-cream">CBE QR image</span>
                 @if($cbeQrUrl)<img src="{{ $cbeQrUrl }}" alt="CBE QR" class="h-28 w-28 rounded-md bg-white object-contain p-2">@endif
                 <input name="cbe_qr" type="file" accept="image/*" class="text-sm">
             </label>
@@ -72,15 +72,15 @@
                 <h2 class="font-display text-xl font-bold">Adjust {{ $businessType }} logo</h2>
                 <p class="mt-1 text-sm text-zem-muted">Drag the image and use zoom to remove extra space around the logo.</p>
             </div>
-            <button type="button" class="rounded-md border border-zem-border px-3 py-2 text-sm font-bold text-zem-muted hover:text-white" data-logo-crop-cancel>Cancel</button>
+            <button type="button" class="rounded-md border border-zem-border px-3 py-2 text-sm font-bold text-zem-muted hover:text-zem-gold" data-logo-crop-cancel>Cancel</button>
         </div>
         <div class="mt-4 max-h-[62vh] overflow-hidden rounded-lg bg-black">
             <img id="logo-crop-target" alt="Logo crop preview" class="max-h-[62vh] w-full object-contain">
         </div>
         <div class="mt-4 grid gap-3 sm:grid-cols-2 md:grid-cols-[auto_auto_auto_auto]">
-            <button type="button" class="rounded-md border border-zem-border px-4 py-2 font-bold text-white hover:border-zem-gold" data-logo-crop-zoom-out>Zoom out</button>
-            <button type="button" class="rounded-md border border-zem-border px-4 py-2 font-bold text-white hover:border-zem-gold" data-logo-crop-zoom-in>Zoom in</button>
-            <button type="button" class="rounded-md border border-zem-border px-4 py-2 font-bold text-white hover:border-zem-gold" data-logo-crop-reset>Reset</button>
+            <button type="button" class="rounded-md border border-zem-border px-4 py-2 font-bold text-zem-cream hover:border-zem-gold" data-logo-crop-zoom-out>Zoom out</button>
+            <button type="button" class="rounded-md border border-zem-border px-4 py-2 font-bold text-zem-cream hover:border-zem-gold" data-logo-crop-zoom-in>Zoom in</button>
+            <button type="button" class="rounded-md border border-zem-border px-4 py-2 font-bold text-zem-cream hover:border-zem-gold" data-logo-crop-reset>Reset</button>
             <button type="button" class="rounded-md bg-zem-gold px-4 py-2 font-bold text-white" data-logo-crop-apply>Use cropped logo</button>
         </div>
     </div>

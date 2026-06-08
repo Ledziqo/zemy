@@ -57,8 +57,8 @@
 
     {{-- Hero Section --}}
     <section class="relative px-5 pt-28" aria-label="Hero">
-        <div class="absolute inset-0 bg-[radial-gradient(circle_at_18%_20%,rgba(248,62,76,.18),transparent_30%),radial-gradient(circle_at_82%_16%,rgba(255,255,255,.96),transparent_26%),linear-gradient(135deg,#F7F7F4_0%,#FFFFFF_44%,#F1F1EE_100%)]"></div>
-        <div class="absolute inset-y-0 right-0 hidden w-1/2 bg-[linear-gradient(90deg,transparent,rgba(248,62,76,.08)_42%,rgba(35,35,35,.05))] lg:block"></div>
+        <div class="absolute inset-0 bg-[radial-gradient(circle_at_18%_20%,rgba(248,76,71,.18),transparent_30%),radial-gradient(circle_at_82%_16%,rgba(255,255,255,.96),transparent_26%),linear-gradient(135deg,#F7F7F4_0%,#FFFFFF_44%,#F1F1EE_100%)]"></div>
+        <div class="absolute inset-y-0 right-0 hidden w-1/2 bg-[linear-gradient(90deg,transparent,rgba(248,76,71,.08)_42%,rgba(35,35,35,.05))] lg:block"></div>
         <div class="absolute inset-x-0 bottom-0 h-40 bg-gradient-to-t from-zem-bg to-transparent"></div>
         <div class="relative mx-auto grid min-h-[88vh] max-w-7xl items-center gap-10 pb-20 lg:grid-cols-[1fr_.9fr]">
             <div class="max-w-3xl">

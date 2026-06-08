@@ -34,7 +34,7 @@
                     <input name="db_password" type="password" placeholder="Enter exact database password" class="rounded-lg border border-[#DADAD6] bg-white px-3 py-2">
                 </label>
             </div>
-            <button class="rounded-lg bg-[#F83E4C] px-5 py-3 font-extrabold text-white">Run setup / updates now</button>
+            <button class="rounded-lg bg-[#F84C47] px-5 py-3 font-extrabold text-white">Run setup / updates now</button>
             <a href="/login" class="ml-3 text-sm font-bold text-neutral-300">Back to login</a>
         </form>
 

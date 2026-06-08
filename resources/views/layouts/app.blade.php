@@ -1,6 +1,6 @@
 @php
-    $accentColor = $accentColor ?? '#F83E4C';
-    $accentColor = is_string($accentColor) && preg_match('/^#[0-9A-Fa-f]{6}$/', $accentColor) ? $accentColor : '#F83E4C';
+    $accentColor = $accentColor ?? '#F84C47';
+    $accentColor = is_string($accentColor) && preg_match('/^#[0-9A-Fa-f]{6}$/', $accentColor) ? $accentColor : '#F84C47';
 @endphp
 <!doctype html>
 <html lang="{{ app()->getLocale() }}" style="--zem-accent: {{ $accentColor }};">
@@ -66,10 +66,10 @@
                             muted: '#71717A',
                             green: '#16a34a',
                             border: '#DADAD6',
-                            red: '#F83E4C',
-                            redDark: '#C83242',
+                            red: '#F84C47',
+                            redDark: '#C83D39',
                             ink: '#18181B',
-                            coral: '#F83E4C',
+                            coral: '#F84C47',
                             charcoal: '#232323',
                             porcelain: '#F7F7F4',
                             soft: '#F1F1EE'
