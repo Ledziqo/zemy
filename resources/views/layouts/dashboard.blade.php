@@ -32,13 +32,13 @@
     <link rel="canonical" href="{{ url()->current() }}">
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
-        tailwind.config = { theme: { extend: { colors: { zem: { bg: '#F7F7F4', card: '#FFFFFF', gold: '#E85D5D', cream: '#18181B', muted: '#71717A', green: '#16a34a', border: '#DADAD6', red: '#E85D5D', redDark: '#B94040', ink: '#18181B', coral: '#E85D5D', charcoal: '#232323', porcelain: '#F7F7F4', soft: '#F1F1EE' } }, fontFamily: { sans: ['Inter', 'ui-sans-serif', 'system-ui'], display: ['Sora', 'Inter', 'ui-sans-serif'] } } } }
+        tailwind.config = { theme: { extend: { colors: { zem: { bg: '#F7F7F4', card: '#FFFFFF', gold: '#F83E4C', cream: '#18181B', muted: '#71717A', green: '#16a34a', border: '#DADAD6', red: '#F83E4C', redDark: '#C83242', ink: '#18181B', coral: '#F83E4C', charcoal: '#232323', porcelain: '#F7F7F4', soft: '#F1F1EE' } }, fontFamily: { sans: ['Inter', 'ui-sans-serif', 'system-ui'], display: ['Sora', 'Inter', 'ui-sans-serif'] } } } }
     </script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Sora:wght@600;700;800&display=swap" rel="stylesheet">
     <style>[x-cloak]{display:none!important} input,select,textarea,button{font-size:16px}</style>
 </head>
 <body class="bg-zem-bg text-zem-cream font-sans antialiased" @isset($autoRefreshSeconds) data-auto-refresh="{{ $autoRefreshSeconds }}" @endisset>
-<div class="min-h-screen bg-[radial-gradient(circle_at_top_right,rgba(232,93,93,.18),transparent_28%),linear-gradient(180deg,#F7F7F4,#F1F1EE)] lg:flex">
+<div class="min-h-screen bg-[radial-gradient(circle_at_top_right,rgba(248,62,76,.18),transparent_28%),linear-gradient(180deg,#F7F7F4,#F1F1EE)] lg:flex">
     <aside class="border-b border-zem-border bg-zem-card/95 backdrop-blur lg:fixed lg:inset-y-0 lg:w-72 lg:border-b-0 lg:border-r">
         <div class="flex items-center justify-between px-5 py-5 lg:block">
             <a href="{{ route('home') }}" class="inline-flex items-center"><img src="{{ asset('logo/zemtab-full-transparent-porcelain-coral.png') }}" alt="ZemTab" class="h-12 w-auto"></a>
