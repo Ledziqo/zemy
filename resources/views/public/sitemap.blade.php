@@ -11,7 +11,7 @@ echo '<'.'?'.'xml version="1.0" encoding="UTF-8"?'.'>';
         <changefreq>weekly</changefreq>
         <priority>1.0</priority>
         <image:image>
-            <image:loc>{{ asset('logo/zemtab-full-transparent.png') }}</image:loc>
+            <image:loc>{{ asset('logo/zemtab-navy-red-icon-text-transparent.png') }}</image:loc>
             <image:title>ZemTab Logo</image:title>
             <image:caption>ZemTab — QR Menu & Table Ordering for Restaurants in Ethiopia</image:caption>
         </image:image>
