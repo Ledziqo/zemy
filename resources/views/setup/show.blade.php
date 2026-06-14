@@ -7,7 +7,7 @@
     <title>ZemTab Setup</title>
     <script src="https://cdn.tailwindcss.com"></script>
 </head>
-<body class="bg-[#F8FAFC] text-[#051F42]">
+<body class="bg-[#F8FAFC] text-[#000000]">
 <main class="mx-auto grid min-h-screen max-w-3xl place-items-center px-5 py-10">
     <section class="w-full rounded-2xl border border-[#D8E0E7] bg-white p-6">
         <h1 class="text-2xl font-extrabold">ZemTab database setup & updates</h1>
@@ -34,7 +34,7 @@
                     <input name="db_password" type="password" placeholder="Enter exact database password" class="rounded-lg border border-[#D8E0E7] bg-white px-3 py-2">
                 </label>
             </div>
-            <button class="rounded-lg bg-[#EE3D4A] px-5 py-3 font-extrabold text-white">Run setup / updates now</button>
+            <button class="rounded-lg bg-[#FF8200] px-5 py-3 font-extrabold text-white">Run setup / updates now</button>
             <a href="/login" class="ml-3 text-sm font-bold text-neutral-300">Back to login</a>
         </form>
 
