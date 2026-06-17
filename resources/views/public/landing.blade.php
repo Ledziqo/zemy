@@ -56,7 +56,7 @@
     </header>
 
     {{-- Hero Section --}}
-    <section class="relative px-5 pt-28" aria-label="Hero">
+    <section class="relative px-5 pt-24 sm:pt-28" aria-label="Hero">
         <div class="absolute inset-0 bg-[linear-gradient(135deg,#F8FAFC_0%,#FFFFFF_44%,#EEF3F7_100%)]"></div>
         <div class="absolute inset-y-0 right-0 hidden w-[68%] lg:block">
             <img
@@ -69,34 +69,35 @@
         <div class="absolute inset-y-0 right-0 hidden w-[70%] bg-[linear-gradient(90deg,#F8FAFC_0%,rgba(248,250,252,.88)_16%,rgba(248,250,252,.38)_34%,transparent_58%),linear-gradient(180deg,transparent_0%,transparent_68%,#F8FAFC_100%)] lg:block"></div>
         <div class="absolute inset-x-0 top-0 h-36 bg-gradient-to-b from-white to-transparent"></div>
         <div class="absolute inset-x-0 bottom-0 h-40 bg-gradient-to-t from-zem-bg to-transparent"></div>
-        <div class="relative mx-auto grid min-h-[88vh] max-w-7xl items-center gap-10 pb-20 lg:grid-cols-[.92fr_1.08fr]">
+        <div class="relative mx-auto grid min-h-[88vh] max-w-7xl items-center gap-8 pb-24 lg:grid-cols-[.92fr_1.08fr] lg:gap-10 lg:pb-20">
             <div class="max-w-3xl">
-                <p class="mb-5 inline-flex rounded-full border border-zem-gold/30 bg-zem-gold/10 px-4 py-2 text-xs font-extrabold uppercase tracking-[.26em] text-zem-gold">Scan. Order. Pay.</p>
+                <p class="mb-4 inline-flex rounded-full border border-zem-gold/30 bg-zem-gold/10 px-4 py-2 text-[.68rem] font-extrabold uppercase tracking-[.22em] text-zem-gold sm:mb-5 sm:text-xs sm:tracking-[.26em]">Scan. Order. Pay.</p>
                 <h1 class="sr-only">ZemTab - Modern QR Menu, Table Ordering and Hotel Room Ordering System in Ethiopia</h1>
-                <img src="{{ asset('logo/zemtab-pantone-1795-c-icon-text-transparent.png') }}" alt="ZemTab - Digital Menu, Table Ordering and Hotel Room Ordering" class="h-auto w-full max-w-xl">
-                <p class="mt-5 max-w-2xl text-xl leading-8 text-zem-muted">A German-made, Ethiopia-based QR ordering system for restaurants, cafes, lounges, and hotels. Guests scan from a table or room, order from their phone, request service, and pay at the end.</p>
-                <div class="mt-9 flex flex-wrap gap-3">
-                    <a href="#demo" class="rounded-lg bg-zem-gold px-6 py-3 font-extrabold text-white shadow-xl shadow-zem-gold/20 transition hover:bg-zem-redDark">Request Demo</a>
-                    <a href="{{ route('login') }}" class="rounded-lg border border-zem-gold bg-zem-gold/10 px-6 py-3 font-extrabold text-zem-gold transition hover:bg-zem-gold hover:text-white">Login</a>
-                    <a href="#features" class="rounded-lg border border-zem-border bg-white px-6 py-3 font-extrabold text-zem-cream transition hover:border-zem-gold hover:bg-zem-gold/10">See Features</a>
+                <img src="{{ asset('logo/zemtab-pantone-1795-c-icon-text-transparent.png') }}" alt="ZemTab - Digital Menu, Table Ordering and Hotel Room Ordering" class="h-auto w-full max-w-[18.5rem] sm:max-w-xl">
+                <p class="mt-5 max-w-2xl text-base leading-7 text-zem-muted sm:text-xl sm:leading-8">A German-made, Ethiopia-based QR ordering system for restaurants, cafes, lounges, and hotels. Guests scan from a table or room, order from their phone, request service, and pay at the end.</p>
+                <div class="mt-6 grid grid-cols-2 gap-3 sm:mt-9 sm:flex sm:flex-wrap">
+                    <a href="#demo" class="rounded-lg bg-zem-gold px-4 py-3 text-center text-sm font-extrabold text-white shadow-xl shadow-zem-gold/20 transition hover:bg-zem-redDark sm:px-6 sm:text-base">Request Demo</a>
+                    <a href="{{ route('login') }}" class="rounded-lg border border-zem-gold bg-zem-gold/10 px-4 py-3 text-center text-sm font-extrabold text-zem-gold transition hover:bg-zem-gold hover:text-white sm:px-6 sm:text-base">Login</a>
+                    <a href="#features" class="col-span-2 rounded-lg border border-zem-border bg-white px-4 py-3 text-center text-sm font-extrabold text-zem-cream transition hover:border-zem-gold hover:bg-zem-gold/10 sm:col-span-1 sm:px-6 sm:text-base">See Features</a>
                 </div>
-                <div class="mt-12 grid max-w-2xl grid-cols-3 gap-3">
+                <div class="relative -mx-5 mt-6 h-[26rem] overflow-hidden bg-white sm:mx-0 sm:h-[34rem] lg:hidden" aria-label="ZemTab QR menu and table ordering shown clearly on a phone held by a guest in a cafe">
+                    <img
+                        src="{{ asset('uploads/zemtab-right-hand-cafe-hero.png') }}"
+                        alt="ZemTab QR menu and table ordering shown clearly on a phone held in a guest's right hand in a cafe"
+                        class="absolute inset-0 h-full w-full object-cover object-[72%_50%] [mask-image:linear-gradient(180deg,black_0%,black_78%,transparent_100%)] [-webkit-mask-image:linear-gradient(180deg,black_0%,black_78%,transparent_100%)]"
+                    >
+                </div>
+                <div class="mt-8 grid max-w-2xl grid-cols-3 gap-3 sm:mt-12">
                     @foreach([['30s','guest ordering flow'],['24/7','menu and room service access'],['0','app installs needed']] as $metric)
                         <div class="border-l border-zem-gold pl-4">
-                            <p class="font-display text-3xl font-extrabold">{{ $metric[0] }}</p>
-                            <p class="text-sm text-zem-muted">{{ $metric[1] }}</p>
+                            <p class="font-display text-2xl font-extrabold sm:text-3xl">{{ $metric[0] }}</p>
+                            <p class="text-xs leading-4 text-zem-muted sm:text-sm sm:leading-normal">{{ $metric[1] }}</p>
                         </div>
                     @endforeach
                 </div>
             </div>
 
-            <div class="relative min-h-[48rem] lg:min-h-[42rem]" aria-label="ZemTab QR menu and table ordering shown clearly on a phone held by a guest in a cafe">
-                <img
-                    src="{{ asset('uploads/zemtab-right-hand-cafe-hero.png') }}"
-                    alt="ZemTab QR menu and table ordering shown clearly on a phone held in a guest's right hand in a cafe"
-                    class="absolute inset-0 h-full w-full object-cover object-[72%_42%] lg:hidden [mask-image:linear-gradient(180deg,black_0%,black_72%,transparent_100%)] [-webkit-mask-image:linear-gradient(180deg,black_0%,black_72%,transparent_100%)]"
-                >
-            </div>
+            <div class="relative hidden min-h-[42rem] lg:block" aria-hidden="true"></div>
         </div>
     </section>
 
@@ -303,7 +304,7 @@
     </section>
 
     {{-- Sticky Mobile CTA --}}
-    <div class="fixed bottom-0 inset-x-0 z-40 border-t border-zem-border bg-white/95 px-4 py-3 backdrop-blur-lg md:hidden">
+    <div class="hidden fixed bottom-0 inset-x-0 z-40 border-t border-zem-border bg-white/95 px-4 py-3 backdrop-blur-lg md:hidden">
         <a href="#demo" class="flex w-full items-center justify-center rounded-lg bg-zem-gold py-3 font-extrabold text-white shadow-xl">Request Demo - Free Setup</a>
     </div>
 
