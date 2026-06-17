@@ -16,9 +16,9 @@
                 <div class="flex flex-wrap justify-between gap-2"><strong>#{{ $order->id }} - {{ $placeTitle }} {{ $order->table_number }}</strong><x-status :status="$order->status" /></div>
                 <div class="mt-3 space-y-2">
                     @foreach($order->items as $item)
-                        <p class="flex justify-between rounded-md bg-black px-3 py-2 text-sm">
-                            <span>{{ $item->quantity }} x {{ $item->item_name }} @if($item->note)<em class="text-zem-muted">({{ $item->note }})</em>@endif</span>
-                            <strong>{{ number_format($item->total_price) }} ETB</strong>
+                        <p class="flex justify-between gap-3 rounded-md bg-black px-3 py-2 text-sm text-white">
+                            <span>{{ $item->quantity }} x {{ $item->item_name }} @if($item->note)<em class="text-white/70">({{ $item->note }})</em>@endif</span>
+                            <strong class="shrink-0 text-white">{{ number_format($item->total_price) }} ETB</strong>
                         </p>
                     @endforeach
                 </div>

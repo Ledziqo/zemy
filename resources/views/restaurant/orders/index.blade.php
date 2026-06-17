@@ -23,7 +23,7 @@
             <article class="rounded-md border border-zem-border bg-zem-card p-4">
                 <div class="flex flex-wrap items-start justify-between gap-3"><div><h2 class="font-display text-xl font-bold">Order #{{ $order->id }}</h2><p class="text-sm text-zem-muted">{{ $placeTitle }} {{ $order->table_number }} - {{ $order->created_at->diffForHumans() }}</p></div><x-status :status="$order->status" /></div>
                 <div class="mt-4 space-y-2">
-                    @foreach($order->items as $item)<p class="flex justify-between rounded-md bg-zem-bg px-3 py-2 text-sm"><span>{{ $item->quantity }} x {{ $item->item_name }} @if($item->note)<em class="text-zem-muted">({{ $item->note }})</em>@endif</span><strong>{{ number_format($item->total_price) }} ETB</strong></p>@endforeach
+                    @foreach($order->items as $item)<p class="flex justify-between gap-3 rounded-md border border-zem-border bg-zem-bg px-3 py-2 text-sm text-zem-cream"><span>{{ $item->quantity }} x {{ $item->item_name }} @if($item->note)<em class="text-zem-muted">({{ $item->note }})</em>@endif</span><strong class="shrink-0 text-zem-cream">{{ number_format($item->total_price) }} ETB</strong></p>@endforeach
                 </div>
                 <p class="mt-3 text-sm text-zem-muted">Note: {{ $order->note ?: 'None' }}</p>
                 @if($order->guestSession?->payments?->isNotEmpty())
@@ -31,7 +31,7 @@
                         <p class="text-sm font-bold text-zem-gold">Payment proof for this visit</p>
                         <div class="mt-2 flex flex-wrap gap-2">
                             @foreach($order->guestSession->payments as $payment)
-                                <a href="{{ asset($payment->proof_image_path) }}" target="_blank" class="flex items-center gap-3 rounded-md border border-zem-border bg-zem-bg p-2 text-sm font-bold text-white">
+                                <a href="{{ asset($payment->proof_image_path) }}" target="_blank" class="flex items-center gap-3 rounded-md border border-zem-border bg-zem-bg p-2 text-sm font-bold text-zem-cream">
                                     <img src="{{ asset($payment->proof_image_path) }}" alt="Payment proof" class="h-14 w-14 rounded object-cover">
                                     <span>{{ strtoupper($payment->method) }} - {{ number_format($payment->amount) }} ETB - {{ $payment->status }}</span>
                                 </a>
@@ -39,7 +39,7 @@
                         </div>
                     </div>
                 @endif
-                <div class="mt-4 flex flex-wrap items-center justify-between gap-3"><strong>{{ number_format($order->total) }} ETB</strong><form method="post" action="{{ route('restaurant.orders.update', $order) }}" class="flex gap-2">@csrf @method('PATCH')<select name="status" class="rounded-md border border-zem-border bg-zem-bg px-3 py-2">@foreach($statuses as $status)<option value="{{ $status }}" @selected($order->status===$status)>{{ $status }}</option>@endforeach</select><button class="rounded-md bg-zem-gold px-4 py-2 font-bold text-white">Update</button></form></div>
+                <div class="mt-4 flex flex-wrap items-center justify-between gap-3"><strong>{{ number_format($order->total) }} ETB</strong><form method="post" action="{{ route('restaurant.orders.update', $order) }}" class="flex gap-2">@csrf @method('PATCH')<select name="status" class="rounded-md border border-zem-border bg-zem-bg px-3 py-2 text-zem-cream">@foreach($statuses as $status)<option value="{{ $status }}" @selected($order->status===$status)>{{ $status }}</option>@endforeach</select><button class="rounded-md bg-zem-gold px-4 py-2 font-bold text-white">Update</button></form></div>
             </article>
         @empty
             <p class="rounded-md border border-zem-border bg-zem-card p-4 text-zem-muted">No orders yet.</p>
@@ -67,7 +67,7 @@
                             <x-status :status="$requestRow->status" />
                         </div>
                         <div class="flex gap-2">
-                            <select name="status" class="min-w-0 flex-1 rounded-md border border-zem-border bg-zem-bg px-3 py-3">
+                            <select name="status" class="min-w-0 flex-1 rounded-md border border-zem-border bg-zem-bg px-3 py-3 text-zem-cream">
                                 @foreach(['pending','acknowledged','completed'] as $status)
                                     <option value="{{ $status }}" @selected($requestRow->status===$status)>{{ $status }}</option>
                                 @endforeach

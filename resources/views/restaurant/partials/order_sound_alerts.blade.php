@@ -1,6 +1,6 @@
 <div class="mb-5 flex flex-wrap items-center justify-between gap-3 rounded-md border border-zem-border bg-zem-card px-4 py-3 text-sm text-zem-muted" data-order-alerts data-latest-order-id="{{ $latestOrderId ?? 0 }}">
     <span>Sound alerts for new orders</span>
-    <button type="button" class="rounded-md border border-zem-border px-3 py-2 text-sm font-bold text-white transition hover:border-zem-gold" data-order-alert-toggle>Enable sound alerts</button>
+    <button type="button" class="rounded-md border border-zem-border bg-zem-bg px-3 py-2 text-sm font-bold text-zem-cream transition hover:border-zem-gold hover:text-zem-gold" data-order-alert-toggle>Enable sound alerts</button>
 </div>
 <script>
 (() => {
@@ -33,7 +33,10 @@
         const enabled = localStorage.getItem(keyEnabled) === '1';
         toggle.textContent = enabled ? 'Sound alerts enabled' : 'Enable sound alerts';
         toggle.classList.toggle('bg-zem-gold', enabled);
+        toggle.classList.toggle('bg-zem-bg', !enabled);
         toggle.classList.toggle('border-zem-gold', enabled);
+        toggle.classList.toggle('text-white', enabled);
+        toggle.classList.toggle('text-zem-cream', !enabled);
     }
 
     const previous = Number(localStorage.getItem(keyLatest) || 0);
@@ -60,3 +63,4 @@
     refreshButton();
 })();
 </script>
+

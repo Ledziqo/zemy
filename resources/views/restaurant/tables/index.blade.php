@@ -4,7 +4,7 @@
 @php($place = $restaurant->locationLabel())
 @php($placeTitle = $restaurant->locationLabelTitle())
 <div class="mb-4 flex justify-end">
-    <a href="{{ route('restaurant.tables.setup-pack') }}" target="_blank" class="rounded-md border border-zem-gold px-4 py-2 text-sm font-bold text-white transition hover:bg-zem-gold">Print setup pack</a>
+    <a href="{{ route('restaurant.tables.setup-pack') }}" target="_blank" class="rounded-md border border-zem-gold px-4 py-2 text-sm font-bold text-zem-gold transition hover:bg-zem-gold hover:text-white">Print setup pack</a>
 </div>
 <form method="post" action="{{ route('restaurant.tables.store') }}" class="mb-6 grid gap-3 rounded-md border border-zem-border bg-zem-card p-4 md:grid-cols-[1fr_1fr_auto_auto]">
     @csrf
@@ -47,10 +47,11 @@
                 <label class="flex items-center gap-2"><input name="is_active" type="checkbox" value="1" @checked($table->is_active)> Active</label>
                 <button class="rounded-md bg-zem-gold px-4 py-2 font-bold text-white">Save {{ $place }}</button>
             </form>
-            <form method="post" action="{{ route('restaurant.tables.destroy', $table) }}" class="mt-3">@csrf @method('DELETE')<button class="rounded-md border border-red-500/40 px-4 py-2 text-sm font-bold text-red-200">Delete {{ $place }}</button></form>
+            <form method="post" action="{{ route('restaurant.tables.destroy', $table) }}" class="mt-3">@csrf @method('DELETE')<button class="rounded-md border border-red-300 bg-red-50 px-4 py-2 text-sm font-bold text-red-700 transition hover:border-red-500 hover:bg-red-100">Delete {{ $place }}</button></form>
         </details>
     </article>
 @endforeach
 </div>
 <div class="mt-5">{{ $tables->links() }}</div>
 @endsection
+

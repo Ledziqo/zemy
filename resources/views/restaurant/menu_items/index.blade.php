@@ -20,7 +20,7 @@
 <form method="post" action="{{ route('restaurant.menu-items.reorder') }}" class="mb-4 flex flex-wrap items-center justify-between gap-3 rounded-md border border-zem-border bg-zem-card p-4" data-reorder-form>
     @csrf @method('PATCH')
     <div>
-        <p class="font-bold text-white">Menu order</p>
+        <p class="font-bold text-zem-cream">Menu order</p>
         <p class="text-sm text-zem-muted">Drag one item onto another to swap them. The new order saves automatically.</p>
     </div>
     <div class="hidden" data-reorder-fields></div>
@@ -35,11 +35,11 @@
             @if($imageUrl)
                 <img src="{{ $imageUrl }}" alt="{{ $menuItem->name }}" class="h-full w-full object-cover">
             @else
-                <div class="grid h-full place-items-center bg-[linear-gradient(135deg,#111,#2a0710)] text-5xl font-extrabold text-white">{{ strtoupper(substr($menuItem->name, 0, 1)) }}</div>
+                <div class="grid h-full place-items-center bg-[linear-gradient(135deg,#111,#2b1009)] text-5xl font-extrabold text-white">{{ strtoupper(substr($menuItem->name, 0, 1)) }}</div>
             @endif
             <form method="post" action="{{ route('restaurant.menu-items.availability', $menuItem) }}" class="absolute left-3 top-3">
                 @csrf @method('PATCH')
-                <button class="rounded-full border px-3 py-1 text-xs font-extrabold backdrop-blur transition {{ $menuItem->is_available ? 'border-green-500/30 bg-green-500/15 text-green-200 hover:bg-green-500/30' : 'border-red-500/30 bg-red-500/15 text-red-200 hover:bg-red-500/30' }}">{{ $menuItem->is_available ? 'Available' : 'Unavailable' }}</button>
+                <button class="rounded-full border px-3 py-1 text-xs font-extrabold backdrop-blur transition {{ $menuItem->is_available ? 'border-green-300 bg-green-100 text-green-800 hover:bg-green-200' : 'border-red-300 bg-red-100 text-red-800 hover:bg-red-200' }}">{{ $menuItem->is_available ? 'Available' : 'Unavailable' }}</button>
             </form>
             <div class="absolute bottom-3 left-3 flex flex-wrap gap-2">
                 <form method="post" action="{{ route('restaurant.menu-items.update', $menuItem) }}" enctype="multipart/form-data" class="flex flex-wrap gap-2">
@@ -71,7 +71,7 @@
             <p class="mt-2 min-h-10 text-sm text-zem-muted">{{ $menuItem->description ?: 'No description yet.' }}</p>
 
             <details class="mt-4 rounded-md border border-zem-border bg-zem-bg p-3">
-                <summary class="cursor-pointer text-sm font-bold text-white">Edit item</summary>
+                <summary class="cursor-pointer text-sm font-bold text-zem-cream">Edit item</summary>
                 <form method="post" action="{{ route('restaurant.menu-items.update', $menuItem) }}" enctype="multipart/form-data" class="mt-3 grid gap-3">
                     @csrf @method('PATCH')
                     <select name="category_id" class="rounded-md border border-zem-border bg-zem-card px-3 py-2">@foreach($categories as $category)<option value="{{ $category->id }}" @selected($menuItem->category_id===$category->id)>{{ $category->name }}</option>@endforeach</select>
@@ -81,9 +81,9 @@
                         <p class="text-xs font-bold uppercase tracking-widest text-zem-muted">Photo</p>
                         <input name="image" type="file" accept="image/*" class="hidden" data-image-crop-input>
                         <div class="mt-2 flex flex-wrap gap-2">
-                            <button type="button" class="rounded-md border border-zem-border px-3 py-2 text-sm font-bold text-white hover:border-zem-gold" data-photo-edit-button data-current-image="{{ $imageUrl }}" @if($imageUrl) data-remove-photo-url="{{ route('restaurant.menu-items.remove-photo', $menuItem) }}" @endif>{{ $imageUrl ? 'Edit photo' : 'Add photo' }}</button>
+                            <button type="button" class="rounded-md border border-zem-border px-3 py-2 text-sm font-bold text-zem-cream hover:border-zem-gold" data-photo-edit-button data-current-image="{{ $imageUrl }}" @if($imageUrl) data-remove-photo-url="{{ route('restaurant.menu-items.remove-photo', $menuItem) }}" @endif>{{ $imageUrl ? 'Edit photo' : 'Add photo' }}</button>
                             @if($imageUrl)
-                                <button type="button" class="rounded-md border border-zem-border px-3 py-2 text-sm font-bold text-white hover:border-zem-gold" data-photo-replace-button>Replace photo</button>
+                                <button type="button" class="rounded-md border border-zem-border px-3 py-2 text-sm font-bold text-zem-cream hover:border-zem-gold" data-photo-replace-button>Replace photo</button>
                             @endif
                         </div>
                     </div>
@@ -98,10 +98,10 @@
                 @if($imageUrl)
                     <form method="post" action="{{ route('restaurant.menu-items.remove-photo', $menuItem) }}" class="mt-3">
                         @csrf @method('PATCH')
-                        <button class="w-full rounded-md border border-red-500/40 px-4 py-2 text-sm font-bold text-red-200 hover:bg-red-700 hover:text-white">Remove photo</button>
+                        <button class="w-full rounded-md border border-red-300 bg-red-50 px-4 py-2 text-sm font-bold text-red-700 transition hover:border-red-500 hover:bg-red-100">Remove photo</button>
                     </form>
                 @endif
-                <form method="post" action="{{ route('restaurant.menu-items.destroy', $menuItem) }}" class="mt-3">@csrf @method('DELETE')<button class="rounded-md border border-red-500/40 px-4 py-2 text-sm font-bold text-red-200">Delete item</button></form>
+                <form method="post" action="{{ route('restaurant.menu-items.destroy', $menuItem) }}" class="mt-3">@csrf @method('DELETE')<button class="rounded-md border border-red-300 bg-red-50 px-4 py-2 text-sm font-bold text-red-700 transition hover:border-red-500 hover:bg-red-100">Delete item</button></form>
             </details>
         </div>
     </article>
@@ -115,17 +115,17 @@
                 <h2 class="font-display text-xl font-bold">Adjust item photo</h2>
                 <p class="mt-1 text-sm text-zem-muted">Drag the image and use zoom to frame the menu item.</p>
             </div>
-            <button type="button" class="rounded-md border border-zem-border px-3 py-2 text-sm font-bold text-zem-muted hover:text-white" data-crop-cancel>Cancel</button>
+            <button type="button" class="rounded-md border border-zem-border px-3 py-2 text-sm font-bold text-zem-muted hover:text-zem-gold" data-crop-cancel>Cancel</button>
         </div>
         <div class="mt-4 max-h-[62vh] overflow-hidden rounded-lg bg-black">
             <img id="image-crop-target" alt="Crop preview" class="max-h-[62vh] w-full object-contain">
         </div>
         <div class="mt-4 grid gap-3 sm:grid-cols-2 md:grid-cols-[auto_auto_auto_auto_auto_auto]">
-            <button type="button" class="rounded-md border border-zem-border px-4 py-2 font-bold text-white hover:border-zem-gold" data-crop-zoom-out>Zoom out</button>
-            <button type="button" class="rounded-md border border-zem-border px-4 py-2 font-bold text-white hover:border-zem-gold" data-crop-zoom-in>Zoom in</button>
-            <button type="button" class="rounded-md border border-zem-border px-4 py-2 font-bold text-white hover:border-zem-gold" data-crop-reset>Reset</button>
-            <button type="button" class="rounded-md border border-zem-border px-4 py-2 font-bold text-white hover:border-zem-gold" data-crop-replace>Replace photo</button>
-            <button type="button" class="hidden rounded-md border border-red-500/40 px-4 py-2 font-bold text-red-200 hover:bg-red-700 hover:text-white" data-crop-remove>Remove photo</button>
+            <button type="button" class="rounded-md border border-zem-border px-4 py-2 font-bold text-zem-cream hover:border-zem-gold" data-crop-zoom-out>Zoom out</button>
+            <button type="button" class="rounded-md border border-zem-border px-4 py-2 font-bold text-zem-cream hover:border-zem-gold" data-crop-zoom-in>Zoom in</button>
+            <button type="button" class="rounded-md border border-zem-border px-4 py-2 font-bold text-zem-cream hover:border-zem-gold" data-crop-reset>Reset</button>
+            <button type="button" class="rounded-md border border-zem-border px-4 py-2 font-bold text-zem-cream hover:border-zem-gold" data-crop-replace>Replace photo</button>
+            <button type="button" class="hidden rounded-md border border-red-300 bg-red-50 px-4 py-2 font-bold text-red-700 transition hover:border-red-500 hover:bg-red-100" data-crop-remove>Remove photo</button>
             <button type="button" class="rounded-md bg-zem-gold px-4 py-2 font-bold text-white" data-crop-apply>Use cropped photo</button>
         </div>
     </div>
@@ -353,3 +353,5 @@
     })();
 </script>
 @endsection
+
+
