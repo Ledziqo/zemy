@@ -3,7 +3,7 @@
 @section('content')
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/cropperjs@1.6.2/dist/cropper.min.css">
 @php($logoUrl = $restaurant->logo_path ? (\Illuminate\Support\Str::startsWith($restaurant->logo_path, ['http://', 'https://', 'uploads/']) ? (str_starts_with($restaurant->logo_path, 'uploads/') ? asset($restaurant->logo_path) : $restaurant->logo_path) : asset('storage/'.$restaurant->logo_path)) : null)
-@php($primaryColor = $restaurant->primary_color ?: '#FF8200')
+@php($primaryColor = $restaurant->primary_color ?: '#D22630')
 @php($serviceCharge = (float) ($restaurant->settings['service_charge_percentage'] ?? 0))
 @php($vat = (float) ($restaurant->settings['vat_percentage'] ?? 0))
 @php($businessType = strtolower($restaurant->businessTypeLabel()))

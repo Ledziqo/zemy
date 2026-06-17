@@ -28,11 +28,11 @@
     <meta name="robots" content="noindex, nofollow">
     <meta name="googlebot" content="noindex, nofollow">
     <title>{{ $title ?? 'ZemTab Dashboard' }}</title>
-    <link rel="icon" type="image/png" href="{{ asset('logo/zemtab-black-orange-pantone151-icon-transparent.png') }}">
+    <link rel="icon" type="image/png" href="{{ asset('logo/zemtab-pantone-1795-c-icon-transparent.png') }}">
     <link rel="canonical" href="{{ url()->current() }}">
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
-        tailwind.config = { theme: { extend: { colors: { zem: { bg: '#F8FAFC', card: '#FFFFFF', gold: '#FF8200', cream: '#000000', muted: '#667085', green: '#16a34a', border: '#D8E0E7', red: '#FF8200', redDark: '#D66A00', ink: '#000000', coral: '#FF8200', navy: '#000000', charcoal: '#000000', porcelain: '#F8FAFC', soft: '#EEF3F7' } }, fontFamily: { sans: ['Inter', 'ui-sans-serif', 'system-ui'], display: ['Sora', 'Inter', 'ui-sans-serif'] } } } }
+        tailwind.config = { theme: { extend: { colors: { zem: { bg: '#F8FAFC', card: '#FFFFFF', gold: '#D22630', cream: '#000000', muted: '#667085', green: '#16a34a', border: '#D8E0E7', red: '#D22630', redDark: '#A71D2A', ink: '#000000', coral: '#D22630', navy: '#000000', charcoal: '#000000', porcelain: '#F8FAFC', soft: '#EEF3F7' } }, fontFamily: { sans: ['Inter', 'ui-sans-serif', 'system-ui'], display: ['Sora', 'Inter', 'ui-sans-serif'] } } } }
     </script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Sora:wght@600;700;800&display=swap" rel="stylesheet">
     <style>
@@ -42,10 +42,10 @@
     </style>
 </head>
 <body class="bg-zem-bg text-zem-cream font-sans antialiased" @isset($autoRefreshSeconds) data-auto-refresh="{{ $autoRefreshSeconds }}" @endisset>
-<div class="min-h-screen bg-[radial-gradient(circle_at_top_right,rgba(255,130,0,.16),transparent_28%),linear-gradient(180deg,#F8FAFC,#EEF3F7)] lg:flex">
+<div class="min-h-screen bg-[radial-gradient(circle_at_top_right,rgba(210,38,48,.16),transparent_28%),linear-gradient(180deg,#F8FAFC,#EEF3F7)] lg:flex">
     <aside class="border-b border-zem-border bg-zem-card/95 backdrop-blur lg:fixed lg:inset-y-0 lg:w-72 lg:border-b-0 lg:border-r">
         <div class="flex items-center justify-between px-5 py-5 lg:block">
-            <a href="{{ route('home') }}" class="inline-flex items-center"><img src="{{ asset('logo/zemtab-black-orange-pantone151-icon-text-transparent.png') }}" alt="ZemTab" class="h-12 w-auto"></a>
+            <a href="{{ route('home') }}" class="inline-flex items-center"><img src="{{ asset('logo/zemtab-pantone-1795-c-icon-text-transparent.png') }}" alt="ZemTab" class="h-12 w-auto"></a>
             <form method="post" action="{{ route('logout') }}">@csrf<button class="rounded-lg border border-zem-border px-3 py-2 text-sm text-zem-muted transition hover:border-zem-gold hover:text-zem-gold">Logout</button></form>
         </div>
         <nav class="flex gap-2 overflow-x-auto px-4 pb-4 lg:block lg:space-y-1">

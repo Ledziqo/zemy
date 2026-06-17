@@ -4,7 +4,7 @@
     'keywords' => 'QR menu Ethiopia, restaurant ordering Addis Ababa, hotel room ordering, digital menu, table ordering, room service QR, staff call, bill request, restaurant POS, hotel service system, ZemTab',
     'canonical' => url('/'),
     'ogType' => 'website',
-    'ogImage' => asset('logo/zemtab-black-orange-pantone151-icon-text-transparent.png'),
+    'ogImage' => asset('logo/zemtab-pantone-1795-c-icon-text-transparent.png'),
 ])
 
 @section('content')
@@ -20,7 +20,7 @@
     <header class="fixed inset-x-0 top-0 z-40 border-b border-zem-border bg-white/90 shadow-sm backdrop-blur-xl">
         <div class="mx-auto flex max-w-7xl items-center justify-between px-5 py-4">
             <a href="/" class="inline-flex items-center" aria-label="ZemTab Home">
-                <img src="{{ asset('logo/zemtab-black-orange-pantone151-icon-text-transparent.png') }}" alt="ZemTab Logo - QR Menu, Table and Room Ordering System" class="h-12 w-auto">
+                <img src="{{ asset('logo/zemtab-pantone-1795-c-icon-text-transparent.png') }}" alt="ZemTab Logo - QR Menu, Table and Room Ordering System" class="h-12 w-auto">
             </a>
             <nav class="hidden items-center gap-6 text-sm font-semibold text-zem-muted md:flex" aria-label="Primary navigation">
                 <a class="transition hover:text-zem-gold" href="#workflow">Workflow</a>
@@ -57,14 +57,14 @@
 
     {{-- Hero Section --}}
     <section class="relative px-5 pt-28" aria-label="Hero">
-        <div class="absolute inset-0 bg-[radial-gradient(circle_at_18%_20%,rgba(255,130,0,.16),transparent_30%),radial-gradient(circle_at_82%_16%,rgba(255,255,255,.96),transparent_26%),linear-gradient(135deg,#F8FAFC_0%,#FFFFFF_44%,#EEF3F7_100%)]"></div>
-        <div class="absolute inset-y-0 right-0 hidden w-1/2 bg-[linear-gradient(90deg,transparent,rgba(255,130,0,.08)_42%,rgba(0,0,0,.06))] lg:block"></div>
+        <div class="absolute inset-0 bg-[radial-gradient(circle_at_18%_20%,rgba(210,38,48,.16),transparent_30%),radial-gradient(circle_at_82%_16%,rgba(255,255,255,.96),transparent_26%),linear-gradient(135deg,#F8FAFC_0%,#FFFFFF_44%,#EEF3F7_100%)]"></div>
+        <div class="absolute inset-y-0 right-0 hidden w-1/2 bg-[linear-gradient(90deg,transparent,rgba(210,38,48,.08)_42%,rgba(0,0,0,.06))] lg:block"></div>
         <div class="absolute inset-x-0 bottom-0 h-40 bg-gradient-to-t from-zem-bg to-transparent"></div>
         <div class="relative mx-auto grid min-h-[88vh] max-w-7xl items-center gap-10 pb-20 lg:grid-cols-[1fr_.9fr]">
             <div class="max-w-3xl">
                 <p class="mb-5 inline-flex rounded-full border border-zem-gold/30 bg-zem-gold/10 px-4 py-2 text-xs font-extrabold uppercase tracking-[.26em] text-zem-gold">Scan. Order. Pay.</p>
                 <h1 class="sr-only">ZemTab - Modern QR Menu, Table Ordering and Hotel Room Ordering System in Ethiopia</h1>
-                <img src="{{ asset('logo/zemtab-black-orange-pantone151-icon-text-transparent.png') }}" alt="ZemTab - Digital Menu, Table Ordering and Hotel Room Ordering" class="h-auto w-full max-w-xl">
+                <img src="{{ asset('logo/zemtab-pantone-1795-c-icon-text-transparent.png') }}" alt="ZemTab - Digital Menu, Table Ordering and Hotel Room Ordering" class="h-auto w-full max-w-xl">
                 <p class="mt-5 max-w-2xl text-xl leading-8 text-zem-muted">A German-made, Ethiopia-based QR ordering system for restaurants, cafes, lounges, and hotels. Guests scan from a table or room, order from their phone, request service, and pay at the end.</p>
                 <div class="mt-9 flex flex-wrap gap-3">
                     <a href="#demo" class="rounded-lg bg-zem-gold px-6 py-3 font-extrabold text-white shadow-xl shadow-zem-gold/20 transition hover:bg-zem-redDark">Request Demo</a>
@@ -304,7 +304,7 @@
             <div class="grid gap-8 md:grid-cols-4">
                 <div class="md:col-span-2">
                     <a href="/" class="inline-flex items-center">
-                        <img src="{{ asset('logo/zemtab-black-orange-pantone151-text-transparent.png') }}" alt="ZemTab" class="h-8 w-auto">
+                        <img src="{{ asset('logo/zemtab-pantone-1795-c-text-transparent.png') }}" alt="ZemTab" class="h-8 w-auto">
                     </a>
                     <p class="mt-3 max-w-sm leading-6">German-made QR Menu, Table Ordering, and Hotel Room Ordering for modern restaurants, hotels, cafes, and lounges across Ethiopia.</p>
                     <p class="mt-3">Based in <span itemprop="address" itemscope itemtype="https://schema.org/PostalAddress"><span itemprop="addressLocality">Addis Ababa</span>, <span itemprop="addressCountry">Ethiopia</span></span>.</p>
@@ -367,7 +367,7 @@
     "aggregateRating": { "@type": "AggregateRating", "ratingValue": "4.8", "ratingCount": "12" },
     "description": "ZemTab is a German-made, Ethiopia-based QR menu, table ordering, hotel room ordering, service request, and staff dashboard system. Guests scan, order, request service, and pay from their phone. No app download needed.",
     "url": "https://zemtab.com",
-    "image": "https://zemtab.com/logo/zemtab-black-orange-pantone151-icon-text-transparent.png",
+    "image": "https://zemtab.com/logo/zemtab-pantone-1795-c-icon-text-transparent.png",
     "inLanguage": "en",
     "countriesSupported": "ET"
 }
@@ -379,7 +379,7 @@
     "@type": "Organization",
     "name": "ZemTab",
     "url": "https://zemtab.com",
-    "logo": "https://zemtab.com/logo/zemtab-black-orange-pantone151-icon-text-transparent.png",
+    "logo": "https://zemtab.com/logo/zemtab-pantone-1795-c-icon-text-transparent.png",
     "email": "zemtab.support@gmail.com",
     "address": { "@type": "PostalAddress", "addressLocality": "Addis Ababa", "addressCountry": "ET" },
     "sameAs": []

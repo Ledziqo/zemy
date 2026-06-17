@@ -4,7 +4,7 @@
     'keywords' => $restaurant->name.' menu, QR menu, '.$restaurant->locationLabel().' ordering, ZemTab',
     'canonical' => route('menu.show', [$restaurant->slug, $table->table_number]),
     'ogType' => 'website',
-    'ogImage' => $restaurant->cover_image_path ? asset($restaurant->cover_image_path) : asset('logo/zemtab-black-orange-pantone151-icon-text-transparent.png'),
+    'ogImage' => $restaurant->cover_image_path ? asset($restaurant->cover_image_path) : asset('logo/zemtab-pantone-1795-c-icon-text-transparent.png'),
     'robots' => 'index, follow',
     'accentColor' => $restaurant->primary_color,
 ])
