@@ -57,10 +57,19 @@
 
     {{-- Hero Section --}}
     <section class="relative px-5 pt-28" aria-label="Hero">
-        <div class="absolute inset-0 bg-[radial-gradient(circle_at_18%_20%,rgba(210,38,48,.16),transparent_30%),radial-gradient(circle_at_82%_16%,rgba(255,255,255,.96),transparent_26%),linear-gradient(135deg,#F8FAFC_0%,#FFFFFF_44%,#EEF3F7_100%)]"></div>
-        <div class="absolute inset-y-0 right-0 hidden w-1/2 bg-[linear-gradient(90deg,transparent,rgba(210,38,48,.08)_42%,rgba(0,0,0,.06))] lg:block"></div>
+        <div class="absolute inset-0 bg-[linear-gradient(135deg,#F8FAFC_0%,#FFFFFF_44%,#EEF3F7_100%)]"></div>
+        <div class="absolute inset-y-0 right-0 hidden w-[68%] lg:block">
+            <img
+                src="{{ asset('uploads/zemtab-right-hand-cafe-hero.png') }}"
+                alt=""
+                aria-hidden="true"
+                class="h-full w-full translate-y-12 object-cover object-[72%_42%] opacity-95 [mask-image:linear-gradient(90deg,transparent_0%,rgba(0,0,0,.12)_12%,rgba(0,0,0,.76)_32%,black_54%,black_82%,rgba(0,0,0,.5)_92%,transparent_100%),linear-gradient(180deg,transparent_0%,rgba(0,0,0,.65)_10%,black_22%,black_74%,rgba(0,0,0,.58)_86%,transparent_100%)] [mask-composite:intersect] [-webkit-mask-image:linear-gradient(90deg,transparent_0%,rgba(0,0,0,.12)_12%,rgba(0,0,0,.76)_32%,black_54%,black_82%,rgba(0,0,0,.5)_92%,transparent_100%),linear-gradient(180deg,transparent_0%,rgba(0,0,0,.65)_10%,black_22%,black_74%,rgba(0,0,0,.58)_86%,transparent_100%)] [-webkit-mask-composite:source-in]"
+            >
+        </div>
+        <div class="absolute inset-y-0 right-0 hidden w-[70%] bg-[linear-gradient(90deg,#F8FAFC_0%,rgba(248,250,252,.88)_16%,rgba(248,250,252,.38)_34%,transparent_58%),linear-gradient(180deg,transparent_0%,transparent_68%,#F8FAFC_100%)] lg:block"></div>
+        <div class="absolute inset-x-0 top-0 h-36 bg-gradient-to-b from-white to-transparent"></div>
         <div class="absolute inset-x-0 bottom-0 h-40 bg-gradient-to-t from-zem-bg to-transparent"></div>
-        <div class="relative mx-auto grid min-h-[88vh] max-w-7xl items-center gap-10 pb-20 lg:grid-cols-[1fr_.9fr]">
+        <div class="relative mx-auto grid min-h-[88vh] max-w-7xl items-center gap-10 pb-20 lg:grid-cols-[.92fr_1.08fr]">
             <div class="max-w-3xl">
                 <p class="mb-5 inline-flex rounded-full border border-zem-gold/30 bg-zem-gold/10 px-4 py-2 text-xs font-extrabold uppercase tracking-[.26em] text-zem-gold">Scan. Order. Pay.</p>
                 <h1 class="sr-only">ZemTab - Modern QR Menu, Table Ordering and Hotel Room Ordering System in Ethiopia</h1>
@@ -81,12 +90,12 @@
                 </div>
             </div>
 
-            <div class="relative mx-auto w-full max-w-xl">
-                <div class="absolute -inset-5 rounded-[2rem] bg-zem-gold/20 blur-3xl"></div>
-                <div class="absolute -bottom-7 left-8 right-8 h-16 rounded-full bg-zem-charcoal/10 blur-2xl"></div>
-                <div class="relative overflow-hidden rounded-[1.75rem] border border-white bg-white shadow-2xl shadow-zem-charcoal/15 ring-1 ring-zem-border">
-                    <img src="{{ asset('uploads/zemtab-handheld-menu-hero-sharp.png') }}" alt="ZemTab QR menu and table ordering shown on a phone held in a cafe" class="aspect-[4/3] w-full object-cover object-[58%_50%]">
-                </div>
+            <div class="relative min-h-[48rem] lg:min-h-[42rem]" aria-label="ZemTab QR menu and table ordering shown clearly on a phone held by a guest in a cafe">
+                <img
+                    src="{{ asset('uploads/zemtab-right-hand-cafe-hero.png') }}"
+                    alt="ZemTab QR menu and table ordering shown clearly on a phone held in a guest's right hand in a cafe"
+                    class="absolute inset-0 h-full w-full object-cover object-[72%_42%] lg:hidden [mask-image:linear-gradient(180deg,black_0%,black_72%,transparent_100%)] [-webkit-mask-image:linear-gradient(180deg,black_0%,black_72%,transparent_100%)]"
+                >
             </div>
         </div>
     </section>
