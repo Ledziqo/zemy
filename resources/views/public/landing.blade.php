@@ -60,7 +60,7 @@
         <div class="absolute inset-0 bg-[linear-gradient(135deg,#F8FAFC_0%,#FFFFFF_44%,#EEF3F7_100%)]"></div>
         <div class="absolute inset-y-0 right-0 hidden w-[68%] lg:block">
             <img
-                src="{{ asset('uploads/zemtab-right-hand-cafe-hero-4k.webp') }}"
+                src="{{ asset('uploads/zemtab-right-hand-cafe-hero-optimized.webp') }}"
                 alt=""
                 aria-hidden="true"
                 class="h-full w-full translate-y-12 object-cover object-[72%_42%] opacity-95 [mask-image:linear-gradient(90deg,transparent_0%,rgba(0,0,0,.12)_12%,rgba(0,0,0,.76)_32%,black_54%,black_82%,rgba(0,0,0,.5)_92%,transparent_100%),linear-gradient(180deg,transparent_0%,rgba(0,0,0,.65)_10%,black_22%,black_74%,rgba(0,0,0,.58)_86%,transparent_100%)] [mask-composite:intersect] [-webkit-mask-image:linear-gradient(90deg,transparent_0%,rgba(0,0,0,.12)_12%,rgba(0,0,0,.76)_32%,black_54%,black_82%,rgba(0,0,0,.5)_92%,transparent_100%),linear-gradient(180deg,transparent_0%,rgba(0,0,0,.65)_10%,black_22%,black_74%,rgba(0,0,0,.58)_86%,transparent_100%)] [-webkit-mask-composite:source-in]"
@@ -82,7 +82,7 @@
                 </div>
                 <div class="relative -mx-5 mt-6 h-[29rem] overflow-hidden bg-white sm:mx-0 sm:h-[34rem] lg:hidden" aria-label="ZemTab QR menu and table ordering shown clearly on a phone held in a guest's right hand in a cafe">
                     <img
-                        src="{{ asset('uploads/zemtab-right-hand-cafe-hero-4k.webp') }}"
+                        src="{{ asset('uploads/zemtab-right-hand-cafe-hero-optimized.webp') }}"
                         alt="ZemTab QR menu and table ordering shown clearly on a phone held in a guest's right hand in a cafe"
                         class="absolute inset-0 h-full w-full object-cover object-[72%_50%] [mask-image:linear-gradient(180deg,black_0%,black_82%,transparent_100%)] [-webkit-mask-image:linear-gradient(180deg,black_0%,black_82%,transparent_100%)]"
                     >
