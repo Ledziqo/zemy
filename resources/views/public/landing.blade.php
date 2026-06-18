@@ -85,13 +85,13 @@
                         src="{{ asset('uploads/zemtab-right-hand-cafe-hero.png') }}"
                         alt=""
                         aria-hidden="true"
-                        class="absolute inset-0 h-full w-full scale-105 object-cover object-[18%_50%] opacity-50 blur-[2px]"
+                        class="absolute inset-0 h-full w-full object-cover object-[72%_50%]"
                     >
                     <div class="absolute inset-0 bg-[linear-gradient(90deg,rgba(248,250,252,.72)_0%,transparent_28%,transparent_72%,rgba(248,250,252,.72)_100%),linear-gradient(180deg,rgba(255,255,255,.25)_0%,transparent_18%,transparent_72%,#F8FAFC_100%)]"></div>
                     <img
                         src="{{ asset('uploads/zemtab-phone-menu-crisp.png') }}"
                         alt="ZemTab QR menu and table ordering shown clearly on a phone"
-                        class="absolute left-1/2 top-2 h-[25rem] w-auto max-w-none -translate-x-1/2 object-contain drop-shadow-[0_20px_28px_rgba(0,0,0,.22)] sm:top-3 sm:h-[32rem]"
+                        class="absolute right-[2.25rem] top-3 h-[24.75rem] w-auto max-w-none object-contain drop-shadow-[0_12px_20px_rgba(0,0,0,.16)] sm:right-[3.35rem] sm:top-4 sm:h-[31.5rem]"
                     >
                 </div>
                 <div class="mt-8 grid max-w-2xl grid-cols-3 gap-3 sm:mt-12">
