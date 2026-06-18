@@ -80,18 +80,11 @@
                     <a href="{{ route('login') }}" class="rounded-lg border border-zem-gold bg-zem-gold/10 px-4 py-3 text-center text-sm font-extrabold text-zem-gold transition hover:bg-zem-gold hover:text-white sm:px-6 sm:text-base">Login</a>
                     <a href="#features" class="col-span-2 rounded-lg border border-zem-border bg-white px-4 py-3 text-center text-sm font-extrabold text-zem-cream transition hover:border-zem-gold hover:bg-zem-gold/10 sm:col-span-1 sm:px-6 sm:text-base">See Features</a>
                 </div>
-                <div class="relative -mx-5 mt-6 h-[27rem] overflow-hidden bg-white sm:mx-0 sm:h-[34rem] lg:hidden" aria-label="ZemTab QR menu and table ordering shown clearly on a phone in a cafe">
+                <div class="relative -mx-5 mt-6 h-[29rem] overflow-hidden bg-white sm:mx-0 sm:h-[34rem] lg:hidden" aria-label="ZemTab QR menu and table ordering shown clearly on a phone held in a guest's right hand in a cafe">
                     <img
                         src="{{ asset('uploads/zemtab-right-hand-cafe-hero.png') }}"
-                        alt=""
-                        aria-hidden="true"
-                        class="absolute inset-0 h-full w-full object-cover object-[72%_50%]"
-                    >
-                    <div class="absolute inset-0 bg-[linear-gradient(90deg,rgba(248,250,252,.72)_0%,transparent_28%,transparent_72%,rgba(248,250,252,.72)_100%),linear-gradient(180deg,rgba(255,255,255,.25)_0%,transparent_18%,transparent_72%,#F8FAFC_100%)]"></div>
-                    <img
-                        src="{{ asset('uploads/zemtab-phone-menu-crisp.png') }}"
-                        alt="ZemTab QR menu and table ordering shown clearly on a phone"
-                        class="absolute right-[2.25rem] top-3 h-[24.75rem] w-auto max-w-none object-contain drop-shadow-[0_12px_20px_rgba(0,0,0,.16)] sm:right-[3.35rem] sm:top-4 sm:h-[31.5rem]"
+                        alt="ZemTab QR menu and table ordering shown clearly on a phone held in a guest's right hand in a cafe"
+                        class="absolute inset-0 h-full w-full object-cover object-[72%_50%] [mask-image:linear-gradient(180deg,black_0%,black_82%,transparent_100%)] [-webkit-mask-image:linear-gradient(180deg,black_0%,black_82%,transparent_100%)]"
                     >
                 </div>
                 <div class="mt-8 grid max-w-2xl grid-cols-3 gap-3 sm:mt-12">
