@@ -42,7 +42,6 @@
                 <a href="{{ route('home') }}" class="text-sm text-zem-muted hover:text-zem-gold">Back to ZemTab.com</a>
             </div>
         </div>
-        <a href="{{ route('setup.show') }}" class="mt-6 text-sm text-zem-muted hover:text-zem-gold">Setup Database</a>
     </div>
 </body>
 </html>

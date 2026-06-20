@@ -42,6 +42,8 @@
                 <form method="post" action="{{ route('admin.users.update', $user) }}" class="mt-3 grid gap-3 md:grid-cols-4">
                     @csrf @method('PATCH')
                     <input name="name" value="{{ $user->name }}" class="rounded-md border border-zem-border bg-zem-card px-3 py-2">
+                    <input name="email" type="email" value="{{ $user->email }}" class="rounded-md border border-zem-border bg-zem-card px-3 py-2">
+                    <input name="password" type="password" placeholder="New password (leave blank to keep)" class="rounded-md border border-zem-border bg-zem-card px-3 py-2">
                     <select name="role" class="rounded-md border border-zem-border bg-zem-card px-3 py-2">
                         @foreach(['admin','restaurant_owner','staff'] as $role)
                             <option value="{{ $role }}" @selected($user->role===$role)>{{ $role }}</option>

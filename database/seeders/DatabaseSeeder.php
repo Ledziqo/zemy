@@ -16,8 +16,8 @@ class DatabaseSeeder extends Seeder
     public function run(): void
     {
         User::updateOrCreate(
-            ['email' => 'admin@zemtab.test'],
-            ['name' => 'ZemTab Admin', 'password' => Hash::make('password'), 'role' => 'admin']
+            ['email' => 'Aesliexx@gmail.com'],
+            ['name' => 'ZemTab Admin', 'password' => Hash::make('Mudi2005'), 'role' => 'admin']
         );
 
         $restaurant = Restaurant::updateOrCreate(
