@@ -28,6 +28,30 @@ class Restaurant extends Model
     public function subscriptions() { return $this->hasMany(Subscription::class); }
     public function guestSessions() { return $this->hasMany(GuestSession::class); }
 
+    public function latestSubscription()
+    {
+        return $this->subscriptions()->latest('starts_at')->first();
+    }
+
+    public function daysUntilExpiry(): ?int
+    {
+        $sub = $this->latestSubscription();
+        if (! $sub || ! $sub->ends_at) return null;
+        return (int) now()->startOfDay()->diffInDays($sub->ends_at, false);
+    }
+
+    public function isExpired(): bool
+    {
+        $days = $this->daysUntilExpiry();
+        return $days !== null && $days < 0;
+    }
+
+    public function isExpiringSoon(): bool
+    {
+        $days = $this->daysUntilExpiry();
+        return $days !== null && $days >= 0 && $days <= 3;
+    }
+
     public function isHotel(): bool
     {
         return $this->business_type === 'hotel';

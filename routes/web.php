@@ -62,4 +62,6 @@ Route::middleware(['auth', 'role:admin'])->prefix('admin')->name('admin.')->grou
     Route::get('/demo-requests', [Admin\DemoRequestController::class, 'index'])->name('demo-requests.index');
     Route::patch('/demo-requests/{demoRequest}', [Admin\DemoRequestController::class, 'update'])->name('demo-requests.update');
     Route::resource('/subscriptions', Admin\SubscriptionController::class)->only(['index', 'store', 'update']);
+    Route::get('/payments', [Admin\PaymentController::class, 'index'])->name('payments.index');
+    Route::post('/payments/{subscription}/mark-paid', [Admin\PaymentController::class, 'markPaid'])->name('payments.mark-paid');
 });

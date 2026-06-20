@@ -19,9 +19,17 @@ class EnsureRestaurantDashboardAccess
         }
 
         $latestSubscription = Schema::hasTable('subscriptions')
-            ? $restaurant->subscriptions()->latest()->first()
+            ? $restaurant->subscriptions()->latest('starts_at')->first()
             : null;
         $status = $restaurant->dashboard_access_status ?? 'active';
+
+        // Auto-lockout: if subscription end date has passed, set payment_required
+        if ($latestSubscription && $latestSubscription->ends_at && $latestSubscription->ends_at < now()->toDateString()) {
+            if ($status === 'active') {
+                $restaurant->update(['dashboard_access_status' => 'payment_required']);
+                $status = 'payment_required';
+            }
+        }
 
         if ($status !== 'active' || $latestSubscription?->status === 'unpaid') {
             return redirect()->route('restaurant.access-required');

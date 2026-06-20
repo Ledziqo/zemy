@@ -9,6 +9,7 @@
             ['Users', route('admin.users.index')],
             ['Demo Requests', route('admin.demo-requests.index')],
             ['Subscriptions', route('admin.subscriptions.index')],
+            ['Payments', route('admin.payments.index')],
         ]
         : [
             ['Overview', route('restaurant.dashboard')],
@@ -67,6 +68,14 @@
         </header>
         @if(session('success'))<div class="mb-5 rounded-lg border border-zem-green/40 bg-zem-green/15 px-4 py-3 text-sm text-zem-cream">{{ session('success') }}</div>@endif
         @if($errors->any())<div class="mb-5 rounded-lg border border-red-500/40 bg-red-950/60 px-4 py-3 text-sm">{{ $errors->first() }}</div>@endif
+        @php($showWarning = isset($dashboardRestaurant) && $dashboardRestaurant && $dashboardRestaurant->isExpiringSoon() && !request()->is('admin/*'))
+        @if($showWarning)
+            <div class="mb-5 rounded-lg border border-zem-gold/40 bg-zem-gold/10 px-4 py-3 text-sm">
+                <p class="font-bold text-zem-gold">Subscription expiring soon</p>
+                <p class="mt-1 text-zem-muted">Your subscription expires in {{ $dashboardRestaurant->daysUntilExpiry() }} day(s). Please pay to keep your dashboard active.</p>
+                <p class="mt-2 text-zem-muted">Pay via Telebirr: <strong class="text-zem-cream">0911 000 000</strong> or Telegram: <strong class="text-zem-cream">@Aesliex</strong></p>
+            </div>
+        @endif
         @yield('content')
     </main>
 </div>

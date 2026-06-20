@@ -17,6 +17,8 @@
         <input name="email" type="email" placeholder="Owner login email" class="rounded-md border border-zem-border bg-zem-bg px-3 py-2">
         <input name="owner_password" type="password" placeholder="Owner login password" class="rounded-md border border-zem-border bg-zem-bg px-3 py-2">
         <input name="location" placeholder="Location" class="rounded-md border border-zem-border bg-zem-bg px-3 py-2">
+        <input name="subscription_starts_at" type="date" placeholder="Subscription start date" class="rounded-md border border-zem-border bg-zem-bg px-3 py-2">
+        <input name="monthly_price" type="number" step="0.01" placeholder="Monthly price (ETB)" class="rounded-md border border-zem-border bg-zem-bg px-3 py-2">
         <label class="flex items-center gap-2"><input name="is_active" type="checkbox" value="1" checked> Public active</label>
         <input type="hidden" name="dashboard_access_status" value="active">
         @unless($hasBusinessType)
