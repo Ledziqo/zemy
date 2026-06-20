@@ -32,6 +32,7 @@
         <span>Menu theme color</span>
         <input name="primary_color" value="{{ $primaryColor }}" type="color" class="h-10 w-20 cursor-pointer rounded border border-zem-border bg-zem-card p-1">
     </label>
+    <h2 class="font-display text-lg font-bold text-zem-gold md:col-span-2 xl:col-span-3">Menu settings</h2>
     <input name="service_charge_percentage" value="{{ $serviceCharge > 0 ? $serviceCharge : '' }}" type="number" step="0.01" placeholder="Service charge %" class="rounded-md border border-zem-border bg-zem-bg px-3 py-2">
     <input name="vat_percentage" value="{{ $vat > 0 ? $vat : '' }}" type="number" step="0.01" placeholder="VAT %" class="rounded-md border border-zem-border bg-zem-bg px-3 py-2">
 @php($paymentMethods = $restaurant->settings['payment_methods'] ?? ['cash', 'telebirr', 'cbe'])
@@ -39,6 +40,7 @@
 @php($cbeQrUrl = ! empty($restaurant->settings['cbe_qr_path']) ? asset($restaurant->settings['cbe_qr_path']) : null)
 @php($awashQrUrl = ! empty($restaurant->settings['awash_qr_path']) ? asset($restaurant->settings['awash_qr_path']) : null)
 @php($abyssiniaQrUrl = ! empty($restaurant->settings['abyssinia_qr_path']) ? asset($restaurant->settings['abyssinia_qr_path']) : null)
+    <h2 class="font-display text-lg font-bold text-zem-gold md:col-span-2 xl:col-span-3">Payment methods</h2>
     <fieldset class="rounded-md border border-zem-border bg-zem-bg p-4 md:col-span-2">
         <legend class="px-2 text-sm font-bold text-zem-muted">Accepted customer payment methods</legend>
         <div class="mt-2 flex flex-wrap gap-4">
@@ -49,6 +51,7 @@
             <label class="flex items-center gap-2"><input name="payment_methods[]" type="checkbox" value="abyssinia" @checked(in_array('abyssinia', $paymentMethods, true))> Bank of Abyssinia</label>
         </div>
     </fieldset>
+    <h2 class="font-display text-lg font-bold text-zem-gold md:col-span-2 xl:col-span-3">Payment account details</h2>
     <fieldset class="rounded-md border border-zem-border bg-zem-bg p-4 md:col-span-2 xl:col-span-3">
         <legend class="px-2 text-sm font-bold text-zem-muted">Payment account details shown at checkout</legend>
         <div class="mt-2 grid gap-3 md:grid-cols-2">
