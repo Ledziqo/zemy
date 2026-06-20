@@ -63,7 +63,7 @@
                             card: '#FFFFFF',
                             gold: @js($accentColor),
                             cream: '#000000',
-                            muted: '#667085',
+                            muted: '#475467',
                             green: '#16a34a',
                             border: '#D8E0E7',
                             red: '#D22630',

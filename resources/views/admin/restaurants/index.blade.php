@@ -60,7 +60,7 @@
         </form>
         <form method="post" action="{{ route('admin.restaurants.password.update', $restaurant) }}" class="mt-3 border-t border-zem-border pt-3" data-password-form>
             @csrf @method('PATCH')
-            <button type="button" class="rounded-md border border-zem-gold px-4 py-2 font-bold text-white transition hover:bg-zem-gold" data-password-toggle>Change password</button>
+            <button type="button" class="rounded-md border border-zem-gold px-4 py-2 font-bold text-zem-gold transition hover:bg-zem-gold hover:text-white" data-password-toggle>Change password</button>
             <div class="mt-3 hidden grid gap-3 md:grid-cols-[1fr_auto]" data-password-fields>
                 <input name="password" type="password" required minlength="8" placeholder="New restaurant login password" class="rounded-md border border-zem-border bg-zem-bg px-3 py-2" disabled data-password-input>
                 <button class="rounded-md bg-zem-gold px-4 py-2 font-bold text-white">Save new password</button>
@@ -88,3 +88,4 @@
     });
 </script>
 @endsection
+

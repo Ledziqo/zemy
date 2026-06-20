@@ -1,0 +1,23 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1126 416" role="img" aria-labelledby="title desc">
+  <title id="title">ZemTab text-only logo source</title>
+  <desc id="desc">Editable ZemTab wordmark without the icon on a transparent background.</desc>
+  <style>
+    :root {
+      --coral: #ff4b47;
+      --dark: #242424;
+    }
+
+    .dark { fill: var(--dark); }
+    .coral { fill: var(--coral); }
+    .word {
+      font-family: "Avenir Next", "Montserrat", "Inter", "Segoe UI", Arial, sans-serif;
+      font-size: 256px;
+      font-weight: 800;
+      letter-spacing: -3px;
+    }
+  </style>
+
+  <text class="word" x="38" y="296">
+    <tspan class="dark">Zem</tspan><tspan class="coral">Tab</tspan>
+  </text>
+</svg>

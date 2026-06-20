@@ -1,0 +1,65 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1502 646" role="img" aria-labelledby="title desc">
+  <title id="title">ZemTab full logo source</title>
+  <desc id="desc">Editable full ZemTab logo with icon and text on a transparent background.</desc>
+  <style>
+    :root {
+      --coral: #ff4b47;
+      --porcelain: #f7f1ea;
+      --dark: #242424;
+    }
+
+    .coral { fill: var(--coral); stroke: var(--coral); }
+    .porcelain { fill: var(--porcelain); }
+    .dark { fill: var(--dark); stroke: var(--dark); }
+    .mark-line {
+      fill: none;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+    }
+    .word {
+      font-family: "Avenir Next", "Montserrat", "Inter", "Segoe UI", Arial, sans-serif;
+      font-size: 236px;
+      font-weight: 800;
+      letter-spacing: -3px;
+    }
+  </style>
+
+  <defs>
+    <symbol id="zemtab-icon" viewBox="0 0 512 616">
+      <g class="dark mark-line" stroke-width="18">
+        <path d="M82 96V58q0-22 22-22h38" />
+        <path d="M370 36h38q22 0 22 22v38" />
+        <path d="M82 444v38q0 22 22 22h38" />
+        <path d="M430 444v38q0 22-22 22h-38" />
+      </g>
+
+      <path class="coral" d="M149 159q0-17 17-17h180q8 0 12 6t-2 12L172 345h103q14 0 14 15t-14 15H116q-9 0-13-7t3-14l183-184H166q-17 0-17-11z" />
+      <path class="coral" d="M102 384h308q18 0 18 17t-18 17H287v109h36q15 0 15 14t-15 14H206q-15 0-15-14t15-14h36V418H120q-18 0-18-17t18-17z" />
+
+      <g class="dark">
+        <rect x="296" y="236" width="32" height="32" rx="2" />
+        <rect x="345" y="236" width="14" height="45" rx="2" />
+        <rect x="367" y="236" width="32" height="32" rx="2" />
+        <rect x="296" y="286" width="9" height="9" rx="1" />
+        <rect x="313" y="286" width="19" height="9" rx="1" />
+        <rect x="341" y="286" width="24" height="26" rx="1" />
+        <rect x="374" y="286" width="25" height="26" rx="1" />
+        <rect x="296" y="319" width="32" height="32" rx="2" />
+        <rect x="341" y="319" width="20" height="9" rx="1" />
+        <rect x="369" y="319" width="10" height="34" rx="1" />
+        <rect x="390" y="319" width="9" height="9" rx="1" />
+        <rect x="341" y="336" width="9" height="17" rx="1" />
+        <rect x="356" y="336" width="9" height="9" rx="1" />
+        <rect x="382" y="336" width="17" height="17" rx="1" />
+        <rect class="porcelain" x="304" y="244" width="16" height="16" rx="1" />
+        <rect class="porcelain" x="375" y="244" width="16" height="16" rx="1" />
+        <rect class="porcelain" x="304" y="327" width="16" height="16" rx="1" />
+      </g>
+    </symbol>
+  </defs>
+
+  <use href="#zemtab-icon" x="48" y="58" width="392" height="472" />
+  <text class="word" x="486" y="422">
+    <tspan class="dark">Zem</tspan><tspan class="coral">Tab</tspan>
+  </text>
+</svg>
