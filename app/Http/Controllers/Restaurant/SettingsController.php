@@ -29,11 +29,15 @@ class SettingsController extends Controller
             'service_charge_percentage' => ['nullable', 'numeric', 'min:0'],
             'vat_percentage' => ['nullable', 'numeric', 'min:0'],
             'payment_methods' => ['nullable', 'array'],
-            'payment_methods.*' => ['in:cash,telebirr,cbe'],
+            'payment_methods.*' => ['in:cash,telebirr,cbe,awash,abyssinia'],
             'telebirr_number' => ['nullable', 'string', 'max:100'],
             'cbe_account_number' => ['nullable', 'string', 'max:100'],
+            'awash_account_number' => ['nullable', 'string', 'max:100'],
+            'abyssinia_account_number' => ['nullable', 'string', 'max:100'],
             'telebirr_qr' => ['nullable', 'image', 'max:4096'],
             'cbe_qr' => ['nullable', 'image', 'max:4096'],
+            'awash_qr' => ['nullable', 'image', 'max:4096'],
+            'abyssinia_qr' => ['nullable', 'image', 'max:4096'],
         ]);
 
         $settings = $restaurant->settings ?? [];
@@ -57,16 +61,28 @@ class SettingsController extends Controller
             $data['cbe_qr_path'] = $this->storeUploadedImage($request->file('cbe_qr'), 'payment-qr');
         }
 
+        if ($request->hasFile('awash_qr')) {
+            $data['awash_qr_path'] = $this->storeUploadedImage($request->file('awash_qr'), 'payment-qr');
+        }
+
+        if ($request->hasFile('abyssinia_qr')) {
+            $data['abyssinia_qr_path'] = $this->storeUploadedImage($request->file('abyssinia_qr'), 'payment-qr');
+        }
+
         $restaurant->update([
-            ...collect($data)->except(['service_charge_percentage', 'vat_percentage', 'payment_methods', 'telebirr_number', 'cbe_account_number', 'telebirr_qr', 'telebirr_qr_path', 'cbe_qr', 'cbe_qr_path', 'logo', 'cropped_logo'])->all(),
+            ...collect($data)->except(['service_charge_percentage', 'vat_percentage', 'payment_methods', 'telebirr_number', 'cbe_account_number', 'awash_account_number', 'abyssinia_account_number', 'telebirr_qr', 'telebirr_qr_path', 'cbe_qr', 'cbe_qr_path', 'awash_qr', 'awash_qr_path', 'abyssinia_qr', 'abyssinia_qr_path', 'logo', 'cropped_logo'])->all(),
             'settings' => array_merge($settings, [
                 'service_charge_percentage' => $data['service_charge_percentage'] ?? 0,
                 'vat_percentage' => $data['vat_percentage'] ?? 0,
                 'payment_methods' => array_values($data['payment_methods'] ?? []),
                 'telebirr_number' => $data['telebirr_number'] ?? null,
                 'cbe_account_number' => $data['cbe_account_number'] ?? null,
+                'awash_account_number' => $data['awash_account_number'] ?? null,
+                'abyssinia_account_number' => $data['abyssinia_account_number'] ?? null,
                 'telebirr_qr_path' => $data['telebirr_qr_path'] ?? ($settings['telebirr_qr_path'] ?? null),
                 'cbe_qr_path' => $data['cbe_qr_path'] ?? ($settings['cbe_qr_path'] ?? null),
+                'awash_qr_path' => $data['awash_qr_path'] ?? ($settings['awash_qr_path'] ?? null),
+                'abyssinia_qr_path' => $data['abyssinia_qr_path'] ?? ($settings['abyssinia_qr_path'] ?? null),
             ]),
         ]);
 

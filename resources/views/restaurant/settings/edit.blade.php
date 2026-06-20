@@ -37,12 +37,16 @@
 @php($paymentMethods = $restaurant->settings['payment_methods'] ?? ['cash', 'telebirr', 'cbe'])
 @php($telebirrQrUrl = ! empty($restaurant->settings['telebirr_qr_path']) ? asset($restaurant->settings['telebirr_qr_path']) : null)
 @php($cbeQrUrl = ! empty($restaurant->settings['cbe_qr_path']) ? asset($restaurant->settings['cbe_qr_path']) : null)
+@php($awashQrUrl = ! empty($restaurant->settings['awash_qr_path']) ? asset($restaurant->settings['awash_qr_path']) : null)
+@php($abyssiniaQrUrl = ! empty($restaurant->settings['abyssinia_qr_path']) ? asset($restaurant->settings['abyssinia_qr_path']) : null)
     <fieldset class="rounded-md border border-zem-border bg-zem-bg p-4 md:col-span-2">
         <legend class="px-2 text-sm font-bold text-zem-muted">Accepted customer payment methods</legend>
         <div class="mt-2 flex flex-wrap gap-4">
             <label class="flex items-center gap-2"><input name="payment_methods[]" type="checkbox" value="cash" @checked(in_array('cash', $paymentMethods, true))> Cash</label>
             <label class="flex items-center gap-2"><input name="payment_methods[]" type="checkbox" value="telebirr" @checked(in_array('telebirr', $paymentMethods, true))> Telebirr</label>
             <label class="flex items-center gap-2"><input name="payment_methods[]" type="checkbox" value="cbe" @checked(in_array('cbe', $paymentMethods, true))> CBE</label>
+            <label class="flex items-center gap-2"><input name="payment_methods[]" type="checkbox" value="awash" @checked(in_array('awash', $paymentMethods, true))> Awash Bank</label>
+            <label class="flex items-center gap-2"><input name="payment_methods[]" type="checkbox" value="abyssinia" @checked(in_array('abyssinia', $paymentMethods, true))> Bank of Abyssinia</label>
         </div>
     </fieldset>
     <fieldset class="rounded-md border border-zem-border bg-zem-bg p-4 md:col-span-2 xl:col-span-3">
@@ -50,6 +54,8 @@
         <div class="mt-2 grid gap-3 md:grid-cols-2">
             <input name="telebirr_number" value="{{ $restaurant->settings['telebirr_number'] ?? '' }}" placeholder="Telebirr phone number" class="rounded-md border border-zem-border bg-zem-card px-3 py-3">
             <input name="cbe_account_number" value="{{ $restaurant->settings['cbe_account_number'] ?? '' }}" placeholder="CBE account number" class="rounded-md border border-zem-border bg-zem-card px-3 py-3">
+            <input name="awash_account_number" value="{{ $restaurant->settings['awash_account_number'] ?? '' }}" placeholder="Awash Bank account number" class="rounded-md border border-zem-border bg-zem-card px-3 py-3">
+            <input name="abyssinia_account_number" value="{{ $restaurant->settings['abyssinia_account_number'] ?? '' }}" placeholder="Bank of Abyssinia account number" class="rounded-md border border-zem-border bg-zem-card px-3 py-3">
             <label class="grid gap-2 rounded-md border border-zem-border bg-zem-card p-3 text-sm text-zem-muted">
                 <span class="font-bold text-zem-cream">Telebirr QR image</span>
                 @if($telebirrQrUrl)<img src="{{ $telebirrQrUrl }}" alt="Telebirr QR" class="h-28 w-28 rounded-md bg-white object-contain p-2">@endif
@@ -59,6 +65,16 @@
                 <span class="font-bold text-zem-cream">CBE QR image</span>
                 @if($cbeQrUrl)<img src="{{ $cbeQrUrl }}" alt="CBE QR" class="h-28 w-28 rounded-md bg-white object-contain p-2">@endif
                 <input name="cbe_qr" type="file" accept="image/*" class="text-sm">
+            </label>
+            <label class="grid gap-2 rounded-md border border-zem-border bg-zem-card p-3 text-sm text-zem-muted">
+                <span class="font-bold text-zem-cream">Awash Bank QR image</span>
+                @if($awashQrUrl)<img src="{{ $awashQrUrl }}" alt="Awash Bank QR" class="h-28 w-28 rounded-md bg-white object-contain p-2">@endif
+                <input name="awash_qr" type="file" accept="image/*" class="text-sm">
+            </label>
+            <label class="grid gap-2 rounded-md border border-zem-border bg-zem-card p-3 text-sm text-zem-muted">
+                <span class="font-bold text-zem-cream">Bank of Abyssinia QR image</span>
+                @if($abyssiniaQrUrl)<img src="{{ $abyssiniaQrUrl }}" alt="Bank of Abyssinia QR" class="h-28 w-28 rounded-md bg-white object-contain p-2">@endif
+                <input name="abyssinia_qr" type="file" accept="image/*" class="text-sm">
             </label>
         </div>
     </fieldset>

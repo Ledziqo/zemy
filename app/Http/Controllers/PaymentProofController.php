@@ -17,7 +17,7 @@ class PaymentProofController extends Controller
         $visit = $visits->resolve($request, $restaurant, $restaurantTable);
 
         $data = $request->validate([
-            'method' => ['required', Rule::in(['telebirr', 'cbe'])],
+            'method' => ['required', Rule::in(['telebirr', 'cbe', 'awash', 'abyssinia'])],
             'reference' => ['nullable', 'string', 'max:255'],
             'proof' => ['required', 'image', 'max:4096'],
         ]);

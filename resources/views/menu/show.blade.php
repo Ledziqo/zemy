@@ -13,24 +13,23 @@
 @php
     $settings = $restaurant->settings ?? [];
     $enabledPaymentMethods = $settings['payment_methods'] ?? ['cash', 'telebirr', 'cbe'];
-    $paymentLabels = ['cash' => 'Cash', 'telebirr' => 'Telebirr', 'cbe' => 'CBE'];
-    $paymentDetails = [
-        'cash' => 'Pay with cash when staff brings your order or bill.',
-        'telebirr' => filled($settings['telebirr_number'] ?? null) ? 'Send Telebirr payment to '.$settings['telebirr_number'].'.' : 'Ask staff for the Telebirr number.',
-        'cbe' => filled($settings['cbe_account_number'] ?? null) ? 'Transfer to CBE account '.$settings['cbe_account_number'].'.' : 'Ask staff for the CBE account number.',
-    ];
     $logoUrl = $restaurant->logo_path ? (\Illuminate\Support\Str::startsWith($restaurant->logo_path, ['http://', 'https://', 'uploads/']) ? (str_starts_with($restaurant->logo_path, 'uploads/') ? asset($restaurant->logo_path) : $restaurant->logo_path) : asset('storage/'.$restaurant->logo_path)) : null;
     $placeTitle = $restaurant->locationLabelTitle();
     $visitOrders = $visit?->orders?->sortByDesc('created_at') ?? collect();
     $visitRequests = $visit?->serviceRequests ?? collect();
     $visitPayments = $visit?->payments ?? collect();
     $visitTotal = $visitOrders->whereNotIn('status', ['cancelled'])->sum(fn ($order) => (float) $order->total);
-    $paymentQrUrls = [
-        'telebirr' => ! empty($settings['telebirr_qr_path'] ?? null) ? asset($settings['telebirr_qr_path']) : null,
-        'cbe' => ! empty($settings['cbe_qr_path'] ?? null) ? asset($settings['cbe_qr_path']) : null,
+
+    $allPaymentMethods = [
+        'cash' => ['label' => 'Cash', 'logo' => null, 'account_field' => null, 'qr_field' => null],
+        'telebirr' => ['label' => 'Telebirr', 'logo' => asset('bank-logos/telebirr.png'), 'account_field' => 'telebirr_number', 'qr_field' => 'telebirr_qr_path'],
+        'cbe' => ['label' => 'CBE', 'logo' => asset('bank-logos/cbe.png'), 'account_field' => 'cbe_account_number', 'qr_field' => 'cbe_qr_path'],
+        'awash' => ['label' => 'Awash Bank', 'logo' => asset('bank-logos/awash.jpg'), 'account_field' => 'awash_account_number', 'qr_field' => 'awash_qr_path'],
+        'abyssinia' => ['label' => 'Bank of Abyssinia', 'logo' => asset('bank-logos/abyssinia.jpg'), 'account_field' => 'abyssinia_account_number', 'qr_field' => 'abyssinia_qr_path'],
     ];
+    $activePaymentMethods = collect($allPaymentMethods)->filter(fn ($m, $key) => in_array($key, $enabledPaymentMethods, true));
 @endphp
-<main x-data="menuCart({ paymentDetails: @js($paymentDetails) })" class="min-h-screen bg-neutral-100 pb-28 text-zem-ink">
+<main x-data="{ ...menuCart({ paymentDetails: {} }), paymentOpen: false, selectedPayment: null }" class="min-h-screen bg-neutral-100 pb-28 text-zem-ink">
     <header class="sticky top-0 z-30 border-b border-black/10 bg-white/95 px-4 py-3 shadow-sm backdrop-blur">
         <div class="mx-auto max-w-5xl">
             <div class="flex items-center justify-between gap-3">
@@ -62,9 +61,14 @@
     <section class="mx-auto max-w-5xl px-4 py-4">
         @if(session('success'))<div class="mb-4 rounded-xl bg-zem-green px-4 py-3 text-sm font-bold text-white">{{ session('success') }}</div>@endif
         @if($errors->any())<div class="mb-4 rounded-xl bg-red-600 px-4 py-3 text-sm font-bold text-white">{{ $errors->first() }}</div>@endif
-        <div class="grid grid-cols-2 gap-3">
+        <div class="grid grid-cols-3 gap-3">
             <form method="post" action="{{ route('service-requests.store', [$restaurant->slug, $table->table_number]) }}">@csrf<input type="hidden" name="type" value="call_waiter"><button class="w-full rounded-xl bg-black px-4 py-3 font-extrabold text-white">{{ $restaurant->staffRequestLabel() }}</button></form>
-            <form method="post" action="{{ route('service-requests.store', [$restaurant->slug, $table->table_number]) }}">@csrf<input type="hidden" name="type" value="request_bill"><button class="w-full rounded-xl bg-zem-gold px-4 py-3 font-extrabold text-white">{{ $restaurant->isHotel() ? 'Request Room Bill' : 'Request Bill' }}</button></form>
+            <form method="post" action="{{ route('service-requests.store', [$restaurant->slug, $table->table_number]) }}">@csrf<input type="hidden" name="type" value="request_bill"><button class="w-full rounded-xl bg-zem-gold px-4 py-3 font-extrabold text-white">Request Bill</button></form>
+            @if($activePaymentMethods->isNotEmpty())
+                <button type="button" @click="paymentOpen = true; selectedPayment = null" class="w-full rounded-xl border-2 border-black/10 bg-white px-4 py-3 font-extrabold text-black">
+                    Payment
+                </button>
+            @endif
         </div>
     </section>
 
@@ -110,38 +114,105 @@
         </section>
     @endif
 
-    @if($visitTotal > 0 && (in_array('telebirr', $enabledPaymentMethods, true) || in_array('cbe', $enabledPaymentMethods, true)))
-        <section id="payment-info" class="mx-auto max-w-5xl px-4 pb-4">
-            <div class="rounded-2xl border border-zem-gold/30 bg-white p-4 shadow-sm">
-                <div class="flex flex-wrap items-start justify-between gap-3">
-                    <div>
-                        <p class="text-xs font-extrabold uppercase tracking-widest text-zem-gold">Payment information</p>
-                        <h2 class="font-display text-2xl font-extrabold">Pay when you are done</h2>
-                        <p class="mt-1 text-sm text-neutral-600">Use Telebirr or CBE details below, then show the payment screenshot to staff. Request bill only calls staff to confirm your final amount.</p>
-                    </div>
-                    <p class="rounded-full bg-zem-gold px-3 py-2 text-sm font-extrabold text-white">Current total: {{ number_format($visitTotal) }} ETB</p>
+    {{-- Payment Methods Modal --}}
+    @if($activePaymentMethods->isNotEmpty())
+    <div x-show="paymentOpen" x-cloak class="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm" @click.self="paymentOpen=false">
+        <div class="absolute bottom-0 max-h-[92vh] w-full overflow-y-auto rounded-t-3xl bg-white p-4 text-zem-ink shadow-2xl">
+            <div class="mx-auto max-w-3xl">
+                <div class="flex items-center justify-between">
+                    <h2 class="font-display text-2xl font-extrabold">Payment</h2>
+                    <button type="button" @click="paymentOpen=false" class="rounded-lg border border-black/10 px-3 py-2 font-bold">Close</button>
                 </div>
-                <div class="mt-4 grid gap-3 md:grid-cols-2">
-                    @foreach(['telebirr' => 'Telebirr', 'cbe' => 'CBE'] as $method => $label)
-                        @if(in_array($method, $enabledPaymentMethods, true))
-                            <div class="rounded-xl border border-black/10 bg-neutral-50 p-3">
-                                <div class="flex items-start gap-3">
-                                    @if($paymentQrUrls[$method])
-                                        <img src="{{ $paymentQrUrls[$method] }}" alt="{{ $label }} payment QR" class="h-28 w-28 shrink-0 rounded-lg border border-black/10 bg-white object-contain p-1">
+
+                {{-- Step 1: Select payment method --}}
+                <div x-show="selectedPayment === null" class="mt-5">
+                    <p class="text-sm text-neutral-500">Choose a payment method to see account details and QR code.</p>
+                    <div class="mt-4 grid grid-cols-1 gap-3 sm:grid-cols-2">
+                        @foreach($activePaymentMethods as $method => $meta)
+                            <button type="button" @click="selectedPayment = '{{ $method }}'" class="flex items-center gap-3 rounded-2xl border border-black/10 bg-neutral-50 p-4 text-left transition hover:border-zem-gold hover:bg-zem-gold/10">
+                                @if($meta['logo'])
+                                    <img src="{{ $meta['logo'] }}" alt="{{ $meta['label'] }} logo" class="h-12 w-12 shrink-0 rounded-lg border border-black/10 bg-white object-contain p-1">
+                                @else
+                                    <div class="grid h-12 w-12 shrink-0 place-items-center rounded-lg border border-black/10 bg-white text-xl font-extrabold">$</div>
+                                @endif
+                                <div class="min-w-0">
+                                    <p class="font-extrabold">{{ $meta['label'] }}</p>
+                                    @if($method === 'cash')
+                                        <p class="text-sm text-neutral-500">Pay with cash when staff brings your order or bill.</p>
                                     @else
-                                        <div class="grid h-28 w-28 shrink-0 place-items-center rounded-lg border border-black/10 bg-white p-2 text-center text-xs font-bold text-neutral-500">QR not added</div>
+                                        <p class="text-sm text-neutral-500">Transfer to {{ $meta['label'] }} and show proof to staff.</p>
                                     @endif
-                                    <div class="min-w-0">
-                                        <p class="font-extrabold">{{ $label }}</p>
-                                        <p class="mt-1 break-words text-sm text-neutral-600">{{ $method === 'telebirr' ? ($settings['telebirr_number'] ?? 'Ask staff for the number.') : ($settings['cbe_account_number'] ?? 'Ask staff for the account number.') }}</p>
-                                    </div>
+                                </div>
+                            </button>
+                        @endforeach
+                    </div>
+                    @if($visitTotal > 0)
+                        <p class="mt-4 rounded-xl bg-zem-gold/10 px-4 py-3 text-sm font-bold text-zem-gold">Current total: {{ number_format($visitTotal) }} ETB</p>
+                    @endif
+                </div>
+
+                {{-- Step 2: Show account details + QR for selected method --}}
+                <div x-show="selectedPayment !== null" class="mt-5">
+                    <button type="button" @click="selectedPayment = null" class="mb-4 inline-flex items-center gap-1 text-sm font-bold text-zem-gold">&larr; Back to methods</button>
+                    @foreach($activePaymentMethods as $method => $meta)
+                        <div x-show="selectedPayment === '{{ $method }}'">
+                            <div class="flex items-center gap-3 rounded-2xl border border-black/10 bg-neutral-50 p-4">
+                                @if($meta['logo'])
+                                    <img src="{{ $meta['logo'] }}" alt="{{ $meta['label'] }} logo" class="h-16 w-16 shrink-0 rounded-lg border border-black/10 bg-white object-contain p-2">
+                                @else
+                                    <div class="grid h-16 w-16 shrink-0 place-items-center rounded-lg border border-black/10 bg-white text-2xl font-extrabold">$</div>
+                                @endif
+                                <div>
+                                    <p class="text-xs font-extrabold uppercase tracking-widest text-zem-gold">Selected method</p>
+                                    <p class="font-display text-xl font-extrabold">{{ $meta['label'] }}</p>
                                 </div>
                             </div>
-                        @endif
+
+                            @if($method === 'cash')
+                                <div class="mt-4 rounded-xl border border-black/10 bg-neutral-50 p-4">
+                                    <p class="font-extrabold">Cash payment</p>
+                                    <p class="mt-2 text-sm text-neutral-600">Pay with cash when staff brings your order or bill. Request bill to call a staff member to confirm your final amount.</p>
+                                </div>
+                            @else
+                                @php($accountNumber = $settings[$meta['account_field']] ?? null)
+                                @php($qrPath = $settings[$meta['qr_field']] ?? null)
+                                @php($qrUrl = ! empty($qrPath) ? asset($qrPath) : null)
+                                <div class="mt-4 grid gap-3 sm:grid-cols-2">
+                                    <div class="rounded-xl border border-black/10 bg-neutral-50 p-4">
+                                        <p class="text-xs font-extrabold uppercase tracking-widest text-zem-gold">Account number</p>
+                                        <p class="mt-2 break-words text-lg font-extrabold">{{ $accountNumber ?? 'Ask staff for the account number.' }}</p>
+                                        <p class="mt-3 text-sm text-neutral-600">Transfer to this {{ $meta['label'] }} account, then show your payment screenshot to staff for confirmation.</p>
+                                    </div>
+                                    <div class="rounded-xl border border-black/10 bg-neutral-50 p-4">
+                                        <p class="text-xs font-extrabold uppercase tracking-widest text-zem-gold">Payment QR</p>
+                                        @if($qrUrl)
+                                            <img src="{{ $qrUrl }}" alt="{{ $meta['label'] }} payment QR" class="mt-2 h-40 w-40 rounded-lg border border-black/10 bg-white object-contain p-2">
+                                            <p class="mt-2 text-xs text-neutral-500">Scan this QR code with your banking app to pay.</p>
+                                        @else
+                                            <div class="mt-2 grid h-40 w-40 place-items-center rounded-lg border border-black/10 bg-white p-2 text-center text-xs font-bold text-neutral-500">QR not added</div>
+                                        @endif
+                                    </div>
+                                </div>
+
+                                {{-- Upload payment proof --}}
+                                <form method="post" action="{{ route('payments.proofs.store', [$restaurant->slug, $table->table_number]) }}" enctype="multipart/form-data" class="mt-4 rounded-xl border border-black/10 bg-neutral-50 p-4">
+                                    @csrf
+                                    <input type="hidden" name="method" value="{{ $method }}">
+                                    <p class="font-extrabold">Upload payment proof</p>
+                                    <p class="mt-1 text-sm text-neutral-600">Upload a screenshot of your {{ $meta['label'] }} payment so staff can confirm it.</p>
+                                    <div class="mt-3 grid gap-3">
+                                        <input name="reference" placeholder="Transaction reference (optional)" class="rounded-lg border border-black/10 px-3 py-3 outline-none focus:border-zem-gold">
+                                        <input name="proof" type="file" accept="image/*" required class="rounded-lg border border-black/10 px-3 py-3 text-sm">
+                                        <button class="rounded-xl bg-zem-gold py-3 font-extrabold text-white">Upload proof</button>
+                                    </div>
+                                </form>
+                            @endif
+                        </div>
                     @endforeach
                 </div>
             </div>
-        </section>
+        </div>
+    </div>
     @endif
 
     <section id="all" class="mx-auto max-w-5xl space-y-8 px-4">

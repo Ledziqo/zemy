@@ -22,7 +22,7 @@ class OrderController extends Controller
             'customer_name' => ['nullable', 'string', 'max:255'],
             'customer_phone' => ['nullable', 'string', 'max:50'],
             'note' => ['nullable', 'string', 'max:2000'],
-            'payment_method' => ['nullable', Rule::in($restaurant->settings['payment_methods'] ?? ['cash', 'telebirr', 'cbe'])],
+            'payment_method' => ['nullable', Rule::in($restaurant->settings['payment_methods'] ?? ['cash', 'telebirr', 'cbe', 'awash', 'abyssinia'])],
             'items' => ['required', 'array', 'min:1'],
             'items.*.id' => ['required', 'integer', 'exists:menu_items,id'],
             'items.*.quantity' => ['required', 'integer', 'min:1', 'max:50'],
