@@ -17,7 +17,7 @@
     $placeTitle = $restaurant->locationLabelTitle();
     $visitOrders = $visit?->orders?->sortByDesc('created_at') ?? collect();
     $visitRequests = $visit?->serviceRequests ?? collect();
-    $visitPayments = $visit?->payments ?? collect();
+    
     $visitTotal = $visitOrders->whereNotIn('status', ['cancelled'])->sum(fn ($order) => (float) $order->total);
 
     $allPaymentMethods = [
@@ -72,7 +72,7 @@
         </div>
     </section>
 
-    @if($visitOrders->isNotEmpty() || $visitPayments->isNotEmpty())
+    @if($visitOrders->isNotEmpty())
         <section class="mx-auto max-w-5xl px-4 pb-4">
             <div class="rounded-2xl border border-black/10 bg-white p-4 shadow-sm">
                 <div class="flex flex-wrap items-center justify-between gap-3">
@@ -103,9 +103,7 @@
                             @empty
                                 <p class="rounded-lg border border-black/10 bg-white p-3 text-neutral-500">No service requests yet.</p>
                             @endforelse
-                            @foreach($visitPayments->take(2) as $payment)
-                                <p class="rounded-lg border border-zem-gold/30 bg-zem-gold/10 p-3 font-semibold">{{ strtoupper($payment->method) }} proof uploaded - {{ ucfirst($payment->status) }}</p>
-                            @endforeach
+                            
                         </div>
                     </div>
                 </div>
@@ -194,19 +192,7 @@
                                     </div>
                                 </div>
 
-                                {{-- Upload payment proof --}}
-                                <form method="post" action="{{ route('payments.proofs.store', [$restaurant->slug, $table->table_number]) }}" enctype="multipart/form-data" class="mt-4 rounded-xl border border-black/10 bg-neutral-50 p-4">
-                                    @csrf
-                                    <input type="hidden" name="method" value="{{ $method }}">
-                                    <p class="font-extrabold">Upload payment proof</p>
-                                    <p class="mt-1 text-sm text-neutral-600">Upload a screenshot of your {{ $meta['label'] }} payment so staff can confirm it.</p>
-                                    <div class="mt-3 grid gap-3">
-                                        <input name="reference" placeholder="Transaction reference (optional)" class="rounded-lg border border-black/10 px-3 py-3 outline-none focus:border-zem-gold">
-                                        <input name="proof" type="file" accept="image/*" required class="rounded-lg border border-black/10 px-3 py-3 text-sm">
-                                        <button class="rounded-xl bg-zem-gold py-3 font-extrabold text-white">Upload proof</button>
-                                    </div>
-                                </form>
-                            @endif
+                                {@endif
                         </div>
                     @endforeach
                 </div>

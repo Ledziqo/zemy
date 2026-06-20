@@ -20,6 +20,18 @@ class DashboardController extends Controller
         $restaurant = $this->restaurant($request);
         $todayOrders = $restaurant->orders()->whereDate('created_at', today());
 
+        $last7Days = now()->subDays(6)->startOfDay();
+        $popularItems = OrderItem::query()
+            ->join('orders', 'orders.id', '=', 'order_items.order_id')
+            ->select('order_items.item_name')
+            ->selectRaw('SUM(order_items.quantity) as quantity_sold, COALESCE(SUM(order_items.total_price), 0) as revenue_total')
+            ->where('orders.restaurant_id', $restaurant->id)
+            ->where('orders.created_at', '>=', $last7Days)
+            ->groupBy('order_items.item_name')
+            ->orderByDesc('quantity_sold')
+            ->limit(5)
+            ->get();
+
         return view('restaurant.dashboard', [
             'restaurant' => $restaurant,
             'todayOrders' => (clone $todayOrders)->count(),
@@ -40,7 +52,7 @@ class DashboardController extends Controller
 
         return view('restaurant.orders.index', [
             'restaurant' => $restaurant,
-            'orders' => $restaurant->orders()->with(['items', 'guestSession.payments'])->latest()->paginate(30),
+            'orders' => $restaurant->orders()->with(['items'])->latest()->paginate(30),
             'requests' => $restaurant->serviceRequests()
                 ->orderByRaw("FIELD(status, 'pending', 'acknowledged', 'completed')")
                 ->latest()
@@ -49,6 +61,56 @@ class DashboardController extends Controller
             'activeRequests' => $restaurant->serviceRequests()->whereIn('status', ['pending', 'acknowledged'])->count(),
             'statuses' => Order::STATUSES,
             'latestOrderId' => $restaurant->orders()->max('id') ?? 0,
+        ]);
+    }
+
+    public function poll(Request $request)
+    {
+        $restaurant = $this->restaurant($request);
+        $since = (int) $request->query('since', 0);
+
+        $newOrders = $restaurant->orders()
+            ->with('items')
+            ->where('id', '>', $since)
+            ->latest()
+            ->limit(20)
+            ->get()
+            ->map(fn ($order) => [
+                'id' => $order->id,
+                'table_number' => $order->table_number,
+                'status' => $order->status,
+                'total' => (float) $order->total,
+                'note' => $order->note,
+                'created_at' => $order->created_at->diffForHumans(),
+                'items' => $order->items->map(fn ($item) => [
+                    'quantity' => $item->quantity,
+                    'name' => $item->item_name,
+                    'note' => $item->note,
+                    'total_price' => (float) $item->total_price,
+                ]),
+            ]);
+
+        $newRequests = $restaurant->serviceRequests()
+            ->where('id', '>', $since)
+            ->orderByRaw("FIELD(status, 'pending', 'acknowledged', 'completed')")
+            ->latest()
+            ->limit(20)
+            ->get()
+            ->map(fn ($req) => [
+                'id' => $req->id,
+                'table_number' => $req->table_number,
+                'type' => $req->type,
+                'status' => $req->status,
+                'note' => $req->note,
+                'created_at' => $req->created_at->diffForHumans(),
+            ]);
+
+        return response()->json([
+            'orders' => $newOrders,
+            'requests' => $newRequests,
+            'latestOrderId' => $restaurant->orders()->max('id') ?? 0,
+            'latestRequestId' => $restaurant->serviceRequests()->max('id') ?? 0,
+            'activeRequests' => $restaurant->serviceRequests()->whereIn('status', ['pending', 'acknowledged'])->count(),
         ]);
     }
 

@@ -31,17 +31,20 @@
     <link rel="icon" type="image/png" href="{{ asset('logo/zemtab-pantone-1795-c-icon-transparent.png') }}">
     <link rel="canonical" href="{{ url()->current() }}">
     <script src="https://cdn.tailwindcss.com"></script>
+    <script defer src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js"></script>
     <script>
-        tailwind.config = { theme: { extend: { colors: { zem: { bg: '#F8FAFC', card: '#FFFFFF', gold: '#D22630', cream: '#000000', muted: '#667085', green: '#16a34a', border: '#D8E0E7', red: '#D22630', redDark: '#A71D2A', ink: '#000000', coral: '#D22630', navy: '#000000', charcoal: '#000000', porcelain: '#F8FAFC', soft: '#EEF3F7' } }, fontFamily: { sans: ['Inter', 'ui-sans-serif', 'system-ui'], display: ['Sora', 'Inter', 'ui-sans-serif'] } } } }
+        tailwind.config = { theme: { extend: { colors: { zem: { bg: '#F8FAFC', card: '#FFFFFF', gold: '#D22630', cream: '#000000', muted: '#475467', green: '#16a34a', border: '#D8E0E7', red: '#D22630', redDark: '#A71D2A', ink: '#000000', coral: '#D22630', navy: '#000000', charcoal: '#000000', porcelain: '#F8FAFC', soft: '#EEF3F7' } }, fontFamily: { sans: ['Inter', 'ui-sans-serif', 'system-ui'], display: ['Sora', 'Inter', 'ui-sans-serif'] } } } }
     </script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Sora:wght@600;700;800&display=swap" rel="stylesheet">
     <style>
         [x-cloak]{display:none!important}
         input,select,textarea,button{font-size:16px}
         input:not([type="color"]):not([type="checkbox"]):not([type="radio"]),select,textarea{background-color:#fff;color:#000000}
+        @keyframes slide-in{from{opacity:0;transform:translateY(-12px)}to{opacity:1;transform:translateY(0)}}
+        .animate-slide-in{animation:slide-in .4s ease-out}
     </style>
 </head>
-<body class="bg-zem-bg text-zem-cream font-sans antialiased" @isset($autoRefreshSeconds) data-auto-refresh="{{ $autoRefreshSeconds }}" @endisset>
+<body class="bg-zem-bg text-zem-cream font-sans antialiased">
 <div class="min-h-screen bg-[radial-gradient(circle_at_top_right,rgba(210,38,48,.16),transparent_28%),linear-gradient(180deg,#F8FAFC,#EEF3F7)] lg:flex">
     <aside class="border-b border-zem-border bg-zem-card/95 backdrop-blur lg:fixed lg:inset-y-0 lg:w-72 lg:border-b-0 lg:border-r">
         <div class="flex items-center justify-between px-5 py-5 lg:block">
@@ -50,7 +53,7 @@
         </div>
         <nav class="flex gap-2 overflow-x-auto px-4 pb-4 lg:block lg:space-y-1">
             @foreach($links as [$label, $url])
-                <a href="{{ $url }}" class="block whitespace-nowrap rounded-lg px-3 py-2 text-sm font-semibold transition {{ url()->current() === $url ? 'bg-zem-gold text-white shadow-lg shadow-zem-gold/20' : 'text-zem-muted hover:bg-zem-soft hover:text-zem-cream' }}">{{ $label }}</a>
+                <a href="{{ $url }}" class="block whitespace-nowrap rounded-lg px-3 py-2 text-sm font-semibold transition {{ str_starts_with(url()->current(), $url) ? 'bg-zem-gold text-white shadow-lg shadow-zem-gold/20' : 'text-zem-muted hover:bg-zem-soft hover:text-zem-cream' }}">{{ $label }}</a>
             @endforeach
         </nav>
     </aside>
@@ -64,40 +67,8 @@
         </header>
         @if(session('success'))<div class="mb-5 rounded-lg border border-zem-green/40 bg-zem-green/15 px-4 py-3 text-sm text-zem-cream">{{ session('success') }}</div>@endif
         @if($errors->any())<div class="mb-5 rounded-lg border border-red-500/40 bg-red-950/60 px-4 py-3 text-sm">{{ $errors->first() }}</div>@endif
-        @isset($autoRefreshSeconds)
-            <div class="mb-5 flex flex-wrap items-center justify-between gap-3 rounded-md border border-zem-border bg-zem-card px-4 py-3 text-sm text-zem-muted">
-                <span>Auto-refreshing every {{ $autoRefreshSeconds }} seconds. Pauses while editing.</span>
-                <a href="{{ url()->current() }}" class="font-bold text-zem-gold">Refresh now</a>
-            </div>
-        @endisset
         @yield('content')
     </main>
 </div>
-<script>
-(() => {
-    const seconds = Number(document.body.dataset.autoRefresh || 0);
-    if (!seconds) return;
-
-    let dirty = false;
-    document.addEventListener('input', (event) => {
-        if (event.target.closest('form')) dirty = true;
-    });
-    document.addEventListener('change', (event) => {
-        if (event.target.closest('form')) dirty = true;
-    });
-    document.addEventListener('submit', () => {
-        dirty = false;
-    });
-
-    setInterval(() => {
-        const active = document.activeElement;
-        const editing = active && ['INPUT', 'SELECT', 'TEXTAREA', 'BUTTON'].includes(active.tagName);
-        if (!dirty && !editing && document.visibilityState === 'visible') {
-            window.location.reload();
-        }
-    }, seconds * 1000);
-})();
-</script>
 </body>
 </html>
-

@@ -35,6 +35,8 @@ Route::middleware(['auth', 'role:restaurant_owner,staff'])->prefix('restaurant')
         Route::get('/dashboard', [Restaurant\DashboardController::class, 'index'])->name('dashboard');
         Route::get('/analytics', [Restaurant\DashboardController::class, 'analytics'])->name('analytics');
         Route::get('/orders', [Restaurant\DashboardController::class, 'orders'])->name('orders.index');
+        Route::get('/orders/poll', [Restaurant\DashboardController::class, 'poll'])->name('orders.poll');
+        Route::get('/orders/poll', [Restaurant\DashboardController::class, 'poll'])->name('orders.poll');
         Route::patch('/orders/{order}', [Restaurant\DashboardController::class, 'updateOrder'])->name('orders.update');
         Route::patch('/menu-items/reorder', [Restaurant\MenuItemController::class, 'reorder'])->name('menu-items.reorder');
         Route::patch('/menu-items/{menu_item}/availability', [Restaurant\MenuItemController::class, 'toggleAvailability'])->name('menu-items.availability');
