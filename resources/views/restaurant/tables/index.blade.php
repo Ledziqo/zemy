@@ -3,8 +3,9 @@
 @section('content')
 @php($place = $restaurant->locationLabel())
 @php($placeTitle = $restaurant->locationLabelTitle())
-<div class="mb-4 flex justify-end">
-    <a href="{{ route('restaurant.tables.setup-pack') }}" target="_blank" class="rounded-md border border-zem-gold px-4 py-2 text-sm font-bold text-zem-gold transition hover:bg-zem-gold hover:text-white">Print setup pack</a>
+<div class="mb-6 flex flex-wrap items-center justify-between gap-3">
+    <h2 class="font-display text-lg font-bold">Add {{ $place }}</h2>
+    <a href="{{ route('restaurant.tables.setup-pack') }}" target="_blank" class="rounded-md bg-zem-gold px-4 py-2 text-sm font-bold text-white">Print setup pack</a>
 </div>
 <form method="post" action="{{ route('restaurant.tables.store') }}" class="mb-6 grid gap-3 rounded-md border border-zem-border bg-zem-card p-4 md:grid-cols-[1fr_1fr_auto_auto]">
     @csrf
@@ -26,18 +27,14 @@
             </div>
             <x-status :status="$table->is_active ? 'active' : 'cancelled'" />
         </div>
-
         <div class="mt-4 grid place-items-center rounded-md bg-white p-4">
             <img src="{{ route('restaurant.tables.qr', $table) }}" alt="QR code for {{ $place }} {{ $table->table_number }}" class="h-56 w-56">
         </div>
-
         <a class="mt-3 block break-all rounded-md border border-zem-border bg-zem-bg p-3 text-sm text-zem-gold" href="{{ $url }}" target="_blank">{{ $url }}</a>
-
         <div class="mt-3 grid grid-cols-2 gap-2">
             <a href="{{ route('restaurant.tables.qr', $table) }}" download="zemtab-{{ $restaurant->slug }}-{{ $place }}-{{ $table->table_number }}.svg" class="rounded-md bg-zem-gold px-4 py-2 text-center text-sm font-bold text-white">Download QR</a>
             <a href="{{ $url }}" target="_blank" class="rounded-md border border-zem-border px-4 py-2 text-center text-sm font-bold">Open menu</a>
         </div>
-
         <details class="mt-4 rounded-md border border-zem-border bg-zem-bg p-3">
             <summary class="cursor-pointer text-sm font-bold">Edit {{ $place }}</summary>
             <form method="post" action="{{ route('restaurant.tables.update', $table) }}" class="mt-3 grid gap-3">
@@ -54,4 +51,3 @@
 </div>
 <div class="mt-5">{{ $tables->links() }}</div>
 @endsection
-

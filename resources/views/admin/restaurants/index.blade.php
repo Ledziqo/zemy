@@ -3,89 +3,101 @@
 @section('content')
 @php($hasDashboardAccessStatus = \Illuminate\Support\Facades\Schema::hasColumn('restaurants', 'dashboard_access_status'))
 @php($hasBusinessType = \Illuminate\Support\Facades\Schema::hasColumn('restaurants', 'business_type'))
-<form method="post" action="{{ route('admin.restaurants.store') }}" class="mb-6 grid gap-3 rounded-md border border-zem-border bg-zem-card p-4 md:grid-cols-4">
-    @csrf
-    <input name="name" required placeholder="Name" class="rounded-md border border-zem-border bg-zem-bg px-3 py-2">
-    <input name="slug" required placeholder="slug" class="rounded-md border border-zem-border bg-zem-bg px-3 py-2">
-    <select name="business_type" class="rounded-md border border-zem-border bg-zem-bg px-3 py-2" @disabled(! $hasBusinessType)>
-        <option value="restaurant">Restaurant</option>
-        <option value="hotel">Hotel</option>
-    </select>
-    <input name="phone" placeholder="Phone" class="rounded-md border border-zem-border bg-zem-bg px-3 py-2">
-    <input name="email" type="email" placeholder="Owner login email" class="rounded-md border border-zem-border bg-zem-bg px-3 py-2">
-    <input name="owner_password" type="password" placeholder="Owner login password" class="rounded-md border border-zem-border bg-zem-bg px-3 py-2">
-    <input name="location" placeholder="Location" class="rounded-md border border-zem-border bg-zem-bg px-3 py-2">
-    <label class="flex items-center gap-2"><input name="is_active" type="checkbox" value="1" checked> Public active</label>
-    <input type="hidden" name="dashboard_access_status" value="active">
-    @unless($hasBusinessType)
-        <p class="text-sm text-red-200 md:col-span-4">Run migrations to enable hotel accounts.</p>
-    @endunless
-    <button class="rounded-md bg-zem-gold px-4 py-2 font-bold text-white md:col-span-2">Create account</button>
-</form>
+<div class="mb-6 rounded-md border border-zem-border bg-zem-card p-4">
+    <h2 class="mb-3 font-display text-lg font-bold">Add new account</h2>
+    <form method="post" action="{{ route('admin.restaurants.store') }}" class="grid gap-3 md:grid-cols-4">
+        @csrf
+        <input name="name" required placeholder="Name" class="rounded-md border border-zem-border bg-zem-bg px-3 py-2">
+        <input name="slug" required placeholder="slug" class="rounded-md border border-zem-border bg-zem-bg px-3 py-2">
+        <select name="business_type" class="rounded-md border border-zem-border bg-zem-bg px-3 py-2" @disabled(! $hasBusinessType)>
+            <option value="restaurant">Restaurant</option>
+            <option value="hotel">Hotel</option>
+        </select>
+        <input name="phone" placeholder="Phone" class="rounded-md border border-zem-border bg-zem-bg px-3 py-2">
+        <input name="email" type="email" placeholder="Owner login email" class="rounded-md border border-zem-border bg-zem-bg px-3 py-2">
+        <input name="owner_password" type="password" placeholder="Owner login password" class="rounded-md border border-zem-border bg-zem-bg px-3 py-2">
+        <input name="location" placeholder="Location" class="rounded-md border border-zem-border bg-zem-bg px-3 py-2">
+        <label class="flex items-center gap-2"><input name="is_active" type="checkbox" value="1" checked> Public active</label>
+        <input type="hidden" name="dashboard_access_status" value="active">
+        @unless($hasBusinessType)
+            <p class="text-sm text-red-200 md:col-span-4">Run migrations to enable hotel accounts.</p>
+        @endunless
+        <button class="rounded-md bg-zem-gold px-4 py-2 font-bold text-white md:col-span-4">Create account</button>
+    </form>
+</div>
+
 <div class="grid gap-3">
-@foreach($restaurants as $restaurant)
-    @php($subscription = $restaurant->subscriptions->sortByDesc('created_at')->first())
-    @php($owner = $restaurant->users->first())
-    <article class="rounded-md border border-zem-border bg-zem-card p-4">
-        <form method="post" action="{{ route('admin.restaurants.update', $restaurant) }}" class="grid gap-3 md:grid-cols-6">
-            @csrf @method('PATCH')
-            <input name="name" value="{{ $restaurant->name }}" class="rounded-md border border-zem-border bg-zem-bg px-3 py-2">
-            <input name="slug" value="{{ $restaurant->slug }}" class="rounded-md border border-zem-border bg-zem-bg px-3 py-2">
-            <select name="business_type" class="rounded-md border border-zem-border bg-zem-bg px-3 py-2" @disabled(! $hasBusinessType)>
-                @foreach(['restaurant' => 'Restaurant', 'hotel' => 'Hotel'] as $value => $label)
-                    <option value="{{ $value }}" @selected(($restaurant->business_type ?? 'restaurant') === $value)>{{ $label }}</option>
-                @endforeach
-            </select>
-            <input name="phone" value="{{ $restaurant->phone }}" class="rounded-md border border-zem-border bg-zem-bg px-3 py-2">
-            <input name="email" value="{{ $restaurant->email }}" class="rounded-md border border-zem-border bg-zem-bg px-3 py-2">
-            <input name="location" value="{{ $restaurant->location }}" class="rounded-md border border-zem-border bg-zem-bg px-3 py-2">
-            <label class="flex items-center gap-2"><input name="is_active" type="checkbox" value="1" @checked($restaurant->is_active)> Public active</label>
-            <select name="subscription_status" class="rounded-md border border-zem-border bg-zem-bg px-3 py-2">
-                @foreach(['active' => 'Paid / active', 'unpaid' => 'Unpaid', 'trial' => 'Trial', 'cancelled' => 'Cancelled'] as $value => $label)
-                    <option value="{{ $value }}" @selected(($subscription?->status ?? 'trial') === $value)>{{ $label }}</option>
-                @endforeach
-            </select>
-            <select name="dashboard_access_status" class="rounded-md border border-zem-border bg-zem-bg px-3 py-2">
-                <option value="active" @selected(($restaurant->dashboard_access_status ?? 'active') === 'active')>Dashboard active</option>
-                <option value="payment_required" @selected(($restaurant->dashboard_access_status ?? 'active') === 'payment_required')>Payment required</option>
-                <option value="revoked" @selected(($restaurant->dashboard_access_status ?? 'active') === 'revoked')>Revoked</option>
-            </select>
-            @unless($hasDashboardAccessStatus)
-                <p class="text-sm text-red-200 md:col-span-6">Run migrations to enable dashboard access controls.</p>
-            @endunless
-            <div class="text-sm text-zem-muted md:col-span-3">Type: {{ $restaurant->businessTypeLabel() }} - Current plan: {{ $subscription?->plan_name ?? 'Pro' }} - {{ $subscription?->status ?? 'trial' }} - {{ number_format($restaurant->orders_count) }} orders</div>
-            <div class="text-sm text-zem-muted md:col-span-3">Login: {{ $owner?->email ?? 'No login account yet' }}</div>
-            <button class="rounded-md bg-zem-gold px-4 py-2 font-bold text-white">Save access</button>
-            <a href="{{ route('menu.show', [$restaurant->slug, 1]) }}" class="rounded-md border border-zem-border px-4 py-2 text-center">View {{ $restaurant->locationLabel() }} 1</a>
-        </form>
-        <form method="post" action="{{ route('admin.restaurants.password.update', $restaurant) }}" class="mt-3 border-t border-zem-border pt-3" data-password-form>
-            @csrf @method('PATCH')
-            <button type="button" class="rounded-md border border-zem-gold px-4 py-2 font-bold text-zem-gold transition hover:bg-zem-gold hover:text-white" data-password-toggle>Change password</button>
-            <div class="mt-3 hidden grid gap-3 md:grid-cols-[1fr_auto]" data-password-fields>
-                <input name="password" type="password" required minlength="8" placeholder="New restaurant login password" class="rounded-md border border-zem-border bg-zem-bg px-3 py-2" disabled data-password-input>
-                <button class="rounded-md bg-zem-gold px-4 py-2 font-bold text-white">Save new password</button>
+    @foreach($restaurants as $restaurant)
+        @php($subscription = $restaurant->subscriptions->sortByDesc('created_at')->first())
+        @php($owner = $restaurant->users->first())
+        @php($subStatusColors = ['active' => 'bg-green-100 text-green-700 border-green-300', 'unpaid' => 'bg-red-100 text-red-700 border-red-300', 'trial' => 'bg-zem-gold/20 text-zem-gold border-zem-gold/40', 'cancelled' => 'bg-gray-100 text-gray-600 border-gray-300'])
+        @php($accessStatusColors = ['active' => 'bg-green-100 text-green-700 border-green-300', 'payment_required' => 'bg-zem-gold/20 text-zem-gold border-zem-gold/40', 'revoked' => 'bg-red-100 text-red-700 border-red-300'])
+        <article class="rounded-md border border-zem-border bg-zem-card p-4">
+            <div class="flex flex-wrap items-start justify-between gap-3">
+                <div>
+                    <div class="flex flex-wrap items-center gap-2">
+                        <h3 class="font-display text-lg font-bold">{{ $restaurant->name }}</h3>
+                        <span class="rounded-full border border-zem-border bg-zem-soft px-3 py-1 text-xs font-bold text-zem-cream">{{ $restaurant->businessTypeLabel() }}</span>
+                        <span class="rounded-full border px-3 py-1 text-xs font-bold {{ $subStatusColors[$subscription?->status ?? 'trial'] ?? 'border-zem-border text-zem-muted' }}">{{ $subscription?->status ?? 'trial' }}</span>
+                        <span class="rounded-full border px-3 py-1 text-xs font-bold {{ $accessStatusColors[$restaurant->dashboard_access_status ?? 'active'] ?? 'border-zem-border text-zem-muted' }}">{{ $restaurant->dashboard_access_status ?? 'active' }}</span>
+                    </div>
+                    <p class="mt-2 text-sm text-zem-muted">{{ $restaurant->location ?: 'No location' }} - {{ number_format($restaurant->orders_count) }} orders - Login: {{ $owner?->email ?? 'No login account yet' }}</p>
+                </div>
+                <a href="{{ route('menu.show', [$restaurant->slug, 1]) }}" target="_blank" class="rounded-md border border-zem-border px-4 py-2 text-sm font-bold">View menu</a>
             </div>
-        </form>
-    </article>
-@endforeach
+            <details class="mt-3 rounded-md border border-zem-border bg-zem-bg p-3">
+                <summary class="cursor-pointer text-sm font-bold text-zem-cream">Edit account</summary>
+                <form method="post" action="{{ route('admin.restaurants.update', $restaurant) }}" class="mt-3 grid gap-3 md:grid-cols-6">
+                    @csrf @method('PATCH')
+                    <input name="name" value="{{ $restaurant->name }}" class="rounded-md border border-zem-border bg-zem-card px-3 py-2">
+                    <input name="slug" value="{{ $restaurant->slug }}" class="rounded-md border border-zem-border bg-zem-card px-3 py-2">
+                    <select name="business_type" class="rounded-md border border-zem-border bg-zem-card px-3 py-2" @disabled(! $hasBusinessType)>
+                        @foreach(['restaurant' => 'Restaurant', 'hotel' => 'Hotel'] as $value => $label)
+                            <option value="{{ $value }}" @selected(($restaurant->business_type ?? 'restaurant') === $value)>{{ $label }}</option>
+                        @endforeach
+                    </select>
+                    <input name="phone" value="{{ $restaurant->phone }}" class="rounded-md border border-zem-border bg-zem-card px-3 py-2">
+                    <input name="email" value="{{ $restaurant->email }}" class="rounded-md border border-zem-border bg-zem-card px-3 py-2">
+                    <input name="location" value="{{ $restaurant->location }}" class="rounded-md border border-zem-border bg-zem-card px-3 py-2">
+                    <label class="flex items-center gap-2"><input name="is_active" type="checkbox" value="1" @checked($restaurant->is_active)> Public active</label>
+                    <select name="subscription_status" class="rounded-md border border-zem-border bg-zem-card px-3 py-2">
+                        @foreach(['active' => 'Paid / active', 'unpaid' => 'Unpaid', 'trial' => 'Trial', 'cancelled' => 'Cancelled'] as $value => $label)
+                            <option value="{{ $value }}" @selected(($subscription?->status ?? 'trial') === $value)>{{ $label }}</option>
+                        @endforeach
+                    </select>
+                    <select name="dashboard_access_status" class="rounded-md border border-zem-border bg-zem-card px-3 py-2">
+                        <option value="active" @selected(($restaurant->dashboard_access_status ?? 'active') === 'active')>Dashboard active</option>
+                        <option value="payment_required" @selected(($restaurant->dashboard_access_status ?? 'active') === 'payment_required')>Payment required</option>
+                        <option value="revoked" @selected(($restaurant->dashboard_access_status ?? 'active') === 'revoked')>Revoked</option>
+                    </select>
+                    @unless($hasDashboardAccessStatus)
+                        <p class="text-sm text-red-200 md:col-span-6">Run migrations to enable dashboard access controls.</p>
+                    @endunless
+                    <button class="rounded-md bg-zem-gold px-4 py-2 font-bold text-white md:col-span-6">Save changes</button>
+                </form>
+                <form method="post" action="{{ route('admin.restaurants.password.update', $restaurant) }}" class="mt-3 border-t border-zem-border pt-3" data-password-form>
+                    @csrf @method('PATCH')
+                    <button type="button" class="rounded-md border border-zem-gold px-4 py-2 text-sm font-bold text-zem-gold transition hover:bg-zem-gold hover:text-white" data-password-toggle>Change password</button>
+                    <div class="mt-3 hidden grid gap-3 md:grid-cols-[1fr_auto]" data-password-fields>
+                        <input name="password" type="password" required minlength="8" placeholder="New login password" class="rounded-md border border-zem-border bg-zem-bg px-3 py-2" disabled data-password-input>
+                        <button class="rounded-md bg-zem-gold px-4 py-2 font-bold text-white">Save password</button>
+                    </div>
+                </form>
+            </details>
+        </article>
+    @endforeach
 </div>
 <div class="mt-5">{{ $restaurants->links() }}</div>
 <script>
     document.addEventListener('click', function(event) {
         const toggle = event.target.closest('[data-password-toggle]');
         if (! toggle) return;
-
         const form = toggle.closest('[data-password-form]');
         const fields = form.querySelector('[data-password-fields]');
         const input = form.querySelector('[data-password-input]');
-
         fields.classList.toggle('hidden');
         input.disabled = fields.classList.contains('hidden');
-
-        if (! input.disabled) {
-            input.focus();
-        }
+        if (! input.disabled) input.focus();
     });
 </script>
 @endsection
-
