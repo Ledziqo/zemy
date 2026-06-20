@@ -42,6 +42,7 @@ class DashboardController extends Controller
             'revenue' => (clone $todayOrders)->whereIn('status', ['paid', 'completed'])->sum('total'),
             'allOrders' => $restaurant->orders()->count(),
             'recentOrders' => $restaurant->orders()->with('items')->latest()->limit(8)->get(),
+            'popularItems' => $popularItems,
             'latestOrderId' => $restaurant->orders()->max('id') ?? 0,
         ]);
     }
@@ -54,7 +55,7 @@ class DashboardController extends Controller
             'restaurant' => $restaurant,
             'orders' => $restaurant->orders()->with(['items'])->latest()->paginate(30),
             'requests' => $restaurant->serviceRequests()
-                ->orderByRaw("FIELD(status, 'pending', 'acknowledged', 'completed')")
+                ->orderByRaw("CASE status WHEN 'pending' THEN 1 WHEN 'acknowledged' THEN 2 WHEN 'completed' THEN 3 ELSE 4 END")
                 ->latest()
                 ->limit(40)
                 ->get(),
@@ -94,7 +95,7 @@ class DashboardController extends Controller
 
         $newRequests = $restaurant->serviceRequests()
             ->where('id', '>', $since)
-            ->orderByRaw("FIELD(status, 'pending', 'acknowledged', 'completed')")
+            ->orderByRaw("CASE status WHEN 'pending' THEN 1 WHEN 'acknowledged' THEN 2 WHEN 'completed' THEN 3 ELSE 4 END")
             ->latest()
             ->limit(20)
             ->get()
