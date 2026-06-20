@@ -61,6 +61,8 @@ class DashboardController extends Controller
             'activeRequests' => $restaurant->serviceRequests()->whereIn('status', ['pending', 'acknowledged'])->count(),
             'statuses' => Order::STATUSES,
             'latestOrderId' => $restaurant->orders()->max('id') ?? 0,
+            'todayOrdersCount' => $restaurant->orders()->whereDate('created_at', today())->count(),
+            'todayRevenue' => $restaurant->orders()->whereDate('created_at', today())->whereIn('status', ['paid', 'completed'])->sum('total'),
         ]);
     }
 
@@ -171,6 +173,10 @@ class DashboardController extends Controller
             'status' => $data['status'],
             'payment_status' => in_array($data['status'], ['paid', 'completed'], true) ? 'paid' : $order->payment_status,
         ]);
+
+        if ($request->wantsJson()) {
+            return response()->json(['success' => true, 'status' => $order->status]);
+        }
 
         return back()->with('success', 'Order updated.');
     }
