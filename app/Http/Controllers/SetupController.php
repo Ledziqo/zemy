@@ -24,6 +24,9 @@ class SetupController extends Controller
         try {
             $this->runSetupCommands($output);
 
+            if ($request->is('admin/*')) {
+                return redirect()->route('admin.dashboard')->with('setup_output', trim(implode("\n", $output)));
+            }
             return view('setup.show', [
                 'success' => true,
                 'output' => trim(implode("\n", $output)),
@@ -36,6 +39,9 @@ class SetupController extends Controller
                     $output[] = 'First database attempt used 127.0.0.1 and failed. Retrying with localhost...';
                     $this->runSetupCommands($output);
 
+                    if ($request->is('admin/*')) {
+                        return redirect()->route('admin.dashboard')->with('setup_output', trim(implode("\n", $output)));
+                    }
                     return view('setup.show', [
                         'success' => true,
                         'output' => trim(implode("\n", $output)),
@@ -45,6 +51,9 @@ class SetupController extends Controller
                 }
             }
 
+            if ($request->is('admin/*')) {
+                return redirect()->route('admin.dashboard')->with('setup_output', $this->friendlyError($exception));
+            }
             return view('setup.show', [
                 'success' => false,
                 'output' => $this->friendlyError($exception),

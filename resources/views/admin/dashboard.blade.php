@@ -6,6 +6,25 @@
         <div class="rounded-md border border-zem-border bg-zem-card p-4"><p class="text-sm text-zem-muted">{{ $card[0] }}</p><p class="mt-2 text-2xl font-extrabold">{{ $card[1] }}</p></div>
     @endforeach
 </div>
+
+<div class="mt-6 rounded-md border border-zem-border bg-zem-card p-4">
+    <div class="flex flex-wrap items-center justify-between gap-3">
+        <div>
+            <h2 class="font-display text-xl font-bold">Database maintenance</h2>
+            <p class="mt-1 text-sm text-zem-muted">Run migrations, seed demo data, and clear all caches. Use this after deploying code updates.</p>
+        </div>
+        <form method="post" action="{{ route('admin.setup.run') }}">
+            @csrf
+            <button class="rounded-md bg-zem-gold px-5 py-3 font-bold text-white">Run setup now</button>
+        </form>
+    </div>
+    @if(session('setup_output'))
+        <div class="mt-4 rounded-md border border-zem-border bg-zem-bg p-4">
+            <pre class="whitespace-pre-wrap text-sm text-zem-muted">{{ session('setup_output') }}</pre>
+        </div>
+    @endif
+</div>
+
 <section class="mt-6 rounded-md border border-zem-border bg-zem-card p-4">
     <div class="flex items-center justify-between"><h2 class="font-display text-xl font-bold">Restaurants & Hotels</h2><a class="text-sm font-bold text-zem-gold" href="{{ route('admin.restaurants.index') }}">Manage all</a></div>
     <div class="mt-4 grid gap-3 md:grid-cols-2">
