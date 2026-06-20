@@ -116,7 +116,7 @@ function workBoard() {
             this.activeRequests = {{ $activeRequests }};
             this.updatedTime = '{{ now()->format("H:i:s") }}';
 
-            setInterval(() => this.poll(), 4000);
+            setInterval(() => this.poll(), 8000);
         },
 
         get todayRevenueText() {

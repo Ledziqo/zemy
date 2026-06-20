@@ -211,7 +211,7 @@
                         <article class="overflow-hidden rounded-2xl border border-black/10 bg-white shadow-sm" itemscope itemtype="https://schema.org/MenuItem">
                             <div class="aspect-square bg-neutral-200">
                                 @if($imageUrl)
-                                    <img src="{{ $imageUrl }}" alt="{{ $item->name }}" class="h-full w-full object-cover">
+                                    <img src="{{ $imageUrl }}" alt="{{ $item->name }}" class="h-full w-full object-cover" loading="lazy">
                                 @else
                                     <div class="grid h-full place-items-center text-5xl font-extrabold text-white" style="background: linear-gradient(135deg, #111, var(--zem-accent));">{{ strtoupper(substr($item->name, 0, 1)) }}</div>
                                 @endif
