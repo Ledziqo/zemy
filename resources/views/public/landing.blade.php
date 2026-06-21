@@ -113,13 +113,13 @@
     </section>
 
     {{-- Workflow Section --}}
-    <section id="workflow" class="scroll-mt-24 border-y border-zem-border bg-zem-soft py-16">
+    <section id="workflow" class="scroll-mt-24 border-y border-zem-border bg-zem-soft py-12 sm:py-16">
         <div class="mx-auto max-w-7xl px-5">
             <div class="flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-end sm:justify-between">
                 <h2 class="font-display text-2xl font-extrabold sm:text-3xl md:text-4xl">From scan to service in one flow</h2>
                 <p class="max-w-xl text-sm leading-6 text-zem-muted sm:text-base sm:leading-7">Guests scan, order, request service, and pay. Staff manage everything live.</p>
             </div>
-            <div class="mt-6 grid grid-cols-2 gap-3 sm:mt-8 sm:gap-4 md:grid-cols-5">
+            <div class="mt-6 grid grid-cols-1 gap-3 sm:mt-8 sm:grid-cols-2 sm:gap-4 md:grid-cols-5">
                 @foreach([['Scan','Open the menu from a table or room QR.'],['Browse','View available items and prices.'],['Order','Choose items and add a note if needed.'],['Serve','Staff receive orders and requests live.'],['Pay','Pay at the end using the available method.']] as $step)
                     <article class="rounded-xl border border-zem-border bg-white p-5 transition hover:-translate-y-1 hover:border-zem-gold/50">
                         <p class="text-sm font-extrabold text-zem-gold">0{{ $loop->iteration }}</p>
@@ -132,12 +132,12 @@
     </section>
 
     {{-- Features + Ideal For Section --}}
-    <section id="features" class="scroll-mt-24 mx-auto max-w-7xl px-5 py-16">
+    <section id="features" class="scroll-mt-24 mx-auto max-w-7xl px-5 py-12 sm:py-16">
         <div class="max-w-3xl">
             <h2 class="font-display text-2xl font-extrabold sm:text-3xl md:text-4xl">Built for smoother daily operations</h2>
             <p class="mt-3 text-sm leading-6 text-zem-muted sm:mt-4 sm:text-base sm:leading-7">Keep menus current, requests visible, and every service point organized.</p>
         </div>
-        <div class="mt-6 grid grid-cols-1 gap-3 sm:mt-8 sm:grid-cols-2 sm:gap-4 lg:grid-cols-4">
+        <div class="mt-6 grid grid-cols-1 gap-4 sm:mt-8 sm:grid-cols-2 sm:gap-4 lg:grid-cols-4">
             @foreach([['Update instantly','Change menu items, prices, and details anytime.'],['Control availability','Hide sold-out items without reprinting a menu.'],['One live dashboard','See orders and service requests in one place.'],['Tables and rooms','Give every table or room its own QR service point.']] as $feature)
                 <article class="rounded-xl border border-zem-border bg-white p-6 transition hover:border-zem-gold/50 hover:bg-zem-gold/10">
                     <h3 class="font-display text-xl font-extrabold">{{ $feature[0] }}</h3>
@@ -147,8 +147,8 @@
         </div>
 
         {{-- Ideal For (as icon cards) --}}
-        <div class="mt-10 border-t border-zem-border pt-10 sm:mt-12 sm:pt-12">
-            <h3 class="text-center font-display text-xl font-extrabold sm:text-2xl md:text-3xl">Ideal for</h3>
+        <div class="mt-8 border-t border-zem-border pt-8 sm:mt-12 sm:pt-12">
+            <h3 class="text-center font-display text-lg font-extrabold sm:text-2xl md:text-3xl">Ideal for</h3>
             <div class="mt-6 grid grid-cols-2 gap-3 sm:mt-8 sm:grid-cols-4 sm:gap-4">
                 @foreach([
                     ['Restaurants','Full-service dining with live table orders.','M18 3l4 4-4 4M6 3L2 7l4 4','15 21v-2a4 4 0 00-4-4H4a4 4 0 00-4 4v2'],
