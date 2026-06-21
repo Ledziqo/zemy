@@ -5,10 +5,10 @@
 
     RewriteEngine On
 
-    # Redirect www to non-www (SEO: consolidate domain authority)
-    # Uncomment and modify the next 2 lines if you use www:
-    # RewriteCond %{HTTP_HOST} ^www\.(.*)$ [NC]
-    # RewriteRule ^(.*)$ https://%1/$1 [R=301,L]
+    # Use www as the canonical host so every CDN edge and authenticated form
+    # remains on the same, healthy origin.
+    RewriteCond %{HTTP_HOST} ^zemtab\.com$ [NC]
+    RewriteRule ^ https://www.zemtab.com%{REQUEST_URI} [R=301,L,NE]
 
     # Redirect HTTP to HTTPS
     RewriteCond %{HTTPS} off
