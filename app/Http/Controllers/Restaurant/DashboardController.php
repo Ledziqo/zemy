@@ -24,9 +24,10 @@ class DashboardController extends Controller
         $popularItems = OrderItem::query()
             ->join('orders', 'orders.id', '=', 'order_items.order_id')
             ->select('order_items.item_name')
-            ->selectRaw('SUM(order_items.quantity) as quantity_sold, COALESCE(SUM(order_items.total_price), 0) as revenue_total')
+            ->selectRaw("SUM(order_items.quantity) as quantity_sold, COALESCE(SUM(CASE WHEN orders.status IN ('paid', 'completed') THEN order_items.total_price ELSE 0 END), 0) as revenue_total")
             ->where('orders.restaurant_id', $restaurant->id)
             ->where('orders.created_at', '>=', $last7Days)
+            ->whereNotIn('orders.status', ['cancelled'])
             ->groupBy('order_items.item_name')
             ->orderByDesc('quantity_sold')
             ->limit(5)
@@ -74,6 +75,11 @@ class DashboardController extends Controller
         $restaurant = $this->restaurant($request);
         $orderSince = (int) $request->query('order_since', 0);
         $requestSince = (int) $request->query('request_since', 0);
+        $visibleOrderIds = collect($request->query('visible_order_ids', []))
+            ->map(fn ($id) => (int) $id)
+            ->filter(fn ($id) => $id > 0)
+            ->unique()
+            ->take(100);
 
         $newOrders = $restaurant->orders()
             ->with('items')
@@ -113,7 +119,9 @@ class DashboardController extends Controller
         return response()->json([
             'orders' => $newOrders,
             'requests' => $newRequests,
-            'orderStatuses' => $restaurant->orders()->latest()->limit(50)->get(['id', 'status'])->values(),
+            'orderStatuses' => $visibleOrderIds->isEmpty()
+                ? collect()
+                : $restaurant->orders()->whereIn('id', $visibleOrderIds)->get(['id', 'status'])->values(),
             'latestOrderId' => max($orderSince, (int) ($newOrders->max('id') ?? 0)),
             'latestRequestId' => max($requestSince, (int) ($newRequests->max('id') ?? 0)),
             'activeRequests' => $restaurant->serviceRequests()->whereIn('status', ['pending', 'acknowledged'])->count(),
@@ -123,12 +131,12 @@ class DashboardController extends Controller
     public function analytics(Request $request)
     {
         $restaurant = $this->restaurant($request);
-        $todayOrders = $restaurant->orders()->whereDate('created_at', today());
+        $todayOrders = $restaurant->orders()->whereDate('created_at', today())->where('status', '!=', 'cancelled');
         $last30Days = now()->subDays(29)->startOfDay();
-        $last30Orders = $restaurant->orders()->where('created_at', '>=', $last30Days);
+        $last30Orders = $restaurant->orders()->where('created_at', '>=', $last30Days)->where('status', '!=', 'cancelled');
 
         $dailyTrends = $restaurant->orders()
-            ->selectRaw('DATE(created_at) as order_date, COUNT(*) as orders_count, COALESCE(SUM(total), 0) as revenue_total')
+            ->selectRaw("DATE(created_at) as order_date, SUM(CASE WHEN status != 'cancelled' THEN 1 ELSE 0 END) as orders_count, COALESCE(SUM(CASE WHEN status IN ('paid', 'completed') THEN total ELSE 0 END), 0) as revenue_total")
             ->where('created_at', '>=', $last30Days)
             ->groupBy('order_date')
             ->orderByDesc('order_date')
@@ -137,9 +145,10 @@ class DashboardController extends Controller
         $topItems = OrderItem::query()
             ->join('orders', 'orders.id', '=', 'order_items.order_id')
             ->select('order_items.item_name')
-            ->selectRaw('SUM(order_items.quantity) as quantity_sold, COALESCE(SUM(order_items.total_price), 0) as revenue_total')
+            ->selectRaw("SUM(order_items.quantity) as quantity_sold, COALESCE(SUM(CASE WHEN orders.status IN ('paid', 'completed') THEN order_items.total_price ELSE 0 END), 0) as revenue_total")
             ->where('orders.restaurant_id', $restaurant->id)
             ->where('orders.created_at', '>=', $last30Days)
+            ->whereNotIn('orders.status', ['cancelled'])
             ->groupBy('order_items.item_name')
             ->orderByDesc('quantity_sold')
             ->limit(8)
@@ -147,8 +156,9 @@ class DashboardController extends Controller
 
         $busiestTables = $restaurant->orders()
             ->select('table_number')
-            ->selectRaw('COUNT(*) as orders_count, COALESCE(SUM(total), 0) as revenue_total')
+            ->selectRaw("COUNT(*) as orders_count, COALESCE(SUM(CASE WHEN status IN ('paid', 'completed') THEN total ELSE 0 END), 0) as revenue_total")
             ->where('created_at', '>=', $last30Days)
+            ->where('status', '!=', 'cancelled')
             ->groupBy('table_number')
             ->orderByDesc('orders_count')
             ->limit(8)

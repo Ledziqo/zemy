@@ -209,7 +209,12 @@ function workBoard() {
         },
 
         poll() {
-            fetch(this.pollUrl + '?order_since=' + this.latestOrderId + '&request_since=' + this.latestRequestId, {
+            const params = new URLSearchParams({
+                order_since: this.latestOrderId,
+                request_since: this.latestRequestId,
+            });
+            this.$refs.ordersList.querySelectorAll('[data-order-id]').forEach(el => params.append('visible_order_ids[]', el.dataset.orderId));
+            fetch(this.pollUrl + '?' + params.toString(), {
                 cache: 'no-store',
                 headers: { 'X-Requested-With': 'XMLHttpRequest', 'Accept': 'application/json' },
             })

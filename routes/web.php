@@ -5,7 +5,6 @@ use App\Http\Controllers\AuthController;
 use App\Http\Controllers\MenuController;
 use App\Http\Controllers\LocaleController;
 use App\Http\Controllers\OrderController;
-use App\Http\Controllers\PaymentProofController;
 use App\Http\Controllers\PublicController;
 use App\Http\Controllers\Restaurant;
 use App\Http\Controllers\ServiceRequestController;
@@ -19,9 +18,6 @@ Route::middleware('locale')->group(function () {
 });
 Route::get('/sitemap.xml', [PublicController::class, 'sitemap'])->name('sitemap');
 
-Route::get('/setup', [SetupController::class, 'show'])->name('setup.show');
-Route::post('/setup/run', [SetupController::class, 'run'])->name('setup.run');
-
 Route::get('/login', [AuthController::class, 'showLogin'])->name('login');
 Route::post('/login', [AuthController::class, 'login'])->middleware('throttle:10,1')->name('login.store');
 Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
@@ -32,7 +28,6 @@ Route::get('/r/{restaurant_slug}/table/{table_number}', [MenuController::class, 
 Route::post('/r/{restaurant_slug}/table/{table_number}/orders', [OrderController::class, 'store'])->middleware('throttle:30,1')->name('orders.store');
 Route::patch('/r/{restaurant_slug}/table/{table_number}/orders/{order}/cancel', [OrderController::class, 'cancel'])->name('orders.cancel');
 Route::post('/r/{restaurant_slug}/table/{table_number}/service-requests', [ServiceRequestController::class, 'store'])->middleware('throttle:30,1')->name('service-requests.store');
-Route::post('/r/{restaurant_slug}/table/{table_number}/payment-proof', [PaymentProofController::class, 'store'])->name('payment-proofs.store');
 Route::get('/r/{restaurant_slug}/table/{table_number}/confirmation', [MenuController::class, 'confirmation'])->name('menu.confirmation');
 
 Route::middleware(['auth', 'role:restaurant_owner,staff', 'locale'])->prefix('restaurant')->name('restaurant.')->group(function () {

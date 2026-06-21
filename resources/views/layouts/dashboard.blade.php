@@ -33,13 +33,13 @@
     <title>{{ $title ?? 'ZemTab Dashboard' }}</title>
     <link rel="icon" type="image/png" href="{{ asset('logo/zemtab-pantone-1795-c-icon-transparent.png') }}">
     <link rel="canonical" href="{{ url()->current() }}">
-    @unless($isAdmin)<script>
+    <script>
         (() => {
             const saved = localStorage.getItem('zemtabTheme');
             const dark = saved ? saved === 'dark' : window.matchMedia('(prefers-color-scheme: dark)').matches;
             document.documentElement.classList.toggle('dark', dark);
         })();
-    </script>@endunless
+    </script>
     <script src="https://cdn.tailwindcss.com"></script>
     <script defer src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js"></script>
     <script>
@@ -79,8 +79,8 @@
             <div class="flex flex-wrap items-center gap-2">
                 @unless($isAdmin)
                     <form method="post" action="{{ route('locale.update') }}">@csrf<input type="hidden" name="locale" value="{{ app()->getLocale() === 'am' ? 'en' : 'am' }}"><button class="rounded-full border border-zem-border bg-zem-card px-3 py-2 text-sm font-bold text-zem-muted">{{ app()->getLocale() === 'am' ? 'English' : 'አማርኛ' }}</button></form>
-                    <button type="button" onclick="toggleZemtabTheme()" class="rounded-full border border-zem-border bg-zem-card px-3 py-2 text-sm font-bold text-zem-muted" aria-label="{{ __('Switch color theme') }}"><span class="dark:hidden">{{ __('Dark') }}</span><span class="hidden dark:inline">{{ __('Light') }}</span></button>
                 @endunless
+                <button type="button" onclick="toggleZemtabTheme()" class="rounded-full border border-zem-border bg-zem-card px-3 py-2 text-sm font-bold text-zem-muted" aria-label="{{ __('Switch color theme') }}"><span class="dark:hidden">{{ __('Dark') }}</span><span class="hidden dark:inline">{{ __('Light') }}</span></button>
                 <div class="rounded-full border border-zem-border bg-zem-card px-4 py-2 text-sm text-zem-muted">{{ auth()->user()->name }}</div>
             </div>
         </header>
@@ -103,12 +103,12 @@
         @yield('content')
     </main>
 </div>
-@unless($isAdmin)<script>
+<script>
 function toggleZemtabTheme() {
     const dark = !document.documentElement.classList.contains('dark');
     document.documentElement.classList.toggle('dark', dark);
     localStorage.setItem('zemtabTheme', dark ? 'dark' : 'light');
 }
-</script>@endunless
+</script>
 </body>
 </html>

@@ -109,7 +109,7 @@ class MenuItemController extends Controller
             'description' => ['nullable', 'string'],
             'price' => ['required', 'numeric', 'min:0'],
             'image' => ['nullable', 'image', 'max:4096'],
-            'cropped_image' => ['nullable', 'string'],
+            'cropped_image' => ['nullable', 'string', 'max:5600000'],
             'image_path' => ['nullable', 'string', 'max:255'],
             'sort_order' => ['nullable', 'integer'],
             'is_available' => ['nullable', 'boolean'],
@@ -164,6 +164,10 @@ class MenuItemController extends Controller
 
         if ($binary === false) {
             return null;
+        }
+
+        if (strlen($binary) > 4 * 1024 * 1024 || @getimagesizefromstring($binary) === false) {
+            abort(422, 'The cropped image must be a valid image no larger than 4 MB.');
         }
 
         $destination = public_path('uploads/menu-items');

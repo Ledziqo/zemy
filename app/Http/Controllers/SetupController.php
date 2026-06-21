@@ -22,7 +22,7 @@ class SetupController extends Controller
         $this->applySubmittedDatabaseConfig($request, $output);
 
         try {
-            $this->runSetupCommands($output);
+            $this->runSetupCommands($output, $request->boolean('seed_demo_data'));
 
             if ($request->is('admin/*')) {
                 return redirect()->route('admin.database')->with('setup_output', trim(implode("\n", $output)));
@@ -37,7 +37,7 @@ class SetupController extends Controller
                     config(['database.connections.mysql.host' => 'localhost']);
                     DB::purge('mysql');
                     $output[] = 'First database attempt used 127.0.0.1 and failed. Retrying with localhost...';
-                    $this->runSetupCommands($output);
+                    $this->runSetupCommands($output, $request->boolean('seed_demo_data'));
 
                     if ($request->is('admin/*')) {
                         return redirect()->route('admin.database')->with('setup_output', trim(implode("\n", $output)));
@@ -62,7 +62,7 @@ class SetupController extends Controller
         }
     }
 
-    private function runSetupCommands(array &$output): void
+    private function runSetupCommands(array &$output, bool $seedDemoData = false): void
     {
         $this->baselineExistingDatabase($output);
 
@@ -70,9 +70,11 @@ class SetupController extends Controller
         Artisan::call('migrate', ['--force' => true]);
         $output[] = Artisan::output();
 
-        $output[] = 'Refreshing default demo/admin data...';
-        Artisan::call('db:seed', ['--force' => true]);
-        $output[] = Artisan::output();
+        if ($seedDemoData) {
+            $output[] = 'Refreshing default demo/admin data...';
+            Artisan::call('db:seed', ['--force' => true]);
+            $output[] = Artisan::output();
+        }
 
         $output[] = 'Clearing cached config/routes/views...';
         Artisan::call('optimize:clear');

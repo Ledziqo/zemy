@@ -23,7 +23,7 @@ class SettingsController extends Controller
             'location' => ['nullable', 'string', 'max:255'],
             'logo_path' => ['nullable', 'string', 'max:255'],
             'logo' => ['nullable', 'image', 'max:4096'],
-            'cropped_logo' => ['nullable', 'string'],
+            'cropped_logo' => ['nullable', 'string', 'max:5600000'],
             'cover_image_path' => ['nullable', 'string', 'max:255'],
             'primary_color' => ['nullable', 'regex:/^#[0-9A-Fa-f]{6}$/'],
             'service_charge_percentage' => ['nullable', 'numeric', 'min:0'],
@@ -104,6 +104,10 @@ class SettingsController extends Controller
 
         if ($bytes === false) {
             abort(422, 'Invalid logo crop data.');
+        }
+
+        if (strlen($bytes) > 4 * 1024 * 1024 || @getimagesizefromstring($bytes) === false) {
+            abort(422, 'The cropped logo must be a valid image no larger than 4 MB.');
         }
 
         $directory = public_path('uploads/restaurants');

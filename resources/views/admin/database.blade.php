@@ -3,7 +3,7 @@
 @section('content')
 <div class="max-w-3xl rounded-md border border-zem-border bg-zem-card p-5">
     <h2 class="font-display text-xl font-bold">Database maintenance</h2>
-    <p class="mt-1 text-sm text-zem-muted">Run migrations, seed demo data, and clear all caches after deploying code updates. Enter the database password to confirm.</p>
+    <p class="mt-1 text-sm text-zem-muted">Run migrations and clear caches after deploying code updates. Database credentials are only needed when they have changed.</p>
 
     <form method="post" action="{{ route('admin.setup.run') }}" class="mt-5">
         @csrf
@@ -25,6 +25,10 @@
                 <input name="db_password" type="password" placeholder="Enter database password" class="rounded-md border border-zem-border bg-zem-bg px-3 py-2">
             </label>
         </div>
+        <label class="mt-4 flex items-start gap-2 text-sm text-zem-muted">
+            <input type="checkbox" name="seed_demo_data" value="1" class="mt-1 rounded border-zem-border">
+            <span>Also refresh demo/admin seed data (normally leave this unchecked in production).</span>
+        </label>
         <button class="mt-4 rounded-md bg-zem-gold px-5 py-3 font-bold text-white">Run database maintenance</button>
     </form>
 

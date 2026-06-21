@@ -29,7 +29,7 @@ class DashboardController extends Controller
             'activeRestaurants' => Restaurant::where('is_active', true)->count(),
             'totalOrders' => Order::count(),
             'pendingDemoRequests' => DemoRequest::where('status', 'new')->count(),
-            'activeSubscriptions' => $hasSubscriptions ? Subscription::where('status', 'active')->count() : 0,
+            'activeSubscriptions' => $activeSubscribers ? (clone $activeSubscribers)->count() : 0,
             'unpaidSubscriptions' => $hasSubscriptions ? Subscription::where('status', 'unpaid')->count() : 0,
             'revokedRestaurants' => $hasDashboardAccessStatus ? Restaurant::where('dashboard_access_status', 'revoked')->count() : 0,
             'restaurants' => $hasSubscriptions

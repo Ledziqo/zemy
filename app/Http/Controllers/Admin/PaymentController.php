@@ -7,6 +7,7 @@ use App\Models\Restaurant;
 use App\Models\Subscription;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Artisan;
+use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Schema;
 
 class PaymentController extends Controller
@@ -109,7 +110,7 @@ class PaymentController extends Controller
                 $contents .= PHP_EOL . $line;
             }
         }
-        file_put_contents($path, $contents, LOCK_EX);
+        File::replace($path, $contents);
     }
 
     private function escapeEnvValue(string $value): string
