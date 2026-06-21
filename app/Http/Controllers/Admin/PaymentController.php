@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Restaurant;
 use App\Models\Subscription;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Schema;
 
 class PaymentController extends Controller
@@ -60,11 +61,11 @@ class PaymentController extends Controller
     public function settings()
     {
         $settings = [
-            'telebirr_number' => env('PAYMENT_TELEBIRR', '0911 000 000'),
-            'cbe_account' => env('PAYMENT_CBE', '1000 0000 0000'),
-            'awash_account' => env('PAYMENT_AWASH', 'Contact us'),
-            'abyssinia_account' => env('PAYMENT_ABYSSINIA', 'Contact us'),
-            'telegram' => env('PAYMENT_TELEGRAM', '@Zemtab'),
+            'telebirr_number' => config('payment.telebirr'),
+            'cbe_account' => config('payment.cbe'),
+            'awash_account' => config('payment.awash'),
+            'abyssinia_account' => config('payment.abyssinia'),
+            'telegram' => config('payment.telegram'),
         ];
 
         return view('admin.payments.settings', compact('settings'));
@@ -88,6 +89,8 @@ class PaymentController extends Controller
             'PAYMENT_TELEGRAM' => $data['telegram'] ?? '',
         ]);
 
+        Artisan::call('config:clear');
+
         return back()->with('success', 'Payment settings saved.');
     }
 
@@ -98,14 +101,26 @@ class PaymentController extends Controller
 
         $contents = file_get_contents($path);
         foreach ($updates as $key => $value) {
-            $line = $key . '=' . $value;
-            if (preg_match('/^' . $key . '=.*/m', $contents)) {
-                $contents = preg_replace('/^' . $key . '=.*/m', $line, $contents);
+            $line = $key.'='.$this->escapeEnvValue($value);
+            $pattern = '/^'.preg_quote($key, '/').'=.*$/m';
+            if (preg_match($pattern, $contents)) {
+                $contents = preg_replace_callback($pattern, fn () => $line, $contents);
             } else {
                 $contents .= PHP_EOL . $line;
             }
         }
-        file_put_contents($path, $contents);
+        file_put_contents($path, $contents, LOCK_EX);
+    }
+
+    private function escapeEnvValue(string $value): string
+    {
+        $escaped = str_replace(
+            ['\\', '"', "\r", "\n"],
+            ['\\\\', '\\"', '', '\\n'],
+            $value
+        );
+
+        return '"'.$escaped.'"';
     }
 
     public function markPaid(Request $request, Subscription $subscription)

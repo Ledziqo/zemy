@@ -27,13 +27,13 @@
     <div class="mt-6 rounded-md border border-zem-gold/40 bg-zem-gold/10 p-4">
         <h3 class="font-bold text-zem-gold">How to pay</h3>
         <div class="mt-3 grid gap-2 text-sm">
-            <p>Telebirr: <strong class="text-zem-cream">{{ env('PAYMENT_TELEBIRR', '0911 000 000') }}</strong></p>
-            <p>CBE: <strong class="text-zem-cream">{{ env('PAYMENT_CBE', '1000 0000 0000') }}</strong></p>
-            <p>Awash Bank: <strong class="text-zem-cream">{{ env('PAYMENT_AWASH', 'Contact us') }}</strong></p>
-            <p>Bank of Abyssinia: <strong class="text-zem-cream">{{ env('PAYMENT_ABYSSINIA', 'Contact us') }}</strong></p>
-            <p>Telegram: <strong class="text-zem-cream">{{ env('PAYMENT_TELEGRAM', '@Zemtab') }}</strong></p>
+            <p>Telebirr: <strong class="text-zem-cream">{{ config('payment.telebirr') }}</strong></p>
+            <p>CBE: <strong class="text-zem-cream">{{ config('payment.cbe') }}</strong></p>
+            <p>Awash Bank: <strong class="text-zem-cream">{{ config('payment.awash') }}</strong></p>
+            <p>Bank of Abyssinia: <strong class="text-zem-cream">{{ config('payment.abyssinia') }}</strong></p>
+            <p>Telegram: <strong class="text-zem-cream">{{ config('payment.telegram') }}</strong></p>
         </div>
-        <p class="mt-3 text-xs text-zem-muted">After paying, send your payment screenshot with your restaurant name to {{ env('PAYMENT_TELEGRAM', '@Zemtab') }} on Telegram. Access will be restored within minutes.</p>
+        <p class="mt-3 text-xs text-zem-muted">After paying, send your payment screenshot with your restaurant name to {{ config('payment.telegram') }} on Telegram. Access will be restored within minutes.</p>
     </div>
 
     <form method="post" action="{{ route('logout') }}" class="mt-5">
