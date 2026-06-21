@@ -21,8 +21,8 @@
     <link rel="canonical" href="{{ $canonical ?? url()->current() }}">
 
     {{-- Favicon --}}
-    <link rel="icon" type="image/png" href="{{ asset('logo/zemtab-pantone-1795-c-icon-transparent.png') }}">
-    <link rel="apple-touch-icon" href="{{ asset('logo/zemtab-pantone-1795-c-icon-transparent.png') }}">
+    <link rel="icon" type="image/png" sizes="192x192" href="{{ asset('favicon-red.png') }}">
+    <link rel="apple-touch-icon" href="{{ asset('favicon-red.png') }}">
 
     {{-- Open Graph / Facebook --}}
     <meta property="og:type" content="{{ $ogType ?? 'website' }}">
