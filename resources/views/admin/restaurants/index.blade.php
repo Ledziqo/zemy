@@ -77,6 +77,11 @@
                     @endunless
                     <button class="rounded-md bg-zem-gold px-4 py-2 font-bold text-white md:col-span-6">Save changes</button>
                 </form>
+                <form method="post" action="{{ route('admin.restaurants.destroy', $restaurant) }}" class="mt-3" onsubmit="return confirm('Delete {{ $restaurant->name }}? This will permanently delete all menu items, orders, tables, users, and subscriptions. This CANNOT be undone.');">
+                    @csrf @method('DELETE')
+                    <button class="w-full rounded-md border border-red-300 bg-red-50 px-4 py-2 text-sm font-bold text-red-700 transition hover:border-red-500 hover:bg-red-100">Delete {{ $restaurant->businessTypeLabel() }} permanently</button>
+                </form>
+
                 <form method="post" action="{{ route('admin.restaurants.password.update', $restaurant) }}" class="mt-3 border-t border-zem-border pt-3" data-password-form>
                     @csrf @method('PATCH')
                     <button type="button" class="rounded-md border border-zem-gold px-4 py-2 text-sm font-bold text-zem-gold transition hover:bg-zem-gold hover:text-white" data-password-toggle>Change password</button>
