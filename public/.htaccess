@@ -76,6 +76,11 @@
 
 # Cache-Control Headers
 <IfModule mod_headers.c>
+    SetEnvIf Host "^zemtab\.com$" ZEMTAB_APEX=1
+    Header always set Cache-Control "no-store, no-cache, must-revalidate, max-age=0" env=ZEMTAB_APEX
+    Header always set Pragma "no-cache" env=ZEMTAB_APEX
+    Header always set Expires "0" env=ZEMTAB_APEX
+
     <filesMatch "\.(ico|jpe?g|png|gif|svg|webp)$">
         Header set Cache-Control "public, max-age=31536000, immutable"
     </filesMatch>

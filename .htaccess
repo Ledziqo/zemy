@@ -11,3 +11,11 @@
     RewriteRule ^$ public/index.php [L]
     RewriteRule ^((?!public/).*)$ public/$1 [L]
 </IfModule>
+
+# Never let the CDN retain apex-host redirects or transient application errors.
+<IfModule mod_headers.c>
+    SetEnvIf Host "^zemtab\.com$" ZEMTAB_APEX=1
+    Header always set Cache-Control "no-store, no-cache, must-revalidate, max-age=0" env=ZEMTAB_APEX
+    Header always set Pragma "no-cache" env=ZEMTAB_APEX
+    Header always set Expires "0" env=ZEMTAB_APEX
+</IfModule>
