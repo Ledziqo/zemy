@@ -36,7 +36,8 @@ class MenuItemController extends Controller
         $data = $this->validated($request, $restaurant->id);
         $data['sort_order'] ??= ((int) $restaurant->menuItems()->max('sort_order')) + 10;
         $restaurant->menuItems()->create($data);
-        \Illuminate\Support\Facades\Cache::flush();\n        return back()->with('success', 'Menu item added.');
+        \Illuminate\Support\Facades\Cache::flush();
+                return back()->with('success', 'Menu item added.');
     }
 
     public function update(Request $request, MenuItem $menuItem)
@@ -44,7 +45,8 @@ class MenuItemController extends Controller
         $restaurant = $this->restaurant($request);
         abort_unless($menuItem->restaurant_id === $restaurant->id, 403);
         $menuItem->update($this->validated($request, $restaurant->id));
-        \Illuminate\Support\Facades\Cache::flush();\n        return back()->with('success', 'Menu item updated.');
+        \Illuminate\Support\Facades\Cache::flush();
+                return back()->with('success', 'Menu item updated.');
     }
 
     public function reorder(Request $request)
@@ -67,7 +69,8 @@ class MenuItemController extends Controller
             $items[$itemId]->update(['sort_order' => ($index + 1) * 10]);
         }
 
-        \Illuminate\Support\Facades\Cache::flush();\n        return back()->with('success', 'Menu item order saved.');
+        \Illuminate\Support\Facades\Cache::flush();
+                return back()->with('success', 'Menu item order saved.');
     }
 
     public function toggleAvailability(Request $request, MenuItem $menuItem)
@@ -76,7 +79,8 @@ class MenuItemController extends Controller
 
         $menuItem->update(['is_available' => ! $menuItem->is_available]);
 
-        \Illuminate\Support\Facades\Cache::flush();\n        return back()->with('success', $menuItem->is_available ? 'Item marked available.' : 'Item marked unavailable.');
+        \Illuminate\Support\Facades\Cache::flush();
+                return back()->with('success', $menuItem->is_available ? 'Item marked available.' : 'Item marked unavailable.');
     }
 
     public function removePhoto(Request $request, MenuItem $menuItem)
@@ -85,14 +89,16 @@ class MenuItemController extends Controller
 
         $menuItem->update(['image_path' => null]);
 
-        \Illuminate\Support\Facades\Cache::flush();\n        return back()->with('success', 'Menu item photo removed.');
+        \Illuminate\Support\Facades\Cache::flush();
+                return back()->with('success', 'Menu item photo removed.');
     }
 
     public function destroy(Request $request, MenuItem $menuItem)
     {
         abort_unless($menuItem->restaurant_id === $this->restaurant($request)->id, 403);
         $menuItem->delete();
-        \Illuminate\Support\Facades\Cache::flush();\n        return back()->with('success', 'Menu item deleted.');
+        \Illuminate\Support\Facades\Cache::flush();
+                return back()->with('success', 'Menu item deleted.');
     }
 
     private function validated(Request $request, int $restaurantId): array
