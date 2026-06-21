@@ -101,5 +101,12 @@
         input.disabled = fields.classList.contains('hidden');
         if (! input.disabled) input.focus();
     });
+function filterRestaurants(query) {
+        query = query.toLowerCase();
+        document.querySelectorAll('#restaurant-list > article').forEach(card => {
+            const name = card.querySelector('h3')?.textContent?.toLowerCase() || '';
+            card.style.display = name.includes(query) ? '' : 'none';
+        });
+    }
 </script>
 @endsection

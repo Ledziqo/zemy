@@ -7,6 +7,12 @@
     @endforeach
 </div>
 
+<div class="grid gap-4 md:grid-cols-3 mt-6">
+    <div class="rounded-md border border-zem-gold/30 bg-zem-gold/10 p-4"><p class="text-sm text-zem-muted">Monthly Recurring Revenue</p><p class="mt-2 text-3xl font-extrabold text-zem-gold">{{ number_format($monthlyRevenue ?? 0) }} ETB</p></div>
+    <div class="rounded-md border border-zem-border bg-zem-card p-4"><p class="text-sm text-zem-muted">Active Subscribers</p><p class="mt-2 text-3xl font-extrabold">{{ $activeSubscriberCount ?? 0 }}</p></div>
+    <div class="rounded-md border border-zem-border bg-zem-card p-4"><p class="text-sm text-zem-muted">Total Revenue (active + trial)</p><p class="mt-2 text-3xl font-extrabold">{{ number_format($totalRevenue ?? 0) }} ETB</p></div>
+</div>
+
 <div class="mt-6 rounded-md border border-zem-border bg-zem-card p-4">
     <h2 class="font-display text-xl font-bold">Database maintenance</h2>
     <p class="mt-1 text-sm text-zem-muted">Run migrations, seed demo data, and clear all caches. Use this after deploying code updates. Enter your database password to confirm.</p>

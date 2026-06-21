@@ -38,7 +38,7 @@
                     <div class="mt-4 flex flex-wrap items-center justify-between gap-3">
                         <strong>{{ number_format($order->total) }} ETB</strong>
                         @if(!in_array($order->status, ['completed', 'cancelled'], true))
-                            <button type="button" @click="markCompleted({{ $order->id }})" class="rounded-md bg-zem-green px-4 py-2 text-sm font-bold text-white transition hover:opacity-90">{{ __('Mark as completed') }}</button>
+                            <button type="button" @click="markCompleted({{ $order->id }})" class="rounded-md bg-zem-green px-6 py-3 text-base font-bold text-white transition hover:opacity-90 min-h-[56px]">{{ __('Mark as completed') }}</button>
                         @endif
                     </div>
                 </article>
@@ -70,7 +70,7 @@
                             <span data-status-badge><x-status :status="$requestRow->status" /></span>
                         </div>
                         @if($requestRow->status !== 'completed')
-                            <button type="button" @click="markRequestCompleted({{ $requestRow->id }})" class="mt-3 w-full rounded-md bg-zem-green px-4 py-2 text-sm font-bold text-white transition hover:opacity-90">{{ __('Mark as completed') }}</button>
+                            <button type="button" @click="markRequestCompleted({{ $requestRow->id }})" class="mt-3 w-full rounded-md bg-zem-green px-4 py-3 text-base font-bold text-white transition hover:opacity-90 min-h-[56px]">{{ __('Mark as completed') }}</button>
                         @endif
                     </div>
                 @empty
@@ -399,5 +399,30 @@ function workBoard() {
         },
     }
 }
+// Order timer - update elapsed time every second
+    function updateOrderTimers() {
+        document.querySelectorAll('[data-order-timer]').forEach(el => {
+            const orderTime = parseInt(el.dataset.orderTime);
+            const elapsed = Math.floor((Date.now() / 1000) - orderTime);
+            const mins = Math.floor(elapsed / 60);
+            const secs = elapsed % 60;
+            const timeStr = mins + ':' + secs.toString().padStart(2, '0');
+
+            if (mins < 5) {
+                el.className = 'mt-1 text-xs font-bold text-zem-green';
+            } else if (mins < 10) {
+                el.className = 'mt-1 text-xs font-bold text-zem-gold';
+            } else {
+                el.className = 'mt-1 text-xs font-bold text-red-500';
+            }
+            el.textContent = '⏱ ' + timeStr + ' ago';
+        });
+    }
+    updateOrderTimers();
+    setInterval(updateOrderTimers, 1000);
+
+    // Add timer to dynamically prepended orders
+    const originalPrependOrder = this.prependOrder;
+    // (Timer will be added by the existing code via data-order-time)
 </script>
 @endsection

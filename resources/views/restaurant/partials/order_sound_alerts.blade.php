@@ -11,22 +11,48 @@
     const keyLatest = 'zemtabLatestOrderId';
     const latest = Number(box.dataset.latestOrderId || 0);
     const toggle = box.querySelector('[data-order-alert-toggle]');
+    const originalTitle = document.title;
 
-    function playBeep() {
+    function playDingDing() {
         const AudioContext = window.AudioContext || window.webkitAudioContext;
         if (!AudioContext) return;
         const context = new AudioContext();
-        const oscillator = context.createOscillator();
-        const gain = context.createGain();
-        oscillator.type = 'sine';
-        oscillator.frequency.value = 880;
-        gain.gain.setValueAtTime(0.001, context.currentTime);
-        gain.gain.exponentialRampToValueAtTime(0.22, context.currentTime + 0.02);
-        gain.gain.exponentialRampToValueAtTime(0.001, context.currentTime + 0.45);
-        oscillator.connect(gain);
-        gain.connect(context.destination);
-        oscillator.start();
-        oscillator.stop(context.currentTime + 0.5);
+
+        function ding(freq, startTime) {
+            const oscillator = context.createOscillator();
+            const gain = context.createGain();
+            oscillator.type = 'sine';
+            oscillator.frequency.value = freq;
+            gain.gain.setValueAtTime(0.001, context.currentTime + startTime);
+            gain.gain.exponentialRampToValueAtTime(0.3, context.currentTime + startTime + 0.02);
+            gain.gain.exponentialRampToValueAtTime(0.001, context.currentTime + startTime + 0.3);
+            oscillator.connect(gain);
+            gain.connect(context.destination);
+            oscillator.start(context.currentTime + startTime);
+            oscillator.stop(context.currentTime + startTime + 0.35);
+        }
+
+        // Ding-ding pattern: high ding, short pause, high ding
+        ding(1200, 0);
+        ding(1200, 0.4);
+    }
+
+    function startTitleFlash() {
+        let toggle = false;
+        clearInterval(window._titleFlashInterval);
+        window._titleFlashInterval = setInterval(() => {
+            document.title = toggle ? '🔔 NEW ORDER — ZemTab Work Board' : originalTitle;
+            toggle = !toggle;
+        }, 1000);
+
+        // Stop flashing when tab becomes visible
+        document.addEventListener('visibilitychange', function stopFlash() {
+            if (!document.hidden) {
+                clearInterval(window._titleFlashInterval);
+                document.title = originalTitle;
+                document.removeEventListener('visibilitychange', stopFlash);
+            }
+        });
     }
 
     function refreshButton() {
@@ -42,7 +68,8 @@
     const previous = Number(localStorage.getItem(keyLatest) || 0);
     const enabled = localStorage.getItem(keyEnabled) === '1';
     if (enabled && previous > 0 && latest > previous) {
-        playBeep();
+        playDingDing();
+        startTitleFlash();
     }
     if (latest > 0) {
         localStorage.setItem(keyLatest, String(latest));
@@ -55,7 +82,7 @@
             localStorage.setItem(keyLatest, String(latest));
         }
         if (nextEnabled) {
-            playBeep();
+            playDingDing();
         }
         refreshButton();
     });
@@ -63,4 +90,3 @@
     refreshButton();
 })();
 </script>
-

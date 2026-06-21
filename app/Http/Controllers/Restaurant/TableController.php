@@ -59,8 +59,8 @@ class TableController extends Controller
         $result = (new Builder(
             writer: new SvgWriter(),
             data: route('menu.show', [$restaurant->slug, $table->table_number]),
-            size: 360,
-            margin: 18,
+            size: 500,
+            margin: 20,
         ))->build();
 
         return response($result->getString(), 200, [

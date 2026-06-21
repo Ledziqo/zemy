@@ -51,12 +51,12 @@
 <section class="mt-6 rounded-md border border-zem-border bg-zem-card p-4">
     <h2 class="font-display text-xl font-bold">{{ __('Daily trend - last 30 days') }}</h2>
     @php($maxDayOrders = $dailyTrends->max('orders_count') ?? 1)
-    <div class="mt-4 flex items-end gap-1 overflow-x-auto pb-2" style="min-height: 120px;">
+    <div class="mt-4 flex items-end gap-1 overflow-x-auto pb-2" style="min-height: 140px; padding-bottom: 60px;">
         @forelse($dailyTrends as $day)
             @php($heightPct = $maxDayOrders > 0 ? max(4, round(($day->orders_count / $maxDayOrders) * 100)) : 4)
             <div class="group flex shrink-0 flex-col items-center gap-1" style="width: 28px;">
                 <div class="w-full rounded-t bg-zem-gold/80 transition group-hover:bg-zem-gold" style="height: {{ $heightPct }}px;" title="{{ $day->order_date }}: {{ $day->orders_count }} orders, {{ number_format($day->revenue_total) }} ETB"></div>
-                <span class="text-[9px] text-zem-muted rotate-45 origin-left whitespace-nowrap">{{ \Carbon\Carbon::parse($day->order_date)->format('M j') }}</span>
+                <span class="text-[10px] text-zem-muted rotate-45 origin-left whitespace-nowrap mt-2">{{ \Carbon\Carbon::parse($day->order_date)->format('M j') }}</span>
             </div>
         @empty
             <p class="text-sm text-zem-muted">No order trend data yet.</p>

@@ -61,10 +61,26 @@ class PaymentController extends Controller
     {
         $data = $request->validate([
             'payment_method' => ['nullable', 'string', 'max:255'],
-            'extend_days' => ['nullable', 'integer', 'min:1'],
+            'extend_days' => ['nullable', 'integer'],
+            'custom_ends_at' => ['nullable', 'date'],
         ]);
 
-        $extendDays = (int) ($data['extend_days'] ?? 30);
+        // If custom date is set, use it directly
+        if (! empty($data['custom_ends_at'])) {
+            $subscription->update([
+                'status' => 'active',
+                'ends_at' => $data['custom_ends_at'],
+                'payment_method' => $data['payment_method'] ?? $subscription->payment_method,
+            ]);
+
+            if (Schema::hasColumn('restaurants', 'dashboard_access_status')) {
+                $subscription->restaurant->update(['dashboard_access_status' => 'active']);
+            }
+
+            return back()->with('success', 'Subscription end date set to ' . $data['custom_ends_at']);
+        }
+
+        $extendDays = (int) ($data['extend_days'] ?? 30); // Can be negative to subtract days
         $baseDate = now();
         if ($subscription->ends_at) {
             try {

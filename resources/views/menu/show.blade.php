@@ -57,6 +57,10 @@
             </nav>
         </div>
     </header>
+    <div class="fixed top-4 right-4 z-40 flex gap-1 rounded-full border border-black/10 bg-white/90 px-2 py-1 text-xs font-bold shadow-sm backdrop-blur" x-data="{lang: 'en'}" x-cloak>
+        <button @click="lang='en'" :class="lang==='en'?'bg-zem-gold text-white':''" class="rounded-full px-3 py-1 transition">EN</button>
+        <button @click="lang='am'" :class="lang==='am'?'bg-zem-gold text-white':''" class="rounded-full px-3 py-1 transition">አማ</button>
+    </div>
 
     <section class="mx-auto max-w-5xl px-4 py-4">
         @if(session('success'))<div class="mb-4 rounded-xl bg-zem-green px-4 py-3 text-sm font-bold text-white">{{ session('success') }}</div>@endif

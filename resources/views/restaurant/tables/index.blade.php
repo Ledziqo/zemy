@@ -28,9 +28,10 @@
             <x-status :status="$table->is_active ? 'active' : 'cancelled'" />
         </div>
         <div class="mt-4 grid place-items-center rounded-md bg-white p-4">
-            <img src="{{ route('restaurant.tables.qr', $table) }}" alt="QR code for {{ $place }} {{ $table->table_number }}" class="h-56 w-56">
+            <img src="{{ route('restaurant.tables.qr', $table) }}" alt="QR code for {{ $place }} {{ $table->table_number }}" class="h-64 w-64">
         </div>
         <a class="mt-3 block break-all rounded-md border border-zem-border bg-zem-bg p-3 text-sm text-zem-gold" href="{{ $url }}" target="_blank">{{ $url }}</a>
+        <div class="mt-2 flex items-center justify-center gap-2"><span class="text-xs font-semibold text-zem-muted">Powered by</span><img src="{{ asset('logo/zemtab-pantone-1795-c-icon-text-transparent.png') }}" alt="ZemTab" class="h-5 w-auto"></div>
         <div class="mt-3 grid grid-cols-2 gap-2">
             <a href="{{ route('restaurant.tables.qr', $table) }}" download="zemtab-{{ $restaurant->slug }}-{{ $place }}-{{ $table->table_number }}.svg" class="rounded-md bg-zem-gold px-4 py-2 text-center text-sm font-bold text-white">{{ __('Download QR') }}</a>
             <a href="{{ $url }}" target="_blank" class="rounded-md border border-zem-border px-4 py-2 text-center text-sm font-bold">{{ __('Open menu') }}</a>

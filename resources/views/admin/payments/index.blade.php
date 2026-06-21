@@ -7,7 +7,30 @@
     @endforeach
 </div>
 
-<div class="mt-6 grid gap-3">
+@php($expiringRows = $rows->filter(fn($r) => $r->daysLeft !== null && $r->daysLeft >= 0 && $r->daysLeft <= 3))
+        @if($expiringRows->isNotEmpty())
+        <div class="mt-6 rounded-md border border-zem-gold/40 bg-zem-gold/10 p-4">
+            <h2 class="font-display text-lg font-bold text-zem-gold">⚠️ Expiring Soon (≤ 3 days)</h2>
+            <div class="mt-3 grid gap-2">
+                @foreach($expiringRows as $row)
+                    <div class="flex flex-wrap items-center justify-between gap-2 rounded-md bg-white p-3 text-sm">
+                        <div>
+                            <strong>{{ $row->restaurant->name }}</strong>
+                            <span class="ml-2 text-zem-muted">{{ $row->daysLeft }} day(s) left</span>
+                            @if($row->restaurant->phone)
+                                <a href="tel:{{ $row->restaurant->phone }}" class="ml-3 inline-flex items-center gap-1 rounded-full border border-zem-gold/40 px-3 py-1 text-xs font-bold text-zem-gold hover:bg-zem-gold hover:text-white">📞 {{ $row->restaurant->phone }}</a>
+                            @endif
+                        </div>
+                        @if($row->subscription)
+                            <a href="#sub-{{ $row->subscription->id }}" class="text-xs font-bold text-zem-gold" onclick="document.getElementById('sub-{{ $row->subscription->id }}').open=true">Manage →</a>
+                        @endif
+                    </div>
+                @endforeach
+            </div>
+        </div>
+        @endif
+
+        <div class="mt-6 grid gap-3">
     @foreach($rows as $row)
         <div class="rounded-md border border-zem-border bg-zem-card p-4">
             <div class="flex flex-wrap items-start justify-between gap-3">
@@ -29,8 +52,8 @@
                     @endif
                 </div>
                 @if($row->subscription)
-                    <details class="rounded-md border border-zem-border bg-zem-bg p-3">
-                        <summary class="cursor-pointer text-sm font-bold text-zem-cream">Mark as paid</summary>
+                    <details id="sub-{{ $row->subscription->id }}" class="rounded-md border border-zem-border bg-zem-bg p-3">
+                        <summary class="cursor-pointer text-sm font-bold text-zem-cream">Manage subscription</summary>
                         <form method="post" action="{{ route('admin.payments.mark-paid', $row->subscription) }}" class="mt-3 grid gap-2">
                             @csrf
                             <select name="payment_method" class="rounded-md border border-zem-border bg-zem-card px-3 py-2 text-sm">
@@ -41,12 +64,18 @@
                                 <option value="abyssinia">Bank of Abyssinia</option>
                                 <option value="cash">Cash</option>
                             </select>
-                            <select name="extend_days" class="rounded-md border border-zem-border bg-zem-card px-3 py-2 text-sm">
-                                <option value="30">Extend 30 days</option>
-                                <option value="7">Extend 7 days</option>
-                                <option value="1">Extend 1 day</option>
-                            </select>
-                            <button class="rounded-md bg-zem-gold px-4 py-2 text-sm font-bold text-white">Confirm payment</button>
+                            <div class="grid grid-cols-2 gap-1">
+                                <button type="button" onclick="this.parentElement.nextElementSibling.value=30; this.form.submit()" class="rounded-md border border-zem-border px-2 py-1 text-xs font-bold">+30 days</button>
+                                <button type="button" onclick="this.parentElement.nextElementSibling.value=7; this.form.submit()" class="rounded-md border border-zem-border px-2 py-1 text-xs font-bold">+7 days</button>
+                                <button type="button" onclick="this.parentElement.nextElementSibling.value=1; this.form.submit()" class="rounded-md border border-zem-border px-2 py-1 text-xs font-bold">+1 day</button>
+                                <button type="button" onclick="this.parentElement.nextElementSibling.value=-1; this.form.submit()" class="rounded-md border border-zem-border px-2 py-1 text-xs font-bold">-1 day</button>
+                                <button type="button" onclick="this.parentElement.nextElementSibling.value=-7; this.form.submit()" class="rounded-md border border-zem-border px-2 py-1 text-xs font-bold">-7 days</button>
+                                <button type="button" onclick="this.parentElement.nextElementSibling.value=-30; this.form.submit()" class="rounded-md border border-zem-border px-2 py-1 text-xs font-bold">-30 days</button>
+                            </div>
+                            <input type="number" name="extend_days" placeholder="Custom days (+/-)" class="rounded-md border border-zem-border bg-zem-card px-3 py-2 text-sm" value="30">
+                            <label class="text-xs font-bold text-zem-muted mt-1">Or set exact end date:</label>
+                            <input type="date" name="custom_ends_at" class="rounded-md border border-zem-border bg-zem-card px-3 py-2 text-sm">
+                            <button class="rounded-md bg-zem-gold px-4 py-2 text-sm font-bold text-white mt-1">Save changes</button>
                         </form>
                     </details>
                 @endif
