@@ -13,7 +13,7 @@ return new class extends Migration
         try { DB::statement('CREATE INDEX idx_orders_restaurant_created ON orders (restaurant_id, created_at)'); } catch (\Exception $e) {}
         try { DB::statement('CREATE INDEX idx_orders_restaurant_status ON orders (restaurant_id, status)'); } catch (\Exception $e) {}
         try { DB::statement('CREATE INDEX idx_service_requests_restaurant_status ON service_requests (restaurant_id, status)'); } catch (\Exception $e) {}
-        try { DB::statement('CREATE INDEX idx_subscriptions_restaurant_starts ON subscriptions (restaurant_id, starts_at)'; } catch (\Exception $e) {}
+        try { DB::statement('CREATE INDEX idx_subscriptions_restaurant_starts ON subscriptions (restaurant_id, starts_at)'); } catch (\Exception $e) {}
         try { DB::statement('CREATE INDEX idx_order_items_order_id ON order_items (order_id)'); } catch (\Exception $e) {}
         try { DB::statement('CREATE INDEX idx_menu_items_restaurant_id ON menu_items (restaurant_id)'); } catch (\Exception $e) {}
         try { DB::statement('CREATE INDEX idx_categories_restaurant_id ON categories (restaurant_id)'); } catch (\Exception $e) {}
