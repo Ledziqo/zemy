@@ -14,23 +14,21 @@ use Illuminate\Support\Facades\Route;
 
 Route::middleware('locale')->group(function () {
     Route::get('/', [PublicController::class, 'landing'])->name('home');
-    Route::post('/demo-request', [PublicController::class, 'storeDemoRequest'])->name('demo-requests.store');
+    Route::post('/demo-request', [PublicController::class, 'storeDemoRequest'])->middleware('throttle:5,1')->name('demo-requests.store');
     Route::post('/locale', [LocaleController::class, 'update'])->name('locale.update');
 });
 Route::get('/sitemap.xml', [PublicController::class, 'sitemap'])->name('sitemap');
 
 Route::get('/login', [AuthController::class, 'showLogin'])->name('login');
-Route::post('/login', [AuthController::class, 'login'])->name('login.store');
+Route::post('/login', [AuthController::class, 'login'])->middleware('throttle:10,1')->name('login.store');
 Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
-Route::get('/setup', [SetupController::class, 'show'])->name('setup.show');
-Route::post('/setup/run', [SetupController::class, 'run'])->name('setup.run');
 
 Route::get('/r/{restaurant_slug}/table/{table_number}', [MenuController::class, 'show'])
-    ->middleware('throttle:60,1')
+    ->middleware('throttle:300,1')
     ->name('menu.show');
-Route::post('/r/{restaurant_slug}/table/{table_number}/orders', [OrderController::class, 'store'])->name('orders.store');
+Route::post('/r/{restaurant_slug}/table/{table_number}/orders', [OrderController::class, 'store'])->middleware('throttle:30,1')->name('orders.store');
 Route::patch('/r/{restaurant_slug}/table/{table_number}/orders/{order}/cancel', [OrderController::class, 'cancel'])->name('orders.cancel');
-Route::post('/r/{restaurant_slug}/table/{table_number}/service-requests', [ServiceRequestController::class, 'store'])->name('service-requests.store');
+Route::post('/r/{restaurant_slug}/table/{table_number}/service-requests', [ServiceRequestController::class, 'store'])->middleware('throttle:30,1')->name('service-requests.store');
 Route::post('/r/{restaurant_slug}/table/{table_number}/payment-proof', [PaymentProofController::class, 'store'])->name('payment-proofs.store');
 Route::get('/r/{restaurant_slug}/table/{table_number}/confirmation', [MenuController::class, 'confirmation'])->name('menu.confirmation');
 

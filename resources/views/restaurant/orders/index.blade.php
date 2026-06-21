@@ -122,7 +122,7 @@ function workBoard() {
             this.completedCount = {{ $orders->where('status', 'completed')->count() }};
             this.updatedTime = '{{ now()->format("H:i:s") }}';
 
-            setInterval(() => this.poll(), 4000);
+            this.pollInterval = setInterval(() => this.poll(), 10000);
             this.updateRelativeTimes();
             setInterval(() => this.updateRelativeTimes(), 1000);
         },

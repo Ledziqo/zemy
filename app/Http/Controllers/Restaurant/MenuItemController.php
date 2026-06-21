@@ -36,7 +36,7 @@ class MenuItemController extends Controller
         $data = $this->validated($request, $restaurant->id);
         $data['sort_order'] ??= ((int) $restaurant->menuItems()->max('sort_order')) + 10;
         $restaurant->menuItems()->create($data);
-        \Illuminate\Support\Facades\Cache::flush();
+        $this->clearMenuCache($request->user()->restaurant);
                 return back()->with('success', 'Menu item added.');
     }
 
@@ -45,7 +45,7 @@ class MenuItemController extends Controller
         $restaurant = $this->restaurant($request);
         abort_unless($menuItem->restaurant_id === $restaurant->id, 403);
         $menuItem->update($this->validated($request, $restaurant->id));
-        \Illuminate\Support\Facades\Cache::flush();
+        $this->clearMenuCache($request->user()->restaurant);
                 return back()->with('success', 'Menu item updated.');
     }
 
@@ -69,7 +69,7 @@ class MenuItemController extends Controller
             $items[$itemId]->update(['sort_order' => ($index + 1) * 10]);
         }
 
-        \Illuminate\Support\Facades\Cache::flush();
+        $this->clearMenuCache($request->user()->restaurant);
                 return back()->with('success', 'Menu item order saved.');
     }
 
@@ -79,7 +79,7 @@ class MenuItemController extends Controller
 
         $menuItem->update(['is_available' => ! $menuItem->is_available]);
 
-        \Illuminate\Support\Facades\Cache::flush();
+        $this->clearMenuCache($request->user()->restaurant);
                 return back()->with('success', $menuItem->is_available ? 'Item marked available.' : 'Item marked unavailable.');
     }
 
@@ -89,7 +89,7 @@ class MenuItemController extends Controller
 
         $menuItem->update(['image_path' => null]);
 
-        \Illuminate\Support\Facades\Cache::flush();
+        $this->clearMenuCache($request->user()->restaurant);
                 return back()->with('success', 'Menu item photo removed.');
     }
 
@@ -97,14 +97,14 @@ class MenuItemController extends Controller
     {
         abort_unless($menuItem->restaurant_id === $this->restaurant($request)->id, 403);
         $menuItem->delete();
-        \Illuminate\Support\Facades\Cache::flush();
+        $this->clearMenuCache($request->user()->restaurant);
                 return back()->with('success', 'Menu item deleted.');
     }
 
     private function validated(Request $request, int $restaurantId): array
     {
         $data = $request->validate([
-            'category_id' => ['required', 'exists:categories,id'],
+            'category_id' => ['required', \Illuminate\Validation\Rule::exists('categories', 'id')->where('restaurant_id', $restaurantId)],
             'name' => ['required', 'string', 'max:255'],
             'description' => ['nullable', 'string'],
             'price' => ['required', 'numeric', 'min:0'],
@@ -139,6 +139,17 @@ class MenuItemController extends Controller
             'is_available' => $request->boolean('is_available'),
             'is_featured' => $request->boolean('is_featured'),
         ];
+    }
+
+    private function clearMenuCache($restaurant): void
+    {
+        try {
+            \Illuminate\Support\Facades\Cache::forget("public_menu:{$restaurant->slug}:1");
+            // Clear all table caches for this restaurant
+            foreach ($restaurant->tables as $table) {
+                \Illuminate\Support\Facades\Cache::forget("public_menu:{$restaurant->slug}:{$table->table_number}");
+            }
+        } catch (\Exception $e) {}
     }
 
     private function storeCroppedImage(string $dataUrl): ?string

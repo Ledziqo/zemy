@@ -28,7 +28,7 @@ echo '<'.'?'.'xml version="1.0" encoding="UTF-8"?'.'>';
                 @if($restaurant->logo_path)
                 <image:image>
                     <image:loc>{{ asset($restaurant->logo_path) }}</image:loc>
-                    <image:title>{{ $restaurant->name }} Logo</image:title>
+                    <image:title>{{ htmlspecialchars($restaurant->name, ENT_XML1) }} Logo</image:title>
                 </image:image>
                 @endif
             </url>
