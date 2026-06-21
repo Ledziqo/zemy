@@ -70,11 +70,12 @@ class DashboardController extends Controller
     public function poll(Request $request)
     {
         $restaurant = $this->restaurant($request);
-        $since = (int) $request->query('since', 0);
+        $orderSince = (int) $request->query('order_since', 0);
+        $requestSince = (int) $request->query('request_since', 0);
 
         $newOrders = $restaurant->orders()
             ->with('items')
-            ->where('id', '>', $since)
+            ->where('id', '>', $orderSince)
             ->latest()
             ->limit(20)
             ->get()
@@ -94,7 +95,7 @@ class DashboardController extends Controller
             ]);
 
         $newRequests = $restaurant->serviceRequests()
-            ->where('id', '>', $since)
+            ->where('id', '>', $requestSince)
             ->orderByRaw("CASE status WHEN 'pending' THEN 1 WHEN 'acknowledged' THEN 2 WHEN 'completed' THEN 3 ELSE 4 END")
             ->latest()
             ->limit(20)
