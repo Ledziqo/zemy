@@ -15,6 +15,14 @@ class DashboardController extends Controller
     {
         $hasSubscriptions = Schema::hasTable('subscriptions');
         $hasDashboardAccessStatus = Schema::hasColumn('restaurants', 'dashboard_access_status');
+        $currentSubscriptions = $hasSubscriptions
+            ? Subscription::query()
+                ->whereIn('status', ['active', 'trial'])
+                ->where(fn ($query) => $query->whereNull('ends_at')->orWhereDate('ends_at', '>=', today()))
+            : null;
+        $activeSubscribers = $currentSubscriptions
+            ? (clone $currentSubscriptions)->where('status', 'active')
+            : null;
 
         return view('admin.dashboard', [
             'totalRestaurants' => Restaurant::count(),
@@ -29,6 +37,14 @@ class DashboardController extends Controller
                 : Restaurant::withCount('orders')->latest()->limit(12)->get(),
             'hasDashboardAccessStatus' => $hasDashboardAccessStatus,
             'hasSubscriptions' => $hasSubscriptions,
+            'monthlyRevenue' => $activeSubscribers ? (clone $activeSubscribers)->sum('monthly_price') : 0,
+            'activeSubscriberCount' => $activeSubscribers ? (clone $activeSubscribers)->count() : 0,
+            'totalRevenue' => $currentSubscriptions ? (clone $currentSubscriptions)->sum('monthly_price') : 0,
         ]);
+    }
+
+    public function database()
+    {
+        return view('admin.database');
     }
 }

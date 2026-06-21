@@ -60,6 +60,7 @@ Route::middleware(['auth', 'role:restaurant_owner,staff', 'locale'])->prefix('re
 
 Route::middleware(['auth', 'role:admin'])->prefix('admin')->name('admin.')->group(function () {
     Route::get('/dashboard', [Admin\DashboardController::class, 'index'])->name('dashboard');
+    Route::get('/database', [Admin\DashboardController::class, 'database'])->name('database');
     Route::post('/setup-run', [SetupController::class, 'run'])->name('setup.run');
     Route::patch('/restaurants/{restaurant}/password', [Admin\RestaurantController::class, 'updatePassword'])->name('restaurants.password.update');
     Route::resource('/restaurants', Admin\RestaurantController::class)->only(['index', 'store', 'update', 'destroy']);

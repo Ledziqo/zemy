@@ -11,6 +11,7 @@
             ['Subscriptions', route('admin.subscriptions.index')],
             ['Payments', route('admin.payments.index')],
             ['Payment Settings', route('admin.payment-settings.index')],
+            ['Database', route('admin.database')],
         ]
         : [
             [__('Overview'), route('restaurant.dashboard')],
