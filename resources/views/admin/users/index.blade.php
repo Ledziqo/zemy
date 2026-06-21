@@ -58,6 +58,10 @@
                     </select>
                     <button class="rounded-md bg-zem-gold px-4 py-2 font-bold text-white">Save</button>
                 </form>
+                <form method="post" action="{{ route('admin.users.destroy', $user) }}" class="mt-3" onsubmit="return confirm('Delete user {{ $user->name }}? This cannot be undone.');">
+                    @csrf @method('DELETE')
+                    <button class="w-full rounded-md border border-red-300 bg-red-50 px-4 py-2 text-sm font-bold text-red-700 transition hover:border-red-500 hover:bg-red-100">Delete user</button>
+                </form>
             </details>
         </div>
     @empty

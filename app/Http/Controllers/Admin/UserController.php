@@ -39,6 +39,19 @@ class UserController extends Controller
         return back()->with('success', 'User created.');
     }
 
+    public function destroy(Request $request, User $user)
+    {
+        // Prevent admin from deleting themselves
+        if ($user->id === $request->user()->id) {
+            return back()->withErrors(['error' => 'You cannot delete your own account.']);
+        }
+
+        $userName = $user->name;
+        $user->delete();
+
+        return back()->with('success', 'User "' . $userName . '" deleted.');
+    }
+
     public function update(Request $request, User $user)
     {
         $data = $request->validate([

@@ -59,7 +59,7 @@ Route::middleware(['auth', 'role:admin'])->prefix('admin')->name('admin.')->grou
     Route::post('/setup-run', [SetupController::class, 'run'])->name('setup.run');
     Route::patch('/restaurants/{restaurant}/password', [Admin\RestaurantController::class, 'updatePassword'])->name('restaurants.password.update');
     Route::resource('/restaurants', Admin\RestaurantController::class)->only(['index', 'store', 'update', 'destroy']);
-    Route::resource('/users', Admin\UserController::class)->only(['index', 'store', 'update']);
+    Route::resource('/users', Admin\UserController::class)->only(['index', 'store', 'update', 'destroy']);
     Route::get('/demo-requests', [Admin\DemoRequestController::class, 'index'])->name('demo-requests.index');
     Route::patch('/demo-requests/{demoRequest}', [Admin\DemoRequestController::class, 'update'])->name('demo-requests.update');
     Route::resource('/subscriptions', Admin\SubscriptionController::class)->only(['index', 'store', 'update']);
