@@ -16,4 +16,4 @@
         'revoked' => 'bg-red-950/70 text-red-100 border-red-500/40',
     ][$status] ?? 'bg-zem-border text-zem-muted border-zem-border';
 @endphp
-<span class="inline-flex rounded-full border px-2.5 py-1 text-xs font-bold {{ $classes }}">{{ str_replace('_', ' ', $status) }}</span>
+<span class="inline-flex rounded-full border px-2.5 py-1 text-xs font-bold {{ $classes }}">{{ __(ucfirst(str_replace('_', ' ', $status))) }}</span>

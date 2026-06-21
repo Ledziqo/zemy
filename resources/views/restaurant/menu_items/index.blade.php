@@ -1,30 +1,30 @@
-@extends('layouts.dashboard', ['heading' => 'Menu Items'])
+@extends('layouts.dashboard', ['heading' => __('Menu Items')])
 
 @section('content')
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/cropperjs@1.6.2/dist/cropper.min.css">
 <form method="post" action="{{ route('restaurant.menu-items.store') }}" enctype="multipart/form-data" class="mb-6 grid gap-3 rounded-md border border-zem-border bg-zem-card p-4 md:grid-cols-2 xl:grid-cols-5">
     @csrf
     <select name="category_id" class="rounded-md border border-zem-border bg-zem-bg px-3 py-3">@foreach($categories as $category)<option value="{{ $category->id }}">{{ $category->name }}</option>@endforeach</select>
-    <input name="name" required placeholder="Item name" class="rounded-md border border-zem-border bg-zem-bg px-3 py-3">
-    <input name="price" required type="number" step="0.01" placeholder="Price" class="rounded-md border border-zem-border bg-zem-bg px-3 py-3">
+    <input name="name" required placeholder="{{ __('Item name') }}" class="rounded-md border border-zem-border bg-zem-bg px-3 py-3">
+    <input name="price" required type="number" step="0.01" placeholder="{{ __('Price') }}" class="rounded-md border border-zem-border bg-zem-bg px-3 py-3">
     <input name="image" type="file" accept="image/*" class="rounded-md border border-zem-border bg-zem-bg px-3 py-3 text-sm" data-image-crop-input>
     <input name="cropped_image" type="hidden" data-cropped-image>
     <div class="flex flex-wrap items-center gap-4 rounded-md border border-zem-border bg-zem-bg px-3 py-3">
-        <label class="flex items-center gap-2"><input name="is_available" type="checkbox" value="1" checked> Available</label>
-        <label class="flex items-center gap-2"><input name="is_featured" type="checkbox" value="1"> Featured</label>
+        <label class="flex items-center gap-2"><input name="is_available" type="checkbox" value="1" checked> {{ __('Available') }}</label>
+        <label class="flex items-center gap-2"><input name="is_featured" type="checkbox" value="1"> {{ __('Featured') }}</label>
     </div>
-    <textarea name="description" placeholder="Description" class="rounded-md border border-zem-border bg-zem-bg px-3 py-3 md:col-span-2 xl:col-span-4"></textarea>
-    <button class="rounded-md bg-zem-gold px-4 py-3 font-bold text-white">Add item</button>
+    <textarea name="description" placeholder="{{ __('Description') }}" class="rounded-md border border-zem-border bg-zem-bg px-3 py-3 md:col-span-2 xl:col-span-4"></textarea>
+    <button class="rounded-md bg-zem-gold px-4 py-3 font-bold text-white">{{ __('Add item') }}</button>
 </form>
 
 <form method="post" action="{{ route('restaurant.menu-items.reorder') }}" class="mb-4 flex flex-wrap items-center justify-between gap-3 rounded-md border border-zem-border bg-zem-card p-4" data-reorder-form>
     @csrf @method('PATCH')
     <div>
-        <p class="font-bold text-zem-cream">Menu order</p>
-        <p class="text-sm text-zem-muted">Drag one item onto another to swap them. The new order saves automatically.</p>
+        <p class="font-bold text-zem-cream">{{ __('Menu order') }}</p>
+        <p class="text-sm text-zem-muted">{{ __('Drag one item onto another to swap them. The new order saves automatically.') }}</p>
     </div>
     <div class="hidden" data-reorder-fields></div>
-    <button class="rounded-md bg-zem-gold px-4 py-3 font-bold text-white">Save item order</button>
+    <button class="rounded-md bg-zem-gold px-4 py-3 font-bold text-white">{{ __('Save item order') }}</button>
 </form>
 
 <div class="grid gap-4 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4" data-reorder-list>

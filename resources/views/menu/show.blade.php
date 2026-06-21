@@ -88,9 +88,24 @@
                         <h3 class="font-extrabold">Orders</h3>
                         <div class="mt-2 space-y-2">
                             @foreach($visitOrders->take(4) as $order)
-                                <div class="rounded-lg border border-black/10 bg-white p-3 text-sm">
+                                @php($cancelDeadline = $order->created_at->copy()->addMinutes(2))
+                                <div class="rounded-lg border border-black/10 bg-white p-3 text-sm" @if($order->status === 'new' && $cancelDeadline->isFuture()) x-data="cancelTimer(@js($cancelDeadline->toIso8601String()))" x-init="start()" @endif>
                                     <div class="flex items-center justify-between gap-3"><strong>#{{ $order->id }} - {{ ucfirst($order->status) }}</strong><strong>{{ number_format($order->total) }} ETB</strong></div>
-                                    <p class="mt-1 text-neutral-500">{{ $order->items->sum('quantity') }} item(s) - {{ $order->created_at->format('H:i') }}</p>
+                                    <p class="mt-1 text-neutral-500">{{ $order->created_at->format('H:i') }}</p>
+                                    <ul class="mt-2 space-y-1 text-neutral-700">
+                                        @foreach($order->items as $item)
+                                            <li>{{ $item->quantity }} &times; {{ $item->item_name }}</li>
+                                        @endforeach
+                                    </ul>
+                                    @if($order->status === 'new' && $cancelDeadline->isFuture())
+                                        <form method="post" action="{{ route('orders.cancel', [$restaurant->slug, $table->table_number, $order]) }}" class="mt-3" x-show="remaining > 0" onsubmit="return confirm('Cancel this order?')">
+                                            @csrf @method('PATCH')
+                                            <button class="w-full rounded-lg border border-red-300 bg-red-50 px-3 py-2 font-bold text-red-700">Cancel order &middot; <span x-text="clock"></span></button>
+                                        </form>
+                                        <p x-show="remaining <= 0" x-cloak class="mt-3 text-xs font-bold text-neutral-500">Cancellation window ended</p>
+                                    @elseif($order->status === 'new')
+                                        <p class="mt-3 text-xs font-bold text-neutral-500">Cancellation window ended</p>
+                                    @endif
                                 </div>
                             @endforeach
                         </div>
@@ -299,6 +314,23 @@ function menuCart(config) {
             });
         }
     }
+}
+
+function cancelTimer(deadline) {
+    return {
+        remaining: Math.max(0, Math.ceil((new Date(deadline).getTime() - Date.now()) / 1000)),
+        timer: null,
+        get clock() {
+            const minutes = Math.floor(this.remaining / 60);
+            return minutes + ':' + String(this.remaining % 60).padStart(2, '0');
+        },
+        start() {
+            this.timer = setInterval(() => {
+                this.remaining = Math.max(0, Math.ceil((new Date(deadline).getTime() - Date.now()) / 1000));
+                if (this.remaining <= 0) clearInterval(this.timer);
+            }, 250);
+        }
+    };
 }
 </script>
 @endsection

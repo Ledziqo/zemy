@@ -25,7 +25,7 @@ class PublicController extends Controller
             'message' => ['nullable', 'string', 'max:2000'],
         ]));
 
-        return back()->with('success', 'Thanks. ZemTab will contact you shortly.');
+        return back()->with('success', __('Thanks. ZemTab will contact you shortly.'));
     }
 
     public function sitemap()

@@ -1,4 +1,4 @@
-@extends('layouts.dashboard', ['heading' => 'Settings'])
+@extends('layouts.dashboard', ['heading' => __('Settings')])
 
 @section('content')
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/cropperjs@1.6.2/dist/cropper.min.css">
@@ -29,10 +29,10 @@
     <input name="phone" value="{{ $restaurant->phone }}" placeholder="Phone" class="rounded-md border border-zem-border bg-zem-bg px-3 py-2">
     <input name="location" value="{{ $restaurant->location }}" placeholder="Location" class="rounded-md border border-zem-border bg-zem-bg px-3 py-2">
     <label class="flex items-center justify-between gap-3 rounded-md border border-zem-border bg-zem-bg px-3 py-2 text-zem-muted">
-        <span>Menu theme color</span>
+        <span>{{ __('Menu theme color') }}</span>
         <input name="primary_color" value="{{ $primaryColor }}" type="color" class="h-10 w-20 cursor-pointer rounded border border-zem-border bg-zem-card p-1">
     </label>
-    <h2 class="font-display text-lg font-bold text-zem-gold md:col-span-2 xl:col-span-3">Menu settings</h2>
+    <h2 class="font-display text-lg font-bold text-zem-gold md:col-span-2 xl:col-span-3">{{ __('Menu settings') }}</h2>
     <input name="service_charge_percentage" value="{{ $serviceCharge > 0 ? $serviceCharge : '' }}" type="number" step="0.01" placeholder="Service charge %" class="rounded-md border border-zem-border bg-zem-bg px-3 py-2">
     <input name="vat_percentage" value="{{ $vat > 0 ? $vat : '' }}" type="number" step="0.01" placeholder="VAT %" class="rounded-md border border-zem-border bg-zem-bg px-3 py-2">
 @php($paymentMethods = $restaurant->settings['payment_methods'] ?? ['cash', 'telebirr', 'cbe'])
@@ -40,7 +40,7 @@
 @php($cbeQrUrl = ! empty($restaurant->settings['cbe_qr_path']) ? asset($restaurant->settings['cbe_qr_path']) : null)
 @php($awashQrUrl = ! empty($restaurant->settings['awash_qr_path']) ? asset($restaurant->settings['awash_qr_path']) : null)
 @php($abyssiniaQrUrl = ! empty($restaurant->settings['abyssinia_qr_path']) ? asset($restaurant->settings['abyssinia_qr_path']) : null)
-    <h2 class="font-display text-lg font-bold text-zem-gold md:col-span-2 xl:col-span-3">Payment methods</h2>
+    <h2 class="font-display text-lg font-bold text-zem-gold md:col-span-2 xl:col-span-3">{{ __('Payment methods') }}</h2>
     <fieldset class="rounded-md border border-zem-border bg-zem-bg p-4 md:col-span-2">
         <legend class="px-2 text-sm font-bold text-zem-muted">Accepted customer payment methods</legend>
         <div class="mt-2 flex flex-wrap gap-4">
@@ -81,7 +81,7 @@
             </label>
         </div>
     </fieldset>
-    <button class="rounded-md bg-zem-gold px-4 py-3 font-bold text-white md:col-span-2 xl:col-span-3">Save settings</button>
+    <button class="rounded-md bg-zem-gold px-4 py-3 font-bold text-white md:col-span-2 xl:col-span-3">{{ __('Save settings') }}</button>
 </form>
 
 <div id="logo-crop-modal" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/80 px-4 py-6">

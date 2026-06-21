@@ -30,7 +30,7 @@
     <meta property="og:title" content="{{ $title ?? 'ZemTab' }}">
     <meta property="og:description" content="{{ $description ?? 'ZemTab is a modern QR menu, table ordering, waiter request, and restaurant dashboard system built for restaurants in Ethiopia. Scan. Order. Pay.' }}">
     <meta property="og:image" content="{{ $ogImage ?? asset('logo/zemtab-pantone-1795-c-icon-text-transparent.png') }}">
-    <meta property="og:locale" content="en_ET">
+    <meta property="og:locale" content="{{ app()->getLocale() === 'am' ? 'am_ET' : 'en_ET' }}">
     <meta property="og:site_name" content="ZemTab">
 
     {{-- Twitter Card --}}
@@ -76,12 +76,12 @@
                             soft: '#EEF3F7'
                         }
                     },
-                    fontFamily: { sans: ['Inter', 'ui-sans-serif', 'system-ui'], display: ['Sora', 'Inter', 'ui-sans-serif'] }
+                    fontFamily: { sans: ['Inter', 'Noto Sans Ethiopic', 'ui-sans-serif', 'system-ui'], display: ['Sora', 'Noto Sans Ethiopic', 'Inter', 'ui-sans-serif'] }
                 }
             }
         }
     </script>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Sora:wght@600;700;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Noto+Sans+Ethiopic:wght@400;500;600;700;800&family=Sora:wght@600;700;800&display=swap" rel="stylesheet">
     <style>[x-cloak]{display:none!important}</style>
 </head>
 <body class="bg-zem-bg text-zem-cream font-sans antialiased">

@@ -87,4 +87,37 @@ class OrderController extends Controller
             ->with('order_id', $order->id)
             ->withCookie($visits->cookie($visit));
     }
+
+    public function cancel(Request $request, GuestVisitManager $visits, string $restaurant_slug, string $table_number, Order $order)
+    {
+        $restaurant = Restaurant::where('slug', $restaurant_slug)->where('is_active', true)->firstOrFail();
+        $restaurantTable = $restaurant->tables()->where('table_number', $table_number)->where('is_active', true)->firstOrFail();
+        $visit = $visits->current($request, $restaurant, $restaurantTable);
+        abort_unless($visit && $order->restaurant_id === $restaurant->id && $order->table_id === $restaurantTable->id && $order->guest_session_id === $visit->id, 404);
+
+        $result = DB::transaction(function () use ($order, $visit) {
+            $locked = Order::whereKey($order->id)->lockForUpdate()->firstOrFail();
+
+            if ($locked->guest_session_id !== $visit->id) {
+                abort(404);
+            }
+            if ($locked->status !== 'new') {
+                return 'started';
+            }
+            if (now()->gte($locked->created_at->copy()->addMinutes(2))) {
+                return 'expired';
+            }
+
+            $locked->update(['status' => 'cancelled']);
+            return 'cancelled';
+        });
+
+        $redirect = redirect()->route('menu.show', [$restaurant->slug, $table_number]);
+
+        return match ($result) {
+            'cancelled' => $redirect->with('success', 'Order cancelled.'),
+            'expired' => $redirect->withErrors(['order' => 'The two-minute cancellation window has ended.']),
+            default => $redirect->withErrors(['order' => 'This order can no longer be cancelled because preparation has started.']),
+        };
+    }
 }

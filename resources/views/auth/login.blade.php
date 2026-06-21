@@ -39,6 +39,14 @@
                 <button class="rounded-lg bg-zem-gold py-3 font-bold text-white transition hover:opacity-90">Sign in</button>
             </form>
             <div class="mt-6 border-t border-zem-border pt-4 text-center">
+                <details class="mb-4 rounded-xl border border-zem-border bg-zem-bg text-left">
+                    <summary class="cursor-pointer px-4 py-3 text-center text-sm font-bold text-zem-muted hover:text-zem-gold">Need help?</summary>
+                    <div class="border-t border-zem-border px-4 py-4 text-sm text-zem-muted">
+                        <p class="font-bold text-black">Contact ZemTab support</p>
+                        <p class="mt-3"><a href="tel:+251974217074" class="font-semibold hover:text-zem-gold">Ethiopia: +251 974 217 074</a></p>
+                        <p class="mt-2"><a href="https://t.me/Zemtab" target="_blank" rel="noopener noreferrer" class="font-semibold hover:text-zem-gold">Telegram: @Zemtab</a></p>
+                    </div>
+                </details>
                 <a href="{{ route('home') }}" class="text-sm text-zem-muted hover:text-zem-gold">Back to ZemTab.com</a>
             </div>
         </div>

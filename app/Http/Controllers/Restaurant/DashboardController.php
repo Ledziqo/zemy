@@ -44,6 +44,7 @@ class DashboardController extends Controller
             'recentOrders' => $restaurant->orders()->with('items')->latest()->limit(8)->get(),
             'popularItems' => $popularItems,
             'latestOrderId' => $restaurant->orders()->max('id') ?? 0,
+            'latestRequestId' => $restaurant->serviceRequests()->max('id') ?? 0,
         ]);
     }
 
@@ -62,6 +63,7 @@ class DashboardController extends Controller
             'activeRequests' => $restaurant->serviceRequests()->whereIn('status', ['pending', 'acknowledged'])->count(),
             'statuses' => Order::STATUSES,
             'latestOrderId' => $restaurant->orders()->max('id') ?? 0,
+            'latestRequestId' => $restaurant->serviceRequests()->max('id') ?? 0,
             'todayOrdersCount' => $restaurant->orders()->whereDate('created_at', today())->count(),
             'todayRevenue' => $restaurant->orders()->whereDate('created_at', today())->whereIn('status', ['paid', 'completed'])->sum('total'),
         ]);
@@ -76,8 +78,8 @@ class DashboardController extends Controller
         $newOrders = $restaurant->orders()
             ->with('items')
             ->where('id', '>', $orderSince)
-            ->latest()
-            ->limit(20)
+            ->orderBy('id')
+            ->limit(100)
             ->get()
             ->map(fn ($order) => [
                 'id' => $order->id,
@@ -96,9 +98,8 @@ class DashboardController extends Controller
 
         $newRequests = $restaurant->serviceRequests()
             ->where('id', '>', $requestSince)
-            ->orderByRaw("CASE status WHEN 'pending' THEN 1 WHEN 'acknowledged' THEN 2 WHEN 'completed' THEN 3 ELSE 4 END")
-            ->latest()
-            ->limit(20)
+            ->orderBy('id')
+            ->limit(100)
             ->get()
             ->map(fn ($req) => [
                 'id' => $req->id,
@@ -112,8 +113,9 @@ class DashboardController extends Controller
         return response()->json([
             'orders' => $newOrders,
             'requests' => $newRequests,
-            'latestOrderId' => $restaurant->orders()->max('id') ?? 0,
-            'latestRequestId' => $restaurant->serviceRequests()->max('id') ?? 0,
+            'orderStatuses' => $restaurant->orders()->latest()->limit(50)->get(['id', 'status'])->values(),
+            'latestOrderId' => max($orderSince, (int) ($newOrders->max('id') ?? 0)),
+            'latestRequestId' => max($requestSince, (int) ($newRequests->max('id') ?? 0)),
             'activeRequests' => $restaurant->serviceRequests()->whereIn('status', ['pending', 'acknowledged'])->count(),
         ]);
     }

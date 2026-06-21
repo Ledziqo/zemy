@@ -1,18 +1,18 @@
-@extends('layouts.dashboard', ['heading' => $restaurant->locationLabelTitle(true).' / QR Codes'])
+@extends('layouts.dashboard', ['heading' => __($restaurant->locationLabelTitle(true)).' / QR'])
 
 @section('content')
 @php($place = $restaurant->locationLabel())
 @php($placeTitle = $restaurant->locationLabelTitle())
 <div class="mb-6 flex flex-wrap items-center justify-between gap-3">
-    <h2 class="font-display text-lg font-bold">Add {{ $place }}</h2>
-    <a href="{{ route('restaurant.tables.setup-pack') }}" target="_blank" class="rounded-md bg-zem-gold px-4 py-2 text-sm font-bold text-white">Print setup pack</a>
+    <h2 class="font-display text-lg font-bold">{{ __('Add') }} {{ __(ucfirst($place)) }}</h2>
+    <a href="{{ route('restaurant.tables.setup-pack') }}" target="_blank" class="rounded-md bg-zem-gold px-4 py-2 text-sm font-bold text-white">{{ __('Print setup pack') }}</a>
 </div>
 <form method="post" action="{{ route('restaurant.tables.store') }}" class="mb-6 grid gap-3 rounded-md border border-zem-border bg-zem-card p-4 md:grid-cols-[1fr_1fr_auto_auto]">
     @csrf
     <input name="table_number" required placeholder="{{ $placeTitle }} number, e.g. {{ $restaurant->isHotel() ? '204' : '1' }}" class="rounded-md border border-zem-border bg-zem-bg px-3 py-3">
     <input name="table_name" placeholder="{{ $placeTitle }} name optional" class="rounded-md border border-zem-border bg-zem-bg px-3 py-3">
-    <label class="flex items-center gap-2 rounded-md border border-zem-border bg-zem-bg px-3 py-3"><input name="is_active" type="checkbox" value="1" checked> Active</label>
-    <button class="rounded-md bg-zem-gold px-5 py-3 font-bold text-white">Generate {{ $place }} QR</button>
+    <label class="flex items-center gap-2 rounded-md border border-zem-border bg-zem-bg px-3 py-3"><input name="is_active" type="checkbox" value="1" checked> {{ __('Active') }}</label>
+    <button class="rounded-md bg-zem-gold px-5 py-3 font-bold text-white">{{ __('Generate QR') }}</button>
 </form>
 
 <div class="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
@@ -32,8 +32,8 @@
         </div>
         <a class="mt-3 block break-all rounded-md border border-zem-border bg-zem-bg p-3 text-sm text-zem-gold" href="{{ $url }}" target="_blank">{{ $url }}</a>
         <div class="mt-3 grid grid-cols-2 gap-2">
-            <a href="{{ route('restaurant.tables.qr', $table) }}" download="zemtab-{{ $restaurant->slug }}-{{ $place }}-{{ $table->table_number }}.svg" class="rounded-md bg-zem-gold px-4 py-2 text-center text-sm font-bold text-white">Download QR</a>
-            <a href="{{ $url }}" target="_blank" class="rounded-md border border-zem-border px-4 py-2 text-center text-sm font-bold">Open menu</a>
+            <a href="{{ route('restaurant.tables.qr', $table) }}" download="zemtab-{{ $restaurant->slug }}-{{ $place }}-{{ $table->table_number }}.svg" class="rounded-md bg-zem-gold px-4 py-2 text-center text-sm font-bold text-white">{{ __('Download QR') }}</a>
+            <a href="{{ $url }}" target="_blank" class="rounded-md border border-zem-border px-4 py-2 text-center text-sm font-bold">{{ __('Open menu') }}</a>
         </div>
         <details class="mt-4 rounded-md border border-zem-border bg-zem-bg p-3">
             <summary class="cursor-pointer text-sm font-bold">Edit {{ $place }}</summary>

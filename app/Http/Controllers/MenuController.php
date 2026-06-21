@@ -37,6 +37,9 @@ class MenuController extends Controller
     {
         [$restaurant, $restaurantTable] = $this->publicMenuPayload($restaurant_slug, $table_number);
         $visit = $visits->current($request, $restaurant, $restaurantTable);
+        if ($visit) {
+            $visit->load('orders.items');
+        }
         $table = $table_number;
         return response()->view('menu.confirmation', compact('restaurant', 'table', 'visit'));
     }

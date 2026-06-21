@@ -3,6 +3,7 @@
 use App\Http\Controllers\Admin;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\MenuController;
+use App\Http\Controllers\LocaleController;
 use App\Http\Controllers\OrderController;
 use App\Http\Controllers\PaymentProofController;
 use App\Http\Controllers\PublicController;
@@ -11,8 +12,11 @@ use App\Http\Controllers\ServiceRequestController;
 use App\Http\Controllers\SetupController;
 use Illuminate\Support\Facades\Route;
 
-Route::get('/', [PublicController::class, 'landing'])->name('home');
-Route::post('/demo-request', [PublicController::class, 'storeDemoRequest'])->name('demo-requests.store');
+Route::middleware('locale')->group(function () {
+    Route::get('/', [PublicController::class, 'landing'])->name('home');
+    Route::post('/demo-request', [PublicController::class, 'storeDemoRequest'])->name('demo-requests.store');
+    Route::post('/locale', [LocaleController::class, 'update'])->name('locale.update');
+});
 Route::get('/sitemap.xml', [PublicController::class, 'sitemap'])->name('sitemap');
 
 Route::get('/login', [AuthController::class, 'showLogin'])->name('login');
@@ -25,17 +29,17 @@ Route::get('/r/{restaurant_slug}/table/{table_number}', [MenuController::class, 
     ->middleware('throttle:60,1')
     ->name('menu.show');
 Route::post('/r/{restaurant_slug}/table/{table_number}/orders', [OrderController::class, 'store'])->name('orders.store');
+Route::patch('/r/{restaurant_slug}/table/{table_number}/orders/{order}/cancel', [OrderController::class, 'cancel'])->name('orders.cancel');
 Route::post('/r/{restaurant_slug}/table/{table_number}/service-requests', [ServiceRequestController::class, 'store'])->name('service-requests.store');
 Route::post('/r/{restaurant_slug}/table/{table_number}/payment-proof', [PaymentProofController::class, 'store'])->name('payment-proofs.store');
 Route::get('/r/{restaurant_slug}/table/{table_number}/confirmation', [MenuController::class, 'confirmation'])->name('menu.confirmation');
 
-Route::middleware(['auth', 'role:restaurant_owner,staff'])->prefix('restaurant')->name('restaurant.')->group(function () {
+Route::middleware(['auth', 'role:restaurant_owner,staff', 'locale'])->prefix('restaurant')->name('restaurant.')->group(function () {
     Route::get('/access-required', [Restaurant\AccessController::class, 'show'])->name('access-required');
     Route::middleware('restaurant.access')->group(function () {
         Route::get('/dashboard', [Restaurant\DashboardController::class, 'index'])->name('dashboard');
         Route::get('/analytics', [Restaurant\DashboardController::class, 'analytics'])->name('analytics');
         Route::get('/orders', [Restaurant\DashboardController::class, 'orders'])->name('orders.index');
-        Route::get('/orders/poll', [Restaurant\DashboardController::class, 'poll'])->name('orders.poll');
         Route::get('/orders/poll', [Restaurant\DashboardController::class, 'poll'])->name('orders.poll');
         Route::patch('/orders/{order}', [Restaurant\DashboardController::class, 'updateOrder'])->name('orders.update');
         Route::patch('/menu-items/reorder', [Restaurant\MenuItemController::class, 'reorder'])->name('menu-items.reorder');

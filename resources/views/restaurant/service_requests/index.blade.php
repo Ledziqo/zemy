@@ -1,10 +1,10 @@
-@extends('layouts.dashboard', ['heading' => 'Service Requests', 'eyebrow' => 'Live '.$restaurant->locationLabel().' requests', 'autoRefreshSeconds' => 5])
+@extends('layouts.dashboard', ['heading' => __('Service Requests'), 'eyebrow' => __('Live requests'), 'autoRefreshSeconds' => 5])
 
 @section('content')
 @php($placeTitle = $restaurant->locationLabelTitle())
 <div class="mb-4 grid gap-3 md:grid-cols-3">
     <div class="rounded-md border border-zem-border bg-zem-card p-4">
-        <p class="text-sm text-zem-muted">Active requests</p>
+        <p class="text-sm text-zem-muted">{{ __('Active requests') }}</p>
         <p class="mt-2 text-3xl font-extrabold">{{ $activeRequests }}</p>
     </div>
     <div class="rounded-md border border-zem-border bg-zem-card p-4 md:col-span-2">
@@ -24,13 +24,13 @@
         <x-status :status="$requestRow->status" />
         <select name="status" class="rounded-md border border-zem-border bg-zem-bg px-3 py-3">
             @foreach(['pending','acknowledged','completed'] as $status)
-                <option value="{{ $status }}" @selected($requestRow->status===$status)>{{ $status }}</option>
+                <option value="{{ $status }}" @selected($requestRow->status===$status)>{{ __(ucfirst($status)) }}</option>
             @endforeach
         </select>
-        <button class="rounded-md bg-zem-gold px-4 py-3 font-bold text-white">Update</button>
+        <button class="rounded-md bg-zem-gold px-4 py-3 font-bold text-white">{{ __('Update') }}</button>
     </form>
 @empty
-    <p class="rounded-md border border-zem-border bg-zem-card p-4 text-zem-muted">No service requests yet.</p>
+    <p class="rounded-md border border-zem-border bg-zem-card p-4 text-zem-muted">{{ __('No service requests yet.') }}</p>
 @endforelse
 </div>
 
