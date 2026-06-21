@@ -9,7 +9,8 @@
             ['Users', route('admin.users.index')],
             ['Demo Requests', route('admin.demo-requests.index')],
             ['Subscriptions', route('admin.subscriptions.index')],
-            ['Payments', route('admin.payments.index')],\n            ['Payment Settings', route('admin.payment-settings.index')],
+            ['Payments', route('admin.payments.index')],
+            ['Payment Settings', route('admin.payment-settings.index')],
         ]
         : [
             [__('Overview'), route('restaurant.dashboard')],
