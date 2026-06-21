@@ -9,7 +9,7 @@
             ['Users', route('admin.users.index')],
             ['Demo Requests', route('admin.demo-requests.index')],
             ['Subscriptions', route('admin.subscriptions.index')],
-            ['Payments', route('admin.payments.index')],
+            ['Payments', route('admin.payments.index')],\n            ['Payment Settings', route('admin.payment-settings.index')],
         ]
         : [
             [__('Overview'), route('restaurant.dashboard')],
@@ -89,7 +89,7 @@
             <div class="mb-5 rounded-lg border border-zem-gold/40 bg-zem-gold/10 px-4 py-3 text-sm">
                 <p class="font-bold text-zem-gold">{{ __('Subscription expiring soon') }}</p>
                 <p class="mt-1 text-zem-muted">Your subscription expires in {{ $dashboardRestaurant->daysUntilExpiry() }} day(s). Please pay to keep your dashboard active.</p>
-                <p class="mt-2 text-zem-muted">Pay via Telebirr: <strong class="text-zem-cream">0911 000 000</strong> or Telegram: <strong class="text-zem-cream">@Zemtab</strong></p>
+                <p class="mt-2 text-zem-muted">Pay via Telebirr, CBE, Awash Bank, or Bank of Abyssinia. Send your payment screenshot with your restaurant name to Telegram: <strong class="text-zem-cream">{{ env('PAYMENT_TELEGRAM', '@Zemtab') }}</strong></p>
             </div>
         @endif
         @yield('content')

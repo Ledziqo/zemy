@@ -66,4 +66,6 @@ Route::middleware(['auth', 'role:admin'])->prefix('admin')->name('admin.')->grou
     Route::resource('/subscriptions', Admin\SubscriptionController::class)->only(['index', 'store', 'update']);
     Route::get('/payments', [Admin\PaymentController::class, 'index'])->name('payments.index');
     Route::post('/payments/{subscription}/mark-paid', [Admin\PaymentController::class, 'markPaid'])->name('payments.mark-paid');
+    Route::get('/payment-settings', [Admin\PaymentController::class, 'settings'])->name('payment-settings.index');
+    Route::post('/payment-settings', [Admin\PaymentController::class, 'saveSettings'])->name('payment-settings.save');
 });

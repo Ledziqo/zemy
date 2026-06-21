@@ -57,6 +57,57 @@ class PaymentController extends Controller
         return view('admin.payments.index', ['rows' => $rows, 'summary' => $summary]);
     }
 
+    public function settings()
+    {
+        $settings = [
+            'telebirr_number' => env('PAYMENT_TELEBIRR', '0911 000 000'),
+            'cbe_account' => env('PAYMENT_CBE', '1000 0000 0000'),
+            'awash_account' => env('PAYMENT_AWASH', 'Contact us'),
+            'abyssinia_account' => env('PAYMENT_ABYSSINIA', 'Contact us'),
+            'telegram' => env('PAYMENT_TELEGRAM', '@Zemtab'),
+        ];
+
+        return view('admin.payments.settings', compact('settings'));
+    }
+
+    public function saveSettings(Request $request)
+    {
+        $data = $request->validate([
+            'telebirr_number' => ['nullable', 'string', 'max:255'],
+            'cbe_account' => ['nullable', 'string', 'max:255'],
+            'awash_account' => ['nullable', 'string', 'max:255'],
+            'abyssinia_account' => ['nullable', 'string', 'max:255'],
+            'telegram' => ['nullable', 'string', 'max:255'],
+        ]);
+
+        $this->updateEnv([
+            'PAYMENT_TELEBIRR' => $data['telebirr_number'] ?? '',
+            'PAYMENT_CBE' => $data['cbe_account'] ?? '',
+            'PAYMENT_AWASH' => $data['awash_account'] ?? '',
+            'PAYMENT_ABYSSINIA' => $data['abyssinia_account'] ?? '',
+            'PAYMENT_TELEGRAM' => $data['telegram'] ?? '',
+        ]);
+
+        return back()->with('success', 'Payment settings saved.');
+    }
+
+    private function updateEnv(array $updates): void
+    {
+        $path = base_path('.env');
+        if (! file_exists($path) || ! is_writable($path)) return;
+
+        $contents = file_get_contents($path);
+        foreach ($updates as $key => $value) {
+            $line = $key . '=' . $value;
+            if (preg_match('/^' . $key . '=.*/m', $contents)) {
+                $contents = preg_replace('/^' . $key . '=.*/m', $line, $contents);
+            } else {
+                $contents .= PHP_EOL . $line;
+            }
+        }
+        file_put_contents($path, $contents);
+    }
+
     public function markPaid(Request $request, Subscription $subscription)
     {
         $data = $request->validate([
