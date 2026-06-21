@@ -64,14 +64,22 @@ class PaymentController extends Controller
             'extend_days' => ['nullable', 'integer', 'min:1'],
         ]);
 
-        $extendDays = $data['extend_days'] ?? 30;
-        $baseDate = ($subscription->ends_at && $subscription->ends_at->greaterThan(now()))
-            ? $subscription->ends_at
-            : now();
+        $extendDays = (int) ($data['extend_days'] ?? 30);
+        $baseDate = now();
+        if ($subscription->ends_at) {
+            try {
+                $endDate = \Carbon\Carbon::parse($subscription->ends_at);
+                if ($endDate->greaterThan(now())) {
+                    $baseDate = $endDate;
+                }
+            } catch (\Exception $e) {
+                // If parsing fails, use now()
+            }
+        }
 
         $subscription->update([
             'status' => 'active',
-            'ends_at' => \Carbon\Carbon::parse($baseDate)->addDays($extendDays)->toDateString(),
+            'ends_at' => $baseDate->addDays($extendDays)->toDateString(),
             'payment_method' => $data['payment_method'] ?? $subscription->payment_method,
         ]);
 

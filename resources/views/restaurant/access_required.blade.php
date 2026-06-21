@@ -29,9 +29,9 @@
         <div class="mt-3 grid gap-2 text-sm">
             <p>Telebirr: <strong class="text-zem-cream">0911 000 000</strong></p>
             <p>CBE: <strong class="text-zem-cream">1000 0000 0000</strong></p>
-            <p>Telegram: <strong class="text-zem-cream">@Aesliex</strong></p>
+            <p>Telegram: <strong class="text-zem-cream">@Zemtab</strong></p>
         </div>
-        <p class="mt-3 text-xs text-zem-muted">After paying, send your payment screenshot to @Aesliex on Telegram. Access will be restored within minutes.</p>
+        <p class="mt-3 text-xs text-zem-muted">After paying, send your payment screenshot to @Zemtab on Telegram. Access will be restored within minutes.</p>
     </div>
 
     <form method="post" action="{{ route('logout') }}" class="mt-5">

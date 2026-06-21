@@ -114,7 +114,7 @@ function workBoard() {
             this.completedCount = {{ $orders->where('status', 'completed')->count() }};
             this.updatedTime = '{{ now()->format("H:i:s") }}';
 
-            setInterval(() => this.poll(), 8000);
+            setInterval(() => this.poll(), 4000);
         },
 
         showToast(message, type = 'success') {
@@ -128,7 +128,7 @@ function workBoard() {
         markCompleted(orderId) {
             const url = this.orderUpdateUrl.replace('__ID__', orderId);
             const formData = new FormData();
-            formData.append('_token', document.querySelector('meta[name="csrf-token"]')?.content || '{{ csrf_token() }}');
+            formData.append('_token', '{{ csrf_token() }}');
             formData.append('_method', 'PATCH');
             formData.append('status', 'completed');
 
@@ -137,7 +137,10 @@ function workBoard() {
                 body: formData,
                 headers: { 'X-Requested-With': 'XMLHttpRequest', 'Accept': 'application/json' },
             })
-            .then(r => r.json())
+            .then(r => {
+                if (!r.ok) throw new Error('Server returned ' + r.status);
+                return r.json();
+            })
             .then(data => {
                 if (data.success) {
                     const article = this.$refs.ordersList.querySelector('[data-order-id="' + orderId + '"]');
@@ -159,7 +162,7 @@ function workBoard() {
         markRequestCompleted(requestId) {
             const url = this.requestUpdateUrl.replace('__ID__', requestId);
             const formData = new FormData();
-            formData.append('_token', document.querySelector('meta[name="csrf-token"]')?.content || '{{ csrf_token() }}');
+            formData.append('_token', '{{ csrf_token() }}');
             formData.append('_method', 'PATCH');
             formData.append('status', 'completed');
 
@@ -168,7 +171,10 @@ function workBoard() {
                 body: formData,
                 headers: { 'X-Requested-With': 'XMLHttpRequest', 'Accept': 'application/json' },
             })
-            .then(r => r.json())
+            .then(r => {
+                if (!r.ok) throw new Error('Server returned ' + r.status);
+                return r.json();
+            })
             .then(data => {
                 if (data.success) {
                     const el = this.$refs.requestsList.querySelector('[data-request-id="' + requestId + '"]');
@@ -190,7 +196,10 @@ function workBoard() {
             fetch(this.pollUrl + '?order_since=' + this.latestOrderId + '&request_since=' + this.latestRequestId, {
                 headers: { 'X-Requested-With': 'XMLHttpRequest', 'Accept': 'application/json' },
             })
-            .then(r => r.json())
+            .then(r => {
+                if (!r.ok) return { orders: [], requests: [], activeRequests: this.activeRequests, latestOrderId: this.latestOrderId, latestRequestId: this.latestRequestId };
+                return r.json();
+            })
             .then(data => {
                 this.updatedTime = new Date().toLocaleTimeString('en-GB');
                 this.activeRequests = data.activeRequests;
