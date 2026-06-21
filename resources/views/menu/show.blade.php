@@ -29,7 +29,7 @@
     ];
     $activePaymentMethods = collect($allPaymentMethods)->filter(fn ($m, $key) => in_array($key, $enabledPaymentMethods, true));
 @endphp
-<main x-data="{ ...menuCart({ paymentDetails: {} }), paymentOpen: false, selectedPayment: null }" class="min-h-screen bg-neutral-100 pb-28 text-zem-ink">
+<main x-data="{ ...menuCart({ paymentDetails: {}, serviceChargePercentage: {{ (float) ($settings['service_charge_percentage'] ?? 0) }}, vatPercentage: {{ (float) ($settings['vat_percentage'] ?? 0) }} }), paymentOpen: false, selectedPayment: null }" class="min-h-screen bg-neutral-100 pb-28 text-zem-ink">
     <header class="sticky top-0 z-30 border-b border-black/10 bg-white/95 px-4 py-3 shadow-sm backdrop-blur">
         <div class="mx-auto max-w-5xl">
             <div class="flex items-center justify-between gap-3">
@@ -280,7 +280,11 @@
                 <div class="mt-5 grid gap-3">
                     <textarea name="note" rows="3" placeholder="Order note" class="rounded-lg border border-black/10 px-3 py-3 outline-none focus:border-zem-gold"></textarea>
                     <div id="cart-fields"></div>
-                    <div class="flex items-center justify-between text-lg font-extrabold"><span>Total</span><span x-text="money(total())"></span></div>
+                    <div class="rounded-xl bg-neutral-100 p-4">
+                        <div class="flex items-center justify-between text-sm font-bold text-neutral-600"><span>Items total</span><span x-text="money(total())"></span></div>
+                        <div x-show="extraPercentage() > 0" class="mt-2 flex items-center justify-between text-sm font-bold text-neutral-600"><span>VAT + service charge (<span x-text="extraPercentage()"></span>%)</span><span x-text="'+ ' + money(extraCharges())"></span></div>
+                        <div class="mt-3 flex items-center justify-between border-t border-black/10 pt-3 text-lg font-extrabold"><span>Final total</span><span x-text="money(finalTotal())"></span></div>
+                    </div>
                     <button class="rounded-xl bg-zem-gold py-4 font-extrabold text-white" :disabled="items.length === 0">Place order</button>
                 </div>
             </div>
@@ -295,11 +299,16 @@ function menuCart(config) {
         activeCategory: 'all',
         items: [],
         paymentDetails: config.paymentDetails || {},
+        serviceChargePercentage: Number(config.serviceChargePercentage || 0),
+        vatPercentage: Number(config.vatPercentage || 0),
         add(item) { const existing = this.items.find(i => i.id === item.id); existing ? existing.quantity++ : this.items.push({...item, quantity: 1, note: ''}); },
         dec(id) { const item = this.items.find(i => i.id === id); if (!item) return; item.quantity--; if (item.quantity <= 0) this.items = this.items.filter(i => i.id !== id); },
         count() { return this.items.reduce((sum, item) => sum + item.quantity, 0); },
         total() { return this.items.reduce((sum, item) => sum + item.quantity * item.price, 0); },
-        money(value) { return new Intl.NumberFormat('en-US').format(value) + ' ETB'; },
+        extraPercentage() { return this.serviceChargePercentage + this.vatPercentage; },
+        extraCharges() { return this.total() * (this.extraPercentage() / 100); },
+        finalTotal() { return this.total() + this.extraCharges(); },
+        money(value) { return new Intl.NumberFormat('en-US', { maximumFractionDigits: 2 }).format(value) + ' ETB'; },
         syncForm() {
             const holder = document.getElementById('cart-fields');
             holder.innerHTML = '';

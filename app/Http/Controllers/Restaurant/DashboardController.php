@@ -87,7 +87,7 @@ class DashboardController extends Controller
                 'status' => $order->status,
                 'total' => (float) $order->total,
                 'note' => $order->note,
-                'created_at' => $order->created_at->diffForHumans(),
+                'created_at' => $order->created_at->toIso8601String(),
                 'items' => $order->items->map(fn ($item) => [
                     'quantity' => $item->quantity,
                     'name' => $item->item_name,
@@ -107,7 +107,7 @@ class DashboardController extends Controller
                 'type' => $req->type,
                 'status' => $req->status,
                 'note' => $req->note,
-                'created_at' => $req->created_at->diffForHumans(),
+                'created_at' => $req->created_at->toIso8601String(),
             ]);
 
         return response()->json([

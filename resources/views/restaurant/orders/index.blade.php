@@ -28,7 +28,7 @@
             @forelse($orders as $order)
                 <article class="rounded-md border-l-4 border border-zem-border bg-zem-card p-4 {{ in_array($order->status, ['completed', 'cancelled'], true) ? 'border-l-gray-400 opacity-60' : 'border-l-zem-gold' }}" data-order-id="{{ $order->id }}" data-status="{{ $order->status }}" x-show="filter==='all' || (filter==='active' && !['completed','cancelled'].includes('{{ $order->status }}')) || (filter==='completed' && '{{ $order->status }}' === 'completed')">
                     <div class="flex flex-wrap items-start justify-between gap-3">
-                        <div><h2 class="font-display text-xl font-bold">{{ __('Order') }} #{{ $order->id }}</h2><p class="text-sm text-zem-muted">{{ $placeTitle }} {{ $order->table_number }} - {{ $order->created_at->diffForHumans() }}</p></div>
+                        <div><h2 class="font-display text-xl font-bold">{{ __('Order') }} #{{ $order->id }}</h2><p class="text-sm text-zem-muted">{{ $placeTitle }} {{ $order->table_number }} - <span data-created-at="{{ $order->created_at->toIso8601String() }}">{{ $order->created_at->diffForHumans() }}</span></p></div>
                         <span data-status-badge><x-status :status="$order->status" /></span>
                     </div>
                     <div class="mt-4 space-y-2">
@@ -60,14 +60,14 @@
             </div>
             <div class="grid gap-3" x-ref="requestsList">
                 @forelse($requests as $requestRow)
-                    <div class="rounded-md border {{ in_array($requestRow->status, ['pending', 'acknowledged'], true) ? 'border-zem-gold/40 bg-zem-gold/10' : 'border-zem-border bg-zem-card opacity-60' }} p-4" data-request-id="{{ $requestRow->id }}" data-status="{{ $requestRow->status }}">
+                    <div class="rounded-md border {{ in_array($requestRow->status, ['pending', 'acknowledged'], true) ? 'border-zem-gold/40 bg-zem-gold/10' : 'border-zem-border bg-zem-card opacity-60' }} p-4" data-request-id="{{ $requestRow->id }}" data-status="{{ $requestRow->status }}" x-show="filter === 'all' || (filter === 'active' && '{{ $requestRow->status }}' !== 'completed') || (filter === 'completed' && '{{ $requestRow->status }}' === 'completed')">
                         <div class="flex flex-wrap items-start justify-between gap-3">
                             <div>
                                 <strong>{{ $placeTitle }} {{ $requestRow->table_number }}</strong>
-                                <p class="mt-1 text-sm text-zem-muted">{{ $requestTypeLabels[$requestRow->type] ?? $restaurant->requestTypeLabel($requestRow->type) }} - {{ $requestRow->created_at->diffForHumans() }}</p>
+                                <p class="mt-1 text-sm text-zem-muted">{{ $requestTypeLabels[$requestRow->type] ?? $restaurant->requestTypeLabel($requestRow->type) }} - <span data-created-at="{{ $requestRow->created_at->toIso8601String() }}">{{ $requestRow->created_at->diffForHumans() }}</span></p>
                                 @if($requestRow->note)<p class="mt-2 text-sm">{{ $requestRow->note }}</p>@endif
                             </div>
-                            <x-status :status="$requestRow->status" />
+                            <span data-status-badge><x-status :status="$requestRow->status" /></span>
                         </div>
                         @if($requestRow->status !== 'completed')
                             <button type="button" @click="markRequestCompleted({{ $requestRow->id }})" class="mt-3 w-full rounded-md bg-zem-green px-4 py-2 text-sm font-bold text-white transition hover:opacity-90">{{ __('Mark as completed') }}</button>
@@ -123,6 +123,8 @@ function workBoard() {
             this.updatedTime = '{{ now()->format("H:i:s") }}';
 
             setInterval(() => this.poll(), 4000);
+            this.updateRelativeTimes();
+            setInterval(() => this.updateRelativeTimes(), 1000);
         },
 
         showToast(message, type = 'success') {
@@ -195,6 +197,9 @@ function workBoard() {
                         el.classList.add('border-zem-border', 'bg-zem-card', 'opacity-60');
                         const btn = el.querySelector('button');
                         if (btn) btn.remove();
+                        const badge = el.querySelector('[data-status-badge]');
+                        if (badge) badge.innerHTML = this.getStatusBadge('completed');
+                        this.applyFilter();
                     }
                     this.activeRequests--;
                     this.showToast(this.labels.requestCompleted);
@@ -274,7 +279,7 @@ function workBoard() {
             const completeBtn = isCompleted ? '' : '<button type="button" onclick="this.dispatchEvent(new CustomEvent(\'mark-completed\', {bubbles: true}))" class="rounded-md bg-zem-green px-4 py-2 text-sm font-bold text-white transition hover:opacity-90">' + this.escapeHtml(this.labels.markCompleted) + '</button>';
 
             article.innerHTML =
-                '<div class="flex flex-wrap items-start justify-between gap-3"><div><h2 class="font-display text-xl font-bold">' + this.escapeHtml(this.labels.order) + ' #' + order.id + '</h2><p class="text-sm text-zem-muted">' + this.escapeHtml(this.placeTitle) + ' ' + this.escapeHtml(order.table_number) + ' - ' + this.escapeHtml(order.created_at) + '</p></div><span data-status-badge>' + statusBadge + '</span></div>' +
+                '<div class="flex flex-wrap items-start justify-between gap-3"><div><h2 class="font-display text-xl font-bold">' + this.escapeHtml(this.labels.order) + ' #' + order.id + '</h2><p class="text-sm text-zem-muted">' + this.escapeHtml(this.placeTitle) + ' ' + this.escapeHtml(order.table_number) + ' - <span data-created-at="' + this.escapeHtml(order.created_at) + '">' + this.relativeTime(order.created_at) + '</span></p></div><span data-status-badge>' + statusBadge + '</span></div>' +
                 '<div class="mt-4 space-y-2">' + itemsHtml + '</div>' +
                 '<p class="mt-3 text-sm text-zem-muted">' + this.escapeHtml(this.labels.note) + ': ' + this.escapeHtml(order.note || this.labels.none) + '</p>' +
                 '<div class="mt-4 flex flex-wrap items-center justify-between gap-3"><strong>' + new Intl.NumberFormat('en-US').format(order.total) + ' ETB</strong>' + completeBtn + '</div>';
@@ -307,7 +312,7 @@ function workBoard() {
             const completeBtn = isCompleted ? '' : '<button type="button" class="mt-3 w-full rounded-md bg-zem-green px-4 py-2 text-sm font-bold text-white transition hover:opacity-90">' + this.escapeHtml(this.labels.markCompleted) + '</button>';
 
             div.innerHTML =
-                '<div class="flex flex-wrap items-start justify-between gap-3"><div><strong>' + this.escapeHtml(this.placeTitle) + ' ' + this.escapeHtml(req.table_number) + '</strong><p class="mt-1 text-sm text-zem-muted">' + this.escapeHtml(label) + ' - ' + this.escapeHtml(req.created_at) + '</p>' + (req.note ? '<p class="mt-2 text-sm">' + this.escapeHtml(req.note) + '</p>' : '') + '</div>' + statusBadge + '</div>' +
+                '<div class="flex flex-wrap items-start justify-between gap-3"><div><strong>' + this.escapeHtml(this.placeTitle) + ' ' + this.escapeHtml(req.table_number) + '</strong><p class="mt-1 text-sm text-zem-muted">' + this.escapeHtml(label) + ' - <span data-created-at="' + this.escapeHtml(req.created_at) + '">' + this.relativeTime(req.created_at) + '</span></p>' + (req.note ? '<p class="mt-2 text-sm">' + this.escapeHtml(req.note) + '</p>' : '') + '</div><span data-status-badge>' + statusBadge + '</span></div>' +
                 completeBtn;
 
             const btn = div.querySelector('button');
@@ -319,11 +324,18 @@ function workBoard() {
             }
 
             list.prepend(div);
+            this.applyFilter();
         },
 
         applyFilter() {
             if (!this.$refs.ordersList) return;
             this.$refs.ordersList.querySelectorAll('[data-order-id]').forEach(el => {
+                const completed = el.dataset.status === 'completed';
+                const active = !['completed', 'cancelled'].includes(el.dataset.status);
+                el.style.display = this.filter === 'all' || (this.filter === 'completed' && completed) || (this.filter === 'active' && active) ? '' : 'none';
+            });
+            if (!this.$refs.requestsList) return;
+            this.$refs.requestsList.querySelectorAll('[data-request-id]').forEach(el => {
                 const completed = el.dataset.status === 'completed';
                 el.style.display = this.filter === 'all' || (this.filter === 'completed' && completed) || (this.filter === 'active' && !completed) ? '' : 'none';
             });
@@ -352,6 +364,23 @@ function workBoard() {
             const div = document.createElement('div');
             div.textContent = String(value ?? '');
             return div.innerHTML;
+        },
+
+        relativeTime(timestamp) {
+            const elapsed = Math.max(0, Math.floor((Date.now() - new Date(timestamp).getTime()) / 1000));
+            if (elapsed < 60) return elapsed + ' ' + (elapsed === 1 ? @js(__('second ago')) : @js(__('seconds ago')));
+            const minutes = Math.floor(elapsed / 60);
+            if (minutes < 60) return minutes + ' ' + (minutes === 1 ? @js(__('minute ago')) : @js(__('minutes ago')));
+            const hours = Math.floor(minutes / 60);
+            if (hours < 24) return hours + ' ' + (hours === 1 ? @js(__('hour ago')) : @js(__('hours ago')));
+            const days = Math.floor(hours / 24);
+            return days + ' ' + (days === 1 ? @js(__('day ago')) : @js(__('days ago')));
+        },
+
+        updateRelativeTimes() {
+            document.querySelectorAll('[data-created-at]').forEach(el => {
+                el.textContent = this.relativeTime(el.dataset.createdAt);
+            });
         },
 
         getStatusBadge(status) {

@@ -175,5 +175,13 @@
     "Print setup pack": "የማዋቀሪያ ጥቅል አትም",
     "Generate QR": "QR ፍጠር",
     "Download QR": "QR አውርድ",
-    "Open menu": "ምናሌ ክፈት"
+    "Open menu": "ምናሌ ክፈት",
+    "second ago": "ሰከንድ በፊት",
+    "seconds ago": "ሰከንዶች በፊት",
+    "minute ago": "ደቂቃ በፊት",
+    "minutes ago": "ደቂቃዎች በፊት",
+    "hour ago": "ሰዓት በፊት",
+    "hours ago": "ሰዓታት በፊት",
+    "day ago": "ቀን በፊት",
+    "days ago": "ቀናት በፊት"
 }
