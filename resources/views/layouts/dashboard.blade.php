@@ -90,7 +90,13 @@
             <div class="mb-5 rounded-lg border border-zem-gold/40 bg-zem-gold/10 px-4 py-3 text-sm">
                 <p class="font-bold text-zem-gold">{{ __('Subscription expiring soon') }}</p>
                 <p class="mt-1 text-zem-muted">Your subscription expires in {{ $dashboardRestaurant->daysUntilExpiry() }} day(s). Please pay to keep your dashboard active.</p>
-                <p class="mt-2 text-zem-muted">Pay via Telebirr, CBE, Awash Bank, or Bank of Abyssinia. Send your payment screenshot with your restaurant name to Telegram: <strong class="text-zem-cream">{{ config('payment.telegram') }}</strong></p>
+                <div class="mt-3 grid gap-2 rounded-md border border-zem-gold/30 bg-zem-card/60 p-3 text-zem-muted sm:grid-cols-2">
+                    <p>Telebirr: <strong class="text-zem-cream">{{ config('payment.telebirr') }}</strong></p>
+                    <p>CBE: <strong class="text-zem-cream">{{ config('payment.cbe') }}</strong></p>
+                    <p>Awash Bank: <strong class="text-zem-cream">{{ config('payment.awash') }}</strong></p>
+                    <p>Bank of Abyssinia: <strong class="text-zem-cream">{{ config('payment.abyssinia') }}</strong></p>
+                </div>
+                <p class="mt-3 text-zem-muted">After paying, send your payment screenshot with your restaurant name to Telegram: <strong class="text-zem-cream">{{ config('payment.telegram') }}</strong></p>
             </div>
         @endif
         @yield('content')
