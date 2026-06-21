@@ -12,13 +12,15 @@
     </div>
 
     <div class="mt-6 rounded-md border border-zem-border bg-zem-bg p-4">
-        @php($sub = $restaurant->latestSubscription())
+        @php($sub = $restaurant->subscriptions()->latest('starts_at')->first())
         @if($sub)
             <div class="grid gap-2 text-sm">
                 <div class="flex justify-between"><span class="text-zem-muted">Plan:</span><strong>{{ $sub->plan_name }}</strong></div>
                 <div class="flex justify-between"><span class="text-zem-muted">Monthly price:</span><strong>{{ number_format($sub->monthly_price) }} ETB</strong></div>
-                <div class="flex justify-between"><span class="text-zem-muted">Expired on:</span><strong>{{ $sub->ends_at?->format('M j, Y') }}</strong></div>
+                <div class="flex justify-between"><span class="text-zem-muted">Expired on:</span><strong>{{ $sub->ends_at ? \Carbon\Carbon::parse($sub->ends_at)->format('M j, Y') : 'N/A' }}</strong></div>
             </div>
+        @else
+            <p class="text-sm text-zem-muted">No subscription information available.</p>
         @endif
     </div>
 

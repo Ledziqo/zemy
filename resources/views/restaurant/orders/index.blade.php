@@ -135,7 +135,7 @@ function workBoard() {
             fetch(url, {
                 method: 'POST',
                 body: formData,
-                headers: { 'X-Requested-With': 'XMLHttpRequest' },
+                headers: { 'X-Requested-With': 'XMLHttpRequest', 'Accept': 'application/json' },
             })
             .then(r => r.json())
             .then(data => {
@@ -166,7 +166,7 @@ function workBoard() {
             fetch(url, {
                 method: 'POST',
                 body: formData,
-                headers: { 'X-Requested-With': 'XMLHttpRequest' },
+                headers: { 'X-Requested-With': 'XMLHttpRequest', 'Accept': 'application/json' },
             })
             .then(r => r.json())
             .then(data => {
@@ -188,7 +188,7 @@ function workBoard() {
 
         poll() {
             fetch(this.pollUrl + '?order_since=' + this.latestOrderId + '&request_since=' + this.latestRequestId, {
-                headers: { 'X-Requested-With': 'XMLHttpRequest' },
+                headers: { 'X-Requested-With': 'XMLHttpRequest', 'Accept': 'application/json' },
             })
             .then(r => r.json())
             .then(data => {

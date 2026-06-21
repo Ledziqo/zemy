@@ -28,7 +28,7 @@ class ServiceRequestController extends Controller
         abort_unless($serviceRequest->restaurant_id === $this->restaurant($request)->id, 403);
         $serviceRequest->update($request->validate(['status' => ['required', 'in:pending,acknowledged,completed']]));
 
-        if ($request->wantsJson()) {
+        if ($request->wantsJson() || $request->header('X-Requested-With') === 'XMLHttpRequest') {
             return response()->json(['success' => true, 'status' => $serviceRequest->status]);
         }
 

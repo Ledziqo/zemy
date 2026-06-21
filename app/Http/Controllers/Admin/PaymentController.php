@@ -65,9 +65,9 @@ class PaymentController extends Controller
         ]);
 
         $extendDays = $data['extend_days'] ?? 30;
-        $baseDate = $subscription->ends_at && $subscription->ends_at > now()->toDateString()
+        $baseDate = ($subscription->ends_at && $subscription->ends_at->greaterThan(now()))
             ? $subscription->ends_at
-            : now()->toDateString();
+            : now();
 
         $subscription->update([
             'status' => 'active',

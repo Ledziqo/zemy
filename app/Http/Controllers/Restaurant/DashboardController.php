@@ -176,7 +176,7 @@ class DashboardController extends Controller
             'payment_status' => in_array($data['status'], ['paid', 'completed'], true) ? 'paid' : $order->payment_status,
         ]);
 
-        if ($request->wantsJson()) {
+        if ($request->wantsJson() || $request->header('X-Requested-With') === 'XMLHttpRequest') {
             return response()->json(['success' => true, 'status' => $order->status]);
         }
 

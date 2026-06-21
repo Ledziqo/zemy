@@ -12,7 +12,9 @@ class EnsureRestaurantDashboardAccess
     public function handle(Request $request, Closure $next): Response
     {
         $restaurant = $request->user()?->restaurant;
-        abort_unless($restaurant, 403);
+        if (! $restaurant) {
+            return redirect()->route('login');
+        }
 
         if (! Schema::hasColumn('restaurants', 'dashboard_access_status')) {
             return $next($request);
