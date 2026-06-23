@@ -72,6 +72,10 @@ class SetupController extends Controller
 
     private function runSetupCommands(array &$output, bool $seedDemoData = false): void
     {
+        $output[] = 'Clearing cached config/routes/views...';
+        Artisan::call('optimize:clear');
+        $output[] = Artisan::output();
+
         $this->baselineExistingDatabase($output);
 
         $output[] = 'Applying database migrations and updates...';
@@ -84,7 +88,7 @@ class SetupController extends Controller
             $output[] = Artisan::output();
         }
 
-        $output[] = 'Clearing cached config/routes/views...';
+        $output[] = 'Clearing cached config/routes/views after setup...';
         Artisan::call('optimize:clear');
         $output[] = Artisan::output();
     }
