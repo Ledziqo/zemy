@@ -28,6 +28,7 @@ class SetupController extends Controller
             if ($request->boolean('cleanup_stress_orders')) {
                 $this->cleanupStressOrders($output);
             }
+            $this->runStressDataAction($request, $output);
 
             if ($request->is('admin/*')) {
                 return redirect()->route('admin.database')->with('setup_output', trim(implode("\n", $output)));
@@ -46,6 +47,7 @@ class SetupController extends Controller
                     if ($request->boolean('cleanup_stress_orders')) {
                         $this->cleanupStressOrders($output);
                     }
+                    $this->runStressDataAction($request, $output);
 
                     if ($request->is('admin/*')) {
                         return redirect()->route('admin.database')->with('setup_output', trim(implode("\n", $output)));
@@ -201,6 +203,25 @@ class SetupController extends Controller
                 ->delete();
 
         $output[] = "Removed {$orderCount} stress-test orders and {$sessionCount} empty guest sessions.";
+    }
+
+    private function runStressDataAction(Request $request, array &$output): void
+    {
+        $action = $request->input('stress_data_action');
+        if (! in_array($action, ['seed', 'cleanup'], true)) {
+            return;
+        }
+
+        $args = ['action' => $action];
+        if ($action === 'seed') {
+            $args['--restaurants'] = (int) $request->input('stress_restaurants', 25);
+            $args['--tables'] = (int) $request->input('stress_tables', 10);
+            $args['--items'] = (int) $request->input('stress_items', 20);
+        }
+
+        $output[] = "Running stress data {$action}...";
+        Artisan::call('stress:data', $args);
+        $output[] = Artisan::output();
     }
 
     private function baselineExistingDatabase(array &$output): void

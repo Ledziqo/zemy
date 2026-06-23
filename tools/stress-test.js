@@ -9,6 +9,7 @@ const staffPassword = process.env.ZEMTAB_STAFF_PASSWORD || 'password';
 const durationSeconds = Number(process.env.ZEMTAB_DURATION || 60);
 const guestLoops = Number(process.env.ZEMTAB_GUEST_LOOPS || 2);
 const pollLoops = Number(process.env.ZEMTAB_POLL_LOOPS || 6);
+const maxConcurrency = Number(process.env.ZEMTAB_CONCURRENCY || 40);
 
 class Jar {
   constructor() { this.cookies = new Map(); }
@@ -123,7 +124,7 @@ async function main() {
   const end = Date.now() + durationSeconds * 1000;
   let index = 0;
   const workers = [];
-  const concurrency = Math.min(slugList.length || restaurants, 40);
+  const concurrency = Math.min(slugList.length || restaurants, maxConcurrency);
 
   for (let w = 0; w < concurrency; w++) {
     workers.push((async () => {
@@ -150,6 +151,7 @@ async function main() {
     restaurants: slugList.length || restaurants,
     slugs: slugList,
     durationSeconds,
+    concurrency,
     requests: metrics.length,
     failures: failed.length,
     summary: Object.fromEntries(Object.entries(byLabel).map(([label, rows]) => {

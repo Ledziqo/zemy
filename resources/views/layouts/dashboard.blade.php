@@ -67,7 +67,7 @@
 <div class="min-h-screen bg-zem-bg lg:flex" style="background-image:radial-gradient(circle at top right,rgba(210,38,48,.16),transparent 28%)">
     <aside class="border-b border-zem-border bg-zem-card/95 backdrop-blur lg:fixed lg:inset-y-0 lg:w-72 lg:border-b-0 lg:border-r">
         <div class="flex items-center justify-between px-5 py-5 lg:block">
-            <a href="{{ route('home') }}" class="inline-flex items-center rounded-xl border border-zem-border bg-gradient-to-br from-white to-zem-soft px-3 py-2 shadow-sm" aria-label="ZemTab Home"><img src="{{ asset('logo/zemtab-pantone-1795-c-icon-text-transparent.png') }}" alt="ZemTab" class="h-10 w-auto"></a>
+            <a href="{{ route('home') }}" class="inline-flex items-center" aria-label="ZemTab Home"><img src="{{ asset('logo/zemtab-pantone-1795-c-icon-text-transparent.png') }}" alt="ZemTab" class="h-12 w-auto"></a>
             <form method="post" action="{{ route('logout') }}">@csrf<button class="rounded-lg border border-zem-border px-3 py-2 text-sm text-zem-muted transition hover:border-zem-gold hover:text-zem-gold">{{ __('Logout') }}</button></form>
         </div>
         <nav class="flex gap-2 overflow-x-auto px-4 pb-4 lg:block lg:space-y-1">
@@ -84,9 +84,9 @@
             </div>
             @if(! $isAdmin && $dashboardLogoUrl)
                 <div class="hidden min-w-0 flex-1 items-center justify-center md:flex">
-                    <div class="inline-flex max-w-sm items-center gap-3 rounded-full border border-zem-border bg-zem-card/80 px-4 py-2 shadow-sm backdrop-blur">
-                        <img src="{{ $dashboardLogoUrl }}" alt="{{ $dashboardRestaurant->name }} logo" class="h-10 w-10 rounded-full border border-zem-border bg-white object-contain p-1">
-                        <span class="truncate text-sm font-bold text-zem-muted">Workspace</span>
+                    <div class="inline-flex max-w-md items-center gap-4 rounded-full border border-zem-border bg-zem-card/80 px-5 py-3 shadow-sm backdrop-blur">
+                        <img src="{{ $dashboardLogoUrl }}" alt="{{ $dashboardRestaurant->name }} logo" class="h-14 w-14 rounded-full border border-zem-border bg-white object-contain p-1.5">
+                        <span class="truncate text-base font-extrabold text-zem-cream">{{ $dashboardRestaurant->name }}</span>
                     </div>
                 </div>
             @endif
