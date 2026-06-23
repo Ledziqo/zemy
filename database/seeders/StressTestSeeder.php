@@ -16,7 +16,10 @@ class StressTestSeeder extends Seeder
 {
     public function run(): void
     {
-        $count = (int) env('STRESS_SEED_COUNT', 300);
+        $batch = (int) env('STRESS_BATCH', 1);
+        $batchSize = (int) env('STRESS_BATCH_SIZE', 50);
+        $start = ($batch - 1) * $batchSize + 1;
+        $end = $start + $batchSize - 1;
 
         $itemTemplates = [
             'Mains' => [
@@ -39,7 +42,7 @@ class StressTestSeeder extends Seeder
             ],
         ];
 
-        for ($i = 1; $i <= $count; $i++) {
+        for ($i = $start; $i <= $end; $i++) {
             $slug = 'zt-stress-' . str_pad((string) $i, 3, '0', STR_PAD_LEFT);
             $email = $slug . '@zemtab.test';
 
@@ -108,7 +111,7 @@ class StressTestSeeder extends Seeder
             );
         }
 
-        $this->command->info("StressTestSeeder: created {$count} restaurants with accounts, menu items, and tables.");
+        $this->command->info("StressTestSeeder batch {$batch}: created restaurants {$start}-{$end} ({$batchSize} restaurants with accounts, menu items, and tables).");
     }
 
     public static function cleanup(): void

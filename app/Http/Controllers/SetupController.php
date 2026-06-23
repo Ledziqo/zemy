@@ -26,7 +26,8 @@ class SetupController extends Controller
 
         try {
             if ($request->boolean('seed_stress_data')) {
-                $this->seedStressData($output);
+                $batch = (int) $request->integer('stress_batch', 1);
+                $this->seedStressData($output, $batch);
             } elseif ($request->boolean('cleanup_stress_data')) {
                 $this->cleanupStressData($output);
             } else {
@@ -44,28 +45,6 @@ class SetupController extends Controller
                 'output' => trim(implode("\n", $output)),
             ]);
         } catch (Throwable $exception) {
-            if (str_contains($exception->getMessage(), "'@'127.0.0.1'")) {
-                try {
-                    config(['database.connections.mysql.host' => 'localhost']);
-                    DB::purge('mysql');
-                    $output[] = 'First database attempt used 127.0.0.1 and failed. Retrying with localhost...';
-                    $this->runSetupCommands($output, $request->boolean('seed_demo_data'));
-                    if ($request->boolean('cleanup_stress_orders')) {
-                        $this->cleanupStressOrders($output);
-                    }
-
-                    if ($request->is('admin/*')) {
-                        return redirect()->route('admin.database')->with('setup_output', trim(implode("\n", $output)));
-                    }
-                    return view('setup.show', [
-                        'success' => true,
-                        'output' => trim(implode("\n", $output)),
-                    ]);
-                } catch (Throwable $retryException) {
-                    $exception = $retryException;
-                }
-            }
-
             if ($request->is('admin/*')) {
                 return redirect()->route('admin.database')->with('setup_output', $this->friendlyError($exception));
             }
@@ -100,12 +79,19 @@ class SetupController extends Controller
         $output[] = Artisan::output();
     }
 
-    private function seedStressData(array &$output): void
+    private function seedStressData(array &$output, int $batch): void
     {
-        $output[] = 'Seeding stress test restaurants (this may take a minute)...';
+        $start = ($batch - 1) * 50 + 1;
+        $end = $batch * 50;
+        $output[] = "Seeding stress test batch {$batch} (restaurants {$start}-{$end})...";
+
+        // Set env for the seeder to read
+        $_ENV['STRESS_BATCH'] = $batch;
+        $_ENV['STRESS_BATCH_SIZE'] = 50;
+
         Artisan::call('db:seed', ['--class' => 'StressTestSeeder', '--force' => true]);
         $output[] = Artisan::output();
-        $output[] = 'Stress test data seeded successfully. You can now run the stress test.';
+        $output[] = "Batch {$batch} complete. Restaurants {$start}-{$end} created.";
     }
 
     private function cleanupStressData(array &$output): void
