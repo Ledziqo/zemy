@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Restaurant;
 use App\Support\GuestVisitManager;
+use App\Support\PublicMenuCache;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
 
@@ -48,9 +49,7 @@ class MenuController extends Controller
 
     private function publicMenuPayload(string $restaurantSlug, string $tableNumber): array
     {
-        $version = (int) Restaurant::where('slug', $restaurantSlug)
-            ->where('is_active', true)
-            ->value('menu_cache_version') ?: 1;
+        $version = PublicMenuCache::versionForSlug($restaurantSlug);
 
         return Cache::remember(
             "public_menu:{$restaurantSlug}:v{$version}:{$tableNumber}",

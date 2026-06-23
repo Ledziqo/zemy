@@ -10,6 +10,7 @@ const durationSeconds = Number(process.env.ZEMTAB_DURATION || 60);
 const guestLoops = Number(process.env.ZEMTAB_GUEST_LOOPS || 2);
 const pollLoops = Number(process.env.ZEMTAB_POLL_LOOPS || 6);
 const maxConcurrency = Number(process.env.ZEMTAB_CONCURRENCY || 40);
+const orderEvery = Math.max(1, Number(process.env.ZEMTAB_ORDER_EVERY || 1));
 
 class Jar {
   constructor() { this.cookies = new Map(); }
@@ -72,6 +73,8 @@ async function guestFlow(index) {
   const itemId = firstItemId(html);
   if (!token || !itemId) throw new Error('missing csrf or item id');
 
+  if (index % orderEvery !== 0) return;
+
   const body = new URLSearchParams();
   body.set('_token', token);
   body.set('items[0][id]', itemId);
@@ -87,7 +90,7 @@ async function guestFlow(index) {
   if (![200, 302].includes(order.status)) throw new Error(`order ${order.status}`);
 }
 
-async function dashboardFlow(index) {
+async function loginDashboard(index) {
   const jar = new Jar();
   const staffIndex = (index % restaurants) + 1;
   const login = await timed('login-page', () => request(`${baseUrl}/login`, {}, jar));
@@ -107,6 +110,10 @@ async function dashboardFlow(index) {
   }, jar));
   if (![200, 302].includes(auth.status)) throw new Error(`login ${auth.status}`);
 
+  return jar;
+}
+
+async function dashboardPoll(jar) {
   let orderSince = 0;
   let requestSince = 0;
   for (let i = 0; i < pollLoops; i++) {
@@ -128,10 +135,14 @@ async function main() {
 
   for (let w = 0; w < concurrency; w++) {
     workers.push((async () => {
+      let dashboardJar = null;
       while (Date.now() < end) {
         const current = index++;
         await guestFlow(current);
-        if (current % guestLoops === 0) await dashboardFlow(current);
+        if (current % guestLoops === 0) {
+          dashboardJar ??= await loginDashboard(current);
+          await dashboardPoll(dashboardJar);
+        }
       }
     })());
   }
@@ -152,6 +163,7 @@ async function main() {
     slugs: slugList,
     durationSeconds,
     concurrency,
+    orderEvery,
     requests: metrics.length,
     failures: failed.length,
     summary: Object.fromEntries(Object.entries(byLabel).map(([label, rows]) => {
