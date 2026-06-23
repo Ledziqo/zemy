@@ -2,6 +2,10 @@
 
 const baseUrl = (process.env.ZEMTAB_BASE_URL || 'http://127.0.0.1:8000').replace(/\/$/, '');
 const restaurants = Number(process.env.ZEMTAB_RESTAURANTS || 25);
+const slugList = (process.env.ZEMTAB_SLUGS || '').split(',').map(s => s.trim()).filter(Boolean);
+const tableList = (process.env.ZEMTAB_TABLES || '1,2,3,4,5,6,7,8,9,10').split(',').map(s => s.trim()).filter(Boolean);
+const staffEmail = process.env.ZEMTAB_STAFF_EMAIL || '';
+const staffPassword = process.env.ZEMTAB_STAFF_PASSWORD || 'password';
 const durationSeconds = Number(process.env.ZEMTAB_DURATION || 60);
 const guestLoops = Number(process.env.ZEMTAB_GUEST_LOOPS || 2);
 const pollLoops = Number(process.env.ZEMTAB_POLL_LOOPS || 6);
@@ -54,8 +58,10 @@ function firstItemId(html) {
 
 async function guestFlow(index) {
   const jar = new Jar();
-  const table = (index % 10) + 1;
-  const slug = `zt-stress-${String((index % restaurants) + 1).padStart(3, '0')}`;
+  const table = tableList[index % tableList.length];
+  const slug = slugList.length > 0
+    ? slugList[index % slugList.length]
+    : `zt-stress-${String((index % restaurants) + 1).padStart(3, '0')}`;
   const menuUrl = `${baseUrl}/r/${slug}/table/${table}`;
 
   const menu = await timed('menu', () => request(menuUrl, {}, jar));
@@ -90,8 +96,8 @@ async function dashboardFlow(index) {
 
   const body = new URLSearchParams();
   body.set('_token', token);
-  body.set('email', `zt-stress-staff-${staffIndex}@zemtab.test`);
-  body.set('password', 'password');
+  body.set('email', staffEmail || `zt-stress-staff-${staffIndex}@zemtab.test`);
+  body.set('password', staffPassword);
 
   const auth = await timed('login', () => request(`${baseUrl}/login`, {
     method: 'POST',
@@ -136,7 +142,8 @@ async function main() {
   const byLabel = Object.groupBy ? Object.groupBy(ok, m => m.label) : ok.reduce((a, m) => ((a[m.label] ||= []).push(m), a), {});
   console.log(JSON.stringify({
     baseUrl,
-    restaurants,
+    restaurants: slugList.length || restaurants,
+    slugs: slugList,
     durationSeconds,
     requests: metrics.length,
     failures: failed.length,
