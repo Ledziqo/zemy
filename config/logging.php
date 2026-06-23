@@ -30,6 +30,13 @@ return [
             'days' => env('LOG_DAILY_DAYS', 14),
             'replace_placeholders' => true,
         ],
+        'slow' => [
+            'driver' => 'daily',
+            'path' => storage_path('logs/slow.log'),
+            'level' => env('LOG_LEVEL', 'debug'),
+            'days' => env('LOG_SLOW_DAYS', 14),
+            'replace_placeholders' => true,
+        ],
         'syslog' => [
             'driver' => 'syslog',
             'level' => env('LOG_LEVEL', 'debug'),

@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\GuestSession;
 use App\Models\Order;
+use Database\Seeders\StressTestSeeder;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\DB;
@@ -24,9 +25,15 @@ class SetupController extends Controller
         $this->applySubmittedDatabaseConfig($request, $output);
 
         try {
-            $this->runSetupCommands($output, $request->boolean('seed_demo_data'));
-            if ($request->boolean('cleanup_stress_orders')) {
-                $this->cleanupStressOrders($output);
+            if ($request->boolean('seed_stress_data')) {
+                $this->seedStressData($output);
+            } elseif ($request->boolean('cleanup_stress_data')) {
+                $this->cleanupStressData($output);
+            } else {
+                $this->runSetupCommands($output, $request->boolean('seed_demo_data'));
+                if ($request->boolean('cleanup_stress_orders')) {
+                    $this->cleanupStressOrders($output);
+                }
             }
 
             if ($request->is('admin/*')) {
@@ -91,6 +98,21 @@ class SetupController extends Controller
         $output[] = 'Clearing cached config/routes/views after setup...';
         Artisan::call('optimize:clear');
         $output[] = Artisan::output();
+    }
+
+    private function seedStressData(array &$output): void
+    {
+        $output[] = 'Seeding stress test restaurants (this may take a minute)...';
+        Artisan::call('db:seed', ['--class' => 'StressTestSeeder', '--force' => true]);
+        $output[] = Artisan::output();
+        $output[] = 'Stress test data seeded successfully. You can now run the stress test.';
+    }
+
+    private function cleanupStressData(array &$output): void
+    {
+        $output[] = 'Cleaning up stress test data...';
+        StressTestSeeder::cleanup();
+        $output[] = 'Stress test restaurants, users, orders, and related data removed.';
     }
 
     private function friendlyError(Throwable $exception): string

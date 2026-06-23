@@ -42,6 +42,23 @@
             <a href="/login" class="ml-3 text-sm font-bold text-neutral-300">Back to login</a>
         </form>
 
+        <div class="mt-8 border-t border-[#D8E0E7] pt-6">
+            <h2 class="text-lg font-extrabold">Stress test tools</h2>
+            <p class="mt-2 text-sm text-neutral-400">Create 300 test restaurants for load testing, or remove all stress test data after testing.</p>
+
+            <form method="post" action="/setup/run" class="mt-4">
+                @csrf
+                <input type="hidden" name="seed_stress_data" value="1">
+                <button class="rounded-lg bg-[#D22630] px-5 py-3 font-extrabold text-white">Seed stress test data (300 restaurants)</button>
+            </form>
+
+            <form method="post" action="/setup/run" class="mt-3">
+                @csrf
+                <input type="hidden" name="cleanup_stress_data" value="1">
+                <button class="rounded-lg border border-[#D22630] px-5 py-3 font-extrabold text-[#D22630]">Clean up stress test data</button>
+            </form>
+        </div>
+
         @isset($success)
             <div class="mt-6 rounded-lg border {{ $success ? 'border-green-500/40 bg-green-950/50' : 'border-red-500/40 bg-red-950/50' }} p-4">
                 <p class="font-bold">{{ $success ? 'Setup completed.' : 'Setup failed.' }}</p>
@@ -52,4 +69,3 @@
 </main>
 </body>
 </html>
-

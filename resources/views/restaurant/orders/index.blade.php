@@ -103,7 +103,7 @@ function workBoard() {
         latestOrderId: 0,
         latestRequestId: 0,
         pollTimer: null,
-        pollDelay: 10000,
+        pollDelay: 15000,
         idlePolls: 0,
         polling: false,
         pollUrl: '{{ route("restaurant.orders.poll") }}',
@@ -126,13 +126,13 @@ function workBoard() {
             this.completedCount = {{ $orders->where('status', 'completed')->count() }};
             this.updatedTime = '{{ now()->format("H:i:s") }}';
 
-            this.schedulePoll(10000);
+            this.schedulePoll(15000);
             document.addEventListener('visibilitychange', () => {
                 if (document.hidden) {
                     this.schedulePoll(60000);
                     return;
                 }
-                this.pollDelay = 10000;
+                this.pollDelay = 15000;
                 this.idlePolls = 0;
                 this.poll();
             });
@@ -266,10 +266,10 @@ function workBoard() {
                 this.latestRequestId = Math.max(this.latestRequestId, Number(data.latestRequestId || 0));
                 this.syncOrderStatuses(data.orderStatuses || []);
                 this.idlePolls = changed ? 0 : this.idlePolls + 1;
-                this.pollDelay = document.hidden ? 60000 : (this.idlePolls > 12 ? 30000 : (this.idlePolls > 3 ? 20000 : 10000));
+                this.pollDelay = document.hidden ? 60000 : (this.idlePolls > 12 ? 45000 : (this.idlePolls > 3 ? 25000 : 15000));
             })
             .catch(() => {
-                this.pollDelay = document.hidden ? 60000 : 30000;
+                this.pollDelay = document.hidden ? 60000 : 45000;
             })
             .finally(() => {
                 this.polling = false;

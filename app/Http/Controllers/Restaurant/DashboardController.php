@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Order;
 use App\Models\OrderItem;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Cache;
 
 class DashboardController extends Controller
 {
@@ -81,6 +82,12 @@ class DashboardController extends Controller
             ->unique()
             ->take(100);
 
+        // 5-second file cache: identical poll params return cached JSON without hitting the DB
+        $cacheKey = "poll:{$restaurant->id}:{$orderSince}:{$requestSince}:" . $visibleOrderIds->implode('-');
+        if ($cached = Cache::get($cacheKey)) {
+            return response()->json($cached);
+        }
+
         $latestOrderId = (int) ($restaurant->orders()->max('id') ?? 0);
         $latestRequestId = (int) ($restaurant->serviceRequests()->max('id') ?? 0);
         $orderStatuses = $visibleOrderIds->isEmpty()
@@ -88,7 +95,7 @@ class DashboardController extends Controller
             : $restaurant->orders()->whereIn('id', $visibleOrderIds)->get(['id', 'status'])->values();
 
         if ($latestOrderId <= $orderSince && $latestRequestId <= $requestSince) {
-            return response()->json([
+            $response = [
                 'orders' => [],
                 'requests' => [],
                 'orderStatuses' => $orderStatuses,
@@ -96,7 +103,9 @@ class DashboardController extends Controller
                 'latestRequestId' => max($requestSince, $latestRequestId),
                 'activeRequests' => null,
                 'hasChanges' => false,
-            ]);
+            ];
+            Cache::put($cacheKey, $response, 5);
+            return response()->json($response);
         }
 
         $newOrdersRaw = $latestOrderId > $orderSince
@@ -140,7 +149,7 @@ class DashboardController extends Controller
                 'created_at' => $req->created_at->toIso8601String(),
             ]);
 
-        return response()->json([
+        $response = [
             'orders' => $newOrders,
             'requests' => $newRequests,
             'orderStatuses' => $orderStatuses,
@@ -150,7 +159,9 @@ class DashboardController extends Controller
                 ? null
                 : $restaurant->serviceRequests()->whereIn('status', ['pending', 'acknowledged'])->count(),
             'hasChanges' => $newOrdersRaw->isNotEmpty() || $newRequestsRaw->isNotEmpty(),
-        ]);
+        ];
+        Cache::put($cacheKey, $response, 5);
+        return response()->json($response);
     }
 
     public function analytics(Request $request)

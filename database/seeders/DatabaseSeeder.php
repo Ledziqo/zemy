@@ -15,6 +15,11 @@ class DatabaseSeeder extends Seeder
 {
     public function run(): void
     {
+        if (env('STRESS_SEED')) {
+            $this->call(StressTestSeeder::class);
+            return;
+        }
+
         User::updateOrCreate(
             ['email' => env('ADMIN_EMAIL', 'admin@zemtab.test')],
             ['name' => 'ZemTab Admin', 'password' => Hash::make(env('ADMIN_PASSWORD', 'password')), 'role' => 'admin']
