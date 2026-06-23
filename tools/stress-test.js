@@ -123,7 +123,7 @@ async function main() {
   const end = Date.now() + durationSeconds * 1000;
   let index = 0;
   const workers = [];
-  const concurrency = Math.min(restaurants, 40);
+  const concurrency = Math.min(slugList.length || restaurants, 40);
 
   for (let w = 0; w < concurrency; w++) {
     workers.push((async () => {
@@ -135,7 +135,12 @@ async function main() {
     })());
   }
 
-  await Promise.allSettled(workers);
+  const results = await Promise.allSettled(workers);
+  for (const result of results) {
+    if (result.status === 'rejected') {
+      metrics.push({ label: 'flow', ms: 0, ok: false, status: 0, error: result.reason?.message || String(result.reason) });
+    }
+  }
 
   const ok = metrics.filter(m => m.ok);
   const failed = metrics.filter(m => !m.ok);

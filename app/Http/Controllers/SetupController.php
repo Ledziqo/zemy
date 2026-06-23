@@ -2,6 +2,8 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\GuestSession;
+use App\Models\Order;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\DB;
@@ -23,6 +25,9 @@ class SetupController extends Controller
 
         try {
             $this->runSetupCommands($output, $request->boolean('seed_demo_data'));
+            if ($request->boolean('cleanup_stress_orders')) {
+                $this->cleanupStressOrders($output);
+            }
 
             if ($request->is('admin/*')) {
                 return redirect()->route('admin.database')->with('setup_output', trim(implode("\n", $output)));
@@ -38,6 +43,9 @@ class SetupController extends Controller
                     DB::purge('mysql');
                     $output[] = 'First database attempt used 127.0.0.1 and failed. Retrying with localhost...';
                     $this->runSetupCommands($output, $request->boolean('seed_demo_data'));
+                    if ($request->boolean('cleanup_stress_orders')) {
+                        $this->cleanupStressOrders($output);
+                    }
 
                     if ($request->is('admin/*')) {
                         return redirect()->route('admin.database')->with('setup_output', trim(implode("\n", $output)));
@@ -163,6 +171,36 @@ class SetupController extends Controller
             'database' => config('database.connections.mysql.database'),
             'username' => config('database.connections.mysql.username'),
         ];
+    }
+
+    private function cleanupStressOrders(array &$output): void
+    {
+        $sessionIds = [];
+        $orderCount = 0;
+
+        Order::where('note', 'stress test order')
+            ->select(['id', 'guest_session_id'])
+            ->chunkById(200, function ($orders) use (&$sessionIds, &$orderCount) {
+                foreach ($orders as $order) {
+                    if ($order->guest_session_id) {
+                        $sessionIds[] = $order->guest_session_id;
+                    }
+                    $order->items()->delete();
+                    $order->delete();
+                    $orderCount++;
+                }
+            });
+
+        $sessionIds = array_values(array_unique($sessionIds));
+        $sessionCount = $sessionIds === []
+            ? 0
+            : GuestSession::whereIn('id', $sessionIds)
+                ->whereDoesntHave('orders')
+                ->whereDoesntHave('serviceRequests')
+                ->whereDoesntHave('payments')
+                ->delete();
+
+        $output[] = "Removed {$orderCount} stress-test orders and {$sessionCount} empty guest sessions.";
     }
 
     private function baselineExistingDatabase(array &$output): void
