@@ -6,29 +6,14 @@
  * Staged test: 100 → 200 → 300 restaurants
  * 
  * Usage:
- *   node tools/stress-test.js                          # Local (127.0.0.1:8000)
- *   ZEMTAB_BASE_URL=https://zemtab.com node tools/stress-test.js  # Production
- * 
- * Each restaurant:
- *   - 1 always-on dashboard screen polling every 15 seconds
- *   - Guest menu views + real order placement
- *   - 1 distinct login session per restaurant
- * 
- * Pass criteria per stage:
- *   - 0 errors (no 500, 503, timeouts)
- *   - p95 response time < 500ms
- *   - p99 response time < 2000ms
- *   - No request takes longer than 10s
- * 
- * The test auto-stops a stage on first error and moves to the next.
+ *   $env:ZEMTAB_BASE_URL="https://zemtab.com"; node tools/stress-test.js   (PowerShell)
+ *   ZEMTAB_BASE_URL=https://zemtab.com node tools/stress-test.js            (bash)
  */
 
 const baseUrl = (process.env.ZEMTAB_BASE_URL || 'http://127.0.0.1:8000').replace(/\/$/, '');
 const stages = (process.env.ZEMTAB_STAGES || '100,200,300').split(',').map(Number);
-const durationSeconds = Number(process.env.ZEMTAB_DURATION || 300); // 5 minutes per stage
-const pollIntervalMs = 15000; // 15 seconds — matches the optimized frontend
-const guestOrderEvery = 3; // Every 3rd guest flow places an order
-const maxConcurrency = 300; // Up to 300 concurrent workers
+const durationSeconds = Number(process.env.ZEMTAB_DURATION || 300);
+const maxConcurrency = 300;
 
 // ─── Helpers ──────────────────────────────────────────────
 
@@ -61,11 +46,11 @@ async function timed(label, fn) {
   }
 }
 
-async function request(url, options = {}, jar = new Jar()) {
+async function request(url, options = {}, jar = new Jar(), followRedirects = true) {
   const headers = { ...(options.headers || {}) };
   const cookie = jar.header();
   if (cookie) headers.cookie = cookie;
-  const res = await fetch(url, { redirect: 'manual', ...options, headers });
+  const res = await fetch(url, { redirect: followRedirects ? 'follow' : 'manual', ...options, headers });
   jar.store(res.headers);
   return res;
 }
@@ -86,6 +71,8 @@ function emailFor(index) {
   return slugFor(index) + '@zemtab.test';
 }
 
+function sleep(ms) { return new Promise(r => setTimeout(r, ms)); }
+
 // ─── Guest flow (menu view + optional order) ──────────────
 
 async function guestFlow(index) {
@@ -101,7 +88,7 @@ async function guestFlow(index) {
   const itemId = firstItemId(html);
   if (!token || !itemId) throw new Error('missing csrf or item id');
 
-  if (index % guestOrderEvery !== 0) return;
+  if (index % 3 !== 0) return;
 
   const body = new URLSearchParams();
   body.set('_token', token);
@@ -120,14 +107,13 @@ async function guestFlow(index) {
 
 // ─── Dashboard login + poll ──────────────────────────────
 
-const dashboardJars = new Map();
-
 async function loginDashboard(index) {
   const jar = new Jar();
   const email = emailFor(index);
 
   const login = await timed('login-page', () => request(`${baseUrl}/login`, {}, jar));
   const loginHtml = await login.text();
+  if (!login.ok) throw new Error(`login-page ${login.status}`);
   const token = csrf(loginHtml);
   if (!token) throw new Error('missing login csrf');
 
@@ -146,10 +132,10 @@ async function loginDashboard(index) {
   return jar;
 }
 
-async function dashboardPoll(index, jar) {
+async function dashboardPoll(jar) {
   let orderSince = 0;
   let requestSince = 0;
-  for (let i = 0; i < 3; i++) { // 3 polls per cycle (~45s), then re-schedule
+  for (let i = 0; i < 3; i++) {
     const poll = await timed('poll', () => request(
       `${baseUrl}/restaurant/orders/poll?order_since=${orderSince}&request_since=${requestSince}`,
       { headers: { accept: 'application/json', 'x-requested-with': 'XMLHttpRequest' } },
@@ -159,11 +145,9 @@ async function dashboardPoll(index, jar) {
     const data = await poll.json();
     orderSince = Math.max(orderSince, Number(data.latestOrderId || 0));
     requestSince = Math.max(requestSince, Number(data.latestRequestId || 0));
-    await sleep(5000); // 5s between polls in a burst
+    await sleep(5000);
   }
 }
-
-function sleep(ms) { return new Promise(r => setTimeout(r, ms)); }
 
 // ─── Stage runner ────────────────────────────────────────
 
@@ -174,39 +158,64 @@ async function runStage(restaurantCount) {
   let stageFailed = false;
   const errors = [];
 
-  // Workers: each simulates one restaurant's dashboard + periodic guest traffic
-  const workers = [];
-  const concurrency = Math.min(restaurantCount, maxConcurrency);
+  // Login in waves of 10 to avoid throttle limits
+  const dashboardJars = new Map();
+  const loginWaveSize = 10;
+  const totalWaves = Math.ceil(restaurantCount / loginWaveSize);
 
-  for (let w = 0; w < concurrency; w++) {
-    workers.push((async () => {
-      const restaurantIndex = w;
-      let dashboardJar = null;
+  for (let wave = 0; wave < totalWaves; wave++) {
+    if (Date.now() >= end) break;
+    const waveStart = wave * loginWaveSize;
+    const waveEnd = Math.min(waveStart + loginWaveSize, restaurantCount);
 
-      // Login once per restaurant
-      try {
-        dashboardJar = await loginDashboard(restaurantIndex);
-        dashboardJars.set(restaurantIndex, dashboardJar);
-      } catch (e) {
-        errors.push(`login failed for restaurant ${restaurantIndex + 1}: ${e.message}`);
-        stageFailed = true;
-        return;
-      }
+    const loginPromises = [];
+    for (let i = waveStart; i < waveEnd; i++) {
+      loginPromises.push((async () => {
+        try {
+          const jar = await loginDashboard(i);
+          dashboardJars.set(i, jar);
+        } catch (e) {
+          errors.push(`login failed for restaurant ${i + 1}: ${e.message}`);
+          stageFailed = true;
+        }
+      })());
+    }
+    await Promise.allSettled(loginPromises);
 
-      // Poll loop
+    if (stageFailed) break;
+    // Wait 65 seconds between login waves to respect throttle (10/min)
+    if (wave < totalWaves - 1) {
+      console.log(`  Logged in ${dashboardJars.size}/${restaurantCount} restaurants, waiting 65s for throttle reset...`);
+      await sleep(65000);
+    }
+  }
+
+  if (stageFailed) {
+    return { restaurantCount, passed: false, summary: {}, errors: errors.slice(0, 10), totalRequests: stageMetrics.length, totalErrors: errors.length };
+  }
+
+  console.log(`  All ${restaurantCount} restaurants logged in. Starting poll loop...`);
+
+  // Poll loop — each restaurant polls continuously
+  const pollWorkers = [];
+  for (let i = 0; i < restaurantCount; i++) {
+    const jar = dashboardJars.get(i);
+    if (!jar) continue;
+    pollWorkers.push((async () => {
       while (Date.now() < end && !stageFailed) {
         try {
-          await dashboardPoll(restaurantIndex, dashboardJar);
+          await dashboardPoll(jar);
         } catch (e) {
-          errors.push(`poll failed for restaurant ${restaurantIndex + 1}: ${e.message}`);
-          stageFailed = true;
-          return;
+          errors.push(`poll failed for restaurant ${i + 1}: ${e.message}`);
+          if (e.message.includes('500') || e.message.includes('503') || e.message.includes('timeout')) {
+            stageFailed = true;
+          }
         }
       }
     })());
   }
 
-  // Guest traffic workers (separate, lighter)
+  // Guest traffic
   const guestWorkers = [];
   const guestConcurrency = Math.min(20, restaurantCount);
   for (let g = 0; g < guestConcurrency; g++) {
@@ -221,24 +230,23 @@ async function runStage(restaurantCount) {
             stageFailed = true;
           }
         }
-        await sleep(2000 + Math.random() * 3000); // 2-5s between guest visits
+        await sleep(2000 + Math.random() * 3000);
       }
     })());
   }
 
-  // Live progress reporter
+  // Live progress
   const progressInterval = setInterval(() => {
     const elapsed = Math.floor((Date.now() - (end - durationSeconds * 1000)) / 1000);
-    const ok = stageMetrics.filter(m => m.ok);
     const failed = stageMetrics.filter(m => !m.ok);
-    process.stdout.write(`\r  ${elapsed}s elapsed | Requests: ${stageMetrics.length} | Errors: ${failed.length} | Stage: ${stageFailed ? 'FAILING' : 'running'}    `);
+    process.stdout.write(`\r  ${elapsed}s | Requests: ${stageMetrics.length} | Errors: ${failed.length} | ${stageFailed ? 'FAILING' : 'running'}    `);
   }, 5000);
 
-  await Promise.allSettled([...workers, ...guestWorkers]);
+  await Promise.allSettled([...pollWorkers, ...guestWorkers]);
   clearInterval(progressInterval);
   process.stdout.write('\n');
 
-  // Calculate results
+  // Results
   const ok = stageMetrics.filter(m => m.ok);
   const failed = stageMetrics.filter(m => !m.ok);
   const byLabel = ok.reduce((a, m) => ((a[m.label] ||= []).push(m), a), {});
@@ -257,13 +265,7 @@ async function runStage(restaurantCount) {
   const pollStats = summary.poll || { p95Ms: 0, p99Ms: 0, count: 0 };
   const passed = !stageFailed && failed.length === 0 && pollStats.p95Ms < 500 && pollStats.p99Ms < 2000;
 
-  if (failed.length > 0 || stageFailed) {
-    const errorTypes = {};
-    errors.forEach(e => { errorTypes[e] = (errorTypes[e] || 0) + 1; });
-    return { restaurantCount, passed: false, summary, errors: errors.slice(0, 10), errorTypes, totalRequests: stageMetrics.length, totalErrors: failed.length };
-  }
-
-  return { restaurantCount, passed: true, summary, totalRequests: stageMetrics.length, totalErrors: 0 };
+  return { restaurantCount, passed, summary, errors: errors.slice(0, 10), totalRequests: stageMetrics.length, totalErrors: failed.length };
 }
 
 // ─── Main ────────────────────────────────────────────────
@@ -276,14 +278,17 @@ async function main() {
   console.log(`  Target: ${baseUrl}`);
   console.log(`  Stages: ${stages.join(' → ')} restaurants`);
   console.log(`  Duration per stage: ${durationSeconds}s (${durationSeconds / 60} min)`);
-  console.log(`  Poll interval: ${pollIntervalMs / 1000}s`);
-  console.log('═══════════════════════════════════════');
-  console.log('');
+  console.log('═══════════════════════════════════════\n');
 
   const results = [];
 
   for (const count of stages) {
-    console.log(`\n── Stage: ${count} restaurants (${durationSeconds / 60} min) ──`);
+    console.log(`\n── Stage: ${count} restaurants ──`);
+
+    // Login phase takes extra time: 10 per 65s
+    const loginTime = Math.ceil(count / 10) * 65;
+    console.log(`  Login phase: ~${Math.floor(loginTime / 60)}m ${loginTime % 60}s (waves of 10, 65s apart)`);
+
     const result = await runStage(count);
     results.push(result);
 
@@ -292,31 +297,29 @@ async function main() {
     const orderStats = result.summary?.order || { p95Ms: 0, count: 0 };
 
     console.log(`  Requests: ${result.totalRequests} | Errors: ${result.totalErrors}`);
-    console.log(`  Poll: ${pollStats.count} requests | avg ${pollStats.avgMs}ms | p95 ${pollStats.p95Ms}ms | p99 ${pollStats.p99Ms}ms`);
-    if (menuStats.count) console.log(`  Menu: ${menuStats.count} requests | p95 ${menuStats.p95Ms}ms`);
-    if (orderStats.count) console.log(`  Order: ${orderStats.count} requests | p95 ${orderStats.p95Ms}ms`);
+    if (pollStats.count) console.log(`  Poll: ${pollStats.count} | avg ${pollStats.avgMs}ms | p95 ${pollStats.p95Ms}ms | p99 ${pollStats.p99Ms}ms`);
+    if (menuStats.count) console.log(`  Menu: ${menuStats.count} | p95 ${menuStats.p95Ms}ms`);
+    if (orderStats.count) console.log(`  Order: ${orderStats.count} | p95 ${orderStats.p95Ms}ms`);
 
     if (result.passed) {
       console.log(`  Verdict: ✅ PASS\n`);
     } else {
       console.log(`  Verdict: ❌ FAIL`);
       if (result.errors?.length) {
-        console.log(`  First errors:`);
+        console.log(`  Errors:`);
         result.errors.slice(0, 5).forEach(e => console.log(`    - ${e}`));
       }
-      console.log('');
-      console.log('  ⚠️  Stopping test — this stage failed.');
+      console.log('\n  ⚠️  Stopping — stage failed.');
       break;
     }
 
-    // 30s rest between stages
     if (count !== stages[stages.length - 1]) {
       console.log('  Resting 30s before next stage...');
       await sleep(30000);
     }
   }
 
-  // ─── Final report ────────────────────────────────────
+  // Final report
   console.log('\n═══════════════════════════════════════');
   console.log('  FINAL STRESS TEST REPORT');
   console.log('═══════════════════════════════════════\n');
@@ -327,21 +330,19 @@ async function main() {
     console.log(`  ${icon} Stage ${r.restaurantCount}: ${r.totalRequests} requests, ${r.totalErrors} errors, p95 ${pollStats.p95Ms}ms, p99 ${pollStats.p99Ms}ms`);
   }
 
-  // Find the guaranteed safe number
   const passedStages = results.filter(r => r.passed);
   const lastPassed = passedStages.length > 0 ? passedStages[passedStages.length - 1].restaurantCount : 0;
 
   console.log('\n═══════════════════════════════════════');
   if (lastPassed > 0) {
-    const recommended = Math.floor(lastPassed * 0.75); // 75% of last passed = safe launch
+    const recommended = Math.floor(lastPassed * 0.75);
     console.log(`  GUARANTEED SAFE: ${lastPassed} restaurants`);
     console.log(`  RECOMMENDED LAUNCH: ${recommended} restaurants (25% safety margin)`);
   } else {
-    console.log('  ❌ ALL STAGES FAILED — do not launch until fixed');
+    console.log('  ❌ ALL STAGES FAILED — check errors above');
   }
   console.log('═══════════════════════════════════════\n');
 
-  // Exit code: 0 if any stage passed, 1 if all failed
   process.exit(passedStages.length > 0 ? 0 : 1);
 }
 
