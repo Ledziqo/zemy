@@ -34,7 +34,13 @@
                 </div>
                 <div class="grid gap-2">
                     <label class="text-sm font-bold text-zem-muted">Password</label>
-                    <input name="password" type="password" required placeholder="Your password" class="rounded-lg border border-zem-border bg-zem-bg px-4 py-3 outline-none focus:border-zem-gold">
+                    <div class="relative">
+                        <input id="password" name="password" type="password" required placeholder="Your password" class="w-full rounded-lg border border-zem-border bg-zem-bg px-4 py-3 pr-12 outline-none focus:border-zem-gold">
+                        <button type="button" id="password-toggle" class="absolute inset-y-0 right-0 flex w-12 items-center justify-center text-zem-muted transition hover:text-zem-gold" aria-label="Show password" aria-pressed="false">
+                            <svg id="password-eye" class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg>
+                            <svg id="password-eye-off" class="hidden h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M3 3l18 18M10.6 10.6A2 2 0 0012 14a2 2 0 001.4-.6M9.9 5.2A9.6 9.6 0 0112 5c6.5 0 10 7 10 7a17.7 17.7 0 01-2.7 3.7M6.1 6.7C3.5 8.5 2 12 2 12s3.5 7 10 7a9.7 9.7 0 005.3-1.6"/></svg>
+                        </button>
+                    </div>
                 </div>
                 <button class="rounded-lg bg-zem-gold py-3 font-bold text-white transition hover:opacity-90">Sign in</button>
             </form>
@@ -51,5 +57,16 @@
             </div>
         </div>
     </div>
+    <script>
+        document.getElementById('password-toggle')?.addEventListener('click', function() {
+            const input = document.getElementById('password');
+            const shown = input.type === 'text';
+            input.type = shown ? 'password' : 'text';
+            this.setAttribute('aria-label', shown ? 'Show password' : 'Hide password');
+            this.setAttribute('aria-pressed', shown ? 'false' : 'true');
+            document.getElementById('password-eye')?.classList.toggle('hidden', !shown);
+            document.getElementById('password-eye-off')?.classList.toggle('hidden', shown);
+        });
+    </script>
 </body>
 </html>

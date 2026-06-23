@@ -11,12 +11,12 @@ class Restaurant extends Model
 
     protected $fillable = [
         'name', 'slug', 'business_type', 'phone', 'email', 'location', 'logo_path', 'cover_image_path',
-        'primary_color', 'is_active', 'dashboard_access_status', 'settings',
+        'primary_color', 'is_active', 'dashboard_access_status', 'settings', 'menu_cache_version',
     ];
 
     protected function casts(): array
     {
-        return ['is_active' => 'boolean', 'settings' => 'array'];
+        return ['is_active' => 'boolean', 'settings' => 'array', 'menu_cache_version' => 'integer'];
     }
 
     public function users() { return $this->hasMany(User::class); }

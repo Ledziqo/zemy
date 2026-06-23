@@ -3,8 +3,9 @@
 namespace App\Http\Controllers\Restaurant;
 
 use App\Http\Controllers\Controller;
+use App\Support\ImageOptimizer;
+use App\Support\PublicMenuCache;
 use Illuminate\Http\Request;
-use Illuminate\Support\Str;
 
 class SettingsController extends Controller
 {
@@ -42,31 +43,25 @@ class SettingsController extends Controller
 
         $settings = $restaurant->settings ?? [];
         if ($request->filled('cropped_logo')) {
-            $data['logo_path'] = $this->storeCroppedLogo((string) $request->input('cropped_logo'));
+            $data['logo_path'] = ImageOptimizer::storeDataUrl((string) $request->input('cropped_logo'), 'restaurants', 600);
         } elseif ($request->hasFile('logo')) {
-            $file = $request->file('logo');
-            $filename = Str::uuid().'.'.$file->getClientOriginalExtension();
-            if (! is_dir(public_path('uploads/restaurants'))) {
-                mkdir(public_path('uploads/restaurants'), 0755, true);
-            }
-            $file->move(public_path('uploads/restaurants'), $filename);
-            $data['logo_path'] = 'uploads/restaurants/'.$filename;
+            $data['logo_path'] = ImageOptimizer::storeUpload($request->file('logo'), 'restaurants', 600);
         }
 
         if ($request->hasFile('telebirr_qr')) {
-            $data['telebirr_qr_path'] = $this->storeUploadedImage($request->file('telebirr_qr'), 'payment-qr');
+            $data['telebirr_qr_path'] = ImageOptimizer::storeUpload($request->file('telebirr_qr'), 'payment-qr', 1000);
         }
 
         if ($request->hasFile('cbe_qr')) {
-            $data['cbe_qr_path'] = $this->storeUploadedImage($request->file('cbe_qr'), 'payment-qr');
+            $data['cbe_qr_path'] = ImageOptimizer::storeUpload($request->file('cbe_qr'), 'payment-qr', 1000);
         }
 
         if ($request->hasFile('awash_qr')) {
-            $data['awash_qr_path'] = $this->storeUploadedImage($request->file('awash_qr'), 'payment-qr');
+            $data['awash_qr_path'] = ImageOptimizer::storeUpload($request->file('awash_qr'), 'payment-qr', 1000);
         }
 
         if ($request->hasFile('abyssinia_qr')) {
-            $data['abyssinia_qr_path'] = $this->storeUploadedImage($request->file('abyssinia_qr'), 'payment-qr');
+            $data['abyssinia_qr_path'] = ImageOptimizer::storeUpload($request->file('abyssinia_qr'), 'payment-qr', 1000);
         }
 
         $restaurant->update([
@@ -86,51 +81,8 @@ class SettingsController extends Controller
             ]),
         ]);
 
+        PublicMenuCache::bump($restaurant);
+
         return back()->with('success', 'Settings saved.');
-    }
-
-    private function storeCroppedLogo(string $dataUrl): string
-    {
-        if (! preg_match('/^data:image\/(png|jpe?g|webp);base64,(.+)$/', $dataUrl, $matches)) {
-            abort(422, 'Invalid logo crop data.');
-        }
-
-        $extension = match ($matches[1]) {
-            'jpeg', 'jpg' => 'jpg',
-            'webp' => 'webp',
-            default => 'png',
-        };
-        $bytes = base64_decode($matches[2], true);
-
-        if ($bytes === false) {
-            abort(422, 'Invalid logo crop data.');
-        }
-
-        if (strlen($bytes) > 4 * 1024 * 1024 || @getimagesizefromstring($bytes) === false) {
-            abort(422, 'The cropped logo must be a valid image no larger than 4 MB.');
-        }
-
-        $directory = public_path('uploads/restaurants');
-        if (! is_dir($directory)) {
-            mkdir($directory, 0755, true);
-        }
-
-        $filename = Str::uuid().'.'.$extension;
-        file_put_contents($directory.'/'.$filename, $bytes);
-
-        return 'uploads/restaurants/'.$filename;
-    }
-
-    private function storeUploadedImage($file, string $folder): string
-    {
-        $directory = public_path('uploads/'.$folder);
-        if (! is_dir($directory)) {
-            mkdir($directory, 0755, true);
-        }
-
-        $filename = Str::uuid().'.'.$file->getClientOriginalExtension();
-        $file->move($directory, $filename);
-
-        return 'uploads/'.$folder.'/'.$filename;
     }
 }

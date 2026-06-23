@@ -18,6 +18,7 @@ class MenuController extends Controller
         $visit = $visits->current($request, $restaurant, $restaurantTable);
 
         if ($visit) {
+            $visits->touch($visit);
             $visit->load([
                 'orders.items',
                 'serviceRequests' => fn ($query) => $query->latest(),
@@ -38,6 +39,7 @@ class MenuController extends Controller
         [$restaurant, $restaurantTable] = $this->publicMenuPayload($restaurant_slug, $table_number);
         $visit = $visits->current($request, $restaurant, $restaurantTable);
         if ($visit) {
+            $visits->touch($visit);
             $visit->load('orders.items');
         }
         $table = $table_number;
@@ -46,8 +48,12 @@ class MenuController extends Controller
 
     private function publicMenuPayload(string $restaurantSlug, string $tableNumber): array
     {
+        $version = (int) Restaurant::where('slug', $restaurantSlug)
+            ->where('is_active', true)
+            ->value('menu_cache_version') ?: 1;
+
         return Cache::remember(
-            "public_menu:{$restaurantSlug}:{$tableNumber}",
+            "public_menu:{$restaurantSlug}:v{$version}:{$tableNumber}",
             now()->addSeconds(self::PUBLIC_MENU_CACHE_SECONDS),
             function () use ($restaurantSlug, $tableNumber) {
                 $restaurant = Restaurant::where('slug', $restaurantSlug)->where('is_active', true)

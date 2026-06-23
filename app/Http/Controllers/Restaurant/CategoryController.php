@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Restaurant;
 
 use App\Http\Controllers\Controller;
 use App\Models\Category;
+use App\Support\PublicMenuCache;
 use Illuminate\Http\Request;
 
 class CategoryController extends Controller
@@ -18,7 +19,9 @@ class CategoryController extends Controller
 
     public function store(Request $request)
     {
-        $this->restaurant($request)->categories()->create($this->validated($request));
+        $restaurant = $this->restaurant($request);
+        $restaurant->categories()->create($this->validated($request));
+        PublicMenuCache::bump($restaurant);
         return back()->with('success', 'Category added.');
     }
 
@@ -26,6 +29,7 @@ class CategoryController extends Controller
     {
         abort_unless($category->restaurant_id === $this->restaurant($request)->id, 403);
         $category->update($this->validated($request));
+        PublicMenuCache::bump($this->restaurant($request));
         return back()->with('success', 'Category updated.');
     }
 
@@ -33,6 +37,7 @@ class CategoryController extends Controller
     {
         abort_unless($category->restaurant_id === $this->restaurant($request)->id, 403);
         $category->delete();
+        PublicMenuCache::bump($this->restaurant($request));
         return back()->with('success', 'Category deleted.');
     }
 

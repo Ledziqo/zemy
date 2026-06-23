@@ -55,6 +55,20 @@
         </div>
     </header>
 
+    {{-- Floating Telegram CTA --}}
+    <a
+        href="https://t.me/{{ ltrim(config('payment.telegram', '@Zemtab'), '@') }}"
+        target="_blank"
+        rel="noopener noreferrer"
+        aria-label="Chat with ZemTab on Telegram"
+        class="fixed bottom-5 left-5 z-50 inline-flex h-14 w-14 items-center justify-center rounded-full bg-[#229ED9] text-white shadow-xl shadow-sky-600/25 ring-1 ring-white/70 transition hover:-translate-y-0.5 hover:bg-[#1f91c8] focus:outline-none focus:ring-4 focus:ring-[#229ED9]/30 sm:h-auto sm:w-auto sm:gap-2 sm:rounded-lg sm:px-4 sm:py-3"
+    >
+        <svg class="h-6 w-6 shrink-0" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+            <path d="M21.94 4.11 18.7 19.39c-.24 1.08-.88 1.34-1.78.83l-4.94-3.64-2.38 2.29c-.27.27-.49.49-1 .49l.35-5.03 9.16-8.27c.4-.35-.09-.55-.62-.2L6.17 12.98l-4.88-1.52c-1.06-.33-1.08-1.06.22-1.57L20.6 2.54c.88-.33 1.66.21 1.34 1.57z"/>
+        </svg>
+        <span class="hidden text-sm font-extrabold sm:inline">{{ __('Chat on Telegram') }}</span>
+    </a>
+
     {{-- Hero Section --}}
     <section class="relative px-5 pt-24 sm:pt-28" aria-label="Hero">
         <div class="absolute inset-0 bg-[linear-gradient(135deg,#F8FAFC_0%,#FFFFFF_44%,#EEF3F7_100%)]"></div>

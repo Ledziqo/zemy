@@ -11,7 +11,7 @@ use Symfony\Component\HttpFoundation\Cookie;
 
 class GuestVisitManager
 {
-    public const MINUTES = 120;
+    public const MINUTES = 90;
     private const TOUCH_AFTER_MINUTES = 10;
 
     public function resolve(Request $request, Restaurant $restaurant, RestaurantTable $table): GuestSession
@@ -51,6 +51,16 @@ class GuestVisitManager
             ->whereNull('closed_at')
             ->where('expires_at', '>', now())
             ->first();
+    }
+
+    public function touch(GuestSession $visit): void
+    {
+        if ($this->shouldTouch($visit)) {
+            $visit->update([
+                'expires_at' => now()->addMinutes(self::MINUTES),
+                'last_seen_at' => now(),
+            ]);
+        }
     }
 
     public function cookieName(Restaurant $restaurant, RestaurantTable $table): string

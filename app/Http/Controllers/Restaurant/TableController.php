@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Restaurant;
 
 use App\Http\Controllers\Controller;
 use App\Models\RestaurantTable;
+use App\Support\PublicMenuCache;
 use Endroid\QrCode\Builder\Builder;
 use Endroid\QrCode\Writer\SvgWriter;
 use Illuminate\Http\Request;
@@ -32,6 +33,7 @@ class TableController extends Controller
     {
         $restaurant = $this->restaurant($request);
         $restaurant->tables()->create($this->validated($request));
+        PublicMenuCache::bump($restaurant);
         return back()->with('success', $restaurant->locationLabelTitle().' added.');
     }
 
@@ -40,6 +42,7 @@ class TableController extends Controller
         $restaurant = $this->restaurant($request);
         abort_unless($table->restaurant_id === $restaurant->id, 403);
         $table->update($this->validated($request));
+        PublicMenuCache::bump($restaurant);
         return back()->with('success', $restaurant->locationLabelTitle().' updated.');
     }
 
@@ -48,6 +51,7 @@ class TableController extends Controller
         $restaurant = $this->restaurant($request);
         abort_unless($table->restaurant_id === $restaurant->id, 403);
         $table->delete();
+        PublicMenuCache::bump($restaurant);
         return back()->with('success', $restaurant->locationLabelTitle().' deleted.');
     }
 

@@ -81,13 +81,34 @@ class DashboardController extends Controller
             ->unique()
             ->take(100);
 
-        $newOrders = $restaurant->orders()
-            ->with('items')
-            ->where('id', '>', $orderSince)
-            ->orderBy('id')
-            ->limit(100)
-            ->get()
-            ->map(fn ($order) => [
+        $latestOrderId = (int) ($restaurant->orders()->max('id') ?? 0);
+        $latestRequestId = (int) ($restaurant->serviceRequests()->max('id') ?? 0);
+        $orderStatuses = $visibleOrderIds->isEmpty()
+            ? collect()
+            : $restaurant->orders()->whereIn('id', $visibleOrderIds)->get(['id', 'status'])->values();
+
+        if ($latestOrderId <= $orderSince && $latestRequestId <= $requestSince) {
+            return response()->json([
+                'orders' => [],
+                'requests' => [],
+                'orderStatuses' => $orderStatuses,
+                'latestOrderId' => max($orderSince, $latestOrderId),
+                'latestRequestId' => max($requestSince, $latestRequestId),
+                'activeRequests' => null,
+                'hasChanges' => false,
+            ]);
+        }
+
+        $newOrdersRaw = $latestOrderId > $orderSince
+            ? $restaurant->orders()
+                ->with('items')
+                ->where('id', '>', $orderSince)
+                ->orderBy('id')
+                ->limit(100)
+                ->get()
+            : collect();
+
+        $newOrders = $newOrdersRaw->map(fn ($order) => [
                 'id' => $order->id,
                 'table_number' => $order->table_number,
                 'status' => $order->status,
@@ -102,12 +123,15 @@ class DashboardController extends Controller
                 ]),
             ]);
 
-        $newRequests = $restaurant->serviceRequests()
-            ->where('id', '>', $requestSince)
-            ->orderBy('id')
-            ->limit(100)
-            ->get()
-            ->map(fn ($req) => [
+        $newRequestsRaw = $latestRequestId > $requestSince
+            ? $restaurant->serviceRequests()
+                ->where('id', '>', $requestSince)
+                ->orderBy('id')
+                ->limit(100)
+                ->get()
+            : collect();
+
+        $newRequests = $newRequestsRaw->map(fn ($req) => [
                 'id' => $req->id,
                 'table_number' => $req->table_number,
                 'type' => $req->type,
@@ -119,12 +143,13 @@ class DashboardController extends Controller
         return response()->json([
             'orders' => $newOrders,
             'requests' => $newRequests,
-            'orderStatuses' => $visibleOrderIds->isEmpty()
-                ? collect()
-                : $restaurant->orders()->whereIn('id', $visibleOrderIds)->get(['id', 'status'])->values(),
-            'latestOrderId' => max($orderSince, (int) ($newOrders->max('id') ?? 0)),
-            'latestRequestId' => max($requestSince, (int) ($newRequests->max('id') ?? 0)),
-            'activeRequests' => $restaurant->serviceRequests()->whereIn('status', ['pending', 'acknowledged'])->count(),
+            'orderStatuses' => $orderStatuses,
+            'latestOrderId' => max($orderSince, $latestOrderId, (int) ($newOrders->max('id') ?? 0)),
+            'latestRequestId' => max($requestSince, $latestRequestId, (int) ($newRequests->max('id') ?? 0)),
+            'activeRequests' => $newRequestsRaw->isEmpty()
+                ? null
+                : $restaurant->serviceRequests()->whereIn('status', ['pending', 'acknowledged'])->count(),
+            'hasChanges' => $newOrdersRaw->isNotEmpty() || $newRequestsRaw->isNotEmpty(),
         ]);
     }
 

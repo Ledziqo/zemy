@@ -102,6 +102,10 @@ function workBoard() {
         toastType: 'success',
         latestOrderId: 0,
         latestRequestId: 0,
+        pollTimer: null,
+        pollDelay: 10000,
+        idlePolls: 0,
+        polling: false,
         pollUrl: '{{ route("restaurant.orders.poll") }}',
         orderUpdateUrl: '{{ route("restaurant.orders.update", ["__ID__"]) }}',
         requestUpdateUrl: '{{ route("restaurant.service-requests.update", ["__ID__"]) }}',
@@ -122,9 +126,23 @@ function workBoard() {
             this.completedCount = {{ $orders->where('status', 'completed')->count() }};
             this.updatedTime = '{{ now()->format("H:i:s") }}';
 
-            this.pollInterval = setInterval(() => this.poll(), 10000);
+            this.schedulePoll(10000);
+            document.addEventListener('visibilitychange', () => {
+                if (document.hidden) {
+                    this.schedulePoll(60000);
+                    return;
+                }
+                this.pollDelay = 10000;
+                this.idlePolls = 0;
+                this.poll();
+            });
             this.updateRelativeTimes();
             setInterval(() => this.updateRelativeTimes(), 1000);
+        },
+
+        schedulePoll(delay = this.pollDelay) {
+            clearTimeout(this.pollTimer);
+            this.pollTimer = setTimeout(() => this.poll(), delay);
         },
 
         showToast(message, type = 'success') {
@@ -209,6 +227,8 @@ function workBoard() {
         },
 
         poll() {
+            if (this.polling) return;
+            this.polling = true;
             const params = new URLSearchParams({
                 order_since: this.latestOrderId,
                 request_since: this.latestRequestId,
@@ -224,7 +244,8 @@ function workBoard() {
             })
             .then(data => {
                 this.updatedTime = new Date().toLocaleTimeString('en-GB');
-                this.activeRequests = data.activeRequests;
+                if (typeof data.activeRequests === 'number') this.activeRequests = data.activeRequests;
+                const changed = Boolean(data.hasChanges) || (data.orders || []).length > 0 || (data.requests || []).length > 0;
 
                 if (data.orders.length > 0) {
                     [...data.orders].sort((a, b) => a.id - b.id).forEach(order => {
@@ -244,8 +265,16 @@ function workBoard() {
                 this.latestOrderId = Math.max(this.latestOrderId, Number(data.latestOrderId || 0));
                 this.latestRequestId = Math.max(this.latestRequestId, Number(data.latestRequestId || 0));
                 this.syncOrderStatuses(data.orderStatuses || []);
+                this.idlePolls = changed ? 0 : this.idlePolls + 1;
+                this.pollDelay = document.hidden ? 60000 : (this.idlePolls > 12 ? 30000 : (this.idlePolls > 3 ? 20000 : 10000));
             })
-            .catch(() => {});
+            .catch(() => {
+                this.pollDelay = document.hidden ? 60000 : 30000;
+            })
+            .finally(() => {
+                this.polling = false;
+                this.schedulePoll(this.pollDelay);
+            });
         },
 
         playBeep() {

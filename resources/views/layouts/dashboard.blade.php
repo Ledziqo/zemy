@@ -2,6 +2,12 @@
     $isAdmin = request()->is('admin/*');
     $dashboardRestaurant = $isAdmin ? null : auth()->user()?->restaurant;
     $placePlural = $dashboardRestaurant?->locationLabelTitle(true) ?? 'Tables';
+    $dashboardLogoUrl = $dashboardRestaurant?->logo_path
+        ? (\Illuminate\Support\Str::startsWith($dashboardRestaurant->logo_path, ['http://', 'https://', 'uploads/'])
+            ? (str_starts_with($dashboardRestaurant->logo_path, 'uploads/') ? asset($dashboardRestaurant->logo_path) : $dashboardRestaurant->logo_path)
+            : asset('storage/'.$dashboardRestaurant->logo_path))
+        : null;
+    $accountLabel = $isAdmin ? 'Admin' : (($dashboardRestaurant?->name ?? 'Restaurant').' Staff');
     $links = $isAdmin
         ? [
             ['Admin', route('admin.dashboard')],
@@ -48,7 +54,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Noto+Sans+Ethiopic:wght@400;500;600;700;800&family=Sora:wght@600;700;800&display=swap" rel="stylesheet">
     <style>
         :root{--zem-bg:248 250 252;--zem-card:255 255 255;--zem-text:0 0 0;--zem-muted:71 84 103;--zem-border:216 224 231;--zem-soft:238 243 247;color-scheme:light}
-        .dark{--zem-bg:15 23 42;--zem-card:30 41 59;--zem-text:241 245 249;--zem-muted:148 163 184;--zem-border:71 85 105;--zem-soft:51 65 85;color-scheme:dark}
+        .dark{--zem-bg:15 17 21;--zem-card:24 27 34;--zem-text:245 247 250;--zem-muted:167 176 190;--zem-border:48 53 65;--zem-soft:32 36 45;color-scheme:dark}
         .dark .bg-white{background-color:rgb(var(--zem-card))!important}.dark .bg-neutral-50,.dark .bg-neutral-100{background-color:rgb(var(--zem-soft))!important}.dark .text-black,.dark .text-neutral-700{color:rgb(var(--zem-text))!important}.dark .text-neutral-500,.dark .text-neutral-600{color:rgb(var(--zem-muted))!important}
         [x-cloak]{display:none!important}
         input,select,textarea,button{font-size:16px}
@@ -61,7 +67,7 @@
 <div class="min-h-screen bg-zem-bg lg:flex" style="background-image:radial-gradient(circle at top right,rgba(210,38,48,.16),transparent 28%)">
     <aside class="border-b border-zem-border bg-zem-card/95 backdrop-blur lg:fixed lg:inset-y-0 lg:w-72 lg:border-b-0 lg:border-r">
         <div class="flex items-center justify-between px-5 py-5 lg:block">
-            <a href="{{ route('home') }}" class="inline-flex items-center"><img src="{{ asset('logo/zemtab-pantone-1795-c-icon-text-transparent.png') }}" alt="ZemTab" class="h-12 w-auto"></a>
+            <a href="{{ route('home') }}" class="inline-flex items-center rounded-xl border border-zem-border bg-gradient-to-br from-white to-zem-soft px-3 py-2 shadow-sm" aria-label="ZemTab Home"><img src="{{ asset('logo/zemtab-pantone-1795-c-icon-text-transparent.png') }}" alt="ZemTab" class="h-10 w-auto"></a>
             <form method="post" action="{{ route('logout') }}">@csrf<button class="rounded-lg border border-zem-border px-3 py-2 text-sm text-zem-muted transition hover:border-zem-gold hover:text-zem-gold">{{ __('Logout') }}</button></form>
         </div>
         <nav class="flex gap-2 overflow-x-auto px-4 pb-4 lg:block lg:space-y-1">
@@ -76,12 +82,20 @@
                 <p class="text-sm uppercase tracking-widest text-zem-gold">{{ $eyebrow ?? ($isAdmin ? 'SaaS Admin' : ($dashboardRestaurant?->businessTypeLabel().' Dashboard')) }}</p>
                 <h1 class="font-display text-2xl font-bold md:text-4xl">{{ $heading ?? 'Dashboard' }}</h1>
             </div>
+            @if(! $isAdmin && $dashboardLogoUrl)
+                <div class="hidden min-w-0 flex-1 items-center justify-center md:flex">
+                    <div class="inline-flex max-w-sm items-center gap-3 rounded-full border border-zem-border bg-zem-card/80 px-4 py-2 shadow-sm backdrop-blur">
+                        <img src="{{ $dashboardLogoUrl }}" alt="{{ $dashboardRestaurant->name }} logo" class="h-10 w-10 rounded-full border border-zem-border bg-white object-contain p-1">
+                        <span class="truncate text-sm font-bold text-zem-muted">Workspace</span>
+                    </div>
+                </div>
+            @endif
             <div class="flex flex-wrap items-center gap-2">
                 @unless($isAdmin)
                     <form method="post" action="{{ route('locale.update') }}">@csrf<input type="hidden" name="locale" value="{{ app()->getLocale() === 'am' ? 'en' : 'am' }}"><button class="rounded-full border border-zem-border bg-zem-card px-3 py-2 text-sm font-bold text-zem-muted">{{ app()->getLocale() === 'am' ? 'English' : 'አማርኛ' }}</button></form>
                 @endunless
                 <button type="button" onclick="toggleZemtabTheme()" class="rounded-full border border-zem-border bg-zem-card px-3 py-2 text-sm font-bold text-zem-muted" aria-label="{{ __('Switch color theme') }}"><span class="dark:hidden">{{ __('Dark') }}</span><span class="hidden dark:inline">{{ __('Light') }}</span></button>
-                <div class="rounded-full border border-zem-border bg-zem-card px-4 py-2 text-sm text-zem-muted">{{ auth()->user()->name }}</div>
+                <div class="rounded-full border border-zem-border bg-zem-card px-4 py-2 text-sm font-bold text-zem-muted">{{ $accountLabel }}</div>
             </div>
         </header>
         @if(session('success'))<div class="mb-5 rounded-lg border border-zem-green/40 bg-zem-green/15 px-4 py-3 text-sm text-zem-cream">{{ session('success') }}</div>@endif
