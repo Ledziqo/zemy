@@ -12,8 +12,10 @@ class SlowRequestMiddleware
 {
     public function handle(Request $request, Closure $next): Response
     {
+        // Only log queries when explicitly enabled — query logging is expensive on production
+        $queryLogEnabled = env('SLOW_QUERY_LOG', false);
+
         $start = microtime(true);
-        $queryLogEnabled = config('app.debug') || env('SLOW_QUERY_LOG', true);
 
         if ($queryLogEnabled) {
             DB::enableQueryLog();
@@ -24,27 +26,26 @@ class SlowRequestMiddleware
         $duration = microtime(true) - $start;
         $durationMs = round($duration * 1000);
 
-        // Log requests slower than 500ms
+        // Log requests slower than threshold
         if ($durationMs > (int) env('SLOW_REQUEST_THRESHOLD_MS', 500)) {
-            $queries = DB::getQueryLog();
-            $queryCount = count($queries);
-            $slowQueries = array_filter($queries, fn ($q) => $q['time'] > (float) env('SLOW_QUERY_THRESHOLD_MS', 100));
-
             $logData = [
                 'url' => $request->fullUrl(),
                 'method' => $request->method(),
                 'duration_ms' => $durationMs,
-                'query_count' => $queryCount,
                 'status' => $response->getStatusCode(),
                 'ip' => $request->ip(),
             ];
 
-            if (!empty($slowQueries)) {
-                $logData['slow_queries'] = array_map(fn ($q) => [
-                    'sql' => $q['query'],
-                    'bindings' => $q['bindings'],
-                    'time_ms' => $q['time'],
-                ], array_slice($slowQueries, 0, 5));
+            if ($queryLogEnabled) {
+                $queries = DB::getQueryLog();
+                $logData['query_count'] = count($queries);
+                $slowQueries = array_filter($queries, fn ($q) => $q['time'] > (float) env('SLOW_QUERY_THRESHOLD_MS', 100));
+                if (!empty($slowQueries)) {
+                    $logData['slow_queries'] = array_map(fn ($q) => [
+                        'sql' => $q['query'],
+                        'time_ms' => $q['time'],
+                    ], array_slice($slowQueries, 0, 5));
+                }
             }
 
             Log::channel('slow')->warning('Slow request detected', $logData);

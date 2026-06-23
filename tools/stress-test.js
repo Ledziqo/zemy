@@ -13,7 +13,6 @@
 const baseUrl = (process.env.ZEMTAB_BASE_URL || 'http://127.0.0.1:8000').replace(/\/$/, '');
 const stages = (process.env.ZEMTAB_STAGES || '100,200,300').split(',').map(Number);
 const durationSeconds = Number(process.env.ZEMTAB_DURATION || 300);
-const maxConcurrency = 300;
 
 // ─── Helpers ──────────────────────────────────────────────
 
@@ -153,48 +152,36 @@ async function dashboardPoll(jar) {
 
 async function runStage(restaurantCount) {
   stageMetrics.length = 0;
-  const end = Date.now() + durationSeconds * 1000;
-  let guestIndex = 0;
   let stageFailed = false;
   const errors = [];
 
-  // Login in waves of 10 to avoid throttle limits
+  // Login ALL restaurants at once (throttle raised to 1000/min for testing)
+  console.log(`  Logging in ${restaurantCount} restaurants...`);
   const dashboardJars = new Map();
-  const loginWaveSize = 10;
-  const totalWaves = Math.ceil(restaurantCount / loginWaveSize);
+  const loginPromises = [];
 
-  for (let wave = 0; wave < totalWaves; wave++) {
-    if (Date.now() >= end) break;
-    const waveStart = wave * loginWaveSize;
-    const waveEnd = Math.min(waveStart + loginWaveSize, restaurantCount);
-
-    const loginPromises = [];
-    for (let i = waveStart; i < waveEnd; i++) {
-      loginPromises.push((async () => {
-        try {
-          const jar = await loginDashboard(i);
-          dashboardJars.set(i, jar);
-        } catch (e) {
-          errors.push(`login failed for restaurant ${i + 1}: ${e.message}`);
-          stageFailed = true;
-        }
-      })());
-    }
-    await Promise.allSettled(loginPromises);
-
-    if (stageFailed) break;
-    // Wait 65 seconds between login waves to respect throttle (10/min)
-    if (wave < totalWaves - 1) {
-      console.log(`  Logged in ${dashboardJars.size}/${restaurantCount} restaurants, waiting 65s for throttle reset...`);
-      await sleep(65000);
-    }
+  for (let i = 0; i < restaurantCount; i++) {
+    loginPromises.push((async () => {
+      try {
+        const jar = await loginDashboard(i);
+        dashboardJars.set(i, jar);
+      } catch (e) {
+        errors.push(`login failed for restaurant ${i + 1}: ${e.message}`);
+        stageFailed = true;
+      }
+    })());
   }
+  await Promise.allSettled(loginPromises);
 
   if (stageFailed) {
     return { restaurantCount, passed: false, summary: {}, errors: errors.slice(0, 10), totalRequests: stageMetrics.length, totalErrors: errors.length };
   }
 
-  console.log(`  All ${restaurantCount} restaurants logged in. Starting poll loop...`);
+  console.log(`  All ${restaurantCount} restaurants logged in. Starting ${durationSeconds / 60}-minute poll loop...`);
+
+  // NOW set the end time — poll phase starts AFTER login
+  const end = Date.now() + durationSeconds * 1000;
+  let guestIndex = 0;
 
   // Poll loop — each restaurant polls continuously
   const pollWorkers = [];
@@ -236,8 +223,9 @@ async function runStage(restaurantCount) {
   }
 
   // Live progress
+  const pollStart = Date.now();
   const progressInterval = setInterval(() => {
-    const elapsed = Math.floor((Date.now() - (end - durationSeconds * 1000)) / 1000);
+    const elapsed = Math.floor((Date.now() - pollStart) / 1000);
     const failed = stageMetrics.filter(m => !m.ok);
     process.stdout.write(`\r  ${elapsed}s | Requests: ${stageMetrics.length} | Errors: ${failed.length} | ${stageFailed ? 'FAILING' : 'running'}    `);
   }, 5000);
@@ -277,18 +265,13 @@ async function main() {
   console.log('═══════════════════════════════════════');
   console.log(`  Target: ${baseUrl}`);
   console.log(`  Stages: ${stages.join(' → ')} restaurants`);
-  console.log(`  Duration per stage: ${durationSeconds}s (${durationSeconds / 60} min)`);
+  console.log(`  Poll duration per stage: ${durationSeconds}s (${durationSeconds / 60} min)`);
   console.log('═══════════════════════════════════════\n');
 
   const results = [];
 
   for (const count of stages) {
     console.log(`\n── Stage: ${count} restaurants ──`);
-
-    // Login phase takes extra time: 10 per 65s
-    const loginTime = Math.ceil(count / 10) * 65;
-    console.log(`  Login phase: ~${Math.floor(loginTime / 60)}m ${loginTime % 60}s (waves of 10, 65s apart)`);
-
     const result = await runStage(count);
     results.push(result);
 
