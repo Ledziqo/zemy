@@ -4,6 +4,8 @@
 @include('restaurant.partials.order_sound_alerts', ['latestOrderId' => $latestOrderId])
 @php($placeTitle = __($restaurant->locationLabelTitle()))
 @php($requestTypeLabels = ['call_waiter' => __($restaurant->staffRequestLabel()), 'request_bill' => __('Request Bill'), 'request_water' => __('Request Water'), 'other' => __('Other')])
+@php($staffRole = session('staff_profile_role', 'owner_manager'))
+@php($paymentMethods = $paymentMethods ?? ['cash', 'telebirr', 'cbe', 'awash', 'abyssinia'])
 <div x-data="workBoard()" x-init="init()" x-cloak>
 <div class="mb-4 flex flex-wrap items-center justify-between gap-3">
     <div class="grid gap-3 sm:grid-cols-4">
@@ -28,7 +30,7 @@
             @forelse($orders as $order)
                 <article class="rounded-md border-l-4 border border-zem-border bg-zem-card p-4 {{ in_array($order->status, ['completed', 'cancelled'], true) ? 'border-l-gray-400 opacity-60' : 'border-l-zem-gold' }}" data-order-id="{{ $order->id }}" data-status="{{ $order->status }}" x-show="filter==='all' || (filter==='active' && !['completed','cancelled'].includes('{{ $order->status }}')) || (filter==='completed' && '{{ $order->status }}' === 'completed')">
                     <div class="flex flex-wrap items-start justify-between gap-3">
-                        <div><h2 class="font-display text-xl font-bold">{{ __('Order') }} #{{ $order->id }}</h2><p class="text-sm text-zem-muted">{{ $placeTitle }} {{ $order->table_number }} - <span data-created-at="{{ $order->created_at->toIso8601String() }}">{{ $order->created_at->diffForHumans() }}</span></p></div>
+                        <div><h2 class="font-display text-xl font-bold">{{ __('Order') }} #{{ $order->id }}</h2><p class="text-sm text-zem-muted">{{ $placeTitle }} {{ $order->table_number }}@if(($order->order_type ?? 'dine_in') === 'delivery') <span class="ml-1 rounded-full bg-purple-100 px-2 py-0.5 text-xs font-bold text-purple-700">Delivery</span>@endif - <span data-created-at="{{ $order->created_at->toIso8601String() }}">{{ $order->created_at->diffForHumans() }}</span></p></div>
                         <span data-status-badge><x-status :status="$order->status" /></span>
                     </div>
                     <div class="mt-4 space-y-2">
@@ -38,7 +40,27 @@
                     <div class="mt-4 flex flex-wrap items-center justify-between gap-3">
                         <strong>{{ number_format($order->total) }} ETB</strong>
                         @if(!in_array($order->status, ['completed', 'cancelled'], true))
-                            <button type="button" @click="markCompleted({{ $order->id }})" class="rounded-md bg-zem-green px-6 py-3 text-base font-bold text-white transition hover:opacity-90 min-h-[56px]">{{ __('Mark as completed') }}</button>
+                            @if($staffRole === 'cashier' && !in_array($order->status, ['paid']))
+                                <div class="flex gap-2">
+                                    <select id="payment-method-{{ $order->id }}" class="rounded-md border border-zem-border bg-white px-3 py-3 text-sm">
+                                        <option value="">Payment method...</option>
+                                        @foreach($paymentMethods as $method)
+                                            <option value="{{ $method }}">{{ ucfirst($method) }}</option>
+                                        @endforeach
+                                    </select>
+                                    <button type="button" @click="markPaid({{ $order->id }})" class="rounded-md bg-emerald-600 px-6 py-3 text-base font-bold text-white transition hover:opacity-90 min-h-[56px]">Mark Paid</button>
+                                </div>
+                            @elseif($staffRole === 'cashier' && $order->status === 'paid')
+                                <button type="button" @click="markCompleted({{ $order->id }})" class="rounded-md bg-zem-green px-6 py-3 text-base font-bold text-white transition hover:opacity-90 min-h-[56px]">{{ __('Mark as completed') }}</button>
+                            @elseif($staffRole === 'kitchen')
+                                @if($order->status === 'new')
+                                    <button type="button" @click="updateStatus({{ $order->id }}, 'preparing')" class="rounded-md bg-blue-600 px-6 py-3 text-base font-bold text-white transition hover:opacity-90 min-h-[56px]">Start Preparing</button>
+                                @elseif($order->status === 'preparing')
+                                    <button type="button" @click="updateStatus({{ $order->id }}, 'served')" class="rounded-md bg-green-600 px-6 py-3 text-base font-bold text-white transition hover:opacity-90 min-h-[56px]">Mark Served</button>
+                                @endif
+                            @else
+                                <button type="button" @click="markCompleted({{ $order->id }})" class="rounded-md bg-zem-green px-6 py-3 text-base font-bold text-white transition hover:opacity-90 min-h-[56px]">{{ __('Mark as completed') }}</button>
+                            @endif
                         @endif
                     </div>
                 </article>
@@ -151,6 +173,74 @@ function workBoard() {
             this.toast = true;
             clearTimeout(this._toastTimer);
             this._toastTimer = setTimeout(() => this.toast = false, 3000);
+        },
+
+        markPaid(orderId) {
+            const select = document.getElementById('payment-method-' + orderId);
+            const paymentMethod = select ? select.value : '';
+            if (!paymentMethod) { this.showToast('Select a payment method first', 'error'); return; }
+            const url = this.orderUpdateUrl.replace('__ID__', orderId);
+            const formData = new FormData();
+            formData.append('_token', '{{ csrf_token() }}');
+            formData.append('_method', 'PATCH');
+            formData.append('status', 'paid');
+            formData.append('payment_method', paymentMethod);
+            fetch(url, { method: 'POST', body: formData, headers: { 'X-Requested-With': 'XMLHttpRequest', 'Accept': 'application/json' } })
+            .then(r => { if (!r.ok) throw new Error('Server returned ' + r.status); return r.json(); })
+            .then(data => {
+                if (data.success) {
+                    const article = this.$refs.ordersList.querySelector('[data-order-id="' + orderId + '"]');
+                    if (article) {
+                        article.dataset.status = 'paid';
+                        const badge = article.querySelector('[data-status-badge]');
+                        if (badge) badge.innerHTML = this.getStatusBadge('paid');
+                        const selectEl = article.querySelector('select');
+                        const paidBtn = article.querySelector('button.bg-emerald-600');
+                        if (selectEl) selectEl.remove();
+                        if (paidBtn) {
+                            paidBtn.textContent = this.labels.markCompleted;
+                            paidBtn.className = 'rounded-md bg-zem-green px-6 py-3 text-base font-bold text-white transition hover:opacity-90 min-h-[56px]';
+                            paidBtn.onclick = () => this.markCompleted(orderId);
+                        }
+                        this.applyFilter();
+                    }
+                    this.showToast('Order #' + orderId + ' marked as paid (' + paymentMethod + ')');
+                }
+            })
+            .catch(() => this.showToast('Failed to mark order #' + orderId + ' as paid', 'error'));
+        },
+
+        updateStatus(orderId, status) {
+            const url = this.orderUpdateUrl.replace('__ID__', orderId);
+            const formData = new FormData();
+            formData.append('_token', '{{ csrf_token() }}');
+            formData.append('_method', 'PATCH');
+            formData.append('status', status);
+            fetch(url, { method: 'POST', body: formData, headers: { 'X-Requested-With': 'XMLHttpRequest', 'Accept': 'application/json' } })
+            .then(r => { if (!r.ok) throw new Error('Server returned ' + r.status); return r.json(); })
+            .then(data => {
+                if (data.success) {
+                    const article = this.$refs.ordersList.querySelector('[data-order-id="' + orderId + '"]');
+                    if (article) {
+                        article.dataset.status = status;
+                        const badge = article.querySelector('[data-status-badge]');
+                        if (badge) badge.innerHTML = this.getStatusBadge(status);
+                        const btn = article.querySelector('button');
+                        if (btn) {
+                            if (status === 'preparing') {
+                                btn.textContent = 'Mark Served';
+                                btn.className = 'rounded-md bg-green-600 px-6 py-3 text-base font-bold text-white transition hover:opacity-90 min-h-[56px]';
+                                btn.onclick = () => this.updateStatus(orderId, 'served');
+                            } else if (status === 'served') {
+                                btn.remove();
+                            }
+                        }
+                        this.applyFilter();
+                    }
+                    this.showToast('Order #' + orderId + ' status: ' + status);
+                }
+            })
+            .catch(() => this.showToast('Failed to update order #' + orderId, 'error'));
         },
 
         markCompleted(orderId) {
@@ -313,7 +403,7 @@ function workBoard() {
             const completeBtn = isCompleted ? '' : '<button type="button" onclick="this.dispatchEvent(new CustomEvent(\'mark-completed\', {bubbles: true}))" class="rounded-md bg-zem-green px-4 py-2 text-sm font-bold text-white transition hover:opacity-90">' + this.escapeHtml(this.labels.markCompleted) + '</button>';
 
             article.innerHTML =
-                '<div class="flex flex-wrap items-start justify-between gap-3"><div><h2 class="font-display text-xl font-bold">' + this.escapeHtml(this.labels.order) + ' #' + order.id + '</h2><p class="text-sm text-zem-muted">' + this.escapeHtml(this.placeTitle) + ' ' + this.escapeHtml(order.table_number) + ' - <span data-created-at="' + this.escapeHtml(order.created_at) + '">' + this.relativeTime(order.created_at) + '</span></p></div><span data-status-badge>' + statusBadge + '</span></div>' +
+                '<div class="flex flex-wrap items-start justify-between gap-3"><div><h2 class="font-display text-xl font-bold">' + this.escapeHtml(this.labels.order) + ' #' + order.id + '</h2><p class="text-sm text-zem-muted">' + this.escapeHtml(this.placeTitle) + ' ' + this.escapeHtml(order.table_number) + (order.order_type === 'delivery' ? ' <span class="ml-1 rounded-full bg-purple-100 px-2 py-0.5 text-xs font-bold text-purple-700">Delivery</span>' : '') + ' - <span data-created-at="' + this.escapeHtml(order.created_at) + '">' + this.relativeTime(order.created_at) + '</span></p></div><span data-status-badge>' + statusBadge + '</span></div>' +
                 '<div class="mt-4 space-y-2">' + itemsHtml + '</div>' +
                 '<p class="mt-3 text-sm text-zem-muted">' + this.escapeHtml(this.labels.note) + ': ' + this.escapeHtml(order.note || this.labels.none) + '</p>' +
                 '<div class="mt-4 flex flex-wrap items-center justify-between gap-3"><strong>' + new Intl.NumberFormat('en-US').format(order.total) + ' ETB</strong>' + completeBtn + '</div>';
