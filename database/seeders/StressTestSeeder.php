@@ -120,6 +120,10 @@ class StressTestSeeder extends Seeder
         $slugs = collect(range(1, $count))
             ->map(fn ($i) => 'zt-stress-' . str_pad((string) $i, 3, '0', STR_PAD_LEFT));
 
+        // Always delete stress test users (owner + staff) regardless of restaurants
+        User::whereIn('email', $slugs->map(fn ($s) => $s . '@zemtab.test'))->delete();
+        User::where('email', 'like', 'zt-stress-staff-%@zemtab.test')->delete();
+
         $restaurantIds = Restaurant::whereIn('slug', $slugs)->pluck('id');
 
         if ($restaurantIds->isEmpty()) {
@@ -141,9 +145,6 @@ class StressTestSeeder extends Seeder
         DB::table('subscriptions')->whereIn('restaurant_id', $restaurantIds)->delete();
         DB::table('guest_sessions')->whereIn('restaurant_id', $restaurantIds)->delete();
         DB::table('payments')->whereIn('restaurant_id', $restaurantIds)->delete();
-
-        // Delete users associated with these restaurants
-        User::whereIn('email', $slugs->map(fn ($s) => $s . '@zemtab.test'))->delete();
 
         // Delete the restaurants
         Restaurant::whereIn('id', $restaurantIds)->delete();
