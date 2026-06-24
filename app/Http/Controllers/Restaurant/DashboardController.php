@@ -64,6 +64,7 @@ class DashboardController extends Controller
                 ->get(),
             'activeRequests' => $restaurant->serviceRequests()->whereIn('status', ['pending', 'acknowledged'])->count(),
             'statuses' => Order::STATUSES,
+            'paymentMethods' => Order::PAYMENT_METHODS,
             'latestOrderId' => $restaurant->orders()->max('id') ?? 0,
             'latestRequestId' => $restaurant->serviceRequests()->max('id') ?? 0,
             'todayOrdersCount' => $restaurant->orders()->whereDate('created_at', today())->count(),
@@ -82,7 +83,6 @@ class DashboardController extends Controller
             ->unique()
             ->take(100);
 
-        // 5-second file cache: identical poll params return cached JSON without hitting the DB
         $cacheKey = "poll:{$restaurant->id}:{$orderSince}:{$requestSince}:" . $visibleOrderIds->implode('-');
         if ($cached = Cache::get($cacheKey)) {
             return response()->json($cached);
@@ -123,6 +123,8 @@ class DashboardController extends Controller
                 'status' => $order->status,
                 'total' => (float) $order->total,
                 'note' => $order->note,
+                'order_type' => $order->order_type ?? 'dine_in',
+                'payment_method' => $order->payment_method,
                 'created_at' => $order->created_at->toIso8601String(),
                 'items' => $order->items->map(fn ($item) => [
                     'quantity' => $item->quantity,
@@ -218,11 +220,28 @@ class DashboardController extends Controller
         $restaurant = $this->restaurant($request);
         abort_unless($order->restaurant_id === $restaurant->id, 403);
 
-        $data = $request->validate(['status' => ['required', 'in:'.implode(',', Order::STATUSES)]]);
-        $order->update([
+        $data = $request->validate([
+            'status' => ['required', 'in:'.implode(',', Order::STATUSES)],
+            'payment_method' => ['nullable', 'in:'.implode(',', Order::PAYMENT_METHODS)],
+        ]);
+
+        $profileId = $request->session()->get('staff_profile_id');
+        $profileRole = $request->session()->get('staff_profile_role');
+
+        $updateData = [
             'status' => $data['status'],
             'payment_status' => in_array($data['status'], ['paid', 'completed'], true) ? 'paid' : $order->payment_status,
-        ]);
+        ];
+
+        // Record which cashier handled the payment
+        if (in_array($data['status'], ['paid', 'completed'], true) && $profileRole === 'cashier' && $profileId) {
+            $updateData['handled_by_profile_id'] = $profileId;
+            if (! empty($data['payment_method'])) {
+                $updateData['payment_method'] = $data['payment_method'];
+            }
+        }
+
+        $order->update($updateData);
 
         if ($request->wantsJson() || $request->header('X-Requested-With') === 'XMLHttpRequest') {
             return response()->json(['success' => true, 'status' => $order->status]);

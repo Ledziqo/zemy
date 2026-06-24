@@ -20,6 +20,8 @@ class Restaurant extends Model
     }
 
     public function users() { return $this->hasMany(User::class); }
+    public function staffProfiles() { return $this->hasMany(StaffProfile::class); }
+    public function cashiers() { return $this->staffProfiles()->where('role', 'cashier'); }
     public function categories() { return $this->hasMany(Category::class)->orderBy('sort_order')->orderBy('name'); }
     public function menuItems() { return $this->hasMany(MenuItem::class); }
     public function tables() { return $this->hasMany(RestaurantTable::class); }

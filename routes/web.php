@@ -35,7 +35,12 @@ Route::get('/r/{restaurant_slug}/table/{table_number}/confirmation', [MenuContro
 
 Route::middleware(['auth', 'role:restaurant_owner,staff', 'locale'])->prefix('restaurant')->name('restaurant.')->group(function () {
     Route::get('/access-required', [Restaurant\AccessController::class, 'show'])->name('access-required');
-    Route::middleware('restaurant.access')->group(function () {
+
+    // Profile selection (after login, before dashboard)
+    Route::get('/profile-select', [AuthController::class, 'showProfileSelect'])->name('profile-select');
+    Route::post('/profile-login', [AuthController::class, 'profileLogin'])->name('profile-login');
+
+    Route::middleware(['restaurant.access', 'profile.selected'])->group(function () {
         Route::get('/dashboard', [Restaurant\DashboardController::class, 'index'])->name('dashboard');
         Route::get('/analytics', [Restaurant\DashboardController::class, 'analytics'])->name('analytics');
         Route::get('/orders', [Restaurant\DashboardController::class, 'orders'])->name('orders.index');
@@ -53,6 +58,19 @@ Route::middleware(['auth', 'role:restaurant_owner,staff', 'locale'])->prefix('re
         Route::patch('/service-requests/{serviceRequest}', [Restaurant\ServiceRequestController::class, 'update'])->name('service-requests.update');
         Route::get('/settings', [Restaurant\SettingsController::class, 'edit'])->name('settings.edit');
         Route::patch('/settings', [Restaurant\SettingsController::class, 'update'])->name('settings.update');
+
+        // Cashier reports (owner/manager only)
+        Route::get('/cashier-reports', [Restaurant\CashierReportController::class, 'index'])->name('cashier-reports');
+
+        // Delivery orders (owner/manager only)
+        Route::get('/delivery', [Restaurant\DeliveryOrderController::class, 'index'])->name('delivery.index');
+        Route::post('/delivery', [Restaurant\DeliveryOrderController::class, 'store'])->name('delivery.store');
+
+        // Staff profile management (owner/manager only)
+        Route::get('/staff-profiles', [Restaurant\StaffProfileController::class, 'index'])->name('staff-profiles.index');
+        Route::post('/staff-profiles', [Restaurant\StaffProfileController::class, 'store'])->name('staff-profiles.store');
+        Route::patch('/staff-profiles/{staffProfile}', [Restaurant\StaffProfileController::class, 'update'])->name('staff-profiles.update');
+        Route::delete('/staff-profiles/{staffProfile}', [Restaurant\StaffProfileController::class, 'destroy'])->name('staff-profiles.destroy');
     });
 });
 

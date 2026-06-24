@@ -7,7 +7,11 @@
             ? (str_starts_with($dashboardRestaurant->logo_path, 'uploads/') ? asset($dashboardRestaurant->logo_path) : $dashboardRestaurant->logo_path)
             : asset('storage/'.$dashboardRestaurant->logo_path))
         : null;
-    $accountLabel = $isAdmin ? 'Admin' : (($dashboardRestaurant?->name ?? 'Restaurant').' Staff');
+
+    $staffRole = session('staff_profile_role', 'owner_manager');
+    $profileName = session('staff_profile_name', 'Owner/Manager');
+    $accountLabel = $isAdmin ? 'Admin' : ($dashboardRestaurant?->name ?? 'Restaurant') . ' � ' . ($staffRole === 'owner_manager' ? 'Owner/Manager' : ($staffRole === 'cashier' ? 'Cashier' : 'Kitchen'));
+
     $links = $isAdmin
         ? [
             ['Admin', route('admin.dashboard')],
@@ -19,15 +23,28 @@
             ['Payment Settings', route('admin.payment-settings.index')],
             ['Database', route('admin.database')],
         ]
-        : [
-            [__('Overview'), route('restaurant.dashboard')],
-            [__('Analytics'), route('restaurant.analytics')],
-            [__('Work Board'), route('restaurant.orders.index')],
-            [__('Menu Items'), route('restaurant.menu-items.index')],
-            [__('Categories'), route('restaurant.categories.index')],
-            [$placePlural.' / QR', route('restaurant.tables.index')],
-            [__('Settings'), route('restaurant.settings.edit')],
-        ];
+        : ($staffRole === 'cashier'
+            ? [
+                [__('Work Board'), route('restaurant.orders.index')],
+            ]
+            : ($staffRole === 'kitchen'
+                ? [
+                    [__('Work Board'), route('restaurant.orders.index')],
+                ]
+                : [
+                    [__('Overview'), route('restaurant.dashboard')],
+                    [__('Analytics'), route('restaurant.analytics')],
+                    [__('Work Board'), route('restaurant.orders.index')],
+                    [__('Cashier Reports'), route('restaurant.cashier-reports')],
+                    [__('Delivery Orders'), route('restaurant.delivery.index')],
+                    [__('Menu Items'), route('restaurant.menu-items.index')],
+                    [__('Categories'), route('restaurant.categories.index')],
+                    [$placePlural.' / QR', route('restaurant.tables.index')],
+                    [__('Staff Profiles'), route('restaurant.staff-profiles.index')],
+                    [__('Settings'), route('restaurant.settings.edit')],
+                ]
+            )
+        );
 @endphp
 <!doctype html>
 <html lang="{{ app()->getLocale() }}">
@@ -92,7 +109,7 @@
             @endif
             <div class="flex flex-wrap items-center gap-2">
                 @unless($isAdmin)
-                    <form method="post" action="{{ route('locale.update') }}">@csrf<input type="hidden" name="locale" value="{{ app()->getLocale() === 'am' ? 'en' : 'am' }}"><button class="rounded-full border border-zem-border bg-zem-card px-3 py-2 text-sm font-bold text-zem-muted">{{ app()->getLocale() === 'am' ? 'English' : 'አማርኛ' }}</button></form>
+                    <form method="post" action="{{ route('locale.update') }}">@csrf<input type="hidden" name="locale" value="{{ app()->getLocale() === 'am' ? 'en' : 'am' }}"><button class="rounded-full border border-zem-border bg-zem-card px-3 py-2 text-sm font-bold text-zem-muted">{{ app()->getLocale() === 'am' ? 'English' : '????' }}</button></form>
                 @endunless
                 <button type="button" onclick="toggleZemtabTheme()" class="rounded-full border border-zem-border bg-zem-card px-3 py-2 text-sm font-bold text-zem-muted" aria-label="{{ __('Switch color theme') }}"><span class="dark:hidden">{{ __('Dark') }}</span><span class="hidden dark:inline">{{ __('Light') }}</span></button>
                 <div class="rounded-full border border-zem-border bg-zem-card px-4 py-2 text-sm font-bold text-zem-muted">{{ $accountLabel }}</div>
