@@ -22,7 +22,7 @@ Route::get('/setup', [SetupController::class, 'show'])->name('setup.show');
 Route::post('/setup/run', [SetupController::class, 'run'])->name('setup.run');
 
 Route::get('/login', [AuthController::class, 'showLogin'])->name('login');
-Route::post('/login', [AuthController::class, 'login'])->middleware('throttle:1000,1')->name('login.store');
+Route::post('/login', [AuthController::class, 'login'])->middleware('throttle:10,1')->name('login.store');
 Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
 
 Route::get('/r/{restaurant_slug}/table/{table_number}', [MenuController::class, 'show'])
