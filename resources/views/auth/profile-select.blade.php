@@ -14,7 +14,13 @@
 <body class="bg-zem-bg min-h-screen flex items-center justify-center px-4 py-10">
     <div class="w-full max-w-md">
         <div class="text-center mb-8">
-            <img src="{{ asset('logo/zemtab-pantone-1795-c-icon-text-transparent.png') }}" alt="ZemTab" class="h-14 mx-auto mb-4">
+            @php($zemtabBrandBadge = $restaurant->zemtabBrandBadge())
+            <div class="relative mx-auto mb-4 inline-flex pb-3 pr-8">
+                <img src="{{ asset('logo/zemtab-pantone-1795-c-icon-text-transparent.png') }}" alt="ZemTab" class="h-14">
+                @if($zemtabBrandBadge)
+                    <span class="absolute bottom-0 right-0 rounded-full border border-zem-border bg-white px-2 py-0.5 text-[.62rem] font-extrabold leading-none text-zem-gold shadow-sm">{{ $zemtabBrandBadge }}</span>
+                @endif
+            </div>
             <h1 class="font-display text-2xl font-bold text-zem-cream">{{ $restaurant->name }}</h1>
             <p class="text-sm text-zem-muted mt-1">Select your profile to continue</p>
         </div>
