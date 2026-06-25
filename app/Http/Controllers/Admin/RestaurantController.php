@@ -20,7 +20,7 @@ class RestaurantController extends Controller
         $this->ensureBusinessTypeColumn();
 
         return view('admin.restaurants.index', [
-            'restaurants' => Restaurant::with(['subscriptions', 'users'])->withCount('orders')->latest()->paginate(50),
+            'restaurants' => Restaurant::with(['subscriptions', 'users', 'staffProfiles'])->withCount('orders')->latest()->paginate(50),
             'owners' => User::whereIn('role', ['restaurant_owner', 'staff'])->orderBy('name')->get(),
         ]);
     }

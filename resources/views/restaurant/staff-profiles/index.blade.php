@@ -59,6 +59,13 @@
                         <input name="name" value="{{ $profile->name }}" class="rounded-lg border border-zem-border bg-white px-3 py-2">
                     </label>
                     <label class="grid gap-1 text-sm">
+                        <span class="font-bold">Role</span>
+                        <select name="role" class="rounded-lg border border-zem-border bg-white px-3 py-2">
+                            <option value="cashier" @selected($profile->role === 'cashier')>Cashier</option>
+                            <option value="kitchen" @selected($profile->role === 'kitchen')>Kitchen</option>
+                        </select>
+                    </label>
+                    <label class="grid gap-1 text-sm">
                         <span class="font-bold">New Password (leave blank to keep)</span>
                         <input name="password" type="password" placeholder="New password" class="rounded-lg border border-zem-border bg-white px-3 py-2">
                     </label>

@@ -90,6 +90,54 @@
                         <button class="rounded-md bg-zem-gold px-4 py-2 font-bold text-white">Save password</button>
                     </div>
                 </form>
+
+                <div class="mt-3 border-t border-zem-border pt-3">
+                    <h4 class="text-sm font-bold text-zem-cream">Staff profiles</h4>
+                    <form method="post" action="{{ route('admin.restaurants.staff-profiles.store', $restaurant) }}" class="mt-3 grid gap-3 md:grid-cols-5">
+                        @csrf
+                        <input name="name" required placeholder="Staff name" class="rounded-md border border-zem-border bg-zem-bg px-3 py-2">
+                        <select name="role" class="rounded-md border border-zem-border bg-zem-bg px-3 py-2">
+                            <option value="cashier">Cashier</option>
+                            <option value="kitchen">Kitchen</option>
+                        </select>
+                        <input name="password" type="password" required minlength="4" placeholder="Profile password" class="rounded-md border border-zem-border bg-zem-bg px-3 py-2">
+                        <label class="flex items-center gap-2"><input name="is_active" type="checkbox" value="1" checked> Active</label>
+                        <button class="rounded-md bg-zem-gold px-4 py-2 font-bold text-white">Add staff</button>
+                    </form>
+
+                    <div class="mt-3 grid gap-2">
+                        @forelse($restaurant->staffProfiles->sortBy('name') as $profile)
+                            <form method="post" action="{{ route('admin.restaurants.staff-profiles.update', [$restaurant, $profile]) }}" class="grid gap-2 rounded-md border border-zem-border bg-zem-soft p-3 md:grid-cols-6">
+                                @csrf @method('PATCH')
+                                <input name="name" value="{{ $profile->name }}" class="rounded-md border border-zem-border bg-zem-card px-3 py-2">
+                                @if($profile->role === 'owner_manager')
+                                    <input type="hidden" name="role" value="owner_manager">
+                                    <div class="rounded-md border border-zem-border bg-zem-card px-3 py-2 text-sm font-bold text-zem-muted">{{ $profile->roleLabel() }}</div>
+                                @else
+                                    <select name="role" class="rounded-md border border-zem-border bg-zem-card px-3 py-2">
+                                        <option value="cashier" @selected($profile->role === 'cashier')>Cashier</option>
+                                        <option value="kitchen" @selected($profile->role === 'kitchen')>Kitchen</option>
+                                    </select>
+                                @endif
+                                <input name="password" type="password" minlength="4" placeholder="New profile password optional" class="rounded-md border border-zem-border bg-zem-card px-3 py-2">
+                                <label class="flex items-center gap-2"><input name="is_active" type="checkbox" value="1" @checked($profile->is_active)> Active</label>
+                                <button class="rounded-md bg-zem-gold px-4 py-2 text-sm font-bold text-white">Save</button>
+                                @if($profile->role === 'owner_manager')
+                                    <span class="rounded-md border border-zem-border px-4 py-2 text-center text-sm font-bold text-zem-muted">Protected</span>
+                                @else
+                                    <button form="delete-staff-profile-{{ $profile->id }}" class="rounded-md border border-red-400 px-4 py-2 text-sm font-bold text-red-600" onclick="return confirm('Delete {{ $profile->name }}?')">Delete</button>
+                                @endif
+                            </form>
+                            @if($profile->role !== 'owner_manager')
+                                <form id="delete-staff-profile-{{ $profile->id }}" method="post" action="{{ route('admin.restaurants.staff-profiles.destroy', [$restaurant, $profile]) }}" class="hidden">
+                                    @csrf @method('DELETE')
+                                </form>
+                            @endif
+                        @empty
+                            <p class="rounded-md border border-zem-border bg-zem-soft px-3 py-2 text-sm text-zem-muted">No staff profiles yet.</p>
+                        @endforelse
+                    </div>
+                </div>
             </details>
         </article>
     @endforeach

@@ -77,6 +77,68 @@
 
     <aside>
         <div class="sticky top-4">
+            @if(in_array($staffRole, ['owner_manager', 'cashier'], true))
+                <div class="mb-5 rounded-md border border-zem-border bg-zem-card p-4" x-data="{ items: [], selected: '', qty: 1, note: '' }">
+                    <div class="flex items-center justify-between gap-3">
+                        <h2 class="font-display text-xl font-bold">{{ __('Manual Order') }}</h2>
+                    </div>
+                    <form method="post" action="{{ route('restaurant.orders.manual.store') }}" class="mt-4 space-y-3" @submit="if (items.length === 0) { $event.preventDefault(); showToast('Add at least one item', 'error'); }">
+                        @csrf
+                        <div class="grid gap-3 sm:grid-cols-2">
+                            <label class="grid gap-1 text-sm">
+                                <span class="font-bold">{{ $placeTitle }}</span>
+                                <input name="table_number" list="manual-order-tables" required placeholder="{{ __('Table or takeaway') }}" class="rounded-md border border-zem-border bg-white px-3 py-2">
+                                <datalist id="manual-order-tables">
+                                    @foreach($tables as $table)
+                                        <option value="{{ $table->table_number }}">{{ $table->table_name ?: $table->table_number }}</option>
+                                    @endforeach
+                                    <option value="Takeaway">{{ __('Takeaway') }}</option>
+                                </datalist>
+                            </label>
+                            <label class="grid gap-1 text-sm">
+                                <span class="font-bold">{{ __('Customer') }}</span>
+                                <input name="customer_name" placeholder="{{ __('Optional') }}" class="rounded-md border border-zem-border bg-white px-3 py-2">
+                            </label>
+                        </div>
+
+                        <div class="rounded-md border border-zem-border bg-zem-bg p-3">
+                            <div class="grid gap-2 sm:grid-cols-[1fr_86px_auto]">
+                                <select x-model="selected" class="rounded-md border border-zem-border bg-white px-3 py-2 text-sm">
+                                    <option value="">{{ __('Select menu item') }}...</option>
+                                    @foreach($menuItems as $item)
+                                        <option value="{{ $item->id }}" data-name="{{ $item->name }}" data-price="{{ $item->price }}">{{ $item->name }} - {{ number_format($item->price) }} ETB</option>
+                                    @endforeach
+                                </select>
+                                <input type="number" x-model.number="qty" min="1" max="50" class="rounded-md border border-zem-border bg-white px-3 py-2 text-sm" aria-label="{{ __('Quantity') }}">
+                                <button type="button" class="rounded-md bg-zem-gold px-4 py-2 text-sm font-bold text-white" @click="
+                                    const option = $el.parentElement.querySelector('select').selectedOptions[0];
+                                    if (! selected || ! option) return;
+                                    items.push({ id: selected, name: option.dataset.name, qty: qty || 1, note: '' });
+                                    selected = '';
+                                    qty = 1;
+                                ">{{ __('Add') }}</button>
+                            </div>
+                            <div class="mt-3 space-y-2">
+                                <template x-for="(item, index) in items" :key="index">
+                                    <div class="rounded-md border border-zem-border bg-zem-card p-2">
+                                        <div class="flex items-center justify-between gap-2 text-sm">
+                                            <span class="font-bold" x-text="item.qty + ' x ' + item.name"></span>
+                                            <button type="button" @click="items.splice(index, 1)" class="text-sm font-bold text-red-500">{{ __('Remove') }}</button>
+                                        </div>
+                                        <input type="text" x-model="item.note" placeholder="{{ __('Item note') }}" class="mt-2 w-full rounded-md border border-zem-border bg-white px-3 py-2 text-sm">
+                                        <input type="hidden" :name="'items[' + index + '][id]'" :value="item.id">
+                                        <input type="hidden" :name="'items[' + index + '][quantity]'" :value="item.qty">
+                                        <input type="hidden" :name="'items[' + index + '][note]'" :value="item.note">
+                                    </div>
+                                </template>
+                            </div>
+                        </div>
+
+                        <textarea name="note" rows="2" placeholder="{{ __('Order note') }}" class="w-full rounded-md border border-zem-border bg-white px-3 py-2 text-sm"></textarea>
+                        <button class="w-full rounded-md bg-zem-gold px-4 py-3 text-base font-bold text-white">{{ __('Create Manual Order') }}</button>
+                    </form>
+                </div>
+            @endif
             <div class="mb-3 flex items-center justify-between">
                 <h2 class="font-display text-xl font-bold">{{ __('Service Requests') }}</h2>
             </div>

@@ -3,10 +3,12 @@
 namespace App\Http\Controllers\Restaurant;
 
 use App\Http\Controllers\Controller;
+use App\Models\MenuItem;
 use App\Models\Order;
 use App\Models\OrderItem;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\DB;
 
 class DashboardController extends Controller
 {
@@ -57,6 +59,8 @@ class DashboardController extends Controller
         return view('restaurant.orders.index', [
             'restaurant' => $restaurant,
             'orders' => $restaurant->orders()->with(['items'])->latest()->paginate(30),
+            'menuItems' => $restaurant->menuItems()->where('is_available', true)->orderBy('name')->get(),
+            'tables' => $restaurant->tables()->where('is_active', true)->orderBy('table_number')->get(),
             'requests' => $restaurant->serviceRequests()
                 ->orderByRaw("CASE status WHEN 'pending' THEN 1 WHEN 'acknowledged' THEN 2 WHEN 'completed' THEN 3 ELSE 4 END")
                 ->latest()
@@ -70,6 +74,84 @@ class DashboardController extends Controller
             'todayOrdersCount' => $restaurant->orders()->whereDate('created_at', today())->count(),
             'todayRevenue' => $restaurant->orders()->whereDate('created_at', today())->whereIn('status', ['paid', 'completed'])->sum('total'),
         ]);
+    }
+
+    public function storeManualOrder(Request $request)
+    {
+        $restaurant = $this->restaurant($request);
+        abort_unless(in_array($request->session()->get('staff_profile_role'), ['owner_manager', 'cashier'], true), 403);
+
+        $data = $request->validate([
+            'table_number' => ['required', 'string', 'max:50'],
+            'customer_name' => ['nullable', 'string', 'max:255'],
+            'customer_phone' => ['nullable', 'string', 'max:50'],
+            'note' => ['nullable', 'string', 'max:2000'],
+            'items' => ['required', 'array', 'min:1'],
+            'items.*.id' => ['required', 'integer', 'exists:menu_items,id'],
+            'items.*.quantity' => ['required', 'integer', 'min:1', 'max:50'],
+            'items.*.note' => ['nullable', 'string', 'max:1000'],
+        ]);
+
+        $menuItemIds = collect($data['items'])->pluck('id')->unique();
+        $menuItems = MenuItem::where('restaurant_id', $restaurant->id)
+            ->whereIn('id', $menuItemIds)
+            ->where('is_available', true)
+            ->get()
+            ->keyBy('id');
+
+        if ($menuItems->count() !== $menuItemIds->count()) {
+            return back()->withErrors(['items' => 'Some selected items are no longer available.'])->withInput();
+        }
+
+        $table = $restaurant->tables()
+            ->where('table_number', $data['table_number'])
+            ->where('is_active', true)
+            ->first();
+
+        $order = DB::transaction(function () use ($data, $restaurant, $table, $menuItems) {
+            $subtotal = 0;
+            foreach ($data['items'] as $line) {
+                $item = $menuItems[$line['id']];
+                $subtotal += (float) $item->price * (int) $line['quantity'];
+            }
+
+            $settings = $restaurant->settings ?? [];
+            $serviceCharge = $subtotal * ((float) ($settings['service_charge_percentage'] ?? 0) / 100);
+            $tax = $subtotal * ((float) ($settings['vat_percentage'] ?? 0) / 100);
+            $total = $subtotal + $serviceCharge + $tax;
+
+            $order = Order::create([
+                'restaurant_id' => $restaurant->id,
+                'table_id' => $table?->id,
+                'table_number' => $data['table_number'],
+                'customer_name' => $data['customer_name'] ?? null,
+                'customer_phone' => $data['customer_phone'] ?? null,
+                'note' => $data['note'] ?? null,
+                'status' => 'new',
+                'payment_status' => 'unpaid',
+                'subtotal' => $subtotal,
+                'service_charge' => $serviceCharge,
+                'tax' => $tax,
+                'total' => $total,
+                'order_type' => 'dine_in',
+            ]);
+
+            foreach ($data['items'] as $line) {
+                $item = $menuItems[$line['id']];
+                $order->items()->create([
+                    'menu_item_id' => $item->id,
+                    'item_name' => $item->name,
+                    'quantity' => $line['quantity'],
+                    'unit_price' => $item->price,
+                    'total_price' => (float) $item->price * (int) $line['quantity'],
+                    'note' => $line['note'] ?? null,
+                ]);
+            }
+
+            return $order;
+        });
+
+        return back()->with('success', 'Manual order #'.$order->id.' created.');
     }
 
     public function poll(Request $request)

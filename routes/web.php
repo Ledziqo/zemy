@@ -44,6 +44,7 @@ Route::middleware(['auth', 'role:restaurant_owner,staff', 'locale'])->prefix('re
         Route::get('/dashboard', [Restaurant\DashboardController::class, 'index'])->name('dashboard');
         Route::get('/analytics', [Restaurant\DashboardController::class, 'analytics'])->name('analytics');
         Route::get('/orders', [Restaurant\DashboardController::class, 'orders'])->name('orders.index');
+        Route::post('/orders/manual', [Restaurant\DashboardController::class, 'storeManualOrder'])->name('orders.manual.store');
         Route::get('/orders/poll', [Restaurant\DashboardController::class, 'poll'])->name('orders.poll');
         Route::patch('/orders/{order}', [Restaurant\DashboardController::class, 'updateOrder'])->name('orders.update');
         Route::patch('/menu-items/reorder', [Restaurant\MenuItemController::class, 'reorder'])->name('menu-items.reorder');
@@ -79,6 +80,9 @@ Route::middleware(['auth', 'role:admin'])->prefix('admin')->name('admin.')->grou
     Route::get('/database', [Admin\DashboardController::class, 'database'])->name('database');
     Route::post('/setup-run', [SetupController::class, 'run'])->name('setup.run');
     Route::patch('/restaurants/{restaurant}/password', [Admin\RestaurantController::class, 'updatePassword'])->name('restaurants.password.update');
+    Route::post('/restaurants/{restaurant}/staff-profiles', [Admin\StaffProfileController::class, 'store'])->name('restaurants.staff-profiles.store');
+    Route::patch('/restaurants/{restaurant}/staff-profiles/{staffProfile}', [Admin\StaffProfileController::class, 'update'])->name('restaurants.staff-profiles.update');
+    Route::delete('/restaurants/{restaurant}/staff-profiles/{staffProfile}', [Admin\StaffProfileController::class, 'destroy'])->name('restaurants.staff-profiles.destroy');
     Route::resource('/restaurants', Admin\RestaurantController::class)->only(['index', 'store', 'update', 'destroy']);
     Route::resource('/users', Admin\UserController::class)->only(['index', 'store', 'update', 'destroy']);
     Route::get('/demo-requests', [Admin\DemoRequestController::class, 'index'])->name('demo-requests.index');

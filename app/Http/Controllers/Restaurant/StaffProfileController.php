@@ -63,11 +63,16 @@ class StaffProfileController extends Controller
 
         $data = $request->validate([
             'name' => ['required', 'string', 'max:255'],
+            'role' => ['required', 'in:cashier,kitchen'],
             'password' => ['nullable', 'string', 'min:4', 'max:255'],
             'is_active' => ['nullable', 'boolean'],
         ]);
 
-        $updates = ['name' => $data['name'], 'is_active' => $request->boolean('is_active', true)];
+        $updates = [
+            'name' => $data['name'],
+            'role' => $data['role'],
+            'is_active' => $request->boolean('is_active', true),
+        ];
         if (! empty($data['password'])) {
             $updates['password'] = $data['password'];
         }
