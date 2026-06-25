@@ -9,6 +9,9 @@
                 <div class="min-w-0 flex-1">
                     <div class="flex flex-wrap items-center gap-2">
                         <h3 class="font-display text-lg font-bold">{{ $demo->restaurant_name }}</h3>
+                        @if($demo->business_type ?? null)
+                            <span class="rounded-full border border-zem-border bg-zem-soft px-3 py-1 text-xs font-bold text-zem-cream">{{ $demo->business_type === 'hotel' ? 'Hotel' : 'Restaurant' }}</span>
+                        @endif
                         @php($statusColors = ['new' => 'bg-zem-gold/20 text-zem-gold border-zem-gold/40', 'contacted' => 'bg-blue-100 text-blue-700 border-blue-300', 'converted' => 'bg-green-100 text-green-700 border-green-300', 'closed' => 'bg-gray-100 text-gray-600 border-gray-300'])
                         <span class="rounded-full border px-3 py-1 text-xs font-bold {{ $statusColors[$demo->status] ?? 'border-zem-border text-zem-muted' }}">{{ $demo->status }}</span>
                     </div>

@@ -256,6 +256,7 @@ class SetupController extends Controller
         $knownColumnMigrations = [
             '2026_06_03_000000_add_dashboard_access_to_restaurants' => ['restaurants', 'dashboard_access_status'],
             '2026_06_05_000000_add_business_type_to_restaurants' => ['restaurants', 'business_type'],
+            '2026_06_26_000000_add_business_type_to_demo_requests' => ['demo_requests', 'business_type'],
         ];
 
         foreach ($knownColumnMigrations as $migration => [$table, $column]) {

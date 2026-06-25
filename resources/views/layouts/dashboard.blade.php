@@ -7,6 +7,7 @@
             ? (str_starts_with($dashboardRestaurant->logo_path, 'uploads/') ? asset($dashboardRestaurant->logo_path) : $dashboardRestaurant->logo_path)
             : asset('storage/'.$dashboardRestaurant->logo_path))
         : null;
+    $zemtabBrandBadge = $dashboardRestaurant?->zemtabBrandBadge();
 
     $staffRole = session('staff_profile_role', 'owner_manager');
     $profileName = session('staff_profile_name', 'Owner/Manager');
@@ -83,7 +84,12 @@
 <div class="min-h-screen bg-zem-bg lg:flex" style="background-image:radial-gradient(circle at top right,rgba(210,38,48,.16),transparent 28%)">
     <aside class="border-b border-zem-border bg-zem-card/95 backdrop-blur lg:fixed lg:inset-y-0 lg:w-72 lg:border-b-0 lg:border-r">
         <div class="flex items-center justify-between px-5 py-5 lg:block">
-            <a href="{{ route('home') }}" class="inline-flex items-center" aria-label="ZemTab Home"><img src="{{ asset('logo/zemtab-pantone-1795-c-icon-text-transparent.png') }}" alt="ZemTab" class="h-12 w-auto"></a>
+            <a href="{{ route('home') }}" class="relative inline-flex items-center pb-3 pr-8" aria-label="ZemTab Home">
+                <img src="{{ asset('logo/zemtab-pantone-1795-c-icon-text-transparent.png') }}" alt="ZemTab" class="h-12 w-auto">
+                @if($zemtabBrandBadge)
+                    <span class="absolute bottom-0 right-0 rounded-full border border-zem-border bg-zem-card px-2 py-0.5 text-[.62rem] font-extrabold leading-none text-zem-gold shadow-sm">{{ __($zemtabBrandBadge) }}</span>
+                @endif
+            </a>
             <form method="post" action="{{ route('logout') }}">@csrf<button class="rounded-lg border border-zem-border px-3 py-2 text-sm text-zem-muted transition hover:border-zem-gold hover:text-zem-gold">{{ __('Logout') }}</button></form>
         </div>
         <nav class="flex gap-2 overflow-x-auto px-4 pb-4 lg:block lg:space-y-1">

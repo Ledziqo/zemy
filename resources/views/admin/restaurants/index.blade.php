@@ -12,6 +12,7 @@
         <select name="business_type" class="rounded-md border border-zem-border bg-zem-bg px-3 py-2" @disabled(! $hasBusinessType)>
             <option value="restaurant">Restaurant</option>
             <option value="hotel">Hotel</option>
+            <option value="both">Restaurant + Hotel</option>
         </select>
         <input name="phone" placeholder="Phone" class="rounded-md border border-zem-border bg-zem-bg px-3 py-2">
         <input name="email" type="email" placeholder="Owner login email" class="rounded-md border border-zem-border bg-zem-bg px-3 py-2">
@@ -54,7 +55,7 @@
                     <input name="name" value="{{ $restaurant->name }}" class="rounded-md border border-zem-border bg-zem-card px-3 py-2">
                     <input name="slug" value="{{ $restaurant->slug }}" class="rounded-md border border-zem-border bg-zem-card px-3 py-2">
                     <select name="business_type" class="rounded-md border border-zem-border bg-zem-card px-3 py-2" @disabled(! $hasBusinessType)>
-                        @foreach(['restaurant' => 'Restaurant', 'hotel' => 'Hotel'] as $value => $label)
+                        @foreach(['restaurant' => 'Restaurant', 'hotel' => 'Hotel', 'both' => 'Restaurant + Hotel'] as $value => $label)
                             <option value="{{ $value }}" @selected(($restaurant->business_type ?? 'restaurant') === $value)>{{ $label }}</option>
                         @endforeach
                     </select>

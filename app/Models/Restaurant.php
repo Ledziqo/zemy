@@ -7,7 +7,7 @@ use Illuminate\Database\Eloquent\Model;
 class Restaurant extends Model
 {
     public const DASHBOARD_ACCESS_STATUSES = ['active', 'payment_required', 'revoked'];
-    public const BUSINESS_TYPES = ['restaurant', 'hotel'];
+    public const BUSINESS_TYPES = ['restaurant', 'hotel', 'both'];
 
     protected $fillable = [
         'name', 'slug', 'business_type', 'phone', 'email', 'location', 'logo_path', 'cover_image_path',
@@ -59,9 +59,27 @@ class Restaurant extends Model
         return $this->business_type === 'hotel';
     }
 
+    public function isBoth(): bool
+    {
+        return $this->business_type === 'both';
+    }
+
     public function businessTypeLabel(): string
     {
-        return $this->isHotel() ? 'Hotel' : 'Restaurant';
+        return match ($this->business_type) {
+            'hotel' => 'Hotel',
+            'both' => 'Restaurant + Hotel',
+            default => 'Restaurant',
+        };
+    }
+
+    public function zemtabBrandBadge(): ?string
+    {
+        return match ($this->business_type) {
+            'hotel' => 'for Hotels',
+            'both' => null,
+            default => 'for Restaurants',
+        };
     }
 
     public function locationLabel(bool $plural = false): string

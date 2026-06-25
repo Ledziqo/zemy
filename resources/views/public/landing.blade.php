@@ -96,6 +96,21 @@
                     <a href="{{ route('login') }}" class="rounded-lg border border-zem-gold bg-zem-gold/10 px-4 py-3 text-center text-sm font-extrabold text-zem-gold transition hover:bg-zem-gold hover:text-white sm:px-6 sm:text-base">{{ __('Login') }}</a>
                     <a href="#features" class="col-span-2 rounded-lg border border-zem-border bg-white px-4 py-3 text-center text-sm font-extrabold text-zem-cream transition hover:border-zem-gold hover:bg-zem-gold/10 sm:col-span-1 sm:px-6 sm:text-base">{{ __('See Features') }}</a>
                 </div>
+                <div class="mt-6 grid max-w-3xl gap-3 sm:grid-cols-2">
+                    @foreach([
+                        ['for Restaurants', 'ZemTab for Restaurants', 'Table QR ordering, live menu updates, waiter calls, bill requests, and a focused service dashboard.'],
+                        ['for Hotels', 'ZemTab for Hotels', 'Room QR ordering, room service menus, guest requests, room bill requests, and a live staff dashboard.'],
+                    ] as $branch)
+                        <a href="#demo" class="group rounded-xl border border-zem-border bg-white/90 p-4 shadow-sm transition hover:-translate-y-0.5 hover:border-zem-gold/60 hover:bg-white">
+                            <div class="relative inline-flex pb-3 pr-8">
+                                <img src="{{ asset('logo/zemtab-pantone-1795-c-text-transparent.png') }}" alt="ZemTab" class="h-8 w-auto">
+                                <span class="absolute bottom-0 right-0 rounded-full border border-zem-border bg-white px-2 py-0.5 text-[.58rem] font-extrabold leading-none text-zem-gold shadow-sm">{{ __($branch[0]) }}</span>
+                            </div>
+                            <h2 class="mt-4 font-display text-lg font-extrabold text-zem-cream">{{ __($branch[1]) }}</h2>
+                            <p class="mt-2 text-sm leading-6 text-zem-muted">{{ __($branch[2]) }}</p>
+                        </a>
+                    @endforeach
+                </div>
                 {{-- Trust row --}}
                 <div class="mt-6 flex flex-wrap items-center gap-x-5 gap-y-2 text-sm text-zem-muted">
                     <span class="inline-flex items-center gap-1.5 font-semibold text-zem-cream">
@@ -162,22 +177,25 @@
             @endforeach
         </div>
 
-        {{-- Ideal For (as icon cards) --}}
+        {{-- Branch Cards --}}
         <div class="mt-8 border-t border-zem-border pt-8 sm:mt-12 sm:pt-12">
-            <h3 class="text-center font-display text-lg font-extrabold sm:text-2xl md:text-3xl">{{ __('Ideal for') }}</h3>
-            <div class="mt-6 grid grid-cols-2 gap-3 sm:mt-8 sm:grid-cols-4 sm:gap-4">
+            <h3 class="text-center font-display text-lg font-extrabold sm:text-2xl md:text-3xl">{{ __('Choose the branch that fits your venue') }}</h3>
+            <div class="mt-6 grid gap-4 sm:mt-8 md:grid-cols-2">
                 @foreach([
-                    ['Restaurants','Full-service dining with live table orders.','M18 3l4 4-4 4M6 3L2 7l4 4','15 21v-2a4 4 0 00-4-4H4a4 4 0 00-4 4v2'],
-                    ['Cafes','Quick menu updates and call-staff requests.','M3 8h18l-1 9a2 2 0 01-2 2H6a2 2 0 01-2-2L3 8zM5 8a7 7 0 0114 0','8 4v4M12 2v2'],
-                    ['Hotels','Room service QR points and bill requests.','M3 21V7l9-4 9 4v14M9 21v-6h6v6','9 11h6'],
-                    ['Lounges','Service requests and orders in one flow.','M5 3h14v14H5zM5 17l-2 4M19 17l2 4M9 7h6v6H9z'],
+                    ['ZemTab for Restaurants','Built for restaurants, cafes, lounges, and dining rooms that need table ordering and faster staff response.','Table QR ordering','Waiter and bill requests','Menu availability control'],
+                    ['ZemTab for Hotels','Built for hotels that need room service ordering, room-based requests, and organized guest service workflows.','Room QR ordering','Room service requests','Room bill requests'],
                 ] as $who)
-                    <article class="flex flex-col items-center rounded-xl border border-zem-border bg-white p-5 text-center transition hover:-translate-y-1 hover:border-zem-gold/50">
-                        <span class="flex h-11 w-11 items-center justify-center rounded-full bg-zem-gold/10 text-zem-gold">
-                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="{{ $who[2] }}"/></svg>
-                        </span>
-                        <h4 class="mt-3 font-display text-lg font-bold">{{ __($who[0]) }}</h4>
-                        <p class="mt-1 text-xs leading-5 text-zem-muted">{{ __($who[1]) }}</p>
+                    <article class="rounded-xl border border-zem-border bg-white p-6 transition hover:-translate-y-1 hover:border-zem-gold/50">
+                        <h4 class="font-display text-xl font-extrabold">{{ __($who[0]) }}</h4>
+                        <p class="mt-3 leading-6 text-zem-muted">{{ __($who[1]) }}</p>
+                        <div class="mt-5 grid gap-2 text-sm font-semibold text-zem-cream">
+                            @foreach(array_slice($who, 2) as $item)
+                                <p class="flex items-center gap-2">
+                                    <svg class="h-4 w-4 shrink-0 text-zem-green" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
+                                    {{ __($item) }}
+                                </p>
+                            @endforeach
+                        </div>
                     </article>
                 @endforeach
             </div>
@@ -185,23 +203,19 @@
     </section>
 
     {{-- Pricing Section --}}
-    <section id="pricing" class="scroll-mt-24 border-y border-zem-border bg-zem-soft py-16" itemprop="offers" itemscope itemtype="https://schema.org/Offer">
+    <section id="pricing" class="scroll-mt-24 border-y border-zem-border bg-zem-soft py-16">
         <div class="mx-auto max-w-3xl px-5 text-center">
-            <h2 class="font-display text-3xl font-extrabold md:text-4xl">{{ __('Simple monthly pricing') }}</h2>
-            <p class="mt-4 text-zem-muted">{{ __('Everything needed to run QR menus, table or room orders, service requests, and a live staff dashboard. No commission on orders.') }}</p>
+            <h2 class="font-display text-3xl font-extrabold md:text-4xl">{{ __('Custom pricing for your venue') }}</h2>
+            <p class="mt-4 text-zem-muted">{{ __('Every restaurant and hotel works differently. ZemTab pricing is prepared after we understand your venue type, table or room count, setup needs, and operational scope.') }}</p>
         </div>
-        <div class="mx-auto mt-8 max-w-2xl px-5">
+        <div class="mx-auto mt-8 max-w-3xl px-5">
             <div class="relative rounded-2xl border border-zem-gold bg-white p-7 shadow-2xl shadow-zem-gold/10">
-                <span class="absolute right-6 top-6 rounded-full bg-zem-gold px-3 py-1 text-[.7rem] font-extrabold uppercase tracking-wider text-white">{{ __('All-in-one') }}</span>
-                <p class="text-sm font-extrabold uppercase tracking-[.22em] text-zem-gold">{{ __('Monthly plan') }}</p>
-                <h3 class="mt-3 font-display text-5xl font-extrabold text-zem-cream" itemprop="price" content="2000">{{ __('2,000 birr') }}</h3>
-                <p class="mt-2 text-zem-muted" itemprop="priceCurrency" content="ETB">{{ __('per month · no commission on orders') }}</p>
-                <div class="mt-5 rounded-xl border border-zem-border bg-white p-4">
-                    <p class="font-bold text-zem-cream">{{ __('First-time setup: 12,000 birr') }}</p>
-                    <p class="mt-2 text-sm leading-6 text-zem-muted">{{ __('We handle the QR printouts and set up everything system-wise in your restaurant or hotel workspace so your team can start using ZemTab smoothly.') }}</p>
-                </div>
+                <span class="absolute right-6 top-6 rounded-full bg-zem-gold px-3 py-1 text-[.7rem] font-extrabold uppercase tracking-wider text-white">{{ __('Custom quote') }}</span>
+                <p class="text-sm font-extrabold uppercase tracking-[.22em] text-zem-gold">{{ __('Built around your operation') }}</p>
+                <h3 class="mt-3 font-display text-4xl font-extrabold text-zem-cream">{{ __('We price after the demo') }}</h3>
+                <p class="mt-3 max-w-2xl text-zem-muted">{{ __('Share your venue details and we will recommend the right setup for ZemTab for Restaurants or ZemTab for Hotels. No public fixed package, no commission on orders.') }}</p>
                 <div class="mt-6 grid gap-3 text-sm font-semibold text-zem-cream sm:grid-cols-2">
-                    @foreach(['Digital QR menu','Table and room ordering','Call staff and bill requests','Live staff dashboard','Menu availability control','QR printout setup'] as $item)
+                    @foreach(['Venue type and service style','Table or room count','Menu and request workflow','Live staff dashboard','Setup support needs','QR printout planning'] as $item)
                         <p class="flex items-center gap-2 rounded-lg border border-zem-border bg-white px-4 py-3">
                             <svg class="h-4 w-4 shrink-0 text-zem-green" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
                             {{ __($item) }}
@@ -226,7 +240,7 @@
                     ],
                     'Payments & pricing' => [
                         ['What payment methods are supported?','Guests can pay at the end with cash, Telebirr, CBE, bank transfer, or other manual methods. Restaurants and hotels can show payment QR codes and account numbers, then guests upload or show proof to staff.'],
-                        ['How much does it cost?','ZemTab is 2,000 birr per month, plus a one-time 12,000 birr setup charge. The setup charge covers QR printouts and full system setup inside your restaurant or hotel workspace. No commission on orders.'],
+                        ['How much does it cost?','ZemTab pricing is custom. We prepare a quote after learning your venue type, table or room count, setup needs, and operational scope. No commission on orders.'],
                     ],
                     'Locations' => [
                         ['Can I update menu prices in real-time?','Yes. Any change you make in the dashboard - prices, item names, descriptions, availability - reflects instantly on the QR menu guests see.'],
@@ -313,6 +327,10 @@
                 </fieldset>
                 <fieldset class="grid gap-4 md:grid-cols-2">
                     <legend class="mb-3 w-full border-b border-zem-border pb-2 text-xs font-extrabold uppercase tracking-wider text-zem-muted">{{ __('Venue details') }}</legend>
+                    <select name="business_type" required class="rounded-lg border border-zem-border bg-white px-4 py-3 outline-none focus:border-zem-gold" aria-label="{{ __('Venue type') }}">
+                        <option value="restaurant">{{ __('ZemTab for Restaurants') }}</option>
+                        <option value="hotel">{{ __('ZemTab for Hotels') }}</option>
+                    </select>
                     <input name="restaurant_name" required placeholder="{{ __('Restaurant or hotel name') }}" class="rounded-lg border border-zem-border bg-white px-4 py-3 outline-none focus:border-zem-gold" aria-label="{{ __('Restaurant or hotel name') }}">
                     <input name="location" placeholder="{{ __('Location') }}" class="rounded-lg border border-zem-border bg-white px-4 py-3 outline-none focus:border-zem-gold" aria-label="{{ __('Location') }}">
                 </fieldset>
@@ -418,13 +436,6 @@
     "applicationCategory": "BusinessApplication",
     "operatingSystem": "Web Browser",
     "softwareVersion": "1.0",
-    "offers": {
-        "@type": "Offer",
-        "price": "2000",
-        "priceCurrency": "ETB",
-        "availability": "https://schema.org/InStock",
-        "seller": { "@type": "Organization", "name": "ZemTab" }
-    },
     "aggregateRating": { "@type": "AggregateRating", "ratingValue": "4.8", "ratingCount": "12" },
     "description": "ZemTab is a German-made, Ethiopia-based QR menu, table ordering, hotel room ordering, service request, and staff dashboard system. Guests scan, order, request service, and pay from their phone. No app download needed.",
     "url": "https://zemtab.com",
@@ -485,7 +496,7 @@
         { "@type": "Question", "name": "Do guests need to download an app?", "acceptedAnswer": { "@type": "Answer", "text": "No. Guests simply scan the QR code on their table or in their room with their phone camera and the menu opens instantly in their browser. No app installs, no sign-ups." } },
         { "@type": "Question", "name": "How do I set up QR codes for tables or rooms?", "acceptedAnswer": { "@type": "Answer", "text": "ZemTab generates a unique QR code for each table or hotel room. You can download and print them directly from the dashboard, or we can help with setup." } },
         { "@type": "Question", "name": "What payment methods are supported?", "acceptedAnswer": { "@type": "Answer", "text": "Guests can pay at the end with cash, Telebirr, CBE, bank transfer, or other manual methods. Restaurants and hotels can show payment QR codes and account numbers, then guests upload or show proof to staff." } },
-        { "@type": "Question", "name": "How much does it cost?", "acceptedAnswer": { "@type": "Answer", "text": "ZemTab is 2,000 birr per month, plus a one-time 12,000 birr setup charge. The setup charge covers QR printouts and full system setup inside your restaurant or hotel workspace. No commission on orders." } },
+        { "@type": "Question", "name": "How much does it cost?", "acceptedAnswer": { "@type": "Answer", "text": "ZemTab pricing is custom. We prepare a quote after learning your venue type, table or room count, setup needs, and operational scope. No commission on orders." } },
         { "@type": "Question", "name": "Can I update menu prices in real-time?", "acceptedAnswer": { "@type": "Answer", "text": "Yes. Any change you make in the dashboard - prices, item names, descriptions, availability - reflects instantly on the QR menu guests see." } },
         { "@type": "Question", "name": "What if I have multiple locations?", "acceptedAnswer": { "@type": "Answer", "text": "Each location runs as its own ZemTab subscription with its own menus, tables or rooms, and staff. This keeps billing and setup simple per venue." } }
     ]
