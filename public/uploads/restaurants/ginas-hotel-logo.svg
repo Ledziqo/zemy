@@ -1,0 +1,37 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-labelledby="title desc">
+  <title id="title">Gina's Hotel logo</title>
+  <desc id="desc">A refined circular hotel logo with an arched doorway, window lights, and Gina's Hotel lettering.</desc>
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#fff8ee"/>
+      <stop offset="1" stop-color="#f3dfbf"/>
+    </linearGradient>
+    <linearGradient id="red" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#f04c55"/>
+      <stop offset="1" stop-color="#a91522"/>
+    </linearGradient>
+    <filter id="softShadow" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="0" dy="12" stdDeviation="14" flood-color="#2d1312" flood-opacity=".18"/>
+    </filter>
+  </defs>
+  <rect width="512" height="512" rx="112" fill="#151922"/>
+  <circle cx="256" cy="256" r="201" fill="url(#bg)" filter="url(#softShadow)"/>
+  <circle cx="256" cy="256" r="184" fill="none" stroke="#d9bf92" stroke-width="6"/>
+  <circle cx="256" cy="256" r="164" fill="none" stroke="#f9edd8" stroke-width="3"/>
+
+  <path d="M168 311V197c0-45 36-81 88-81s88 36 88 81v114" fill="none" stroke="#1d2330" stroke-width="18" stroke-linecap="round"/>
+  <path d="M196 312V205c0-31 24-56 60-56s60 25 60 56v107" fill="#fff5e2" stroke="#1d2330" stroke-width="10"/>
+  <path d="M225 312v-73c0-18 13-32 31-32s31 14 31 32v73" fill="url(#red)" stroke="#1d2330" stroke-width="9"/>
+  <circle cx="273" cy="264" r="4.5" fill="#ffe9ad"/>
+
+  <g fill="#1d2330">
+    <rect x="213" y="185" width="20" height="28" rx="5"/>
+    <rect x="246" y="176" width="20" height="37" rx="5"/>
+    <rect x="279" y="185" width="20" height="28" rx="5"/>
+  </g>
+  <path d="M151 326h210" stroke="#1d2330" stroke-width="12" stroke-linecap="round"/>
+  <path d="M180 348h152" stroke="#d22630" stroke-width="8" stroke-linecap="round"/>
+
+  <text x="256" y="390" text-anchor="middle" font-family="Georgia, 'Times New Roman', serif" font-size="45" font-weight="700" fill="#1d2330">Gina's</text>
+  <text x="256" y="427" text-anchor="middle" font-family="Inter, Arial, sans-serif" font-size="25" font-weight="800" letter-spacing="4" fill="#d22630">HOTEL</text>
+</svg>

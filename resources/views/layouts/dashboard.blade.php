@@ -7,6 +7,9 @@
             ? (str_starts_with($dashboardRestaurant->logo_path, 'uploads/') ? asset($dashboardRestaurant->logo_path) : $dashboardRestaurant->logo_path)
             : asset('storage/'.$dashboardRestaurant->logo_path))
         : null;
+    if (! $dashboardLogoUrl && $dashboardRestaurant?->slug === 'ginashotel') {
+        $dashboardLogoUrl = asset('uploads/restaurants/ginas-hotel-logo.svg');
+    }
     $zemtabBrandBadge = $dashboardRestaurant?->zemtabBrandBadge();
 
     $staffRole = session('staff_profile_role', 'owner_manager');
