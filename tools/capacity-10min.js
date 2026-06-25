@@ -34,7 +34,7 @@ class Jar {
 const sleep = ms => new Promise(resolve => setTimeout(resolve, ms));
 const csrf = html => html.match(/name="_token"\s+value="([^"]+)"/)?.[1] || html.match(/<meta name="csrf-token" content="([^"]+)"/)?.[1];
 const firstItemId = html => html.match(/add\(\{\s*id:\s*(\d+)/)?.[1] || html.match(/name="items\[0\]\[id\]"\s+value="(\d+)"/)?.[1];
-const firstProfileId = html => html.match(/name="profile_id"\s+value="(\d+)"/)?.[1];
+const firstProfileId = html => html.match(/name="profile_id"[^>]*value="(\d+)"/)?.[1] || html.match(/value="(\d+)"[^>]*name="profile_id"/)?.[1];
 const slugFor = index => 'zt-stress-' + String(index + 1).padStart(3, '0');
 const emailFor = index => `${slugFor(index)}@zemtab.test`;
 const tableFor = index => String((index % 10) + 1);
@@ -98,9 +98,14 @@ async function loginStaffSession(venueIndex, metrics) {
     method: 'POST',
     headers: { 'content-type': 'application/x-www-form-urlencoded' },
     body: loginBody,
+    followRedirects: false,
   }, jar, metrics, 'login');
-  const profileHtml = await login.text();
-  if (!login.ok) throw new Error(`login ${login.status}`);
+  await login.text();
+  if (![200, 302, 303].includes(login.status)) throw new Error(`login ${login.status}`);
+
+  const profilePage = await request(`${baseUrl}/restaurant/profile-select`, {}, jar, metrics, 'profile-page');
+  const profileHtml = await profilePage.text();
+  if (!profilePage.ok) throw new Error(`profile page ${profilePage.status}`);
 
   const profileToken = csrf(profileHtml);
   const profileId = firstProfileId(profileHtml);
