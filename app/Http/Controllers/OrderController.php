@@ -62,6 +62,7 @@ class OrderController extends Controller
                 'status' => 'new',
                 'payment_method' => $data['payment_method'] ?? null,
                 'payment_status' => 'unpaid',
+                'confirmed_at' => null,
                 'subtotal' => $subtotal,
                 'service_charge' => $serviceCharge,
                 'tax' => $tax,

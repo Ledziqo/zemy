@@ -88,6 +88,7 @@ class DeliveryOrderController extends Controller
                 'note' => $data['note'] ?? null,
                 'status' => 'new',
                 'payment_status' => 'unpaid',
+                'confirmed_at' => now(),
                 'subtotal' => $subtotal,
                 'service_charge' => $serviceCharge,
                 'tax' => $tax,

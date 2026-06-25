@@ -10,7 +10,7 @@
 
     $staffRole = session('staff_profile_role', 'owner_manager');
     $profileName = session('staff_profile_name', 'Owner/Manager');
-    $accountLabel = $isAdmin ? 'Admin' : ($dashboardRestaurant?->name ?? 'Restaurant') . ' — ' . ($staffRole === 'owner_manager' ? 'Owner/Manager' : ($staffRole === 'cashier' ? 'Cashier' : 'Kitchen'));
+    $accountLabel = $isAdmin ? 'Admin' : ($dashboardRestaurant?->name ?? 'Restaurant') . ' - ' . ($staffRole === 'owner_manager' ? 'Owner/Manager' : ($staffRole === 'cashier' ? 'Cashier' : 'Kitchen'));
 
     $links = $isAdmin
         ? [
@@ -36,7 +36,6 @@
                     [__('Analytics'), route('restaurant.analytics')],
                     [__('Work Board'), route('restaurant.orders.index')],
                     [__('Cashier Reports'), route('restaurant.cashier-reports')],
-                    [__('Delivery Orders'), route('restaurant.delivery.index')],
                     [__('Menu Items'), route('restaurant.menu-items.index')],
                     [__('Categories'), route('restaurant.categories.index')],
                     [$placePlural.' / QR', route('restaurant.tables.index')],
@@ -109,7 +108,7 @@
             @endif
             <div class="flex flex-wrap items-center gap-2">
                 @unless($isAdmin)
-                    <form method="post" action="{{ route('locale.update') }}">@csrf<input type="hidden" name="locale" value="{{ app()->getLocale() === 'am' ? 'en' : 'am' }}"><button class="rounded-full border border-zem-border bg-zem-card px-3 py-2 text-sm font-bold text-zem-muted">{{ app()->getLocale() === 'am' ? 'English' : '????' }}</button></form>
+                    <form method="post" action="{{ route('locale.update') }}">@csrf<input type="hidden" name="locale" value="{{ app()->getLocale() === 'am' ? 'en' : 'am' }}"><button class="rounded-full border border-zem-border bg-zem-card px-3 py-2 text-sm font-bold text-zem-muted">{{ app()->getLocale() === 'am' ? 'English' : 'Amharic' }}</button></form>
                 @endunless
                 <button type="button" onclick="toggleZemtabTheme()" class="rounded-full border border-zem-border bg-zem-card px-3 py-2 text-sm font-bold text-zem-muted" aria-label="{{ __('Switch color theme') }}"><span class="dark:hidden">{{ __('Dark') }}</span><span class="hidden dark:inline">{{ __('Light') }}</span></button>
                 <div class="rounded-full border border-zem-border bg-zem-card px-4 py-2 text-sm font-bold text-zem-muted">{{ $accountLabel }}</div>

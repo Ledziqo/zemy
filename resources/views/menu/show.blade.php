@@ -211,7 +211,7 @@
                                     </div>
                                 </div>
 
-                                {@endif
+                            @endif
                         </div>
                     @endforeach
                 </div>

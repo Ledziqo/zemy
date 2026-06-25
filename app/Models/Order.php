@@ -13,7 +13,7 @@ class Order extends Model
     protected $fillable = [
         'restaurant_id', 'table_id', 'guest_session_id', 'table_number', 'customer_name', 'customer_phone', 'note',
         'status', 'payment_method', 'payment_status', 'subtotal', 'service_charge', 'tax', 'total',
-        'handled_by_profile_id', 'order_type',
+        'handled_by_profile_id', 'order_type', 'confirmed_at',
     ];
 
     protected function casts(): array
@@ -23,6 +23,7 @@ class Order extends Model
             'service_charge' => 'decimal:2',
             'tax' => 'decimal:2',
             'total' => 'decimal:2',
+            'confirmed_at' => 'datetime',
         ];
     }
 

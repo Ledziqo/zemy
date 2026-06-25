@@ -28,19 +28,22 @@
         </div>
         <div class="grid gap-4" x-ref="ordersList">
             @forelse($orders as $order)
-                <article class="rounded-md border-l-4 border border-zem-border bg-zem-card p-4 {{ in_array($order->status, ['completed', 'cancelled'], true) ? 'border-l-gray-400 opacity-60' : 'border-l-zem-gold' }}" data-order-id="{{ $order->id }}" data-status="{{ $order->status }}" x-show="filter==='all' || (filter==='active' && !['completed','cancelled'].includes('{{ $order->status }}')) || (filter==='completed' && '{{ $order->status }}' === 'completed')">
+                @php($needsConfirmation = $order->guest_session_id && ! $order->confirmed_at && ! in_array($order->status, ['completed', 'cancelled'], true))
+                <article class="rounded-md border-l-4 border border-zem-border bg-zem-card p-4 {{ in_array($order->status, ['completed', 'cancelled'], true) ? 'border-l-gray-400 opacity-60' : ($needsConfirmation ? 'border-l-yellow-400' : 'border-l-zem-gold') }}" data-order-id="{{ $order->id }}" data-status="{{ $order->status }}" data-confirmed="{{ $order->confirmed_at ? '1' : '0' }}" x-show="filter==='all' || (filter==='active' && !['completed','cancelled'].includes('{{ $order->status }}')) || (filter==='completed' && '{{ $order->status }}' === 'completed')">
                     <div class="flex flex-wrap items-start justify-between gap-3">
-                        <div><h2 class="font-display text-xl font-bold">{{ __('Order') }} #{{ $order->id }}</h2><p class="text-sm text-zem-muted">{{ $placeTitle }} {{ $order->table_number }}@if(($order->order_type ?? 'dine_in') === 'delivery') <span class="ml-1 rounded-full bg-purple-100 px-2 py-0.5 text-xs font-bold text-purple-700">Delivery</span>@endif - <span data-created-at="{{ $order->created_at->toIso8601String() }}">{{ $order->created_at->diffForHumans() }}</span></p></div>
+                        <div><h2 class="font-display text-xl font-bold">{{ __('Order') }} #{{ $order->id }}</h2><p class="text-sm text-zem-muted">{{ $placeTitle }} {{ $order->table_number }}@if(($order->order_type ?? 'dine_in') === 'delivery') <span class="ml-1 rounded-full bg-purple-100 px-2 py-0.5 text-xs font-bold text-purple-700">Delivery</span>@endif @if($needsConfirmation)<span class="ml-1 rounded-full bg-yellow-100 px-2 py-0.5 text-xs font-bold text-yellow-700">{{ __('Needs cashier confirm') }}</span>@endif - <span data-created-at="{{ $order->created_at->toIso8601String() }}">{{ $order->created_at->diffForHumans() }}</span></p></div>
                         <span data-status-badge><x-status :status="$order->status" /></span>
                     </div>
                     <div class="mt-4 space-y-2">
                         @foreach($order->items as $item)<p class="flex justify-between gap-3 rounded-md border border-zem-border bg-zem-bg px-3 py-2 text-sm text-zem-cream"><span>{{ $item->quantity }} x {{ $item->item_name }} @if($item->note)<em class="text-zem-muted">({{ $item->note }})</em>@endif</span><strong class="shrink-0 text-zem-cream">{{ number_format($item->total_price) }} ETB</strong></p>@endforeach
                     </div>
                     <p class="mt-3 text-sm text-zem-muted">{{ __('Note') }}: {{ $order->note ?: __('None') }}</p>
-                    <div class="mt-4 flex flex-wrap items-center justify-between gap-3">
+                    <div class="mt-4 flex flex-wrap items-center justify-between gap-3" data-order-actions>
                         <strong>{{ number_format($order->total) }} ETB</strong>
                         @if(!in_array($order->status, ['completed', 'cancelled'], true))
-                            @if($staffRole === 'cashier' && !in_array($order->status, ['paid']))
+                            @if(in_array($staffRole, ['owner_manager', 'cashier'], true) && $needsConfirmation)
+                                <button type="button" @click="confirmOrder({{ $order->id }})" class="rounded-md bg-yellow-500 px-6 py-3 text-base font-bold text-white transition hover:opacity-90 min-h-[56px]">{{ __('Confirm order') }}</button>
+                            @elseif($staffRole === 'cashier' && $order->status === 'served')
                                 <div class="flex gap-2">
                                     <select id="payment-method-{{ $order->id }}" class="rounded-md border border-zem-border bg-white px-3 py-3 text-sm">
                                         <option value="">Payment method...</option>
@@ -50,6 +53,8 @@
                                     </select>
                                     <button type="button" @click="markPaid({{ $order->id }})" class="rounded-md bg-emerald-600 px-6 py-3 text-base font-bold text-white transition hover:opacity-90 min-h-[56px]">Mark Paid</button>
                                 </div>
+                            @elseif($staffRole === 'cashier' && !in_array($order->status, ['paid']))
+                                <span class="rounded-md border border-zem-border bg-zem-soft px-4 py-3 text-sm font-bold text-zem-muted">{{ __('Waiting for kitchen') }}</span>
                             @elseif($staffRole === 'cashier' && $order->status === 'paid')
                                 <button type="button" @click="markCompleted({{ $order->id }})" class="rounded-md bg-zem-green px-6 py-3 text-base font-bold text-white transition hover:opacity-90 min-h-[56px]">{{ __('Mark as completed') }}</button>
                             @elseif($staffRole === 'kitchen')
@@ -66,7 +71,7 @@
                 </article>
             @empty
                 <div class="rounded-md border border-zem-border bg-zem-card p-8 text-center">
-                    <div class="text-4xl mb-2">🍽️</div>
+                    <div class="mb-2 text-sm font-bold uppercase tracking-widest text-zem-gold">Orders</div>
                     <p class="text-zem-muted">No orders yet. Scan the QR code at a {{ $restaurant->locationLabel() }} to start.</p>
                     <a href="{{ route('restaurant.tables.index') }}" class="mt-3 inline-block rounded-md border border-zem-gold px-4 py-2 text-sm font-bold text-zem-gold">Go to QR codes</a>
                 </div>
@@ -78,22 +83,31 @@
     <aside>
         <div class="sticky top-4">
             @if(in_array($staffRole, ['owner_manager', 'cashier'], true))
-                <div class="mb-5 rounded-md border border-zem-border bg-zem-card p-4" x-data="{ items: [], selected: '', qty: 1, note: '' }">
+                <div class="mb-5 rounded-md border border-zem-border bg-zem-card p-4" x-data="manualOrder()">
                     <div class="flex items-center justify-between gap-3">
                         <h2 class="font-display text-xl font-bold">{{ __('Manual Order') }}</h2>
+                        <span class="rounded-full border border-zem-border px-3 py-1 text-xs font-bold text-zem-muted" x-text="count() + ' item(s)'"></span>
                     </div>
-                    <form method="post" action="{{ route('restaurant.orders.manual.store') }}" class="mt-4 space-y-3" @submit="if (items.length === 0) { $event.preventDefault(); showToast('Add at least one item', 'error'); }">
+                    <form method="post" action="{{ route('restaurant.orders.manual.store') }}" class="mt-4 space-y-3" @submit="syncForm($event)">
                         @csrf
-                        <div class="grid gap-3 sm:grid-cols-2">
+                        <label class="grid gap-1 text-sm">
+                            <span class="font-bold">{{ __('Order type') }}</span>
+                            <select name="order_mode" x-model="mode" class="rounded-md border border-zem-border bg-white px-3 py-2">
+                                <option value="table">{{ __('Table') }}</option>
+                                <option value="takeaway">{{ __('Takeaway') }}</option>
+                                <option value="delivery">{{ __('Delivery order') }}</option>
+                            </select>
+                        </label>
+
+                        <div class="grid gap-3 sm:grid-cols-2" x-show="mode === 'table'" x-cloak>
                             <label class="grid gap-1 text-sm">
                                 <span class="font-bold">{{ $placeTitle }}</span>
-                                <input name="table_number" list="manual-order-tables" required placeholder="{{ __('Table or takeaway') }}" class="rounded-md border border-zem-border bg-white px-3 py-2">
-                                <datalist id="manual-order-tables">
+                                <select name="table_number" :disabled="mode !== 'table'" class="rounded-md border border-zem-border bg-white px-3 py-2">
+                                    <option value="">{{ __('Select table') }}</option>
                                     @foreach($tables as $table)
                                         <option value="{{ $table->table_number }}">{{ $table->table_name ?: $table->table_number }}</option>
                                     @endforeach
-                                    <option value="Takeaway">{{ __('Takeaway') }}</option>
-                                </datalist>
+                                </select>
                             </label>
                             <label class="grid gap-1 text-sm">
                                 <span class="font-bold">{{ __('Customer') }}</span>
@@ -101,42 +115,88 @@
                             </label>
                         </div>
 
+                        <label class="grid gap-1 text-sm" x-show="mode === 'delivery'" x-cloak>
+                            <span class="font-bold">{{ __('Delivery app') }}</span>
+                            <input name="delivery_app" :disabled="mode !== 'delivery'" placeholder="Bolt, Glovo, phone call..." class="rounded-md border border-zem-border bg-white px-3 py-2">
+                        </label>
+
                         <div class="rounded-md border border-zem-border bg-zem-bg p-3">
-                            <div class="grid gap-2 sm:grid-cols-[1fr_86px_auto]">
-                                <select x-model="selected" class="rounded-md border border-zem-border bg-white px-3 py-2 text-sm">
-                                    <option value="">{{ __('Select menu item') }}...</option>
-                                    @foreach($menuItems as $item)
-                                        <option value="{{ $item->id }}" data-name="{{ $item->name }}" data-price="{{ $item->price }}">{{ $item->name }} - {{ number_format($item->price) }} ETB</option>
-                                    @endforeach
-                                </select>
-                                <input type="number" x-model.number="qty" min="1" max="50" class="rounded-md border border-zem-border bg-white px-3 py-2 text-sm" aria-label="{{ __('Quantity') }}">
-                                <button type="button" class="rounded-md bg-zem-gold px-4 py-2 text-sm font-bold text-white" @click="
-                                    const option = $el.parentElement.querySelector('select').selectedOptions[0];
-                                    if (! selected || ! option) return;
-                                    items.push({ id: selected, name: option.dataset.name, qty: qty || 1, note: '' });
-                                    selected = '';
-                                    qty = 1;
-                                ">{{ __('Add') }}</button>
-                            </div>
-                            <div class="mt-3 space-y-2">
-                                <template x-for="(item, index) in items" :key="index">
-                                    <div class="rounded-md border border-zem-border bg-zem-card p-2">
-                                        <div class="flex items-center justify-between gap-2 text-sm">
-                                            <span class="font-bold" x-text="item.qty + ' x ' + item.name"></span>
-                                            <button type="button" @click="items.splice(index, 1)" class="text-sm font-bold text-red-500">{{ __('Remove') }}</button>
+                            <button type="button" @click="menuOpen = true" class="w-full rounded-md bg-zem-gold px-4 py-3 text-base font-bold text-white">{{ __('Open menu') }}</button>
+                            <div class="mt-3 space-y-2" x-show="items.length > 0" x-cloak>
+                                <template x-for="item in items" :key="item.id">
+                                    <div class="rounded-md border border-zem-border bg-zem-card p-2 text-sm">
+                                        <div class="flex items-center justify-between gap-2">
+                                            <div>
+                                                <p class="font-bold" x-text="item.name"></p>
+                                                <p class="text-xs text-zem-muted" x-text="money(item.price)"></p>
+                                            </div>
+                                            <div class="flex items-center gap-2">
+                                                <button type="button" @click="dec(item.id)" class="h-9 w-9 rounded-md border border-zem-border font-bold">-</button>
+                                                <span class="w-7 text-center font-bold" x-text="item.qty"></span>
+                                                <button type="button" @click="add(item)" class="h-9 w-9 rounded-md border border-zem-border font-bold">+</button>
+                                            </div>
                                         </div>
                                         <input type="text" x-model="item.note" placeholder="{{ __('Item note') }}" class="mt-2 w-full rounded-md border border-zem-border bg-white px-3 py-2 text-sm">
-                                        <input type="hidden" :name="'items[' + index + '][id]'" :value="item.id">
-                                        <input type="hidden" :name="'items[' + index + '][quantity]'" :value="item.qty">
-                                        <input type="hidden" :name="'items[' + index + '][note]'" :value="item.note">
                                     </div>
                                 </template>
+                                <div class="flex items-center justify-between border-t border-zem-border pt-3 text-sm font-bold">
+                                    <span>{{ __('Total') }}</span>
+                                    <span x-text="money(total())"></span>
+                                </div>
                             </div>
                         </div>
 
                         <textarea name="note" rows="2" placeholder="{{ __('Order note') }}" class="w-full rounded-md border border-zem-border bg-white px-3 py-2 text-sm"></textarea>
+                        <div x-ref="fields"></div>
                         <button class="w-full rounded-md bg-zem-gold px-4 py-3 text-base font-bold text-white">{{ __('Create Manual Order') }}</button>
                     </form>
+
+                    <div x-show="menuOpen" x-cloak class="fixed inset-0 z-50 bg-black/60 p-3 backdrop-blur-sm" @click.self="menuOpen = false">
+                        <div class="mx-auto flex max-h-[92vh] max-w-md flex-col overflow-hidden rounded-2xl border border-zem-border bg-zem-card shadow-2xl">
+                            <div class="flex items-center justify-between border-b border-zem-border px-4 py-3">
+                                <div>
+                                    <p class="text-xs font-bold uppercase tracking-widest text-zem-gold">{{ __('Manual Order') }}</p>
+                                    <h3 class="font-display text-xl font-bold">{{ __('Menu') }}</h3>
+                                </div>
+                                <button type="button" @click="menuOpen = false" class="rounded-md border border-zem-border px-3 py-2 text-sm font-bold">{{ __('Close') }}</button>
+                            </div>
+                            <div class="flex gap-2 overflow-x-auto border-b border-zem-border px-4 py-3">
+                                @foreach($categories as $category)
+                                    <a href="#manual-cat-{{ $category->id }}" class="whitespace-nowrap rounded-full border border-zem-border px-3 py-1 text-xs font-bold text-zem-muted">{{ $category->name }}</a>
+                                @endforeach
+                            </div>
+                            <div class="flex-1 space-y-5 overflow-y-auto p-4">
+                                @foreach($categories as $category)
+                                    <section id="manual-cat-{{ $category->id }}" class="scroll-mt-4">
+                                        <h4 class="mb-2 font-display text-lg font-bold">{{ $category->name }}</h4>
+                                        <div class="grid gap-2">
+                                            @foreach($category->menuItems as $item)
+                                                @php($imageUrl = $item->image_path ? (\Illuminate\Support\Str::startsWith($item->image_path, ['http://', 'https://', 'uploads/']) ? (str_starts_with($item->image_path, 'uploads/') ? asset($item->image_path) : $item->image_path) : asset('storage/'.$item->image_path)) : null)
+                                                <article class="flex gap-3 rounded-md border border-zem-border bg-zem-bg p-2">
+                                                    <div class="h-16 w-16 shrink-0 overflow-hidden rounded-md bg-zem-soft">
+                                                        @if($imageUrl)
+                                                            <img src="{{ $imageUrl }}" alt="{{ $item->name }}" class="h-full w-full object-cover">
+                                                        @else
+                                                            <div class="grid h-full place-items-center text-lg font-bold">{{ strtoupper(substr($item->name, 0, 1)) }}</div>
+                                                        @endif
+                                                    </div>
+                                                    <div class="min-w-0 flex-1">
+                                                        <p class="line-clamp-1 font-bold">{{ $item->name }}</p>
+                                                        <p class="line-clamp-2 text-xs text-zem-muted">{{ $item->description }}</p>
+                                                        <p class="mt-1 text-sm font-bold text-zem-gold">{{ number_format($item->price) }} ETB</p>
+                                                    </div>
+                                                    <button type="button" @click="add({ id: {{ $item->id }}, name: @js($item->name), price: {{ (float) $item->price }} })" class="self-center rounded-md bg-zem-gold px-3 py-2 text-sm font-bold text-white">{{ __('Add') }}</button>
+                                                </article>
+                                            @endforeach
+                                        </div>
+                                    </section>
+                                @endforeach
+                            </div>
+                            <div class="border-t border-zem-border px-4 py-3">
+                                <button type="button" @click="menuOpen = false" class="w-full rounded-md bg-zem-gold px-4 py-3 text-sm font-bold text-white"><span x-text="count()"></span> {{ __('item(s)') }} - <span x-text="money(total())"></span></button>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             @endif
             <div class="mb-3 flex items-center justify-between">
@@ -159,7 +219,7 @@
                     </div>
                 @empty
                     <div class="rounded-md border border-zem-border bg-zem-card p-6 text-center">
-                        <div class="text-3xl mb-2">🔔</div>
+                        <div class="mb-2 text-sm font-bold uppercase tracking-widest text-zem-gold">Requests</div>
                         <p class="text-zem-muted text-sm">{{ __('No service requests yet.') }}</p>
                     </div>
                 @endforelse
@@ -174,6 +234,55 @@
 </div>
 
 <script>
+function manualOrder() {
+    return {
+        mode: 'table',
+        menuOpen: false,
+        items: [],
+        add(item) {
+            const existing = this.items.find(row => row.id === item.id);
+            if (existing) {
+                existing.qty++;
+                return;
+            }
+            this.items.push({ id: item.id, name: item.name, price: Number(item.price || 0), qty: 1, note: '' });
+        },
+        dec(id) {
+            const item = this.items.find(row => row.id === id);
+            if (! item) return;
+            item.qty--;
+            if (item.qty <= 0) this.items = this.items.filter(row => row.id !== id);
+        },
+        count() {
+            return this.items.reduce((sum, item) => sum + Number(item.qty || 0), 0);
+        },
+        total() {
+            return this.items.reduce((sum, item) => sum + Number(item.qty || 0) * Number(item.price || 0), 0);
+        },
+        money(value) {
+            return new Intl.NumberFormat('en-US', { maximumFractionDigits: 2 }).format(value) + ' ETB';
+        },
+        syncForm(event) {
+            if (this.items.length === 0) {
+                event.preventDefault();
+                alert('Add at least one item');
+                return;
+            }
+
+            this.$refs.fields.innerHTML = '';
+            this.items.forEach((item, index) => {
+                [['id', item.id], ['quantity', item.qty], ['note', item.note || '']].forEach(([field, value]) => {
+                    const input = document.createElement('input');
+                    input.type = 'hidden';
+                    input.name = 'items[' + index + '][' + field + ']';
+                    input.value = value;
+                    this.$refs.fields.appendChild(input);
+                });
+            });
+        },
+    };
+}
+
 function workBoard() {
     return {
         filter: 'active',
@@ -185,6 +294,7 @@ function workBoard() {
         toastMessage: '',
         toastType: 'success',
         latestOrderId: 0,
+        latestConfirmedAt: null,
         latestRequestId: 0,
         pollTimer: null,
         pollDelay: 15000,
@@ -192,18 +302,23 @@ function workBoard() {
         polling: false,
         pollUrl: '{{ route("restaurant.orders.poll") }}',
         orderUpdateUrl: '{{ route("restaurant.orders.update", ["__ID__"]) }}',
+        orderConfirmUrl: '{{ route("restaurant.orders.confirm", ["__ID__"]) }}',
         requestUpdateUrl: '{{ route("restaurant.service-requests.update", ["__ID__"]) }}',
+        staffRole: @js($staffRole),
+        paymentMethods: @js($paymentMethods),
         requestTypeLabels: @js($requestTypeLabels),
         placeTitle: @js($placeTitle),
         labels: @js([
             'order' => __('Order'), 'note' => __('Note'), 'none' => __('None'),
             'markCompleted' => __('Mark as completed'), 'requestCompleted' => __('Request completed'),
+            'confirmOrder' => __('Confirm order'), 'needsConfirm' => __('Needs cashier confirm'),
             'failedRequest' => __('Failed to update request'), 'failedOrder' => __('Failed to update order'),
         ]),
         statusLabels: @js(collect(['new','preparing','served','paid','completed','cancelled','pending','acknowledged'])->mapWithKeys(fn ($status) => [$status => __(ucfirst($status))])),
 
         init() {
             this.latestOrderId = {{ $latestOrderId }};
+            this.latestConfirmedAt = @js($latestConfirmedAt);
             this.latestRequestId = {{ $latestRequestId }};
             this.activeRequests = {{ $activeRequests }};
             this.activeCount = {{ $orders->whereNotIn('status', ['completed', 'cancelled'])->count() }};
@@ -235,6 +350,29 @@ function workBoard() {
             this.toast = true;
             clearTimeout(this._toastTimer);
             this._toastTimer = setTimeout(() => this.toast = false, 3000);
+        },
+
+        confirmOrder(orderId) {
+            const url = this.orderConfirmUrl.replace('__ID__', orderId);
+            const formData = new FormData();
+            formData.append('_token', '{{ csrf_token() }}');
+            formData.append('_method', 'PATCH');
+            fetch(url, { method: 'POST', body: formData, headers: { 'X-Requested-With': 'XMLHttpRequest', 'Accept': 'application/json' } })
+            .then(r => { if (!r.ok) throw new Error('Server returned ' + r.status); return r.json(); })
+            .then(data => {
+                if (data.success) {
+                    const article = this.$refs.ordersList.querySelector('[data-order-id="' + orderId + '"]');
+                    if (article) {
+                        article.dataset.confirmed = '1';
+                        article.classList.remove('border-l-yellow-400');
+                        article.classList.add('border-l-zem-gold');
+                        article.querySelectorAll('.bg-yellow-100.text-yellow-700').forEach(el => el.remove());
+                        this.renderOrderActions(article, orderId, article.dataset.status || 'new');
+                    }
+                    this.showToast('Order #' + orderId + ' confirmed');
+                }
+            })
+            .catch(() => this.showToast('Failed to confirm order #' + orderId, 'error'));
         },
 
         markPaid(orderId) {
@@ -385,6 +523,7 @@ function workBoard() {
                 order_since: this.latestOrderId,
                 request_since: this.latestRequestId,
             });
+            if (this.latestConfirmedAt) params.append('confirmed_since', this.latestConfirmedAt);
             this.$refs.ordersList.querySelectorAll('[data-order-id]').forEach(el => params.append('visible_order_ids[]', el.dataset.orderId));
             fetch(this.pollUrl + '?' + params.toString(), {
                 cache: 'no-store',
@@ -415,6 +554,7 @@ function workBoard() {
                     });
                 }
                 this.latestOrderId = Math.max(this.latestOrderId, Number(data.latestOrderId || 0));
+                if (data.latestConfirmedAt) this.latestConfirmedAt = data.latestConfirmedAt;
                 this.latestRequestId = Math.max(this.latestRequestId, Number(data.latestRequestId || 0));
                 this.syncOrderStatuses(data.orderStatuses || []);
                 this.idlePolls = changed ? 0 : this.idlePolls + 1;
@@ -456,30 +596,55 @@ function workBoard() {
             article.className = 'rounded-md border-l-4 border border-zem-border bg-zem-card p-4 animate-slide-in ' + (isCompleted ? 'border-l-gray-400 opacity-60' : 'border-l-zem-gold');
             article.dataset.orderId = order.id;
             article.dataset.status = order.status;
+            article.dataset.confirmed = order.confirmed ? '1' : '0';
 
             let itemsHtml = order.items.map(item =>
                 '<p class="flex justify-between gap-3 rounded-md border border-zem-border bg-zem-bg px-3 py-2 text-sm text-zem-cream"><span>' + Number(item.quantity) + ' x ' + this.escapeHtml(item.name) + (item.note ? ' <em class="text-zem-muted">(' + this.escapeHtml(item.note) + ')</em>' : '') + '</span><strong class="shrink-0 text-zem-cream">' + new Intl.NumberFormat('en-US').format(item.total_price) + ' ETB</strong></p>'
             ).join('');
 
             const statusBadge = this.getStatusBadge(order.status);
-            const completeBtn = isCompleted ? '' : '<button type="button" onclick="this.dispatchEvent(new CustomEvent(\'mark-completed\', {bubbles: true}))" class="rounded-md bg-zem-green px-4 py-2 text-sm font-bold text-white transition hover:opacity-90">' + this.escapeHtml(this.labels.markCompleted) + '</button>';
+            const orderTags = (order.order_type === 'delivery' ? ' <span class="ml-1 rounded-full bg-purple-100 px-2 py-0.5 text-xs font-bold text-purple-700">Delivery</span>' : '') + (order.needs_confirmation ? ' <span class="ml-1 rounded-full bg-yellow-100 px-2 py-0.5 text-xs font-bold text-yellow-700">' + this.escapeHtml(this.labels.needsConfirm) + '</span>' : '');
 
             article.innerHTML =
-                '<div class="flex flex-wrap items-start justify-between gap-3"><div><h2 class="font-display text-xl font-bold">' + this.escapeHtml(this.labels.order) + ' #' + order.id + '</h2><p class="text-sm text-zem-muted">' + this.escapeHtml(this.placeTitle) + ' ' + this.escapeHtml(order.table_number) + (order.order_type === 'delivery' ? ' <span class="ml-1 rounded-full bg-purple-100 px-2 py-0.5 text-xs font-bold text-purple-700">Delivery</span>' : '') + ' - <span data-created-at="' + this.escapeHtml(order.created_at) + '">' + this.relativeTime(order.created_at) + '</span></p></div><span data-status-badge>' + statusBadge + '</span></div>' +
+                '<div class="flex flex-wrap items-start justify-between gap-3"><div><h2 class="font-display text-xl font-bold">' + this.escapeHtml(this.labels.order) + ' #' + order.id + '</h2><p class="text-sm text-zem-muted">' + this.escapeHtml(this.placeTitle) + ' ' + this.escapeHtml(order.table_number) + orderTags + ' - <span data-created-at="' + this.escapeHtml(order.created_at) + '">' + this.relativeTime(order.created_at) + '</span></p></div><span data-status-badge>' + statusBadge + '</span></div>' +
                 '<div class="mt-4 space-y-2">' + itemsHtml + '</div>' +
                 '<p class="mt-3 text-sm text-zem-muted">' + this.escapeHtml(this.labels.note) + ': ' + this.escapeHtml(order.note || this.labels.none) + '</p>' +
-                '<div class="mt-4 flex flex-wrap items-center justify-between gap-3"><strong>' + new Intl.NumberFormat('en-US').format(order.total) + ' ETB</strong>' + completeBtn + '</div>';
-
-            const btn = article.querySelector('button');
-            if (btn) {
-                btn.addEventListener('click', (e) => {
-                    e.stopPropagation();
-                    this.markCompleted(order.id);
-                });
-            }
+                '<div class="mt-4 flex flex-wrap items-center justify-between gap-3" data-order-actions><strong>' + new Intl.NumberFormat('en-US').format(order.total) + ' ETB</strong></div>';
 
             list.prepend(article);
+            this.renderOrderActions(article, order.id, order.status);
             this.applyFilter();
+        },
+
+        renderOrderActions(article, orderId, status) {
+            const actions = article.querySelector('[data-order-actions]');
+            if (!actions) return;
+            const total = actions.querySelector('strong')?.outerHTML || '';
+            let control = '';
+            const confirmed = article.dataset.confirmed === '1';
+            if (!['completed', 'cancelled'].includes(status)) {
+                if (['owner_manager', 'cashier'].includes(this.staffRole) && !confirmed) {
+                    control = '<button type="button" data-confirm-order class="rounded-md bg-yellow-500 px-6 py-3 text-base font-bold text-white transition hover:opacity-90 min-h-[56px]">' + this.escapeHtml(this.labels.confirmOrder) + '</button>';
+                } else if (this.staffRole === 'cashier' && status === 'served') {
+                    control = '<div class="flex gap-2"><select id="payment-method-' + orderId + '" class="rounded-md border border-zem-border bg-white px-3 py-3 text-sm"><option value="">Payment method...</option>' + this.paymentMethods.map(method => '<option value="' + this.escapeHtml(method) + '">' + this.escapeHtml(method.charAt(0).toUpperCase() + method.slice(1)) + '</option>').join('') + '</select><button type="button" data-mark-paid class="rounded-md bg-emerald-600 px-6 py-3 text-base font-bold text-white transition hover:opacity-90 min-h-[56px]">Mark Paid</button></div>';
+                } else if (this.staffRole === 'cashier' && status !== 'paid') {
+                    control = '<span class="rounded-md border border-zem-border bg-zem-soft px-4 py-3 text-sm font-bold text-zem-muted">Waiting for kitchen</span>';
+                } else if (this.staffRole === 'cashier' && status === 'paid') {
+                    control = '<button type="button" data-mark-completed class="rounded-md bg-zem-green px-6 py-3 text-base font-bold text-white transition hover:opacity-90 min-h-[56px]">' + this.escapeHtml(this.labels.markCompleted) + '</button>';
+                } else if (this.staffRole === 'kitchen' && status === 'new') {
+                    control = '<button type="button" data-start-preparing class="rounded-md bg-blue-600 px-6 py-3 text-base font-bold text-white transition hover:opacity-90 min-h-[56px]">Start Preparing</button>';
+                } else if (this.staffRole === 'kitchen' && status === 'preparing') {
+                    control = '<button type="button" data-mark-served class="rounded-md bg-green-600 px-6 py-3 text-base font-bold text-white transition hover:opacity-90 min-h-[56px]">Mark Served</button>';
+                } else if (this.staffRole === 'owner_manager') {
+                    control = '<button type="button" data-mark-completed class="rounded-md bg-zem-green px-6 py-3 text-base font-bold text-white transition hover:opacity-90 min-h-[56px]">' + this.escapeHtml(this.labels.markCompleted) + '</button>';
+                }
+            }
+            actions.innerHTML = total + control;
+            actions.querySelector('[data-confirm-order]')?.addEventListener('click', () => this.confirmOrder(orderId));
+            actions.querySelector('[data-mark-paid]')?.addEventListener('click', () => this.markPaid(orderId));
+            actions.querySelector('[data-mark-completed]')?.addEventListener('click', () => this.markCompleted(orderId));
+            actions.querySelector('[data-start-preparing]')?.addEventListener('click', () => this.updateStatus(orderId, 'preparing'));
+            actions.querySelector('[data-mark-served]')?.addEventListener('click', () => this.updateStatus(orderId, 'served'));
         },
 
         prependRequest(req) {
@@ -541,7 +706,7 @@ function workBoard() {
                 article.classList.toggle('border-l-gray-400', !isActive);
                 const badge = article.querySelector('[data-status-badge]');
                 if (badge) badge.innerHTML = this.getStatusBadge(row.status);
-                if (!isActive) article.querySelector('button')?.remove();
+                this.renderOrderActions(article, row.id, row.status);
             });
             this.applyFilter();
         },

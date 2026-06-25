@@ -22,11 +22,11 @@
                     <select x-model="selectedItem" class="flex-1 rounded-lg border border-zem-border bg-white px-3 py-2 text-sm">
                         <option value="">Select menu item...</option>
                         @foreach($menuItems as $item)
-                            <option value="{{ $item->id }}" data-price="{{ $item->price }}">{{ $item->name }} — {{ number_format($item->price) }} ETB</option>
+                            <option value="{{ $item->id }}" data-price="{{ $item->price }}">{{ $item->name }} - {{ number_format($item->price) }} ETB</option>
                         @endforeach
                     </select>
                     <input type="number" x-model="qty" placeholder="Qty" min="1" value="1" class="w-20 rounded-lg border border-zem-border bg-white px-3 py-2 text-sm">
-                    <button type="button" @click="if (selectedItem) { items.push({id: selectedItem, name: $event.target.options[selectedIndex].text.split(' — ')[0], qty: qty}); selectedItem=''; qty=1 }" class="rounded-lg bg-zem-gold px-4 py-2 text-sm font-bold text-white">Add</button>
+                    <button type="button" @click="if (selectedItem) { items.push({id: selectedItem, name: $event.target.options[selectedIndex].text.split(' - ')[0], qty: qty}); selectedItem=''; qty=1 }" class="rounded-lg bg-zem-gold px-4 py-2 text-sm font-bold text-white">Add</button>
                 </div>
                 <div class="mt-3 space-y-2">
                     <template x-for="(item, i) in items" :key="i">
@@ -54,7 +54,7 @@
                 <div class="flex justify-between">
                     <div>
                         <p class="font-bold">Order #{{ $order->id }}</p>
-                        <p class="text-sm text-zem-muted">{{ $order->customer_name ?? 'Unknown' }} — {{ $order->created_at->diffForHumans() }}</p>
+                        <p class="text-sm text-zem-muted">{{ $order->customer_name ?? 'Unknown' }} - {{ $order->created_at->diffForHumans() }}</p>
                     </div>
                     <div class="text-right">
                         <p class="font-bold">{{ number_format($order->total) }} ETB</p>
@@ -63,7 +63,7 @@
                 </div>
                 <div class="mt-2 space-y-1">
                     @foreach($order->items as $item)
-                        <p class="text-sm text-zem-muted">{{ $item->quantity }}x {{ $item->item_name }} — {{ number_format($item->total_price) }} ETB</p>
+                        <p class="text-sm text-zem-muted">{{ $item->quantity }}x {{ $item->item_name }} - {{ number_format($item->total_price) }} ETB</p>
                     @endforeach
                 </div>
             </div>
@@ -73,3 +73,4 @@
     </div>
     <div class="mt-4">{{ $deliveryOrders->links() }}</div>
 </div>
+@endsection
