@@ -3,6 +3,12 @@
 @section('content')
 @include('restaurant.partials.order_sound_alerts', ['latestOrderId' => $latestOrderId])
 @php($placeTitle = __($restaurant->locationLabelTitle()))
+@php($isHotel = $restaurant->isHotel())
+@php($manualOrderTitle = $isHotel ? __('Manual Room Service Order') : __('Manual Order'))
+@php($placeOptionLabel = $isHotel ? __('Room') : __('Table'))
+@php($placeSelectLabel = $isHotel ? __('Select room') : __('Select table'))
+@php($customerLabel = $isHotel ? __('Guest') : __('Customer'))
+@php($createManualOrderLabel = $isHotel ? __('Create Room Service Order') : __('Create Manual Order'))
 @php($requestTypeLabels = ['call_waiter' => __($restaurant->staffRequestLabel()), 'request_bill' => __('Request Bill'), 'request_water' => __('Request Water'), 'other' => __('Other')])
 @php($staffRole = session('staff_profile_role', 'owner_manager'))
 @php($paymentMethods = $paymentMethods ?? ['cash', 'telebirr', 'cbe', 'awash', 'abyssinia'])
@@ -85,7 +91,7 @@
             @if(in_array($staffRole, ['owner_manager', 'cashier'], true))
                 <div class="mb-5 rounded-md border border-zem-border bg-zem-card p-4" x-data="manualOrder()">
                     <div class="flex items-center justify-between gap-3">
-                        <h2 class="font-display text-xl font-bold">{{ __('Manual Order') }}</h2>
+                        <h2 class="font-display text-xl font-bold">{{ $manualOrderTitle }}</h2>
                         <span class="rounded-full border border-zem-border px-3 py-1 text-xs font-bold text-zem-muted" x-text="count() + ' item(s)'"></span>
                     </div>
                     <form method="post" action="{{ route('restaurant.orders.manual.store') }}" class="mt-4 space-y-3" @submit="syncForm($event)">
@@ -93,9 +99,9 @@
                         <label class="grid gap-1 text-sm">
                             <span class="font-bold">{{ __('Order type') }}</span>
                             <select name="order_mode" x-model="mode" class="rounded-md border border-zem-border bg-white px-3 py-2">
-                                <option value="table">{{ __('Table') }}</option>
-                                <option value="takeaway">{{ __('Takeaway') }}</option>
-                                <option value="delivery">{{ __('Delivery order') }}</option>
+                                <option value="table">{{ $placeOptionLabel }}</option>
+                                <option value="takeaway">{{ $isHotel ? __('Walk-in / lobby') : __('Takeaway') }}</option>
+                                <option value="delivery">{{ $isHotel ? __('External delivery') : __('Delivery order') }}</option>
                             </select>
                         </label>
 
@@ -103,21 +109,21 @@
                             <label class="grid gap-1 text-sm">
                                 <span class="font-bold">{{ $placeTitle }}</span>
                                 <select name="table_number" :disabled="mode !== 'table'" class="rounded-md border border-zem-border bg-white px-3 py-2">
-                                    <option value="">{{ __('Select table') }}</option>
+                                    <option value="">{{ $placeSelectLabel }}</option>
                                     @foreach($tables as $table)
                                         <option value="{{ $table->table_number }}">{{ $table->table_name ?: $table->table_number }}</option>
                                     @endforeach
                                 </select>
                             </label>
                             <label class="grid gap-1 text-sm">
-                                <span class="font-bold">{{ __('Customer') }}</span>
+                                <span class="font-bold">{{ $customerLabel }}</span>
                                 <input name="customer_name" placeholder="{{ __('Optional') }}" class="rounded-md border border-zem-border bg-white px-3 py-2">
                             </label>
                         </div>
 
                         <label class="grid gap-1 text-sm" x-show="mode === 'delivery'" x-cloak>
-                            <span class="font-bold">{{ __('Delivery app') }}</span>
-                            <input name="delivery_app" :disabled="mode !== 'delivery'" placeholder="Bolt, Glovo, phone call..." class="rounded-md border border-zem-border bg-white px-3 py-2">
+                            <span class="font-bold">{{ $isHotel ? __('Delivery source') : __('Delivery app') }}</span>
+                            <input name="delivery_app" :disabled="mode !== 'delivery'" placeholder="{{ $isHotel ? __('Guest call, front desk, app...') : __('Bolt, Glovo, phone call...') }}" class="rounded-md border border-zem-border bg-white px-3 py-2">
                         </label>
 
                         <div class="rounded-md border border-zem-border bg-zem-bg p-3">
@@ -146,16 +152,16 @@
                             </div>
                         </div>
 
-                        <textarea name="note" rows="2" placeholder="{{ __('Order note') }}" class="w-full rounded-md border border-zem-border bg-white px-3 py-2 text-sm"></textarea>
+                        <textarea name="note" rows="2" placeholder="{{ $isHotel ? __('Room service note') : __('Order note') }}" class="w-full rounded-md border border-zem-border bg-white px-3 py-2 text-sm"></textarea>
                         <div x-ref="fields"></div>
-                        <button class="w-full rounded-md bg-zem-gold px-4 py-3 text-base font-bold text-white">{{ __('Create Manual Order') }}</button>
+                        <button class="w-full rounded-md bg-zem-gold px-4 py-3 text-base font-bold text-white">{{ $createManualOrderLabel }}</button>
                     </form>
 
                     <div x-show="menuOpen" x-cloak class="fixed inset-0 z-50 bg-black/60 p-3 backdrop-blur-sm" @click.self="menuOpen = false">
                         <div class="mx-auto flex max-h-[92vh] max-w-md flex-col overflow-hidden rounded-2xl border border-zem-border bg-zem-card shadow-2xl">
                             <div class="flex items-center justify-between border-b border-zem-border px-4 py-3">
                                 <div>
-                                    <p class="text-xs font-bold uppercase tracking-widest text-zem-gold">{{ __('Manual Order') }}</p>
+                                    <p class="text-xs font-bold uppercase tracking-widest text-zem-gold">{{ $manualOrderTitle }}</p>
                                     <h3 class="font-display text-xl font-bold">{{ __('Menu') }}</h3>
                                 </div>
                                 <button type="button" @click="menuOpen = false" class="rounded-md border border-zem-border px-3 py-2 text-sm font-bold">{{ __('Close') }}</button>

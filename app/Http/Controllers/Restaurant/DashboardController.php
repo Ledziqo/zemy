@@ -213,7 +213,9 @@ class DashboardController extends Controller
             return $order;
         });
 
-        return back()->with('success', 'Manual order #'.$order->id.' created.');
+        $label = $restaurant->isHotel() ? 'Room service order' : 'Manual order';
+
+        return back()->with('success', $label.' #'.$order->id.' created.');
     }
 
     public function poll(Request $request)
