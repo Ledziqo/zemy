@@ -13,7 +13,7 @@ class StaffProfileController extends Controller
     {
         $data = $request->validate([
             'name' => ['required', 'string', 'max:255'],
-            'role' => ['required', 'in:cashier,kitchen'],
+            'role' => ['required', 'in:owner_manager,cashier,kitchen'],
             'password' => ['required', 'string', 'min:4', 'max:255'],
             'is_active' => ['nullable', 'boolean'],
         ]);
@@ -57,7 +57,11 @@ class StaffProfileController extends Controller
     public function destroy(Restaurant $restaurant, StaffProfile $staffProfile)
     {
         abort_unless($staffProfile->restaurant_id === $restaurant->id, 403);
-        abort_unless($staffProfile->role !== 'owner_manager', 403, 'Cannot delete the Owner/Manager profile.');
+
+        if ($staffProfile->role === 'owner_manager') {
+            $ownerManagerCount = $restaurant->staffProfiles()->where('role', 'owner_manager')->count();
+            abort_if($ownerManagerCount <= 1, 403, 'Cannot delete the last Owner/Manager profile.');
+        }
 
         $staffProfile->delete();
 
