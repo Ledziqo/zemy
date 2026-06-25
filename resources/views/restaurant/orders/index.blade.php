@@ -18,7 +18,7 @@
         <div class="rounded-md border border-zem-border bg-zem-card px-4 py-3"><p class="text-xs text-zem-muted">{{ __('Active orders') }}</p><p class="mt-1 text-2xl font-extrabold" x-text="activeCount">{{ $orders->whereNotIn('status', ['completed', 'cancelled'])->count() }}</p></div>
         <div class="rounded-md border border-zem-border bg-zem-card px-4 py-3"><p class="text-xs text-zem-muted">{{ __('Completed today') }}</p><p class="mt-1 text-2xl font-extrabold" x-text="completedCount">{{ $orders->where('status', 'completed')->count() }}</p></div>
         <div class="rounded-md border border-zem-border bg-zem-card px-4 py-3"><p class="text-xs text-zem-muted">{{ __('Active requests') }}</p><p class="mt-1 text-2xl font-extrabold" x-text="activeRequests">{{ $activeRequests }}</p></div>
-        <div class="rounded-md border border-zem-border bg-zem-card px-4 py-3"><p class="text-xs text-zem-muted">{{ __('Updated') }}</p><p class="mt-1 text-sm font-bold" x-text="updatedTime">{{ now()->format('H:i:s') }}</p></div>
+        <div class="rounded-md border border-zem-border bg-zem-card px-4 py-3"><p class="text-xs text-zem-muted">{{ __('Next update') }}</p><p class="mt-1 text-sm font-bold" x-text="nextPollLabel()">{{ __('Next update in 15s') }}</p></div>
     </div>
 </div>
 
@@ -295,7 +295,9 @@ function workBoard() {
         activeCount: 0,
         completedCount: 0,
         activeRequests: 0,
-        updatedTime: '',
+        nextPollAt: null,
+        nextPollSeconds: 15,
+        countdownTimer: null,
         toast: false,
         toastMessage: '',
         toastType: 'success',
@@ -329,8 +331,6 @@ function workBoard() {
             this.activeRequests = {{ $activeRequests }};
             this.activeCount = {{ $orders->whereNotIn('status', ['completed', 'cancelled'])->count() }};
             this.completedCount = {{ $orders->where('status', 'completed')->count() }};
-            this.updatedTime = '{{ now()->format("H:i:s") }}';
-
             this.schedulePoll(15000);
             document.addEventListener('visibilitychange', () => {
                 if (document.hidden) {
@@ -343,11 +343,31 @@ function workBoard() {
             });
             this.updateRelativeTimes();
             setInterval(() => this.updateRelativeTimes(), 1000);
+            this.countdownTimer = setInterval(() => this.updatePollCountdown(), 1000);
         },
 
         schedulePoll(delay = this.pollDelay) {
             clearTimeout(this.pollTimer);
+            this.nextPollAt = Date.now() + delay;
+            this.updatePollCountdown();
             this.pollTimer = setTimeout(() => this.poll(), delay);
+        },
+
+        updatePollCountdown() {
+            if (this.polling) {
+                this.nextPollSeconds = 0;
+                return;
+            }
+            if (!this.nextPollAt) {
+                this.nextPollSeconds = Math.ceil(this.pollDelay / 1000);
+                return;
+            }
+            this.nextPollSeconds = Math.max(0, Math.ceil((this.nextPollAt - Date.now()) / 1000));
+        },
+
+        nextPollLabel() {
+            if (this.polling) return @js(__('Checking now...'));
+            return @js(__('Next update in')) + ' ' + this.nextPollSeconds + 's';
         },
 
         showToast(message, type = 'success') {
@@ -525,6 +545,8 @@ function workBoard() {
         poll() {
             if (this.polling) return;
             this.polling = true;
+            clearTimeout(this.pollTimer);
+            this.updatePollCountdown();
             const params = new URLSearchParams({
                 order_since: this.latestOrderId,
                 request_since: this.latestRequestId,
@@ -540,7 +562,6 @@ function workBoard() {
                 return r.json();
             })
             .then(data => {
-                this.updatedTime = new Date().toLocaleTimeString('en-GB');
                 if (typeof data.activeRequests === 'number') this.activeRequests = data.activeRequests;
                 const changed = Boolean(data.hasChanges) || (data.orders || []).length > 0 || (data.requests || []).length > 0;
 
