@@ -68,11 +68,17 @@ class StaffProfileController extends Controller
             'is_active' => ['nullable', 'boolean'],
         ]);
 
+        abort_if($data['role'] === 'kitchen' && ! $restaurant->kitchenScreenEnabled(), 422, 'Enable the Kitchen screen before adding a Kitchen profile.');
+
         $updates = [
             'name' => $data['name'],
             'role' => $data['role'],
             'is_active' => $request->boolean('is_active', true),
         ];
+
+        if ($updates['role'] === 'kitchen' && ! $restaurant->kitchenScreenEnabled()) {
+            $updates['is_active'] = false;
+        }
         if (! empty($data['password'])) {
             $updates['password'] = $data['password'];
         }

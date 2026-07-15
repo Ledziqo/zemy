@@ -11,6 +11,7 @@
 @php($createManualOrderLabel = $isHotel ? __('Create Room Service Order') : __('Create Manual Order'))
 @php($requestTypeLabels = ['call_waiter' => __($restaurant->staffRequestLabel()), 'request_bill' => __('Request Bill'), 'request_water' => __('Request Water'), 'other' => __('Other')])
 @php($staffRole = session('staff_profile_role', 'owner_manager'))
+@php($kitchenScreenEnabled = $restaurant->kitchenScreenEnabled())
 @php($paymentMethods = $paymentMethods ?? ['cash', 'telebirr', 'cbe', 'awash', 'abyssinia'])
 <div x-data="workBoard()" x-init="init()" x-cloak>
 <div class="mb-4 flex flex-wrap items-center justify-between gap-3">
@@ -49,6 +50,8 @@
                         @if(!in_array($order->status, ['completed', 'cancelled'], true))
                             @if(in_array($staffRole, ['owner_manager', 'cashier'], true) && $needsConfirmation)
                                 <button type="button" @click="confirmOrder({{ $order->id }})" class="rounded-md bg-yellow-500 px-6 py-3 text-base font-bold text-white transition hover:opacity-90 min-h-[56px]">{{ __('Confirm order') }}</button>
+                            @elseif(! $kitchenScreenEnabled && in_array($staffRole, ['owner_manager', 'cashier'], true))
+                                <button type="button" @click="markCompleted({{ $order->id }})" class="rounded-md bg-zem-green px-6 py-3 text-base font-bold text-white transition hover:opacity-90 min-h-[56px]">{{ __('Mark as completed') }}</button>
                             @elseif($staffRole === 'cashier' && $order->status === 'served')
                                 <div class="flex gap-2">
                                     <select id="payment-method-{{ $order->id }}" class="rounded-md border border-zem-border bg-white px-3 py-3 text-sm">
@@ -313,6 +316,7 @@ function workBoard() {
         orderConfirmUrl: '{{ route("restaurant.orders.confirm", ["__ID__"]) }}',
         requestUpdateUrl: '{{ route("restaurant.service-requests.update", ["__ID__"]) }}',
         staffRole: @js($staffRole),
+        kitchenScreenEnabled: @js($kitchenScreenEnabled),
         paymentMethods: @js($paymentMethods),
         requestTypeLabels: @js($requestTypeLabels),
         placeTitle: @js($placeTitle),
@@ -652,6 +656,8 @@ function workBoard() {
             if (!['completed', 'cancelled'].includes(status)) {
                 if (['owner_manager', 'cashier'].includes(this.staffRole) && !confirmed) {
                     control = '<button type="button" data-confirm-order class="rounded-md bg-yellow-500 px-6 py-3 text-base font-bold text-white transition hover:opacity-90 min-h-[56px]">' + this.escapeHtml(this.labels.confirmOrder) + '</button>';
+                } else if (!this.kitchenScreenEnabled && ['owner_manager', 'cashier'].includes(this.staffRole)) {
+                    control = '<button type="button" data-mark-completed class="rounded-md bg-zem-green px-6 py-3 text-base font-bold text-white transition hover:opacity-90 min-h-[56px]">' + this.escapeHtml(this.labels.markCompleted) + '</button>';
                 } else if (this.staffRole === 'cashier' && status === 'served') {
                     control = '<div class="flex gap-2"><select id="payment-method-' + orderId + '" class="rounded-md border border-zem-border bg-white px-3 py-3 text-sm"><option value="">Payment method...</option>' + this.paymentMethods.map(method => '<option value="' + this.escapeHtml(method) + '">' + this.escapeHtml(method.charAt(0).toUpperCase() + method.slice(1)) + '</option>').join('') + '</select><button type="button" data-mark-paid class="rounded-md bg-emerald-600 px-6 py-3 text-base font-bold text-white transition hover:opacity-90 min-h-[56px]">Mark Paid</button></div>';
                 } else if (this.staffRole === 'cashier' && status !== 'paid') {

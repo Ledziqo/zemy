@@ -14,6 +14,7 @@
             <option value="hotel">Hotel</option>
             <option value="both">Restaurant + Hotel</option>
         </select>
+        <label class="flex items-center gap-2 rounded-md border border-zem-border px-3 py-2"><input name="kitchen_screen_enabled" type="checkbox" value="1"> Kitchen screen</label>
         <input name="phone" placeholder="Phone" class="rounded-md border border-zem-border bg-zem-bg px-3 py-2">
         <input name="email" type="email" placeholder="Owner login email" class="rounded-md border border-zem-border bg-zem-bg px-3 py-2">
         <input name="owner_password" type="password" placeholder="Owner login password" class="rounded-md border border-zem-border bg-zem-bg px-3 py-2">
@@ -41,6 +42,7 @@
                     <div class="flex flex-wrap items-center gap-2">
                         <h3 class="font-display text-lg font-bold">{{ $restaurant->name }}</h3>
                         <span class="rounded-full border border-zem-border bg-zem-soft px-3 py-1 text-xs font-bold text-zem-cream">{{ $restaurant->businessTypeLabel() }}</span>
+                        <span class="rounded-full border border-zem-border bg-zem-soft px-3 py-1 text-xs font-bold text-zem-cream">{{ $restaurant->kitchenScreenEnabled() ? 'Kitchen screen' : 'Worker-only' }}</span>
                         <span class="rounded-full border px-3 py-1 text-xs font-bold {{ $subStatusColors[$subscription?->status ?? 'trial'] ?? 'border-zem-border text-zem-muted' }}">{{ $subscription?->status ?? 'trial' }}</span>
                         <span class="rounded-full border px-3 py-1 text-xs font-bold {{ $accessStatusColors[$restaurant->dashboard_access_status ?? 'active'] ?? 'border-zem-border text-zem-muted' }}">{{ $restaurant->dashboard_access_status ?? 'active' }}</span>
                     </div>
@@ -59,6 +61,7 @@
                             <option value="{{ $value }}" @selected(($restaurant->business_type ?? 'restaurant') === $value)>{{ $label }}</option>
                         @endforeach
                     </select>
+                    <label class="flex items-center gap-2 rounded-md border border-zem-border px-3 py-2"><input name="kitchen_screen_enabled" type="checkbox" value="1" @checked($restaurant->kitchenScreenEnabled())> Kitchen screen</label>
                     <input name="phone" value="{{ $restaurant->phone }}" class="rounded-md border border-zem-border bg-zem-card px-3 py-2">
                     <input name="email" value="{{ $restaurant->email }}" class="rounded-md border border-zem-border bg-zem-card px-3 py-2">
                     <input name="location" value="{{ $restaurant->location }}" class="rounded-md border border-zem-border bg-zem-card px-3 py-2">

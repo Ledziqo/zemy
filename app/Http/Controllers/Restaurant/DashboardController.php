@@ -373,7 +373,7 @@ class DashboardController extends Controller
         $profileRole = $request->session()->get('staff_profile_role');
 
         abort_if($this->needsConfirmation($order) && $data['status'] !== 'cancelled', 422, 'Confirm this order before sending it forward.');
-        abort_if($profileRole === 'cashier' && $data['status'] === 'paid' && $order->status !== 'served', 422, 'Kitchen must mark this order served before payment.');
+        abort_if($restaurant->kitchenScreenEnabled() && $profileRole === 'cashier' && $data['status'] === 'paid' && $order->status !== 'served', 422, 'Kitchen must mark this order served before payment.');
 
         $updateData = [
             'status' => $data['status'],

@@ -41,6 +41,10 @@ class RestaurantController extends Controller
             unset($data['business_type']);
         }
 
+        if (! Schema::hasColumn('restaurants', 'kitchen_screen_enabled')) {
+            unset($data['kitchen_screen_enabled']);
+        }
+
         DB::transaction(function () use ($data, $ownerPassword) {
             $restaurant = Restaurant::create($data);
 
@@ -74,7 +78,16 @@ class RestaurantController extends Controller
             unset($data['business_type']);
         }
 
+        if (! Schema::hasColumn('restaurants', 'kitchen_screen_enabled')) {
+            unset($data['kitchen_screen_enabled']);
+        }
+
+        $previousKitchenMode = $restaurant->kitchenScreenEnabled();
         $restaurant->update($data);
+
+        if (array_key_exists('kitchen_screen_enabled', $data) && $previousKitchenMode !== (bool) $data['kitchen_screen_enabled']) {
+            $this->syncKitchenProfiles($restaurant, (bool) $data['kitchen_screen_enabled']);
+        }
 
         if ($subscriptionStatus) {
             $restaurant->subscriptions()->updateOrCreate(
@@ -151,6 +164,7 @@ class RestaurantController extends Controller
             'name' => ['required', 'string', 'max:255'],
             'slug' => ['required', 'alpha_dash', 'max:255', Rule::unique('restaurants', 'slug')->ignore($restaurantId)],
             'business_type' => [Rule::requiredIf(Schema::hasColumn('restaurants', 'business_type')), 'nullable', Rule::in(Restaurant::BUSINESS_TYPES)],
+            'kitchen_screen_enabled' => ['nullable', 'boolean'],
             'phone' => ['nullable', 'string', 'max:50'],
             'email' => $emailRules,
             'owner_password' => [$restaurantId === null ? 'nullable' : 'prohibited', 'string', 'min:8', 'max:255'],
@@ -158,7 +172,30 @@ class RestaurantController extends Controller
             'is_active' => ['nullable', 'boolean'],
             'dashboard_access_status' => ['nullable', Rule::in(Restaurant::DASHBOARD_ACCESS_STATUSES)],
             'subscription_status' => ['nullable', 'in:active,unpaid,trial,cancelled'],
-        ]) + ['is_active' => $request->boolean('is_active')];
+        ]) + [
+            'is_active' => $request->boolean('is_active'),
+            'kitchen_screen_enabled' => $request->boolean('kitchen_screen_enabled'),
+        ];
+    }
+
+    private function syncKitchenProfiles(Restaurant $restaurant, bool $enabled): void
+    {
+        if (! Schema::hasTable('staff_profiles') || ! Schema::hasColumn('staff_profiles', 'disabled_by_kitchen_mode')) {
+            return;
+        }
+
+        if ($enabled) {
+            $restaurant->staffProfiles()
+                ->where('role', 'kitchen')
+                ->where('disabled_by_kitchen_mode', true)
+                ->update(['is_active' => true, 'disabled_by_kitchen_mode' => false]);
+            return;
+        }
+
+        $restaurant->staffProfiles()
+            ->where('role', 'kitchen')
+            ->where('is_active', true)
+            ->update(['is_active' => false, 'disabled_by_kitchen_mode' => true]);
     }
 
     private function ensureBusinessTypeColumn(): void

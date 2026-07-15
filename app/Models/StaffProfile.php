@@ -9,7 +9,7 @@ class StaffProfile extends Model
     public const ROLES = ['owner_manager', 'cashier', 'kitchen'];
 
     protected $fillable = [
-        'restaurant_id', 'name', 'role', 'password', 'is_active',
+        'restaurant_id', 'name', 'role', 'password', 'is_active', 'disabled_by_kitchen_mode',
     ];
 
     protected $hidden = ['password'];
@@ -18,6 +18,7 @@ class StaffProfile extends Model
     {
         return [
             'is_active' => 'boolean',
+            'disabled_by_kitchen_mode' => 'boolean',
             'password' => 'hashed',
         ];
     }

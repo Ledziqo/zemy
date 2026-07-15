@@ -16,6 +16,7 @@ return new class extends Migration {
                 $table->enum('role', ['owner_manager', 'cashier', 'kitchen'])->default('cashier');
                 $table->string('password');
                 $table->boolean('is_active')->default(true);
+                $table->boolean('disabled_by_kitchen_mode')->default(false);
                 $table->timestamps();
             });
         }

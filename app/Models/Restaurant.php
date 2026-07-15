@@ -11,12 +11,12 @@ class Restaurant extends Model
 
     protected $fillable = [
         'name', 'slug', 'business_type', 'phone', 'email', 'location', 'logo_path', 'cover_image_path',
-        'primary_color', 'is_active', 'dashboard_access_status', 'settings', 'menu_cache_version',
+        'primary_color', 'is_active', 'dashboard_access_status', 'kitchen_screen_enabled', 'settings', 'menu_cache_version',
     ];
 
     protected function casts(): array
     {
-        return ['is_active' => 'boolean', 'settings' => 'array', 'menu_cache_version' => 'integer'];
+        return ['is_active' => 'boolean', 'kitchen_screen_enabled' => 'boolean', 'settings' => 'array', 'menu_cache_version' => 'integer'];
     }
 
     public function users() { return $this->hasMany(User::class); }
@@ -62,6 +62,11 @@ class Restaurant extends Model
     public function isBoth(): bool
     {
         return $this->business_type === 'both';
+    }
+
+    public function kitchenScreenEnabled(): bool
+    {
+        return (bool) ($this->kitchen_screen_enabled ?? true);
     }
 
     public function businessTypeLabel(): string
