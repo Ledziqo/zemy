@@ -49,10 +49,14 @@
                     Cart <span x-text="count()"></span>
                 </button>
             </div>
+            <label class="mt-3 block">
+                <span class="sr-only">Search menu</span>
+                <input type="search" x-model="menuSearch" placeholder="Search the menu..." class="w-full rounded-xl border border-black/10 bg-neutral-100 px-4 py-3 text-sm font-semibold outline-none transition focus:border-zem-gold focus:bg-white">
+            </label>
             <nav class="mt-3 flex gap-2 overflow-x-auto pb-1">
-                <a href="#all" @click="activeCategory = 'all'" :class="activeCategory === 'all' ? 'bg-zem-gold text-white' : 'border border-black/10 bg-white text-neutral-700'" class="whitespace-nowrap rounded-full px-4 py-2 text-sm font-extrabold transition">All</a>
+                <button type="button" @click="activeCategory = 'all'" :class="activeCategory === 'all' ? 'bg-zem-gold text-white' : 'border border-black/10 bg-white text-neutral-700'" class="whitespace-nowrap rounded-full px-4 py-2 text-sm font-extrabold transition">All</button>
                 @foreach($categories as $category)
-                    <a href="#cat-{{ $category->id }}" @click="activeCategory = 'cat-{{ $category->id }}'" :class="activeCategory === 'cat-{{ $category->id }}' ? 'bg-zem-gold text-white' : 'border border-black/10 bg-white text-neutral-700'" class="whitespace-nowrap rounded-full px-4 py-2 text-sm font-extrabold transition">{{ $category->name }}</a>
+                    <button type="button" @click="activeCategory = 'cat-{{ $category->id }}'" :class="activeCategory === 'cat-{{ $category->id }}' ? 'bg-zem-gold text-white' : 'border border-black/10 bg-white text-neutral-700'" class="whitespace-nowrap rounded-full px-4 py-2 text-sm font-extrabold transition">{{ $category->name }}</button>
                 @endforeach
             </nav>
         </div>
@@ -222,12 +226,12 @@
 
     <section id="all" class="mx-auto max-w-5xl space-y-8 px-4">
         @foreach($categories as $category)
-            <section id="cat-{{ $category->id }}" class="scroll-mt-28">
+            <section id="cat-{{ $category->id }}" x-show="categoryVisible({{ $category->id }})" class="scroll-mt-28">
                 <h2 class="mb-3 font-display text-2xl font-extrabold">{{ $category->name }}</h2>
                 <div class="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
                     @foreach($category->menuItems as $item)
                         @php($imageUrl = $item->image_path ? (\Illuminate\Support\Str::startsWith($item->image_path, ['http://', 'https://', 'uploads/']) ? (str_starts_with($item->image_path, 'uploads/') ? asset($item->image_path) : $item->image_path) : asset('storage/'.$item->image_path)) : null)
-                        <article class="overflow-hidden rounded-2xl border border-black/10 bg-white shadow-sm" itemscope itemtype="https://schema.org/MenuItem">
+                        <article x-show="itemVisible({{ $category->id }}, @js($item->name), @js($item->description ?? ''))" class="overflow-hidden rounded-2xl border border-black/10 bg-white shadow-sm" itemscope itemtype="https://schema.org/MenuItem">
                             <div class="aspect-square bg-neutral-200">
                                 @if($imageUrl)
                                     <img src="{{ $imageUrl }}" alt="{{ $item->name }}" class="h-full w-full object-cover" loading="lazy">
@@ -253,8 +257,10 @@
                         </article>
                     @endforeach
                 </div>
+                <p x-show="categoryVisible({{ $category->id }}) && !categoryHasVisibleItems({{ $category->id }})" x-cloak class="rounded-xl border border-dashed border-black/10 bg-white p-5 text-sm font-bold text-neutral-500">No matching items in this category.</p>
             </section>
         @endforeach
+        <p x-show="!hasVisibleItems()" x-cloak class="rounded-xl border border-dashed border-black/10 bg-white p-6 text-center font-bold text-neutral-500">No menu items match your search.</p>
     </section>
 
     <button type="button" @click="open = true" x-show="count() > 0" class="fixed bottom-4 left-1/2 z-40 flex w-[calc(100%-2rem)] max-w-3xl -translate-x-1/2 items-center justify-between rounded-2xl bg-black px-5 py-4 font-extrabold text-white shadow-2xl shadow-black/40">
@@ -301,6 +307,7 @@ function menuCart(config) {
     return {
         open: false,
         activeCategory: 'all',
+        menuSearch: '',
         items: [],
         paymentDetails: config.paymentDetails || {},
         serviceChargePercentage: Number(config.serviceChargePercentage || 0),
@@ -312,6 +319,11 @@ function menuCart(config) {
         extraPercentage() { return this.serviceChargePercentage + this.vatPercentage; },
         extraCharges() { return this.total() * (this.extraPercentage() / 100); },
         finalTotal() { return this.total() + this.extraCharges(); },
+        normalized(value) { return String(value || '').toLowerCase().trim(); },
+        categoryVisible(categoryId) { return this.activeCategory === 'all' || this.activeCategory === 'cat-' + categoryId; },
+        itemVisible(categoryId, name, description) { return this.categoryVisible(categoryId) && (!this.menuSearch || this.normalized(name + ' ' + description).includes(this.normalized(this.menuSearch))); },
+        categoryHasVisibleItems(categoryId) { return [...document.querySelectorAll('#cat-' + categoryId + ' article')].some((item) => item.offsetParent !== null); },
+        hasVisibleItems() { return [...document.querySelectorAll('#all article')].some((item) => item.offsetParent !== null); },
         money(value) { return new Intl.NumberFormat('en-US', { maximumFractionDigits: 2 }).format(value) + ' ETB'; },
         syncForm() {
             const holder = document.getElementById('cart-fields');

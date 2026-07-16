@@ -15,18 +15,23 @@ class MenuItemController extends Controller
     public function index(Request $request)
     {
         $restaurant = $this->restaurant($request);
+        $categoryId = $request->integer('category_id') ?: null;
+        $categories = $restaurant->categories()->orderBy('sort_order')->orderBy('name')->get();
         return view('restaurant.menu_items.index', [
             'restaurant' => $restaurant,
             'items' => $restaurant->menuItems()
                 ->with('category')
                 ->join('categories', 'categories.id', '=', 'menu_items.category_id')
                 ->select('menu_items.*')
+                ->when($categoryId, fn ($query) => $query->where('menu_items.category_id', $categoryId))
                 ->orderBy('categories.sort_order')
                 ->orderBy('categories.id')
                 ->orderBy('menu_items.sort_order')
                 ->orderBy('menu_items.id')
-                ->paginate(50),
-            'categories' => $restaurant->categories,
+                ->paginate(50)
+                ->withQueryString(),
+            'categories' => $categories,
+            'selectedCategoryId' => $categoryId,
             'item' => new MenuItem(['is_available' => true]),
         ]);
     }

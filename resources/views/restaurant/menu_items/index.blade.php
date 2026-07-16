@@ -17,6 +17,21 @@
     <button class="rounded-md bg-zem-gold px-4 py-3 font-bold text-white">{{ __('Add item') }}</button>
 </form>
 
+<form method="get" action="{{ route('restaurant.menu-items.index') }}" class="mb-4 flex flex-wrap items-end gap-3 rounded-md border border-zem-border bg-zem-card p-4">
+    <label class="grid gap-2 text-sm font-bold text-zem-muted">
+        <span>Show category</span>
+        <select name="category_id" onchange="this.form.submit()" class="min-w-56 rounded-md border border-zem-border bg-zem-bg px-3 py-3 text-zem-cream">
+            <option value="">All categories</option>
+            @foreach($categories as $category)
+                <option value="{{ $category->id }}" @selected($selectedCategoryId === $category->id)>{{ $category->name }}</option>
+            @endforeach
+        </select>
+    </label>
+    @if($selectedCategoryId)
+        <a href="{{ route('restaurant.menu-items.index') }}" class="rounded-md border border-zem-border px-4 py-3 text-sm font-bold text-zem-cream">Show all</a>
+    @endif
+</form>
+
 <form method="post" action="{{ route('restaurant.menu-items.reorder') }}" class="mb-4 flex flex-wrap items-center justify-between gap-3 rounded-md border border-zem-border bg-zem-card p-4" data-reorder-form>
     @csrf @method('PATCH')
     <div>
