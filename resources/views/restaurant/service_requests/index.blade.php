@@ -18,7 +18,7 @@
     <form method="post" action="{{ route('restaurant.service-requests.update', $requestRow) }}" class="grid gap-3 rounded-md border border-zem-border bg-zem-card p-4 md:grid-cols-[1fr_auto_auto_auto] md:items-center">
         @csrf @method('PATCH')
         <div>
-            <strong>{{ $placeTitle }} {{ $requestRow->table_number }} - {{ $restaurant->requestTypeLabel($requestRow->type) }}</strong>
+            <strong>{{ $requestRow->table?->displayLabel() ?: $requestRow->table_number }} - {{ $restaurant->requestTypeLabel($requestRow->type) }}</strong>
             <p class="text-sm text-zem-muted">{{ $requestRow->created_at->diffForHumans() }} {{ $requestRow->note ? '- '.$requestRow->note : '' }}</p>
         </div>
         <x-status :status="$requestRow->status" />

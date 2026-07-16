@@ -17,6 +17,7 @@ class ServiceRequestController extends Controller
             'restaurant' => $restaurant,
             'requests' => $restaurant->serviceRequests()
                 ->orderByRaw("FIELD(status, 'pending', 'acknowledged', 'completed')")
+                ->with('table')
                 ->latest()
                 ->paginate(75),
             'activeRequests' => $restaurant->serviceRequests()->whereIn('status', ['pending', 'acknowledged'])->count(),

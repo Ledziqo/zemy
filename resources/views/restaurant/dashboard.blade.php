@@ -14,7 +14,7 @@
     <div class="mt-4 grid gap-3">
         @forelse($recentOrders as $order)
             <div class="rounded-md border-l-4 border border-zem-border bg-zem-bg p-4 {{ $order->status === 'new' ? 'border-l-zem-gold' : ($order->status === 'preparing' ? 'border-l-blue-500' : ($order->status === 'served' ? 'border-l-green-500' : ($order->status === 'completed' ? 'border-l-gray-400' : 'border-l-zem-border'))) }}">
-                <div class="flex flex-wrap justify-between gap-2"><strong>#{{ $order->id }} - {{ $placeTitle }} {{ $order->table_number }}</strong><x-status :status="$order->status" /></div>
+                <div class="flex flex-wrap justify-between gap-2"><strong>#{{ $order->id }} - {{ $order->table?->displayLabel() ?: $order->table_number }}</strong><x-status :status="$order->status" /></div>
                 <div class="mt-3 space-y-2">
                     @foreach($order->items as $item)
                         <p class="flex justify-between gap-3 rounded-md bg-black px-3 py-2 text-sm text-white">

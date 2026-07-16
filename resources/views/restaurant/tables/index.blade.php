@@ -23,7 +23,7 @@
             <div>
                 <p class="text-xs font-bold uppercase tracking-widest text-zem-gold">{{ $placeTitle }} QR</p>
                 <h2 class="mt-1 font-display text-2xl font-bold">{{ $table->table_name ?: $placeTitle.' '.$table->table_number }}</h2>
-                <p class="text-sm text-zem-muted">{{ $placeTitle }} number {{ $table->table_number }}</p>
+                <p class="text-sm text-zem-muted">QR identifier: {{ $table->table_number }}</p>
             </div>
             <x-status :status="$table->is_active ? 'active' : 'cancelled'" />
         </div>

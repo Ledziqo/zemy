@@ -1,6 +1,6 @@
 @extends('layouts.app', [
-    'title' => $restaurant->name.' Menu - '.$restaurant->locationLabelTitle().' '.$table->table_number.' | ZemTab',
-    'description' => 'View the digital QR menu for '.$restaurant->name.'. '.$restaurant->locationLabelTitle().' '.$table->table_number.'.',
+    'title' => $restaurant->name.' Menu - '.$table->displayLabel().' | ZemTab',
+    'description' => 'View the digital QR menu for '.$restaurant->name.'. '.$table->displayLabel().'.',
     'keywords' => $restaurant->name.' menu, QR menu, '.$restaurant->locationLabel().' ordering, ZemTab',
     'canonical' => route('menu.show', [$restaurant->slug, $table->table_number]),
     'ogType' => 'website',
@@ -40,7 +40,7 @@
                         <div class="grid h-14 w-14 shrink-0 place-items-center rounded-xl bg-black text-xl font-extrabold text-white">{{ strtoupper(substr($restaurant->name, 0, 1)) }}</div>
                     @endif
                     <div class="min-w-0">
-                        <p class="text-xs font-extrabold uppercase tracking-widest text-zem-gold">{{ $placeTitle }} {{ $table->table_number }}</p>
+                        <p class="text-xs font-extrabold uppercase tracking-widest text-zem-gold">{{ $table->displayLabel() }}</p>
                         <h1 class="truncate font-display text-2xl font-extrabold">{{ $restaurant->name }}</h1>
                         <p class="truncate text-sm text-neutral-500">{{ $restaurant->location ?: 'Digital menu' }}</p>
                     </div>

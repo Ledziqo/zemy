@@ -34,6 +34,7 @@ class DashboardController extends Controller
         return [
             'id' => $order->id,
             'table_number' => $order->table_number,
+            'table_label' => $order->table?->displayLabel() ?: $order->table_number,
             'status' => $order->status,
             'total' => (float) $order->total,
             'note' => $order->note,
@@ -85,7 +86,7 @@ class DashboardController extends Controller
             'completedOrders' => (clone $todayOrders)->where('status', 'completed')->count(),
             'revenue' => (clone $todayOrders)->whereIn('status', ['paid', 'completed'])->sum('total'),
             'allOrders' => $restaurant->orders()->count(),
-            'recentOrders' => $restaurant->orders()->with('items')->latest()->limit(8)->get(),
+            'recentOrders' => $restaurant->orders()->with(['items', 'table'])->latest()->limit(8)->get(),
             'popularItems' => $popularItems,
             'latestOrderId' => $restaurant->orders()->max('id') ?? 0,
             'latestRequestId' => $restaurant->serviceRequests()->max('id') ?? 0,
@@ -99,7 +100,7 @@ class DashboardController extends Controller
 
         return view('restaurant.orders.index', [
             'restaurant' => $restaurant,
-            'orders' => (clone $ordersQuery)->with(['items'])->latest()->paginate(30),
+            'orders' => (clone $ordersQuery)->with(['items', 'table'])->latest()->paginate(30),
             'menuItems' => $restaurant->menuItems()->where('is_available', true)->orderBy('name')->get(),
             'categories' => $restaurant->categories()
                 ->with(['menuItems' => fn ($query) => $query->where('is_available', true)->orderBy('sort_order')->orderBy('name')])
@@ -271,6 +272,7 @@ class DashboardController extends Controller
                     }
                 })
                 ->orderBy('id')
+                ->with('table')
                 ->limit(100)
                 ->get()
             : collect();
@@ -288,6 +290,7 @@ class DashboardController extends Controller
         $newRequests = $newRequestsRaw->map(fn ($req) => [
                 'id' => $req->id,
                 'table_number' => $req->table_number,
+                'table_label' => $req->table?->displayLabel() ?: $req->table_number,
                 'type' => $req->type,
                 'status' => $req->status,
                 'note' => $req->note,

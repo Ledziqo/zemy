@@ -48,7 +48,7 @@
             <div class="mt-3 grid place-items-center">
                 <img src="{{ route('restaurant.tables.qr', $table) }}" alt="QR code for {{ $place }} {{ $table->table_number }}" class="h-48 w-48 contrast-125">
             </div>
-            <p class="mt-3 text-5xl font-black">{{ $placeTitle }} {{ $table->table_number }}</p>
+            <p class="mt-3 text-5xl font-black">{{ $table->displayLabel() }}</p>
             @if($table->table_name)
                 <p class="mt-1 text-xl font-extrabold text-neutral-900">{{ $table->table_name }}</p>
             @endif
