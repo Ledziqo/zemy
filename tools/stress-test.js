@@ -33,6 +33,7 @@ class Jar {
 }
 
 const stageMetrics = [];
+const dashboardJars = new Map();
 
 async function timed(label, fn) {
   const start = Date.now();
@@ -167,13 +168,15 @@ async function runStage(restaurantCount) {
   // Stagger logins so the production login throttle is respected while
   // restaurant polling still runs concurrently after authentication.
   console.log(`  Logging in ${restaurantCount} restaurants (staggered)...`);
-  const dashboardJars = new Map();
   const loginPromises = [];
+  let newLoginNumber = 0;
 
   for (let i = 0; i < restaurantCount; i++) {
+    if (dashboardJars.has(i)) continue;
+    const loginNumber = newLoginNumber++;
     loginPromises.push((async () => {
       try {
-        await sleep(i * loginSpacingMs);
+        await sleep(loginNumber * loginSpacingMs);
         const jar = await loginDashboard(i);
         dashboardJars.set(i, jar);
       } catch (e) {
