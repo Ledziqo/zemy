@@ -50,7 +50,12 @@
 
     @if(! $stressTestEnabled)
         <div class="mt-4 rounded-md border border-amber-400/40 bg-amber-400/10 p-4 text-sm text-amber-100">
-            Production stress controls are locked. Set <code>STRESS_TEST_ALLOW_PRODUCTION=true</code> in the production environment, clear the config cache, and return here.
+            Production stress controls are locked until you enable temporary stress mode.
+            <form method="post" action="{{ route('admin.setup.run') }}" class="mt-3">
+                @csrf
+                <input type="hidden" name="stress_mode" value="enable">
+                <button class="rounded-md bg-amber-500 px-4 py-2 text-sm font-bold text-black hover:bg-amber-400">Enable temporary stress mode</button>
+            </form>
         </div>
     @else
         <p class="mt-4 text-sm text-zem-muted">Create one batch at a time. The simulator polls each restaurant's Work Board like an open screen while guests scan menus and place test orders. Maximum: {{ $stressMaxRestaurants }} restaurants.</p>
@@ -66,10 +71,11 @@
                 </form>
             @endfor
         </div>
-        <form method="post" action="{{ route('admin.setup.run') }}" class="mt-4" onsubmit="return confirm('Delete all zt-stress test restaurants and their synthetic data?');">
+        <form method="post" action="{{ route('admin.setup.run') }}" class="mt-4" onsubmit="return confirm('Delete all stress-test tenants and restore normal production mode?');">
             @csrf
             <input type="hidden" name="cleanup_stress_data" value="1">
-            <button class="rounded-md border border-red-400/50 px-4 py-2 text-sm font-bold text-red-200 hover:bg-red-400/10">Delete stress-test data</button>
+            <input type="hidden" name="stress_mode" value="disable">
+            <button class="rounded-md border border-red-400/50 px-4 py-2 text-sm font-bold text-red-200 hover:bg-red-400/10">Restore normal mode &amp; delete test data</button>
         </form>
     @endif
 </div>

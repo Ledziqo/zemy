@@ -40,7 +40,14 @@ class SetupController extends Controller
         $this->applySubmittedDatabaseConfig($request, $output);
 
         try {
-            if ($request->boolean('seed_stress_data')) {
+            if ($request->input('stress_mode') === 'enable') {
+                $this->setStressTestMode(true, $output);
+            } elseif ($request->input('stress_mode') === 'disable') {
+                if ($request->boolean('cleanup_stress_data')) {
+                    $this->cleanupStressData($output);
+                }
+                $this->setStressTestMode(false, $output);
+            } elseif ($request->boolean('seed_stress_data')) {
                 $batch = (int) $request->integer('stress_batch', 1);
                 $this->seedStressData($output, $batch);
             } elseif ($request->boolean('cleanup_stress_data')) {
@@ -119,6 +126,20 @@ class SetupController extends Controller
         $output[] = 'Stress test restaurants, users, orders, and related data removed.';
     }
 
+    private function setStressTestMode(bool $enabled, array &$output): void
+    {
+        if (! $this->updateEnv(['STRESS_TEST_ALLOW_PRODUCTION' => $enabled ? 'true' : 'false'])) {
+            throw new \LogicException('The production .env file is missing or not writable. Enable or disable stress mode from your hosting file manager, then clear the config cache.');
+        }
+
+        config(['stress.allow_production' => $enabled]);
+        Artisan::call('optimize:clear');
+        $output[] = $enabled
+            ? 'Production stress mode enabled. You can now add test tenants in batches.'
+            : 'Production stress mode disabled. Normal production protections are restored.';
+        $output[] = Artisan::output();
+    }
+
     private function friendlyError(Throwable $exception): string
     {
         $message = $exception->getMessage();
@@ -168,11 +189,11 @@ class SetupController extends Controller
         $output[] = 'Database settings were saved before setup ran.';
     }
 
-    private function updateEnv(array $updates): void
+    private function updateEnv(array $updates): bool
     {
         $path = base_path('.env');
         if (! File::exists($path) || ! File::isWritable($path)) {
-            return;
+            return false;
         }
 
         $contents = File::get($path);
@@ -187,6 +208,8 @@ class SetupController extends Controller
         }
 
         File::put($path, $contents);
+
+        return true;
     }
 
     private function escapeEnvValue(string $value): string
