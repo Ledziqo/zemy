@@ -28,7 +28,24 @@
                 <a href="{{ route($destination) }}" class="mt-3 flex items-center justify-between gap-3 rounded-xl px-3 py-3 hover:bg-zem-soft"><span class="text-sm">{{ $label }}</span><span class="rounded-lg px-2.5 py-1 text-sm font-semibold {{ $count ? 'bg-zem-gold/10 text-zem-gold' : 'bg-zem-soft text-zem-muted' }}">{{ number_format($count) }}</span></a>
             @endforeach
         </section>
-        <section class="border border-zem-border bg-zem-card p-5"><h2 class="font-semibold">Billing</h2><p class="mt-2 text-sm leading-relaxed text-zem-muted">Review incoming payments and subscription details.</p><a href="{{ route('admin.payments.index') }}" class="mt-4 inline-block text-sm font-semibold text-zem-gold">View payments →</a></section>
+        <section class="border border-zem-border bg-zem-card p-5">
+            <div class="flex items-start justify-between gap-3"><div><h2 class="font-semibold">Billing watch</h2><p class="mt-1 text-xs text-zem-muted">Upcoming renewals and accounts needing attention.</p></div><a href="{{ route('admin.payments.index') }}" class="text-xs font-semibold text-zem-gold">All billing →</a></div>
+            <div class="mt-4 grid grid-cols-3 gap-2">
+                <div class="rounded-xl bg-zem-soft p-3"><p class="text-[11px] text-zem-muted">Due soon</p><p class="mt-1 text-lg font-semibold">{{ number_format($billingDueSoon) }}</p></div>
+                <div class="rounded-xl bg-red-500/10 p-3"><p class="text-[11px] text-red-300">Overdue</p><p class="mt-1 text-lg font-semibold text-red-200">{{ number_format($billingOverdue) }}</p></div>
+                <div class="rounded-xl bg-zem-soft p-3"><p class="text-[11px] text-zem-muted">No plan</p><p class="mt-1 text-lg font-semibold">{{ number_format($billingMissing) }}</p></div>
+            </div>
+            <div class="mt-4 space-y-2">
+                @forelse($billingAlerts->take(4) as $billing)
+                    <a href="{{ route('admin.payments.index') }}" class="flex items-center justify-between gap-3 rounded-xl px-3 py-2.5 hover:bg-zem-soft">
+                        <div class="min-w-0"><p class="truncate text-sm font-semibold">{{ $billing->restaurant->name }}</p><p class="text-xs text-zem-muted">{{ $billing->subscription?->ends_at?->format('M j, Y') ?? 'Subscription setup needed' }}</p></div>
+                        <span class="shrink-0 rounded-full px-2.5 py-1 text-[11px] font-semibold {{ in_array($billing->attention, ['overdue', 'missing'], true) ? 'bg-red-500/10 text-red-300' : 'bg-zem-gold/10 text-zem-gold' }}">{{ $billing->label }}</span>
+                    </a>
+                @empty
+                    <p class="rounded-xl bg-zem-soft px-3 py-3 text-sm text-zem-muted">No billing alerts. Everything is up to date.</p>
+                @endforelse
+            </div>
+        </section>
     </div>
 </div>
 @endsection

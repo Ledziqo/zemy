@@ -14,8 +14,9 @@ class UserController extends Controller
     public function index()
     {
         return view('admin.users.index', [
-            'users' => User::with('restaurant')->latest()->paginate(50),
-            'restaurants' => Restaurant::withCount('users')->orderBy('name')->get(),
+            'users' => User::with('restaurant')->orderBy('name')->get(),
+            'restaurants' => Restaurant::with('users')->withCount('users')->orderBy('name')->get(),
+            'platformUsers' => User::whereNull('restaurant_id')->orderBy('name')->get(),
         ]);
     }
 
@@ -31,7 +32,6 @@ class UserController extends Controller
                 'required_unless:role,admin',
                 'prohibited_if:role,admin',
                 'exists:restaurants,id',
-                Rule::unique('users', 'restaurant_id')->whereNotNull('restaurant_id'),
             ],
         ]);
         $data['password'] = Hash::make($data['password']);
@@ -64,7 +64,6 @@ class UserController extends Controller
                 'required_unless:role,admin',
                 'prohibited_if:role,admin',
                 'exists:restaurants,id',
-                Rule::unique('users', 'restaurant_id')->whereNotNull('restaurant_id')->ignore($user->id),
             ],
         ]);
 
