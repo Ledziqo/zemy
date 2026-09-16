@@ -26,7 +26,7 @@ class PaymentController extends Controller
 
         $rows = $restaurants->map(function ($restaurant) use (&$summary) {
             $sub = $restaurant->latestSubscription();
-            $daysLeft = $sub && $sub->ends_at ? (int) now()->startOfDay()->diffInDays($sub->ends_at, false) : null;
+            $daysLeft = $sub?->daysRemaining();
 
             if (! $sub) {
                 return (object) [
@@ -38,8 +38,8 @@ class PaymentController extends Controller
             $isExpired = $daysLeft !== null && $daysLeft < 0;
             $isExpiring = $daysLeft !== null && $daysLeft >= 0 && $daysLeft <= 3;
 
-            if ($sub->status === 'unpaid') { $summary['unpaid']++; }
-            elseif ($isExpired) { $summary['expired']++; }
+            if ($isExpired) { $summary['expired']++; }
+            elseif ($sub->status === 'unpaid') { $summary['unpaid']++; }
             elseif ($isExpiring) { $summary['expiring']++; }
             else { $summary['active']++; }
 

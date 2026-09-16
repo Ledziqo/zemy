@@ -14,6 +14,9 @@
                         @endif
                         @php($statusColors = ['new' => 'bg-zem-gold/20 text-zem-gold border-zem-gold/40', 'contacted' => 'bg-blue-100 text-blue-700 border-blue-300', 'converted' => 'bg-green-100 text-green-700 border-green-300', 'closed' => 'bg-gray-100 text-gray-600 border-gray-300'])
                         <span class="rounded-full border px-3 py-1 text-xs font-bold {{ $statusColors[$demo->status] ?? 'border-zem-border text-zem-muted' }}">{{ $demo->status }}</span>
+                        <span class="rounded-full border border-zem-border bg-zem-soft px-3 py-1 text-xs font-semibold text-zem-muted" title="Submitted {{ $demo->created_at?->diffForHumans() }}">
+                            Submitted {{ $demo->created_at?->format('M j, Y · g:i A') }}
+                        </span>
                     </div>
                     <div class="mt-2 grid gap-1 text-sm text-zem-muted">
                         <p><strong class="text-zem-cream">{{ $demo->name }}</strong> - {{ $demo->phone }}</p>

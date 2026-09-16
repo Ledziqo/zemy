@@ -15,7 +15,7 @@
                 @php($subscription = $hasSubscriptions ? $restaurant->subscriptions->sortByDesc('created_at')->first() : null)
                 <div class="flex flex-wrap items-center justify-between gap-3 px-5 py-4">
                     <div class="min-w-0"><p class="text-sm font-semibold">{{ $restaurant->name }}</p><p class="mt-1 text-xs text-zem-muted">{{ $restaurant->businessTypeLabel() }} · {{ $restaurant->location ?: 'Location not added' }}</p></div>
-                    <div class="flex items-center gap-3"><span class="text-xs text-zem-muted">{{ $subscription ? ucfirst($subscription->status) : 'No subscription' }}</span><x-status :status="!$restaurant->is_active ? 'inactive' : ($hasDashboardAccessStatus ? ($restaurant->dashboard_access_status ?? 'active') : 'active')" /></div>
+                    <div class="flex items-center gap-3"><span class="text-xs text-zem-muted">{{ $subscription ? ucfirst($subscription->effectiveStatus()) : 'No subscription' }}</span><x-status :status="!$restaurant->is_active ? 'inactive' : ($hasDashboardAccessStatus ? ($restaurant->dashboard_access_status ?? 'active') : 'active')" /></div>
                 </div>
             @empty
                 <div class="px-6 py-12 text-center"><h3 class="font-semibold">Your first account starts here</h3><p class="mt-2 text-sm text-zem-muted">Add a restaurant or hotel to set up its menu, staff and QR codes.</p><a href="{{ route('admin.restaurants.index') }}" class="mt-4 inline-block text-sm font-semibold text-zem-gold">Add an account →</a></div>

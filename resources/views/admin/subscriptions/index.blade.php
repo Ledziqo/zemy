@@ -24,15 +24,15 @@
 
 <div class="grid gap-3">
     @forelse($subscriptions as $subscription)
-        @php($daysRemaining = $subscription->ends_at ? now()->startOfDay()->diffInDays($subscription->ends_at, false) : null)
+        @php($daysRemaining = $subscription->daysRemaining())
         <form method="post" action="{{ route('admin.subscriptions.update', $subscription) }}" class="rounded-md border border-zem-border bg-zem-card p-4">
             @csrf @method('PATCH')
             <div class="flex flex-wrap items-start justify-between gap-3">
                 <div>
                     <div class="flex flex-wrap items-center gap-2">
                         <h3 class="font-display text-lg font-bold">{{ $subscription->restaurant->name ?? 'Unknown' }}</h3>
-                        @php($statusColors = ['active' => 'bg-green-100 text-green-700 border-green-300', 'unpaid' => 'bg-red-100 text-red-700 border-red-300', 'trial' => 'bg-zem-gold/20 text-zem-gold border-zem-gold/40', 'cancelled' => 'bg-gray-100 text-gray-600 border-gray-300'])
-                        <span class="rounded-full border px-3 py-1 text-xs font-bold {{ $statusColors[$subscription->status] ?? 'border-zem-border text-zem-muted' }}">{{ $subscription->status }}</span>
+                        @php($statusColors = ['active' => 'bg-green-100 text-green-700 border-green-300', 'unpaid' => 'bg-red-100 text-red-700 border-red-300', 'trial' => 'bg-zem-gold/20 text-zem-gold border-zem-gold/40', 'cancelled' => 'bg-gray-100 text-gray-600 border-gray-300', 'expired' => 'bg-red-100 text-red-700 border-red-300'])
+                        <span class="rounded-full border px-3 py-1 text-xs font-bold {{ $statusColors[$subscription->effectiveStatus()] ?? 'border-zem-border text-zem-muted' }}">{{ $subscription->effectiveStatus() }}</span>
                     </div>
                     <p class="mt-1 text-sm text-zem-muted">{{ $subscription->plan_name }} - {{ number_format($subscription->monthly_price) }} ETB/month</p>
                     @if($subscription->starts_at || $subscription->ends_at)
