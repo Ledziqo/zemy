@@ -26,7 +26,7 @@
 
 <div class="grid gap-3">
     @foreach($restaurants as $restaurant)
-        <details class="rounded-md border border-zem-border bg-zem-card p-4" @if($restaurant->users->isNotEmpty()) open @endif>
+        <details class="rounded-md border border-zem-border bg-zem-card p-4">
             <summary class="flex cursor-pointer list-none items-center justify-between gap-3 font-display text-lg font-bold">
                 <span>{{ $restaurant->name }}</span>
                 <span class="rounded-full border border-zem-border bg-zem-soft px-3 py-1 text-xs font-bold text-zem-muted">{{ $restaurant->users_count }} user(s)</span>
@@ -41,7 +41,7 @@
         </details>
     @endforeach
     @if($platformUsers->isNotEmpty())
-        <details class="rounded-md border border-zem-border bg-zem-card p-4" open>
+        <details class="rounded-md border border-zem-border bg-zem-card p-4">
             <summary class="flex cursor-pointer list-none items-center justify-between gap-3 font-display text-lg font-bold"><span>Platform users</span><span class="rounded-full border border-zem-border bg-zem-soft px-3 py-1 text-xs font-bold text-zem-muted">{{ $platformUsers->count() }} user(s)</span></summary>
             <div class="mt-3 grid gap-3 border-t border-zem-border pt-3">
                 @foreach($platformUsers as $user)

@@ -1,16 +1,25 @@
-@extends('layouts.dashboard', ['heading' => 'Payment Required', 'eyebrow' => 'Restaurant Access'])
+@extends('layouts.dashboard', ['heading' => $accessReason === 'payment' ? 'Payment Required' : 'Access Restricted', 'eyebrow' => 'Restaurant Access'])
 
 @section('content')
 <section class="mx-auto max-w-2xl rounded-md border border-zem-border bg-zem-card p-6">
     <div class="text-center">
         <div class="text-5xl mb-3">🔒</div>
-        <h2 class="font-display text-2xl font-bold">Your subscription has expired</h2>
-        <p class="mt-3 text-zem-muted">
-            {{ $restaurant->name }} can still be found by customers from existing QR menu links, but dashboard management is paused.
-            Please pay your subscription to restore full access.
-        </p>
+        @if($accessReason === 'revoked')
+            <h2 class="font-display text-2xl font-bold">Dashboard access revoked</h2>
+            <p class="mt-3 text-zem-muted">{{ $restaurant->name }}'s dashboard access was manually revoked by an administrator. Please contact ZemTab support or your account manager to restore access.</p>
+        @elseif($accessReason === 'inactive')
+            <h2 class="font-display text-2xl font-bold">Account inactive</h2>
+            <p class="mt-3 text-zem-muted">{{ $restaurant->name }}'s account is currently inactive. Please contact ZemTab support or your account manager.</p>
+        @else
+            <h2 class="font-display text-2xl font-bold">Payment required</h2>
+            <p class="mt-3 text-zem-muted">{{ $restaurant->name }} can still be found by customers from existing QR menu links, but dashboard management is paused because the subscription needs payment. Pay the subscription to restore full access.</p>
+        @endif
+        @if($accessReason !== 'payment')
+            <p class="mt-3 text-sm text-zem-muted">Contact ZemTab support on Telegram: <strong class="text-zem-cream">{{ config('payment.telegram') }}</strong></p>
+        @endif
     </div>
 
+    @if($accessReason === 'payment')
     <div class="mt-6 rounded-md border border-zem-border bg-zem-bg p-4">
         @php($sub = $restaurant->subscriptions()->latest('starts_at')->first())
         @if($sub)
@@ -35,6 +44,7 @@
         </div>
         <p class="mt-3 text-xs text-zem-muted">After paying, send your payment screenshot with your restaurant name to {{ config('payment.telegram') }} on Telegram. Access will be restored within minutes.</p>
     </div>
+    @endif
 
     <form method="post" action="{{ route('logout') }}" class="mt-5">
         @csrf

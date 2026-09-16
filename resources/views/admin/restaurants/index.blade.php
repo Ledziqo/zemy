@@ -42,6 +42,8 @@
         @php($subStatusColors = ['active' => 'bg-green-100 text-green-700 border-green-300', 'unpaid' => 'bg-red-100 text-red-700 border-red-300', 'trial' => 'bg-zem-gold/20 text-zem-gold border-zem-gold/40', 'cancelled' => 'bg-gray-100 text-gray-600 border-gray-300', 'expired' => 'bg-red-100 text-red-700 border-red-300'])
         @php($accessStatusColors = ['active' => 'bg-green-100 text-green-700 border-green-300', 'payment_required' => 'bg-zem-gold/20 text-zem-gold border-zem-gold/40', 'revoked' => 'bg-red-100 text-red-700 border-red-300'])
         @php($daysRemaining = $subscription?->ends_at ? now()->startOfDay()->diffInDays($subscription->ends_at, false) : null)
+        @php($dashboardStatus = $restaurant->dashboard_access_status ?? 'active')
+        @php($effectiveDashboardStatus = $dashboardStatus === 'active' && (($daysRemaining !== null && $daysRemaining < 0) || $subscription?->status === 'unpaid') ? 'payment_required' : $dashboardStatus)
         <article class="rounded-md border border-zem-border bg-zem-card p-4">
             <div class="flex flex-wrap items-start justify-between gap-3">
                 <div>
@@ -50,7 +52,7 @@
                         <span class="rounded-full border border-zem-border bg-zem-soft px-3 py-1 text-xs font-bold text-zem-cream">{{ $restaurant->businessTypeLabel() }}</span>
                         <span class="rounded-full border border-zem-border bg-zem-soft px-3 py-1 text-xs font-bold text-zem-cream">{{ $restaurant->kitchenScreenEnabled() ? 'Kitchen screen' : 'Worker-only' }}</span>
                         <span class="rounded-full border px-3 py-1 text-xs font-bold {{ $subStatusColors[$subscription?->effectiveStatus() ?? 'trial'] ?? 'border-zem-border text-zem-muted' }}">Subscription: {{ $subscription?->effectiveStatus() ?? 'trial' }}</span>
-                        <span class="rounded-full border px-3 py-1 text-xs font-bold {{ $accessStatusColors[$restaurant->dashboard_access_status ?? 'active'] ?? 'border-zem-border text-zem-muted' }}">Dashboard: {{ $restaurant->dashboard_access_status ?? 'active' }}</span>
+                        <span class="rounded-full border px-3 py-1 text-xs font-bold {{ $accessStatusColors[$effectiveDashboardStatus] ?? 'border-zem-border text-zem-muted' }}">Access: {{ $effectiveDashboardStatus === 'payment_required' ? 'Payment required' : $effectiveDashboardStatus }}</span>
                         <span class="rounded-full border px-3 py-1 text-xs font-bold {{ $daysRemaining === null ? 'border-zem-border text-zem-muted' : ($daysRemaining < 0 ? 'border-red-300 bg-red-100 text-red-700' : ($daysRemaining <= 3 ? 'border-zem-gold/40 bg-zem-gold/20 text-zem-gold' : 'border-green-300 bg-green-100 text-green-700')) }}">
                             @if($daysRemaining === null) No expiry set @elseif($daysRemaining < 0) Expired {{ abs($daysRemaining) }} {{ abs($daysRemaining) === 1 ? 'day' : 'days' }} ago @elseif($daysRemaining === 0) Expires today @else {{ $daysRemaining }} {{ $daysRemaining === 1 ? 'day' : 'days' }} left @endif
                         </span>
@@ -73,6 +75,7 @@
                     <label class="flex items-center gap-2 rounded-md border border-zem-border px-3 py-2"><input name="kitchen_screen_enabled" type="checkbox" value="1" @checked($restaurant->kitchenScreenEnabled()) class="accent-zem-gold"> Kitchen screen enabled</label>
                     <input name="phone" value="{{ $restaurant->phone }}" class="rounded-md border border-zem-border bg-zem-card px-3 py-2">
                     <input name="email" value="{{ $restaurant->email }}" class="rounded-md border border-zem-border bg-zem-card px-3 py-2">
+                    <input name="owner_password" type="password" minlength="8" placeholder="New main login password (optional)" class="rounded-md border border-zem-border bg-zem-card px-3 py-2">
                     <input name="location" value="{{ $restaurant->location }}" class="rounded-md border border-zem-border bg-zem-card px-3 py-2">
                     <label class="flex items-center gap-2"><input name="is_active" type="checkbox" value="1" @checked($restaurant->is_active) class="accent-zem-gold"> Public account active</label>
                     <label class="text-xs font-semibold text-zem-muted">Subscription starts

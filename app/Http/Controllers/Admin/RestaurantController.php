@@ -72,6 +72,7 @@ class RestaurantController extends Controller
         $this->ensureBusinessTypeColumn();
 
         $data = $this->validated($request, $restaurant->id);
+        $ownerPassword = $data['owner_password'] ?? null;
         $subscriptionStatus = $data['subscription_status'] ?? null;
         $subscriptionData = $this->subscriptionData($data);
         unset($data['subscription_status'], $data['owner_password']);
@@ -90,6 +91,23 @@ class RestaurantController extends Controller
 
         $previousKitchenMode = $restaurant->kitchenScreenEnabled();
         $restaurant->update($data);
+
+        if ($ownerPassword) {
+            $owner = $restaurant->users()->first();
+            if (! $owner) {
+                if (! $restaurant->email) {
+                    throw ValidationException::withMessages(['owner_password' => 'Add an owner login email before creating a password.']);
+                }
+                $restaurant->users()->create([
+                    'name' => $restaurant->name.' Owner',
+                    'email' => $restaurant->email,
+                    'password' => $ownerPassword,
+                    'role' => 'restaurant_owner',
+                ]);
+            } else {
+                $owner->update(['password' => $ownerPassword]);
+            }
+        }
 
         if (array_key_exists('kitchen_screen_enabled', $data) && $previousKitchenMode !== (bool) $data['kitchen_screen_enabled']) {
             $this->syncKitchenProfiles($restaurant, (bool) $data['kitchen_screen_enabled']);
@@ -174,7 +192,7 @@ class RestaurantController extends Controller
             'kitchen_screen_enabled' => ['nullable', 'boolean'],
             'phone' => ['nullable', 'string', 'max:50'],
             'email' => $emailRules,
-            'owner_password' => [$restaurantId === null ? 'nullable' : 'prohibited', 'string', 'min:8', 'max:255'],
+            'owner_password' => ['nullable', 'string', 'min:8', 'max:255'],
             'location' => ['nullable', 'string', 'max:255'],
             'is_active' => ['nullable', 'boolean'],
             'dashboard_access_status' => ['nullable', Rule::in(Restaurant::DASHBOARD_ACCESS_STATUSES)],
