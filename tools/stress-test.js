@@ -15,6 +15,7 @@ const baseUrl = (process.env.ZEMTAB_BASE_URL || 'http://127.0.0.1:8000').replace
 const stages = (process.env.ZEMTAB_STAGES || '10,20,30,40,50,60,70,80,90,100,110,120,130,140,150').split(',').map(Number);
 const durationSeconds = Number(process.env.ZEMTAB_DURATION || 120);
 const pollIntervalMs = 15000;
+const loginSpacingMs = Number(process.env.ZEMTAB_LOGIN_SPACING_MS || 7000);
 
 // ─── Helpers ──────────────────────────────────────────────
 
@@ -163,14 +164,16 @@ async function runStage(restaurantCount) {
   let stageFailed = false;
   const errors = [];
 
-  // Login ALL restaurants at once
-  console.log(`  Logging in ${restaurantCount} restaurants...`);
+  // Stagger logins so the production login throttle is respected while
+  // restaurant polling still runs concurrently after authentication.
+  console.log(`  Logging in ${restaurantCount} restaurants (staggered)...`);
   const dashboardJars = new Map();
   const loginPromises = [];
 
   for (let i = 0; i < restaurantCount; i++) {
     loginPromises.push((async () => {
       try {
+        await sleep(i * loginSpacingMs);
         const jar = await loginDashboard(i);
         dashboardJars.set(i, jar);
       } catch (e) {
