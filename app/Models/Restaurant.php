@@ -66,7 +66,7 @@ class Restaurant extends Model
 
     public function kitchenScreenEnabled(): bool
     {
-        return (bool) ($this->kitchen_screen_enabled ?? true);
+        return (bool) ($this->kitchen_screen_enabled ?? false);
     }
 
     public function businessTypeLabel(): string

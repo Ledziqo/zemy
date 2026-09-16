@@ -15,7 +15,7 @@ class UserController extends Controller
     {
         return view('admin.users.index', [
             'users' => User::with('restaurant')->orderBy('name')->get(),
-            'restaurants' => Restaurant::with('users')->withCount('users')->orderBy('name')->get(),
+            'restaurants' => Restaurant::with(['users', 'staffProfiles'])->withCount(['users', 'staffProfiles'])->orderBy('name')->get(),
             'platformUsers' => User::whereNull('restaurant_id')->orderBy('name')->get(),
         ]);
     }

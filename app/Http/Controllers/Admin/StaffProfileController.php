@@ -18,14 +18,16 @@ class StaffProfileController extends Controller
             'is_active' => ['nullable', 'boolean'],
         ]);
 
-        abort_if($data['role'] === 'kitchen' && ! $restaurant->kitchenScreenEnabled(), 422, 'Enable the Kitchen screen before adding a Kitchen profile.');
-
         $restaurant->staffProfiles()->create([
             'name' => $data['name'],
             'role' => $data['role'],
             'password' => $data['password'],
             'is_active' => $request->boolean('is_active', true),
         ]);
+
+        if ($data['role'] === 'kitchen') {
+            $restaurant->update(['kitchen_screen_enabled' => true]);
+        }
 
         return back()->with('success', 'Staff profile created.');
     }
@@ -56,6 +58,7 @@ class StaffProfileController extends Controller
         }
 
         $staffProfile->update($updates);
+        $this->syncKitchenMode($restaurant);
 
         return back()->with('success', 'Staff profile updated.');
     }
@@ -70,7 +73,18 @@ class StaffProfileController extends Controller
         }
 
         $staffProfile->delete();
+        $this->syncKitchenMode($restaurant);
 
         return back()->with('success', 'Staff profile deleted.');
+    }
+
+    private function syncKitchenMode(Restaurant $restaurant): void
+    {
+        $hasActiveKitchen = $restaurant->staffProfiles()
+            ->where('role', 'kitchen')
+            ->where('is_active', true)
+            ->exists();
+
+        $restaurant->update(['kitchen_screen_enabled' => $hasActiveKitchen]);
     }
 }

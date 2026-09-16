@@ -17,6 +17,7 @@ class SettingsController extends Controller
     public function update(Request $request)
     {
         $restaurant = $request->user()->restaurant;
+        $isOwnerManager = $request->session()->get('staff_profile_role') === 'owner_manager';
         $data = $request->validate([
             'name' => ['required', 'string', 'max:255'],
             'slug' => ['required', 'alpha_dash', 'max:255', 'unique:restaurants,slug,'.$restaurant->id],
@@ -39,6 +40,7 @@ class SettingsController extends Controller
             'cbe_qr' => ['nullable', 'image', 'max:4096'],
             'awash_qr' => ['nullable', 'image', 'max:4096'],
             'abyssinia_qr' => ['nullable', 'image', 'max:4096'],
+            'kitchen_screen_enabled' => ['nullable', 'boolean'],
         ]);
 
         $settings = $restaurant->settings ?? [];
@@ -80,6 +82,10 @@ class SettingsController extends Controller
                 'abyssinia_qr_path' => $data['abyssinia_qr_path'] ?? ($settings['abyssinia_qr_path'] ?? null),
             ]),
         ]);
+
+        if ($isOwnerManager) {
+            $restaurant->update(['kitchen_screen_enabled' => $request->boolean('kitchen_screen_enabled')]);
+        }
 
         PublicMenuCache::bump($restaurant);
 

@@ -77,8 +77,6 @@ class StaffProfileController extends Controller
             'is_active' => ['nullable', 'boolean'],
         ]);
 
-        abort_if($data['role'] === 'kitchen' && ! $restaurant->kitchenScreenEnabled(), 422, 'Enable the Kitchen screen before adding a Kitchen profile.');
-
         StaffProfile::create([
             'restaurant_id' => $restaurant->id,
             'name' => $data['name'],
@@ -86,6 +84,10 @@ class StaffProfileController extends Controller
             'password' => $data['password'],
             'is_active' => $request->boolean('is_active', true),
         ]);
+
+        if ($data['role'] === 'kitchen') {
+            $restaurant->update(['kitchen_screen_enabled' => true]);
+        }
 
         return back()->with('success', 'Profile created successfully.');
     }
@@ -105,8 +107,6 @@ class StaffProfileController extends Controller
             'is_active' => ['nullable', 'boolean'],
         ]);
 
-        abort_if($data['role'] === 'kitchen' && ! $restaurant->kitchenScreenEnabled(), 422, 'Enable the Kitchen screen before adding a Kitchen profile.');
-
         $updates = [
             'name' => $data['name'],
             'role' => $data['role'],
@@ -121,6 +121,7 @@ class StaffProfileController extends Controller
         }
 
         $staffProfile->update($updates);
+        $this->syncKitchenMode($restaurant);
 
         return back()->with('success', 'Profile updated successfully.');
     }
@@ -133,7 +134,18 @@ class StaffProfileController extends Controller
         abort_unless($staffProfile->role !== 'owner_manager', 403, 'Cannot delete the Owner/Manager profile.');
 
         $staffProfile->delete();
+        $this->syncKitchenMode($restaurant);
 
         return back()->with('success', 'Profile deleted.');
+    }
+
+    private function syncKitchenMode($restaurant): void
+    {
+        $hasActiveKitchen = $restaurant->staffProfiles()
+            ->where('role', 'kitchen')
+            ->where('is_active', true)
+            ->exists();
+
+        $restaurant->update(['kitchen_screen_enabled' => $hasActiveKitchen]);
     }
 }

@@ -28,6 +28,12 @@
     <input name="slug" value="{{ $restaurant->slug }}" placeholder="{{ $restaurant->businessTypeLabel() }} link name" class="rounded-md border border-zem-border bg-zem-bg px-3 py-2">
     <input name="phone" value="{{ $restaurant->phone }}" placeholder="Phone" class="rounded-md border border-zem-border bg-zem-bg px-3 py-2">
     <input name="location" value="{{ $restaurant->location }}" placeholder="Location" class="rounded-md border border-zem-border bg-zem-bg px-3 py-2">
+    @if(session('staff_profile_role') === 'owner_manager')
+        <label class="flex items-center gap-3 rounded-md border border-zem-border bg-zem-bg px-3 py-2 text-sm md:col-span-2">
+            <input name="kitchen_screen_enabled" type="checkbox" value="1" @checked($restaurant->kitchenScreenEnabled()) class="accent-zem-gold">
+            <span><strong class="block text-zem-cream">Enable Kitchen workflow</strong><span class="text-xs text-zem-muted">Off means the owner/cashier can complete orders directly. Turn it on when this venue uses Kitchen staff.</span></span>
+        </label>
+    @endif
     <label class="flex items-center justify-between gap-3 rounded-md border border-zem-border bg-zem-bg px-3 py-2 text-zem-muted">
         <span>{{ __('Menu theme color') }}</span>
         <input name="primary_color" value="{{ $primaryColor }}" type="color" class="h-10 w-20 cursor-pointer rounded border border-zem-border bg-zem-card p-1">
