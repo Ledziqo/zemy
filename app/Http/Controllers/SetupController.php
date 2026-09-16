@@ -27,8 +27,10 @@ class SetupController extends Controller
         abort_unless($request->user()?->role === 'admin', 403);
 
         if (app()->environment('production')) {
-            abort_if($request->boolean('seed_demo_data') || $request->boolean('seed_stress_data'),
-                403, 'Demo and stress seeding are disabled in production.');
+            abort_if($request->boolean('seed_demo_data'),
+                403, 'Demo seeding is disabled in production.');
+            abort_if($request->boolean('seed_stress_data') && ! config('stress.allow_production'),
+                403, 'Enable the temporary production stress-test mode first.');
 
             // Web maintenance must not run historical demo provisioning, even with CLI opt-in.
             config(['demo.allow_production_migrations' => false]);
@@ -94,13 +96,16 @@ class SetupController extends Controller
 
     private function seedStressData(array &$output, int $batch): void
     {
-        $start = ($batch - 1) * 50 + 1;
-        $end = $batch * 50;
+        $batchSize = (int) config('stress.batch_size', 10);
+        $maxRestaurants = (int) config('stress.max_restaurants', 150);
+        abort_unless($batch >= 1 && (($batch - 1) * $batchSize) < $maxRestaurants, 422, 'That stress-test batch is outside the allowed range.');
+        $start = ($batch - 1) * $batchSize + 1;
+        $end = min($batch * $batchSize, $maxRestaurants);
         $output[] = "Seeding stress test batch {$batch} (restaurants {$start}-{$end})...";
 
         // Set env for the seeder to read
         $_ENV['STRESS_BATCH'] = $batch;
-        $_ENV['STRESS_BATCH_SIZE'] = 50;
+        $_ENV['STRESS_BATCH_SIZE'] = $batchSize;
 
         Artisan::call('db:seed', ['--class' => 'StressTestSeeder', '--force' => true]);
         $output[] = Artisan::output();

@@ -3,7 +3,7 @@
 /**
  * ZemTab Production Stress Test
  * 
- * Staged test: 100 → 200 → 300 restaurants
+ * Staged test: 10 → 20 → 30 ... → 150 restaurants
  * Polls are staggered across the 15s interval to simulate real browsers.
  * 
  * Usage:
@@ -12,8 +12,8 @@
  */
 
 const baseUrl = (process.env.ZEMTAB_BASE_URL || 'http://127.0.0.1:8000').replace(/\/$/, '');
-const stages = (process.env.ZEMTAB_STAGES || '100,200,300').split(',').map(Number);
-const durationSeconds = Number(process.env.ZEMTAB_DURATION || 300);
+const stages = (process.env.ZEMTAB_STAGES || '10,20,30,40,50,60,70,80,90,100,110,120,130,140,150').split(',').map(Number);
+const durationSeconds = Number(process.env.ZEMTAB_DURATION || 120);
 const pollIntervalMs = 15000;
 
 // ─── Helpers ──────────────────────────────────────────────
@@ -65,7 +65,7 @@ function firstItemId(html) {
 }
 
 function slugFor(index) {
-  return 'zt-stress-' + String((index % 300) + 1).padStart(3, '0');
+  return 'zt-stress-' + String((index % 150) + 1).padStart(3, '0');
 }
 
 function emailFor(index) {
@@ -131,6 +131,27 @@ async function loginDashboard(index) {
     body,
   }, jar, false));
   if (![200, 302].includes(auth.status)) throw new Error(`login ${auth.status}`);
+
+  // Restaurant accounts select a staff profile before the Work Board opens.
+  // Complete that step so polling exercises the same authenticated screen flow
+  // as a real restaurant browser.
+  const profiles = await timed('profile-page', () => request(baseUrl + '/restaurant/profile-select', {}, jar));
+  const profileHtml = await profiles.text();
+  if (!profiles.ok) throw new Error('profile-page ' + profiles.status);
+  const profileToken = csrf(profileHtml);
+  const profileId = profileHtml.match(/name="profile_id"\s+value="(\d+)"/)?.[1];
+  if (!profileToken || !profileId) throw new Error('missing staff profile');
+
+  const profileBody = new URLSearchParams();
+  profileBody.set('_token', profileToken);
+  profileBody.set('profile_id', profileId);
+  profileBody.set('password', 'password');
+  const profileAuth = await timed('profile-login', () => request(baseUrl + '/restaurant/profile-login', {
+    method: 'POST',
+    headers: { 'content-type': 'application/x-www-form-urlencoded' },
+    body: profileBody,
+  }, jar, false));
+  if (![200, 302].includes(profileAuth.status)) throw new Error('profile-login ' + profileAuth.status);
 
   return jar;
 }

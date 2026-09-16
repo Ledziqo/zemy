@@ -6,6 +6,7 @@ use App\Models\Category;
 use App\Models\MenuItem;
 use App\Models\Restaurant;
 use App\Models\RestaurantTable;
+use App\Models\StaffProfile;
 use App\Models\Subscription;
 use App\Models\User;
 use Illuminate\Database\Seeder;
@@ -16,12 +17,12 @@ class StressTestSeeder extends Seeder
 {
     public function run(): void
     {
-        if (app()->environment('production')) {
+        if (app()->environment('production') && ! config('stress.allow_production')) {
             throw new \LogicException('Stress seeding is disabled in production.');
         }
 
         $batch = (int) env('STRESS_BATCH', 1);
-        $batchSize = (int) env('STRESS_BATCH_SIZE', 50);
+        $batchSize = (int) env('STRESS_BATCH_SIZE', config('stress.batch_size', 10));
         $start = ($batch - 1) * $batchSize + 1;
         $end = $start + $batchSize - 1;
 
@@ -79,6 +80,11 @@ class StressTestSeeder extends Seeder
                 ]
             );
 
+            StaffProfile::updateOrCreate(
+                ['restaurant_id' => $restaurant->id, 'name' => 'Stress Owner/Manager'],
+                ['role' => 'owner_manager', 'password' => 'password', 'is_active' => true]
+            );
+
             $sort = 1;
             foreach ($itemTemplates as $categoryName => $menuItems) {
                 $category = Category::updateOrCreate(
@@ -120,7 +126,7 @@ class StressTestSeeder extends Seeder
 
     public static function cleanup(): void
     {
-        $count = (int) env('STRESS_SEED_COUNT', 300);
+        $count = (int) env('STRESS_SEED_COUNT', config('stress.max_restaurants', 150));
         $slugs = collect(range(1, $count))
             ->map(fn ($i) => 'zt-stress-' . str_pad((string) $i, 3, '0', STR_PAD_LEFT));
 
