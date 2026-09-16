@@ -16,6 +16,7 @@ const stages = (process.env.ZEMTAB_STAGES || '10,20,30,40,50,60,70,80,90,100,110
 const durationSeconds = Number(process.env.ZEMTAB_DURATION || 120);
 const pollIntervalMs = 15000;
 const loginSpacingMs = Number(process.env.ZEMTAB_LOGIN_SPACING_MS || 7000);
+const loginRetryWaitMs = Number(process.env.ZEMTAB_LOGIN_RETRY_WAIT_MS || 65000);
 
 // ─── Helpers ──────────────────────────────────────────────
 
@@ -127,11 +128,17 @@ async function loginDashboard(index) {
   body.set('password', 'password');
 
   // Don't follow redirect on login POST — 302 to dashboard is expected
-  const auth = await timed('login', () => request(`${baseUrl}/login`, {
-    method: 'POST',
-    headers: { 'content-type': 'application/x-www-form-urlencoded' },
-    body,
-  }, jar, false));
+  let auth;
+  for (let attempt = 0; attempt < 3; attempt++) {
+    auth = await timed('login', () => request(baseUrl + '/login', {
+      method: 'POST',
+      headers: { 'content-type': 'application/x-www-form-urlencoded' },
+      body,
+    }, jar, false));
+    if (auth.status !== 429 || attempt === 2) break;
+    console.log('\\n  Login throttled for ' + email + '; retrying in ' + (loginRetryWaitMs / 1000) + 's...');
+    await sleep(loginRetryWaitMs);
+  }
   if (![200, 302].includes(auth.status)) throw new Error(`login ${auth.status}`);
 
   // Restaurant accounts select a staff profile before the Work Board opens.
