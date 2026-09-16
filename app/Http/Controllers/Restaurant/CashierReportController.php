@@ -18,6 +18,9 @@ class CashierReportController extends Controller
         $dateFrom = $request->input('date_from', now()->startOfMonth()->toDateString());
         $dateTo = $request->input('date_to', now()->toDateString());
         $paymentMethods = $restaurant->settings['payment_methods'] ?? Order::PAYMENT_METHODS;
+        if ($restaurant->isHotel() && ! in_array('room_credit', $paymentMethods, true)) {
+            $paymentMethods[] = 'room_credit';
+        }
         $paymentMethodTotals = array_fill_keys($paymentMethods, 0);
 
         $cashiers = $restaurant->staffProfiles()

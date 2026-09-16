@@ -5,7 +5,6 @@ namespace App\Http\Controllers;
 use App\Models\StaffProfile;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Hash;
 
 class AuthController extends Controller
 {
@@ -26,6 +25,7 @@ class AuthController extends Controller
         }
 
         $request->session()->regenerate();
+        $request->session()->forget(['staff_profile_id', 'staff_profile_role', 'staff_profile_name']);
 
         return match (Auth::user()->role) {
             'admin' => redirect()->route('admin.dashboard'),
@@ -37,26 +37,6 @@ class AuthController extends Controller
     {
         $restaurant = $request->user()->restaurant;
         abort_unless($restaurant, 403);
-
-        if (! $restaurant->staffProfiles()->where('is_active', true)->exists()) {
-            $profiles = [
-                ['name' => 'Owner/Manager', 'role' => 'owner_manager'],
-                ['name' => 'Cashier', 'role' => 'cashier'],
-            ];
-            if ($restaurant->kitchenScreenEnabled()) {
-                $profiles[] = ['name' => 'Kitchen', 'role' => 'kitchen'];
-            }
-            foreach ($profiles as $profile) {
-                $restaurant->staffProfiles()->updateOrCreate(
-                    ['role' => $profile['role']],
-                    [
-                        'name' => $profile['name'],
-                        'password' => Hash::make('password'),
-                        'is_active' => true,
-                    ]
-                );
-            }
-        }
 
         $profiles = $restaurant->staffProfiles()
             ->where('is_active', true)
@@ -74,20 +54,24 @@ class AuthController extends Controller
     public function profileLogin(Request $request)
     {
         $credentials = $request->validate([
-            'profile_id' => ['required', 'exists:staff_profiles,id'],
-            'password' => ['required'],
+            'profile_id' => ['required', 'integer'],
+            'password' => ['required', 'string'],
         ]);
 
         $restaurant = $request->user()->restaurant;
+        abort_unless($restaurant, 403);
         $profile = StaffProfile::where('id', $credentials['profile_id'])
             ->where('restaurant_id', $restaurant->id)
             ->where('is_active', true)
-            ->firstOrFail();
+            ->first();
 
-        if (! password_verify($credentials['password'], $profile->password)) {
-            return back()->withErrors(['password' => 'Incorrect profile password.'])->withInput(['profile_id' => $profile->id]);
+        if (! $profile || ! in_array($profile->role, StaffProfile::ROLES, true)
+            || ($profile->role === 'kitchen' && ! $restaurant->kitchenScreenEnabled())
+            || ! password_verify($credentials['password'], $profile->password)) {
+            return back()->withErrors(['password' => 'Incorrect or unavailable profile.'])->withInput(['profile_id' => $credentials['profile_id']]);
         }
 
+        $request->session()->regenerate();
         $request->session()->put('staff_profile_id', $profile->id);
         $request->session()->put('staff_profile_role', $profile->role);
         $request->session()->put('staff_profile_name', $profile->name);

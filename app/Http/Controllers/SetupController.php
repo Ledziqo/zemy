@@ -14,13 +14,26 @@ use Throwable;
 
 class SetupController extends Controller
 {
-    public function show()
+    public function show(Request $request)
     {
+        abort_unless($request->user()?->role === 'admin', 403);
+
         return view('setup.show');
     }
 
     public function run(Request $request)
     {
+        // Guard before configuration changes or commands, including with stale route caches.
+        abort_unless($request->user()?->role === 'admin', 403);
+
+        if (app()->environment('production')) {
+            abort_if($request->boolean('seed_demo_data') || $request->boolean('seed_stress_data'),
+                403, 'Demo and stress seeding are disabled in production.');
+
+            // Web maintenance must not run historical demo provisioning, even with CLI opt-in.
+            config(['demo.allow_production_migrations' => false]);
+        }
+
         $output = [];
         $this->applySubmittedDatabaseConfig($request, $output);
 

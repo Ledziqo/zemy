@@ -6,6 +6,10 @@ use Illuminate\Support\Facades\DB;
 return new class extends Migration {
     public function up(): void
     {
+        if (! \App\Support\DemoProvisioning::migrationsAllowed()) {
+            return;
+        }
+
         $restaurant = DB::table('restaurants')->where('slug', 'tulip-olympia')->first();
 
         if (! $restaurant) {
@@ -144,6 +148,10 @@ return new class extends Migration {
 
     public function down(): void
     {
+        if (! \App\Support\DemoProvisioning::migrationsAllowed()) {
+            return;
+        }
+
         $restaurant = DB::table('restaurants')->where('slug', 'tulip-olympia')->first();
         if (! $restaurant) {
             return;

@@ -30,15 +30,16 @@
     <div class="space-y-3">
         @foreach($profiles as $profile)
             <div class="rounded-lg border border-zem-border bg-zem-card p-5" x-data="{ editing: false }">
-                <div class="flex items-center justify-between">
+                <div class="flex items-center justify-between gap-3">
                     <div class="flex items-center gap-3">
                         <div class="flex h-10 w-10 items-center justify-center rounded-full text-sm font-bold text-white @if($profile->role === 'owner_manager') bg-zem-gold @elseif($profile->role === 'cashier') bg-blue-600 @else bg-green-600 @endif">
                             {{ strtoupper(substr($profile->name, 0, 1)) }}
                         </div>
-                        <div>
-                            <p class="font-bold">{{ $profile->name }}</p>
+                        <a href="{{ route('restaurant.staff-profiles.show', $profile) }}" class="min-w-0">
+                            <p class="font-bold hover:text-zem-gold">{{ $profile->name }}</p>
                             <p class="text-xs text-zem-muted">{{ $profile->roleLabel() }}</p>
-                        </div>
+                            <p class="mt-1 text-xs font-semibold text-zem-gold">View sales &amp; orders →</p>
+                        </a>
                     </div>
                     <div class="flex gap-2">
                         @if($profile->role !== 'owner_manager')

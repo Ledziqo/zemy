@@ -6,10 +6,7 @@
     <meta name="robots" content="noindex, nofollow">
     <title>Login - ZemTab</title>
     <link rel="icon" type="image/png" href="{{ asset('logo/zemtab-pantone-1795-c-icon-transparent.png') }}">
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script>
-        tailwind.config = { theme: { extend: { colors: { zem: { bg: '#F8FAFC', card: '#FFFFFF', gold: '#D22630', cream: '#000000', muted: '#475467', green: '#16a34a', border: '#D8E0E7', soft: '#EEF3F7' } }, fontFamily: { sans: ['Inter', 'ui-sans-serif', 'system-ui'], display: ['Sora', 'Inter', 'ui-sans-serif'] } } } }
-    </script>
+    @include('components.frontend-assets')
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Sora:wght@600;700;800&display=swap" rel="stylesheet">
 </head>
 <body class="min-h-screen bg-[radial-gradient(circle_at_top_right,rgba(210,38,48,.16),transparent_28%),linear-gradient(180deg,#F8FAFC,#EEF3F7)] font-sans">

@@ -1,11 +1,11 @@
 <!doctype html>
-<html lang="en">
+<html lang="en" data-zem-palette="plain">
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="robots" content="noindex, nofollow">
     <title>ZemTab Setup</title>
-    <script src="https://cdn.tailwindcss.com"></script>
+    @include('components.frontend-assets')
 </head>
 <body class="bg-[#F8FAFC] text-[#000000]">
 <main class="mx-auto grid min-h-screen max-w-3xl place-items-center px-5 py-10">

@@ -8,6 +8,10 @@ return new class extends Migration
 {
     public function up(): void
     {
+        if (! \App\Support\DemoProvisioning::migrationsAllowed()) {
+            return;
+        }
+
         $hotelId = DB::table('restaurants')->where('slug', 'ginashotel')->value('id');
 
         if (! $hotelId || ! DB::getSchemaBuilder()->hasTable('staff_profiles')) {
@@ -36,6 +40,10 @@ return new class extends Migration
 
     public function down(): void
     {
+        if (! \App\Support\DemoProvisioning::migrationsAllowed()) {
+            return;
+        }
+
         $hotelId = DB::table('restaurants')->where('slug', 'ginashotel')->value('id');
 
         if (! $hotelId || ! DB::getSchemaBuilder()->hasTable('staff_profiles')) {

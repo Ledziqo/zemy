@@ -7,6 +7,10 @@ return new class extends Migration
 {
     public function up(): void
     {
+        if (! \App\Support\DemoProvisioning::migrationsAllowed()) {
+            return;
+        }
+
         DB::table('restaurants')
             ->where('slug', 'ginashotel')
             ->update([
@@ -17,6 +21,10 @@ return new class extends Migration
 
     public function down(): void
     {
+        if (! \App\Support\DemoProvisioning::migrationsAllowed()) {
+            return;
+        }
+
         DB::table('restaurants')
             ->where('slug', 'ginashotel')
             ->where('logo_path', 'uploads/restaurants/ginas-hotel-logo.svg')

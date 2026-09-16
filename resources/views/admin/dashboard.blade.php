@@ -1,37 +1,34 @@
-@extends('layouts.dashboard', ['heading' => 'ZemTab Admin', 'eyebrow' => 'SaaS Overview'])
+@extends('layouts.dashboard', ['heading' => 'Overview', 'eyebrow' => 'ZemTab administration'])
 
 @section('content')
-<div class="grid gap-4 md:grid-cols-3 xl:grid-cols-6">
-    @foreach([['Accounts',$totalRestaurants],['Active',$activeRestaurants],['Customer orders',$totalOrders],['Demo requests',$pendingDemoRequests],['Paid subs',$activeSubscriptions],['Unpaid',$unpaidSubscriptions]] as $card)
-        <div class="rounded-md border border-zem-border bg-zem-card p-4"><p class="text-sm text-zem-muted">{{ $card[0] }}</p><p class="mt-2 text-2xl font-extrabold">{{ $card[1] }}</p></div>
+<div class="mb-6 flex flex-wrap items-center justify-between gap-4"><div><h2 class="text-lg font-semibold">A clear view of your platform</h2><p class="mt-1 text-sm text-zem-muted">Manage accounts, follow up on requests and keep billing on track.</p></div><a href="{{ route('admin.restaurants.index') }}" class="rounded-xl bg-zem-gold px-5 py-3 text-sm font-semibold text-white hover:bg-zem-redDark">Manage accounts →</a></div>
+<div class="grid grid-cols-2 gap-3 xl:grid-cols-4">
+    @foreach([['Accounts', number_format($totalRestaurants), number_format($activeRestaurants).' active'], ['Active subscriptions', number_format($activeSubscriberCount), 'Current paid plans'], ['Monthly recurring revenue', number_format($monthlyRevenue, 2).' ETB', 'Current active plans'], ['Customer orders', number_format($totalOrders), 'Across all accounts']] as [$label, $value, $description])
+        <div class="rounded-2xl border border-zem-border bg-zem-card p-4 md:p-5"><p class="text-sm text-zem-muted">{{ $label }}</p><p class="metric-value mt-3 break-words text-2xl font-semibold">{{ $value }}</p><p class="mt-2 text-xs text-zem-muted">{{ $description }}</p></div>
     @endforeach
 </div>
-
-<div class="grid gap-4 md:grid-cols-3 mt-6">
-    <div class="rounded-md border border-zem-gold/30 bg-zem-gold/10 p-4"><p class="text-sm text-zem-muted">Monthly Recurring Revenue</p><p class="mt-2 text-3xl font-extrabold text-zem-gold">{{ number_format($monthlyRevenue ?? 0) }} ETB</p></div>
-    <div class="rounded-md border border-zem-border bg-zem-card p-4"><p class="text-sm text-zem-muted">Active Subscribers</p><p class="mt-2 text-3xl font-extrabold">{{ $activeSubscriberCount ?? 0 }}</p></div>
-    <div class="rounded-md border border-zem-border bg-zem-card p-4"><p class="text-sm text-zem-muted">Current Monthly Value (active + trial)</p><p class="mt-2 text-3xl font-extrabold">{{ number_format($totalRevenue ?? 0) }} ETB</p></div>
-</div>
-
-<section class="mt-6 rounded-md border border-zem-border bg-zem-card p-4">
-    <div class="flex items-center justify-between"><h2 class="font-display text-xl font-bold">Restaurants & Hotels</h2><a class="text-sm font-bold text-zem-gold" href="{{ route('admin.restaurants.index') }}">Manage all</a></div>
-    <div class="mt-4 grid gap-3 md:grid-cols-2">
-        @foreach($restaurants as $restaurant)
-            @php($subscription = $hasSubscriptions ? $restaurant->subscriptions->sortByDesc('created_at')->first() : null)
-            <div class="rounded-md border border-zem-border bg-zem-bg p-3">
-                <div class="flex flex-wrap items-center justify-between gap-2">
-                    <strong>{{ $restaurant->name }}</strong>
-                    <span class="rounded-full border border-zem-border bg-zem-soft px-3 py-1 text-xs font-bold text-zem-cream">{{ $restaurant->businessTypeLabel() }}</span>
-                    <span class="rounded-full border border-zem-border bg-zem-soft px-3 py-1 text-xs font-bold text-zem-cream">{{ number_format($restaurant->orders_count) }} orders</span>
+<div class="mt-6 grid items-start gap-6 xl:grid-cols-[minmax(0,1.6fr)_minmax(260px,1fr)]">
+    <section class="overflow-hidden border border-zem-border bg-zem-card">
+        <div class="flex items-center justify-between gap-3 border-b border-zem-border px-5 py-4"><h2 class="font-semibold">Recent accounts</h2><a class="text-sm font-semibold text-zem-gold" href="{{ route('admin.restaurants.index') }}">View all →</a></div>
+        <div class="divide-y divide-zem-border">
+            @forelse($restaurants as $restaurant)
+                @php($subscription = $hasSubscriptions ? $restaurant->subscriptions->sortByDesc('created_at')->first() : null)
+                <div class="flex flex-wrap items-center justify-between gap-3 px-5 py-4">
+                    <div class="min-w-0"><p class="text-sm font-semibold">{{ $restaurant->name }}</p><p class="mt-1 text-xs text-zem-muted">{{ $restaurant->businessTypeLabel() }} · {{ $restaurant->location ?: 'Location not added' }}</p></div>
+                    <div class="flex items-center gap-3"><span class="text-xs text-zem-muted">{{ $subscription ? ucfirst($subscription->status) : 'No subscription' }}</span><x-status :status="!$restaurant->is_active ? 'inactive' : ($hasDashboardAccessStatus ? ($restaurant->dashboard_access_status ?? 'active') : 'active')" /></div>
                 </div>
-                <div class="mt-2 flex flex-wrap items-center gap-2 text-sm text-zem-muted">
-                    <span>{{ $restaurant->location ?: 'No location' }}</span>
-                    <span>-</span>
-                    <span>{{ $subscription?->status ?? 'no subscription' }}</span>
-                    <x-status :status="$hasDashboardAccessStatus ? ($restaurant->dashboard_access_status ?? 'active') : 'active'" />
-                </div>
-            </div>
-        @endforeach
+            @empty
+                <div class="px-6 py-12 text-center"><h3 class="font-semibold">Your first account starts here</h3><p class="mt-2 text-sm text-zem-muted">Add a restaurant or hotel to set up its menu, staff and QR codes.</p><a href="{{ route('admin.restaurants.index') }}" class="mt-4 inline-block text-sm font-semibold text-zem-gold">Add an account →</a></div>
+            @endforelse
+        </div>
+    </section>
+    <div class="space-y-6">
+        <section class="border border-zem-border bg-zem-card p-5"><h2 class="font-semibold">Follow-ups</h2><p class="mt-1 text-xs text-zem-muted">The next things to review.</p>
+            @foreach([['New demo requests', $pendingDemoRequests, 'admin.demo-requests.index'], ['Unpaid subscriptions', $unpaidSubscriptions, 'admin.subscriptions.index'], ['Revoked accounts', $revokedRestaurants, 'admin.restaurants.index']] as [$label, $count, $destination])
+                <a href="{{ route($destination) }}" class="mt-3 flex items-center justify-between gap-3 rounded-xl px-3 py-3 hover:bg-zem-soft"><span class="text-sm">{{ $label }}</span><span class="rounded-lg px-2.5 py-1 text-sm font-semibold {{ $count ? 'bg-zem-gold/10 text-zem-gold' : 'bg-zem-soft text-zem-muted' }}">{{ number_format($count) }}</span></a>
+            @endforeach
+        </section>
+        <section class="border border-zem-border bg-zem-card p-5"><h2 class="font-semibold">Billing</h2><p class="mt-2 text-sm leading-relaxed text-zem-muted">Review incoming payments and subscription details.</p><a href="{{ route('admin.payments.index') }}" class="mt-4 inline-block text-sm font-semibold text-zem-gold">View payments →</a></section>
     </div>
-</section>
+</div>
 @endsection

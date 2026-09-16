@@ -8,6 +8,10 @@ return new class extends Migration
 {
     public function up(): void
     {
+        if (! \App\Support\DemoProvisioning::migrationsAllowed()) {
+            return;
+        }
+
         $now = now();
 
         DB::table('restaurants')->updateOrInsert(
@@ -157,6 +161,10 @@ return new class extends Migration
 
     public function down(): void
     {
+        if (! \App\Support\DemoProvisioning::migrationsAllowed()) {
+            return;
+        }
+
         $hotelId = DB::table('restaurants')->where('slug', 'ginashotel')->value('id');
 
         if (! $hotelId) {

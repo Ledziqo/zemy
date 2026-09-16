@@ -16,7 +16,7 @@ class ServiceRequestController extends Controller
         return view('restaurant.service_requests.index', [
             'restaurant' => $restaurant,
             'requests' => $restaurant->serviceRequests()
-                ->orderByRaw("FIELD(status, 'pending', 'acknowledged', 'completed')")
+                ->orderByRaw("CASE status WHEN 'pending' THEN 1 WHEN 'acknowledged' THEN 2 WHEN 'completed' THEN 3 ELSE 4 END")
                 ->with('table')
                 ->latest()
                 ->paginate(75),

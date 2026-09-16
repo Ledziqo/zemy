@@ -1,14 +1,11 @@
 <!doctype html>
-<html lang="en">
+<html lang="en" data-zem-palette="profile">
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="robots" content="noindex, nofollow">
     <title>Select Profile — {{ $restaurant->name }}</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script>
-        tailwind.config = { theme: { extend: { colors: { zem: { gold: '#D22630', cream: '#1a1a1a', muted: '#6b7280', border: '#e5e7eb', card: '#ffffff', bg: '#f8fafc' } }, fontFamily: { sans: ['Inter', 'ui-sans-serif', 'system-ui'], display: ['Sora', 'Inter', 'ui-sans-serif'] } } } }
-    </script>
+    @include('components.frontend-assets', ['alpine' => true])
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Sora:wght@600;700;800&display=swap" rel="stylesheet">
 </head>
 <body class="bg-zem-bg min-h-screen flex items-center justify-center px-4 py-10">
@@ -30,7 +27,7 @@
         @endif
 
         <div class="space-y-3">
-            @foreach($profiles as $profile)
+            @forelse($profiles as $profile)
                 <div class="rounded-xl border border-zem-border bg-zem-card p-5 shadow-sm transition hover:shadow-md" x-data="{ open: false }">
                     <button type="button" @click="open = !open" class="flex w-full items-center justify-between">
                         <div class="flex items-center gap-3">
@@ -54,7 +51,13 @@
                         </div>
                     </form>
                 </div>
-            @endforeach
+            @empty
+                <div role="status" class="rounded-xl border border-zem-border bg-zem-card p-5 text-center shadow-sm">
+                    <h2 class="font-display text-lg font-bold text-zem-cream">No active profiles available</h2>
+                    <p class="mt-2 text-sm text-zem-muted">Contact your ZemTab administrator to create or reactivate a staff profile for {{ $restaurant->name }} and provide your profile password.</p>
+                    <p class="mt-2 text-sm text-zem-muted">If you signed in to the wrong account, use Back to login below.</p>
+                </div>
+            @endforelse
         </div>
 
         <div class="mt-6 text-center">
@@ -64,6 +67,5 @@
             </form>
         </div>
     </div>
-    <script src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
 </body>
 </html>

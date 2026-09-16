@@ -16,15 +16,14 @@ class OrderController extends Controller
     {
         $restaurant = Restaurant::where('slug', $restaurant_slug)->where('is_active', true)->firstOrFail();
         $restaurantTable = $restaurant->tables()->where('table_number', $table_number)->where('is_active', true)->firstOrFail();
-        $visit = $visits->resolve($request, $restaurant, $restaurantTable);
 
         $data = $request->validate([
             'customer_name' => ['nullable', 'string', 'max:255'],
             'customer_phone' => ['nullable', 'string', 'max:50'],
             'note' => ['nullable', 'string', 'max:2000'],
             'payment_method' => ['nullable', Rule::in($restaurant->settings['payment_methods'] ?? ['cash', 'telebirr', 'cbe', 'awash', 'abyssinia'])],
-            'items' => ['required', 'array', 'min:1'],
-            'items.*.id' => ['required', 'integer', 'exists:menu_items,id'],
+            'items' => ['required', 'array', 'min:1', 'max:100'],
+            'items.*.id' => ['required', 'integer', 'distinct', 'exists:menu_items,id'],
             'items.*.quantity' => ['required', 'integer', 'min:1', 'max:50'],
             'items.*.note' => ['nullable', 'string', 'max:1000'],
         ]);
@@ -32,12 +31,15 @@ class OrderController extends Controller
         $menuItems = MenuItem::where('restaurant_id', $restaurant->id)
             ->whereIn('id', collect($data['items'])->pluck('id'))
             ->where('is_available', true)
+            ->whereHas('category', fn ($query) => $query->where('restaurant_id', $restaurant->id)->where('is_active', true))
             ->get()
             ->keyBy('id');
 
         if ($menuItems->count() !== count($data['items'])) {
             return back()->withErrors(['items' => 'Some selected items are no longer available.']);
         }
+
+        $visit = $visits->resolve($request, $restaurant, $restaurantTable);
 
         $order = DB::transaction(function () use ($data, $restaurant, $restaurantTable, $visit, $table_number, $menuItems) {
             $subtotal = 0;

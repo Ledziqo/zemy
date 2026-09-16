@@ -111,6 +111,6 @@ class DeliveryOrderController extends Controller
             return $order;
         });
 
-        return back()->with('success', 'Delivery order created.');
+        return back()->with('success', 'Driver pickup order created.');
     }
 }

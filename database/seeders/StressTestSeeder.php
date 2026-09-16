@@ -16,6 +16,10 @@ class StressTestSeeder extends Seeder
 {
     public function run(): void
     {
+        if (app()->environment('production')) {
+            throw new \LogicException('Stress seeding is disabled in production.');
+        }
+
         $batch = (int) env('STRESS_BATCH', 1);
         $batchSize = (int) env('STRESS_BATCH_SIZE', 50);
         $start = ($batch - 1) * $batchSize + 1;
@@ -65,7 +69,7 @@ class StressTestSeeder extends Seeder
                 ]
             );
 
-            User::updateOrCreate(
+            User::firstOrCreate(
                 ['email' => $email],
                 [
                     'name' => 'Stress Restaurant ' . $i,

@@ -13,12 +13,13 @@ class ServiceRequestController extends Controller
     {
         $restaurant = Restaurant::where('slug', $restaurant_slug)->where('is_active', true)->firstOrFail();
         $restaurantTable = $restaurant->tables()->where('table_number', $table_number)->where('is_active', true)->firstOrFail();
-        $visit = $visits->resolve($request, $restaurant, $restaurantTable);
 
         $data = $request->validate([
             'type' => ['required', Rule::in(['call_waiter', 'request_bill', 'request_water', 'other'])],
             'note' => ['nullable', 'string', 'max:1000'],
         ]);
+
+        $visit = $visits->resolve($request, $restaurant, $restaurantTable);
 
         $restaurant->serviceRequests()->create([
             'table_id' => $restaurantTable->id,

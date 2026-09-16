@@ -15,12 +15,17 @@ class DatabaseSeeder extends Seeder
 {
     public function run(): void
     {
+        // Production accounts must be provisioned explicitly, never from demo defaults.
+        if (app()->environment('production')) {
+            return;
+        }
+
         if (env('STRESS_SEED')) {
             $this->call(StressTestSeeder::class);
             return;
         }
 
-        User::updateOrCreate(
+        User::firstOrCreate(
             ['email' => env('ADMIN_EMAIL', 'admin@zemtab.test')],
             ['name' => 'ZemTab Admin', 'password' => Hash::make(env('ADMIN_PASSWORD', 'password')), 'role' => 'admin']
         );
@@ -44,12 +49,12 @@ class DatabaseSeeder extends Seeder
             ]
         );
 
-        User::updateOrCreate(
+        User::firstOrCreate(
             ['email' => 'owner@bolebistro.test'],
             ['name' => 'Bole Bistro Owner', 'password' => Hash::make('password'), 'role' => 'restaurant_owner', 'restaurant_id' => $restaurant->id]
         );
 
-        User::updateOrCreate(
+        User::firstOrCreate(
             ['email' => 'staff@bolebistro.test'],
             ['name' => 'Bole Bistro Staff', 'password' => Hash::make('password'), 'role' => 'staff', 'restaurant_id' => $restaurant->id]
         );

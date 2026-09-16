@@ -48,6 +48,11 @@ class RestaurantController extends Controller
         DB::transaction(function () use ($data, $ownerPassword) {
             $restaurant = Restaurant::create($data);
 
+            $subscriptionData = $this->subscriptionData($data);
+            if ($subscriptionData !== []) {
+                $restaurant->subscriptions()->create($subscriptionData);
+            }
+
             if ($ownerPassword && $restaurant->email) {
                 User::create([
                     'name' => $restaurant->name.' Owner',
@@ -68,6 +73,7 @@ class RestaurantController extends Controller
 
         $data = $this->validated($request, $restaurant->id);
         $subscriptionStatus = $data['subscription_status'] ?? null;
+        $subscriptionData = $this->subscriptionData($data);
         unset($data['subscription_status'], $data['owner_password']);
 
         if (! Schema::hasColumn('restaurants', 'dashboard_access_status')) {
@@ -89,15 +95,16 @@ class RestaurantController extends Controller
             $this->syncKitchenProfiles($restaurant, (bool) $data['kitchen_screen_enabled']);
         }
 
-        if ($subscriptionStatus) {
+        if ($subscriptionStatus || $subscriptionData !== []) {
+            $subscription = $restaurant->subscriptions()->latest('starts_at')->latest('id')->first();
+            $subscriptionData['status'] = $subscriptionStatus ?? $subscription?->status ?? 'trial';
+            $subscriptionData['plan_name'] = $subscription?->plan_name ?? 'Pro';
+            $subscriptionData['monthly_price'] ??= $subscription?->monthly_price ?? 5000;
+            $subscriptionData['starts_at'] ??= $subscription?->starts_at ?? now()->toDateString();
+            $subscriptionData['ends_at'] ??= $subscription?->ends_at;
             $restaurant->subscriptions()->updateOrCreate(
-                ['plan_name' => 'Pro'],
-                [
-                    'monthly_price' => $restaurant->subscriptions()->latest()->first()?->monthly_price ?? 5000,
-                    'status' => $subscriptionStatus,
-                    'starts_at' => now(),
-                    'ends_at' => $subscriptionStatus === 'active' ? now()->addMonth() : null,
-                ]
+                $subscription ? ['id' => $subscription->id] : ['plan_name' => 'Pro'],
+                $subscriptionData
             );
 
             if (
@@ -172,10 +179,22 @@ class RestaurantController extends Controller
             'is_active' => ['nullable', 'boolean'],
             'dashboard_access_status' => ['nullable', Rule::in(Restaurant::DASHBOARD_ACCESS_STATUSES)],
             'subscription_status' => ['nullable', 'in:active,unpaid,trial,cancelled'],
+            'subscription_starts_at' => ['nullable', 'date'],
+            'subscription_ends_at' => ['nullable', 'date', 'after_or_equal:subscription_starts_at'],
+            'monthly_price' => ['nullable', 'numeric', 'min:0'],
         ]) + [
             'is_active' => $request->boolean('is_active'),
             'kitchen_screen_enabled' => $request->boolean('kitchen_screen_enabled'),
         ];
+    }
+
+    private function subscriptionData(array $data): array
+    {
+        return array_filter([
+            'starts_at' => $data['subscription_starts_at'] ?? null,
+            'ends_at' => $data['subscription_ends_at'] ?? null,
+            'monthly_price' => $data['monthly_price'] ?? null,
+        ], static fn ($value) => $value !== null && $value !== '');
     }
 
     private function syncKitchenProfiles(Restaurant $restaurant, bool $enabled): void

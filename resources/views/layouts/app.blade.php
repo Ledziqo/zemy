@@ -1,9 +1,10 @@
 @php
     $accentColor = $accentColor ?? '#D22630';
     $accentColor = is_string($accentColor) && preg_match('/^#[0-9A-Fa-f]{6}$/', $accentColor) ? $accentColor : '#D22630';
+    $accentRgb = implode(' ', sscanf($accentColor, '#%02x%02x%02x'));
 @endphp
 <!doctype html>
-<html lang="{{ app()->getLocale() }}" style="--zem-accent: {{ $accentColor }};">
+<html lang="{{ app()->getLocale() }}" style="--zem-accent: {{ $accentColor }}; --zem-accent-rgb: {{ $accentRgb }};">
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=5">
@@ -43,44 +44,13 @@
     {{-- Performance: DNS Prefetch & Preconnect --}}
     <link rel="dns-prefetch" href="//fonts.googleapis.com">
     <link rel="dns-prefetch" href="//fonts.gstatic.com">
-    <link rel="dns-prefetch" href="//cdn.tailwindcss.com">
-    <link rel="dns-prefetch" href="//unpkg.com">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 
     {{-- Structured Data Injection --}}
     @stack('structured-data')
 
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script defer src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js"></script>
-    <script>
-        tailwind.config = {
-            theme: {
-                extend: {
-                    colors: {
-                        zem: {
-                            bg: '#F8FAFC',
-                            card: '#FFFFFF',
-                            gold: @js($accentColor),
-                            cream: '#000000',
-                            muted: '#475467',
-                            green: '#16a34a',
-                            border: '#D8E0E7',
-                            red: '#D22630',
-                            redDark: '#A71D2A',
-                            ink: '#000000',
-                            coral: '#D22630',
-                            navy: '#000000',
-                            charcoal: '#000000',
-                            porcelain: '#F8FAFC',
-                            soft: '#EEF3F7'
-                        }
-                    },
-                    fontFamily: { sans: ['Inter', 'Noto Sans Ethiopic', 'ui-sans-serif', 'system-ui'], display: ['Sora', 'Noto Sans Ethiopic', 'Inter', 'ui-sans-serif'] }
-                }
-            }
-        }
-    </script>
+    @include('components.frontend-assets', ['alpine' => true])
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Noto+Sans+Ethiopic:wght@400;500;600;700;800&family=Sora:wght@600;700;800&display=swap" rel="stylesheet">
     <style>[x-cloak]{display:none!important}</style>
 </head>

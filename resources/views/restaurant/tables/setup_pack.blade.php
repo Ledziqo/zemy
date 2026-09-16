@@ -1,11 +1,11 @@
 <!doctype html>
-<html lang="en">
+<html lang="en" data-zem-palette="plain">
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="robots" content="noindex, nofollow">
     <title>{{ $restaurant->name }} QR Setup Pack</title>
-    <script src="https://cdn.tailwindcss.com"></script>
+    @include('components.frontend-assets')
     <style>
         @media print {
             .no-print { display: none !important; }

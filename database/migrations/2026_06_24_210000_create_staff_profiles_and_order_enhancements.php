@@ -36,6 +36,11 @@ return new class extends Migration {
             }
         }
 
+        // Keep schema changes above; demo credentials require explicit production opt-in.
+        if (! \App\Support\DemoProvisioning::migrationsAllowed()) {
+            return;
+        }
+
         // Create default owner_manager profile for each existing restaurant
         $restaurants = \App\Models\Restaurant::all();
         foreach ($restaurants as $restaurant) {

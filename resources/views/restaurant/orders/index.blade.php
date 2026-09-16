@@ -1,4 +1,4 @@
-@extends('layouts.dashboard', ['heading' => __('Work Board'), 'eyebrow' => __('Live orders & service requests')])
+@extends('layouts.dashboard', ['heading' => __('Work Board'), 'eyebrow' => __('Live orders')])
 
 @section('content')
 @include('restaurant.partials.order_sound_alerts', ['latestOrderId' => $latestOrderId])
@@ -13,54 +13,58 @@
 @php($staffRole = session('staff_profile_role', 'owner_manager'))
 @php($kitchenScreenEnabled = $restaurant->kitchenScreenEnabled())
 @php($paymentMethods = $paymentMethods ?? ['cash', 'telebirr', 'cbe', 'awash', 'abyssinia'])
-<div x-data="workBoard()" x-init="init()" x-cloak>
-<div class="mb-4 flex flex-wrap items-center justify-between gap-3">
-    <div class="grid gap-3 sm:grid-cols-4">
-        <div class="rounded-md border border-zem-border bg-zem-card px-4 py-3"><p class="text-xs text-zem-muted">{{ __('Active orders') }}</p><p class="mt-1 text-2xl font-extrabold" x-text="activeCount">{{ $orders->whereNotIn('status', ['completed', 'cancelled'])->count() }}</p></div>
-        <div class="rounded-md border border-zem-border bg-zem-card px-4 py-3"><p class="text-xs text-zem-muted">{{ __('Completed today') }}</p><p class="mt-1 text-2xl font-extrabold" x-text="completedCount">{{ $orders->where('status', 'completed')->count() }}</p></div>
-        <div class="rounded-md border border-zem-border bg-zem-card px-4 py-3"><p class="text-xs text-zem-muted">{{ __('Active requests') }}</p><p class="mt-1 text-2xl font-extrabold" x-text="activeRequests">{{ $activeRequests }}</p></div>
-        <div class="rounded-md border border-zem-border bg-zem-card px-4 py-3"><p class="text-xs text-zem-muted">{{ __('Next update') }}</p><p class="mt-1 text-sm font-bold" x-text="nextPollLabel()">{{ __('Next update in 15s') }}</p></div>
-    </div>
+<div x-data="workBoard()" x-cloak>
+<div class="mb-4 flex flex-wrap items-center gap-4 rounded-md border border-zem-border bg-zem-card px-4 py-3 text-sm" role="status">
+    <span>{{ __('Active orders') }}: <strong x-text="activeCount">{{ $activeCount }}</strong></span>
+    @if($staffRole !== 'kitchen')<span>{{ __('Completed today') }}: <strong x-text="completedCount">{{ $completedCount }}</strong></span>@endif
+    @if($staffRole !== 'kitchen')
+        <span>{{ __('Active requests') }}: <strong x-text="activeRequests">{{ $activeRequests }}</strong></span>
+    @endif
+    <span class="text-zem-muted" x-text="pollError || nextPollLabel()"></span>
+    <button type="button" @click="poll()" :disabled="polling" class="rounded-md border border-zem-border px-3 py-2 font-bold disabled:opacity-50">{{ __('Refresh') }}</button>
 </div>
 
-<div class="grid gap-5 xl:grid-cols-[minmax(0,1.5fr)_minmax(360px,.9fr)]">
+<div class="grid gap-5 {{ $staffRole === 'kitchen' ? '' : 'xl:grid-cols-[minmax(0,1.5fr)_minmax(360px,.9fr)]' }}">
     <section>
-        <div class="mb-3 flex items-center justify-between">
+        <div class="mb-3 flex flex-wrap items-center justify-between gap-3">
             <h2 class="font-display text-xl font-bold">{{ __('Orders') }}</h2>
             <div class="flex gap-2">
-                <button @click="filter='active'; applyFilter()" :class="filter==='active'?'bg-zem-gold text-white':'border border-zem-border'" class="rounded-full px-4 py-2 text-sm font-bold">{{ __('Active') }}</button>
-                <button @click="filter='completed'; applyFilter()" :class="filter==='completed'?'bg-zem-gold text-white':'border border-zem-border'" class="rounded-full px-4 py-2 text-sm font-bold">{{ __('Completed') }}</button>
-                <button @click="filter='all'; applyFilter()" :class="filter==='all'?'bg-zem-gold text-white':'border border-zem-border'" class="rounded-full px-4 py-2 text-sm font-bold">{{ __('All') }}</button>
+                <button @click="changeFilter('active')" :class="filter==='active'?'bg-zem-gold text-white':'border border-zem-border'" class="rounded-full px-4 py-2 text-sm font-bold">{{ __('Active') }}</button>
+                <button @click="changeFilter('completed')" :class="filter==='completed'?'bg-zem-gold text-white':'border border-zem-border'" class="rounded-full px-4 py-2 text-sm font-bold">{{ $staffRole === 'kitchen' ? __('Ready / done') : __('Completed') }}</button>
+                <button @click="changeFilter('all')" :class="filter==='all'?'bg-zem-gold text-white':'border border-zem-border'" class="rounded-full px-4 py-2 text-sm font-bold">{{ __('All') }}</button>
             </div>
         </div>
         <div class="grid gap-4" x-ref="ordersList">
             @forelse($orders as $order)
                 @php($needsConfirmation = $order->guest_session_id && ! $order->confirmed_at && ! in_array($order->status, ['completed', 'cancelled'], true))
-                <article class="rounded-md border-l-4 border border-zem-border bg-zem-card p-4 {{ in_array($order->status, ['completed', 'cancelled'], true) ? 'border-l-gray-400 opacity-60' : ($needsConfirmation ? 'border-l-yellow-400' : 'border-l-zem-gold') }}" data-order-id="{{ $order->id }}" data-status="{{ $order->status }}" data-confirmed="{{ $order->confirmed_at ? '1' : '0' }}" x-show="filter==='all' || (filter==='active' && !['completed','cancelled'].includes('{{ $order->status }}')) || (filter==='completed' && '{{ $order->status }}' === 'completed')">
+                <article class="rounded-md border-l-4 border border-zem-border bg-zem-card p-4 {{ in_array($order->status, ['completed', 'cancelled'], true) ? 'border-l-gray-400 opacity-60' : ($needsConfirmation ? 'border-l-yellow-400' : 'border-l-zem-gold') }}" data-order-id="{{ $order->id }}" data-status="{{ $order->status }}" data-payment-status="{{ $order->payment_status }}" data-payment-method="{{ $order->payment_method }}" data-confirmed="{{ $order->confirmed_at ? '1' : '0' }}" data-needs-confirmation="{{ $needsConfirmation ? '1' : '0' }}">
                     <div class="flex flex-wrap items-start justify-between gap-3">
-                        <div><h2 class="font-display text-xl font-bold">{{ __('Order') }} #{{ $order->id }}</h2><p class="text-sm text-zem-muted">{{ $order->table?->displayLabel() ?: $order->table_number }}@if(($order->order_type ?? 'dine_in') === 'delivery') <span class="ml-1 rounded-full bg-purple-100 px-2 py-0.5 text-xs font-bold text-purple-700">Delivery</span>@endif @if($needsConfirmation)<span class="ml-1 rounded-full bg-yellow-100 px-2 py-0.5 text-xs font-bold text-yellow-700">{{ __('Needs cashier confirm') }}</span>@endif - <span data-created-at="{{ $order->created_at->toIso8601String() }}">{{ $order->created_at->diffForHumans() }}</span></p></div>
+                        <div><h2 class="font-display text-xl font-bold">{{ __('Order') }} #{{ $order->id }}</h2><p class="text-sm text-zem-muted">{{ $order->table?->displayLabel() ?: $order->table_number }}@if(($order->order_type ?? 'dine_in') === 'delivery') <span class="ml-1 rounded-full bg-purple-100 px-2 py-0.5 text-xs font-bold text-purple-700">Driver pickup</span>@endif @if($needsConfirmation)<span class="ml-1 rounded-full bg-yellow-100 px-2 py-0.5 text-xs font-bold text-yellow-700">{{ __('Needs cashier confirm') }}</span>@endif - <span data-created-at="{{ $order->created_at->toIso8601String() }}">{{ $order->created_at->diffForHumans() }}</span></p></div>
                         <span data-status-badge><x-status :status="$order->status" /></span>
                     </div>
                     <div class="mt-4 space-y-2">
                         @foreach($order->items as $item)<p class="flex justify-between gap-3 rounded-md border border-zem-border bg-zem-bg px-3 py-2 text-sm text-zem-cream"><span>{{ $item->quantity }} x {{ $item->item_name }} @if($item->note)<em class="text-zem-muted">({{ $item->note }})</em>@endif</span><strong class="shrink-0 text-zem-cream">{{ number_format($item->total_price) }} ETB</strong></p>@endforeach
                     </div>
-                    <p class="mt-3 text-sm text-zem-muted">{{ __('Note') }}: {{ $order->note ?: __('None') }}</p>
+                    @if($order->note)<p class="mt-3 text-sm text-zem-muted">{{ __('Note') }}: {{ $order->note }}</p>@endif
                     <div class="mt-4 flex flex-wrap items-center justify-between gap-3" data-order-actions>
-                        <strong>{{ number_format($order->total) }} ETB</strong>
-                        @if(!in_array($order->status, ['completed', 'cancelled'], true))
+                        <strong>{{ number_format($order->total, 2) }} ETB</strong>
+                        @if($order->status === 'completed' && $order->payment_method === 'room_credit' && $order->payment_status !== 'paid' && in_array($staffRole, ['owner_manager', 'cashier'], true))
+                            <span class="rounded-md border border-zem-gold/40 bg-zem-gold/10 px-4 py-3 text-sm font-bold text-zem-gold">Room credit · unpaid</span>
+                            <button type="button" @click="markCreditPaid({{ $order->id }})" class="rounded-md bg-emerald-600 px-6 py-3 text-base font-bold text-white transition hover:opacity-90 min-h-[56px]">Mark credit paid</button>
+                        @elseif(!in_array($order->status, ['completed', 'cancelled'], true))
                             @if(in_array($staffRole, ['owner_manager', 'cashier'], true) && $needsConfirmation)
                                 <button type="button" @click="confirmOrder({{ $order->id }})" class="rounded-md bg-yellow-500 px-6 py-3 text-base font-bold text-white transition hover:opacity-90 min-h-[56px]">{{ __('Confirm order') }}</button>
                             @elseif(! $kitchenScreenEnabled && in_array($staffRole, ['owner_manager', 'cashier'], true))
                                 <button type="button" @click="markCompleted({{ $order->id }})" class="rounded-md bg-zem-green px-6 py-3 text-base font-bold text-white transition hover:opacity-90 min-h-[56px]">{{ __('Mark as completed') }}</button>
-                            @elseif($staffRole === 'cashier' && $order->status === 'served')
+                            @elseif(in_array($staffRole, ['owner_manager', 'cashier'], true) && $order->status === 'served')
                                 <div class="flex gap-2">
                                     <select id="payment-method-{{ $order->id }}" class="rounded-md border border-zem-border bg-white px-3 py-3 text-sm">
                                         <option value="">Payment method...</option>
                                         @foreach($paymentMethods as $method)
-                                            <option value="{{ $method }}">{{ ucfirst($method) }}</option>
+                                            <option value="{{ $method }}">{{ $method === 'room_credit' ? 'Room credit (pay later)' : ucfirst($method) }}</option>
                                         @endforeach
                                     </select>
-                                    <button type="button" @click="markPaid({{ $order->id }})" class="rounded-md bg-emerald-600 px-6 py-3 text-base font-bold text-white transition hover:opacity-90 min-h-[56px]">Mark Paid</button>
+                                    <button type="button" @click="markPayment({{ $order->id }})" class="rounded-md bg-emerald-600 px-6 py-3 text-base font-bold text-white transition hover:opacity-90 min-h-[56px]">Apply payment</button>
                                 </div>
                             @elseif($staffRole === 'cashier' && !in_array($order->status, ['paid']))
                                 <span class="rounded-md border border-zem-border bg-zem-soft px-4 py-3 text-sm font-bold text-zem-muted">{{ __('Waiting for kitchen') }}</span>
@@ -81,30 +85,30 @@
             @empty
                 <div class="rounded-md border border-zem-border bg-zem-card p-8 text-center">
                     <div class="mb-2 text-sm font-bold uppercase tracking-widest text-zem-gold">Orders</div>
-                    <p class="text-zem-muted">No orders yet. Scan the QR code at a {{ $restaurant->locationLabel() }} to start.</p>
-                    <a href="{{ route('restaurant.tables.index') }}" class="mt-3 inline-block rounded-md border border-zem-gold px-4 py-2 text-sm font-bold text-zem-gold">Go to QR codes</a>
+                    <p class="text-zem-muted">{{ __('No orders in this view.') }}</p>
+                    @if($staffRole !== 'kitchen')<a href="{{ route('restaurant.tables.index') }}" class="mt-3 inline-block rounded-md border border-zem-gold px-4 py-2 text-sm font-bold text-zem-gold">Go to QR codes</a>@endif
                 </div>
             @endforelse
         </div>
-        <div class="mt-5">{{ $orders->links() }}</div>
+        <div class="mt-5" x-ref="pagination">@if($filter !== 'active'){{ $orders->links() }}@endif</div>
     </section>
 
-    <aside>
+    <aside @if($staffRole === 'kitchen') hidden @endif>
         <div class="sticky top-4">
             @if(in_array($staffRole, ['owner_manager', 'cashier'], true))
                 <div class="mb-5 rounded-md border border-zem-border bg-zem-card p-4" x-data="manualOrder()">
                     <div class="flex items-center justify-between gap-3">
-                        <h2 class="font-display text-xl font-bold">{{ $manualOrderTitle }}</h2>
+                        <button type="button" @click="formOpen = !formOpen" :aria-expanded="formOpen" class="font-display text-xl font-bold">{{ $manualOrderTitle }} <span x-text="formOpen ? '−' : '+'"></span></button>
                         <span class="rounded-full border border-zem-border px-3 py-1 text-xs font-bold text-zem-muted" x-text="count() + ' item(s)'"></span>
                     </div>
-                    <form method="post" action="{{ route('restaurant.orders.manual.store') }}" class="mt-4 space-y-3" @submit="syncForm($event)">
+                    <form method="post" action="{{ route('restaurant.orders.manual.store') }}" x-show="formOpen" x-cloak class="mt-4 space-y-3" @submit="syncForm($event)">
                         @csrf
                         <label class="grid gap-1 text-sm">
                             <span class="font-bold">{{ __('Order type') }}</span>
                             <select name="order_mode" x-model="mode" class="rounded-md border border-zem-border bg-white px-3 py-2">
                                 <option value="table">{{ $placeOptionLabel }}</option>
                                 <option value="takeaway">{{ $isHotel ? __('Walk-in / lobby') : __('Takeaway') }}</option>
-                                <option value="delivery">{{ $isHotel ? __('External delivery') : __('Delivery order') }}</option>
+                                <option value="delivery">{{ $isHotel ? __('External driver pickup') : __('Driver pickup order') }}</option>
                             </select>
                         </label>
 
@@ -125,8 +129,8 @@
                         </div>
 
                         <label class="grid gap-1 text-sm" x-show="mode === 'delivery'" x-cloak>
-                            <span class="font-bold">{{ $isHotel ? __('Delivery source') : __('Delivery app') }}</span>
-                            <input name="delivery_app" :disabled="mode !== 'delivery'" placeholder="{{ $isHotel ? __('Guest call, front desk, app...') : __('Bolt, Glovo, phone call...') }}" class="rounded-md border border-zem-border bg-white px-3 py-2">
+                            <span class="font-bold">{{ $isHotel ? __('Pickup source / driver') : __('Pickup source / driver') }}</span>
+                            <input name="delivery_app" :disabled="mode !== 'delivery'" placeholder="{{ $isHotel ? __('Front desk, guest call, app...') : __('Bolt, Glovo, phone call...') }}" class="rounded-md border border-zem-border bg-white px-3 py-2">
                         </label>
 
                         <div class="rounded-md border border-zem-border bg-zem-bg p-3">
@@ -208,11 +212,13 @@
                     </div>
                 </div>
             @endif
+            @if($staffRole !== 'kitchen')
             <div class="mb-3 flex items-center justify-between">
                 <h2 class="font-display text-xl font-bold">{{ __('Service Requests') }}</h2>
             </div>
+            @endif
             <div class="grid gap-3" x-ref="requestsList">
-                @forelse($requests as $requestRow)
+                @forelse($staffRole === 'kitchen' ? collect() : $requests as $requestRow)
                     <div class="rounded-md border {{ in_array($requestRow->status, ['pending', 'acknowledged'], true) ? 'border-zem-gold/40 bg-zem-gold/10' : 'border-zem-border bg-zem-card opacity-60' }} p-4" data-request-id="{{ $requestRow->id }}" data-status="{{ $requestRow->status }}" x-show="filter === 'all' || (filter === 'active' && '{{ $requestRow->status }}' !== 'completed') || (filter === 'completed' && '{{ $requestRow->status }}' === 'completed')">
                         <div class="flex flex-wrap items-start justify-between gap-3">
                             <div>
@@ -227,10 +233,12 @@
                         @endif
                     </div>
                 @empty
+                    @if($staffRole !== 'kitchen')
                     <div class="rounded-md border border-zem-border bg-zem-card p-6 text-center">
                         <div class="mb-2 text-sm font-bold uppercase tracking-widest text-zem-gold">Requests</div>
                         <p class="text-zem-muted text-sm">{{ __('No service requests yet.') }}</p>
                     </div>
+                    @endif
                 @endforelse
             </div>
         </div>
@@ -245,6 +253,7 @@
 <script>
 function manualOrder() {
     return {
+        formOpen: false,
         mode: 'table',
         menuOpen: false,
         items: [],
@@ -266,7 +275,8 @@ function manualOrder() {
             return this.items.reduce((sum, item) => sum + Number(item.qty || 0), 0);
         },
         total() {
-            return this.items.reduce((sum, item) => sum + Number(item.qty || 0) * Number(item.price || 0), 0);
+            const subtotal = this.items.reduce((sum, item) => sum + Number(item.qty || 0) * Number(item.price || 0), 0);
+            return subtotal * (1 + {{ (float) ($restaurant->settings['service_charge_percentage'] ?? 0) }} / 100 + {{ (float) ($restaurant->settings['vat_percentage'] ?? 0) }} / 100);
         },
         money(value) {
             return new Intl.NumberFormat('en-US', { maximumFractionDigits: 2 }).format(value) + ' ETB';
@@ -294,7 +304,11 @@ function manualOrder() {
 
 function workBoard() {
     return {
-        filter: 'active',
+        filter: @js($filter),
+        page: {{ max(1, (int) request('page', 1)) }},
+        pollError: '',
+        initialized: false,
+        pendingOrders: new Set(),
         activeCount: 0,
         completedCount: 0,
         activeRequests: 0,
@@ -314,6 +328,7 @@ function workBoard() {
         pollUrl: '{{ route("restaurant.orders.poll") }}',
         orderUpdateUrl: '{{ route("restaurant.orders.update", ["__ID__"]) }}',
         orderConfirmUrl: '{{ route("restaurant.orders.confirm", ["__ID__"]) }}',
+        creditPaidUrl: '{{ route("restaurant.orders.credit-paid", ["__ID__"]) }}',
         requestUpdateUrl: '{{ route("restaurant.service-requests.update", ["__ID__"]) }}',
         staffRole: @js($staffRole),
         kitchenScreenEnabled: @js($kitchenScreenEnabled),
@@ -329,14 +344,16 @@ function workBoard() {
         statusLabels: @js(collect(['new','preparing','served','paid','completed','cancelled','pending','acknowledged'])->mapWithKeys(fn ($status) => [$status => __(ucfirst($status))])),
 
         init() {
+            if (this.initialized) return;
+            this.initialized = true;
             this.latestOrderId = {{ $latestOrderId }};
             this.latestConfirmedAt = @js($latestConfirmedAt);
             this.latestRequestId = {{ $latestRequestId }};
             this.activeRequests = {{ $activeRequests }};
-            this.activeCount = {{ $orders->whereNotIn('status', ['completed', 'cancelled'])->count() }};
-            this.completedCount = {{ $orders->where('status', 'completed')->count() }};
+            this.activeCount = {{ $activeCount }};
+            this.completedCount = {{ $completedCount }};
             this.schedulePoll(15000);
-            document.addEventListener('visibilitychange', () => {
+            this.visibilityHandler = () => {
                 if (document.hidden) {
                     this.schedulePoll(60000);
                     return;
@@ -344,9 +361,11 @@ function workBoard() {
                 this.pollDelay = 15000;
                 this.idlePolls = 0;
                 this.poll();
-            });
+            };
+            document.addEventListener('visibilitychange', this.visibilityHandler);
             this.updateRelativeTimes();
-            setInterval(() => this.updateRelativeTimes(), 1000);
+            this.relativeTimer = setInterval(() => this.updateRelativeTimes(), 1000);
+            this.applyFilter();
             this.countdownTimer = setInterval(() => this.updatePollCountdown(), 1000);
         },
 
@@ -382,132 +401,70 @@ function workBoard() {
             this._toastTimer = setTimeout(() => this.toast = false, 3000);
         },
 
-        confirmOrder(orderId) {
-            const url = this.orderConfirmUrl.replace('__ID__', orderId);
+        destroy() {
+            clearTimeout(this.pollTimer);
+            clearTimeout(this._toastTimer);
+            clearInterval(this.countdownTimer);
+            clearInterval(this.relativeTimer);
+            document.removeEventListener('visibilitychange', this.visibilityHandler);
+        },
+
+        changeFilter(filter) {
+            const url = new URL(window.location.href);
+            url.searchParams.set('filter', filter);
+            url.searchParams.delete('page');
+            window.location.assign(url);
+        },
+
+        async mutateOrder(orderId, status = null, paymentMethod = '') {
+            if (this.pendingOrders.has(orderId)) return;
+            this.pendingOrders.add(orderId);
             const formData = new FormData();
             formData.append('_token', '{{ csrf_token() }}');
             formData.append('_method', 'PATCH');
-            fetch(url, { method: 'POST', body: formData, headers: { 'X-Requested-With': 'XMLHttpRequest', 'Accept': 'application/json' } })
-            .then(r => { if (!r.ok) throw new Error('Server returned ' + r.status); return r.json(); })
-            .then(data => {
-                if (data.success) {
-                    const article = this.$refs.ordersList.querySelector('[data-order-id="' + orderId + '"]');
-                    if (article) {
-                        article.dataset.confirmed = '1';
-                        article.classList.remove('border-l-yellow-400');
-                        article.classList.add('border-l-zem-gold');
-                        article.querySelectorAll('.bg-yellow-100.text-yellow-700').forEach(el => el.remove());
-                        this.renderOrderActions(article, orderId, article.dataset.status || 'new');
-                    }
-                    this.showToast('Order #' + orderId + ' confirmed');
-                }
-            })
-            .catch(() => this.showToast('Failed to confirm order #' + orderId, 'error'));
+            if (status) formData.append('status', status);
+            if (paymentMethod) formData.append('payment_method', paymentMethod);
+            try {
+                const response = await fetch((status ? this.orderUpdateUrl : this.orderConfirmUrl).replace('__ID__', orderId), {
+                    method: 'POST', body: formData, signal: AbortSignal.timeout(15000),
+                    headers: { 'X-Requested-With': 'XMLHttpRequest', 'Accept': 'application/json' },
+                });
+                const data = await response.json();
+                if (!response.ok || !data.success) throw new Error(data.message || this.labels.failedOrder);
+                this.showToast('Order #' + orderId + ' updated');
+            } catch (error) {
+                this.showToast(error.message || this.labels.failedOrder, 'error');
+            } finally {
+                this.pendingOrders.delete(orderId);
+                // Finish any older snapshot before fetching the result of this action.
+                if (this.pollPromise) await this.pollPromise;
+                await this.poll();
+            }
         },
 
+        confirmOrder(orderId) { return this.mutateOrder(orderId); },
+        updateStatus(orderId, status) { return this.mutateOrder(orderId, status); },
+        markCompleted(orderId) { return this.mutateOrder(orderId, 'completed'); },
         markPaid(orderId) {
-            const select = document.getElementById('payment-method-' + orderId);
-            const paymentMethod = select ? select.value : '';
-            if (!paymentMethod) { this.showToast('Select a payment method first', 'error'); return; }
-            const url = this.orderUpdateUrl.replace('__ID__', orderId);
-            const formData = new FormData();
-            formData.append('_token', '{{ csrf_token() }}');
-            formData.append('_method', 'PATCH');
-            formData.append('status', 'paid');
-            formData.append('payment_method', paymentMethod);
-            fetch(url, { method: 'POST', body: formData, headers: { 'X-Requested-With': 'XMLHttpRequest', 'Accept': 'application/json' } })
-            .then(r => { if (!r.ok) throw new Error('Server returned ' + r.status); return r.json(); })
-            .then(data => {
-                if (data.success) {
-                    const article = this.$refs.ordersList.querySelector('[data-order-id="' + orderId + '"]');
-                    if (article) {
-                        article.dataset.status = 'paid';
-                        const badge = article.querySelector('[data-status-badge]');
-                        if (badge) badge.innerHTML = this.getStatusBadge('paid');
-                        const selectEl = article.querySelector('select');
-                        const paidBtn = article.querySelector('button.bg-emerald-600');
-                        if (selectEl) selectEl.remove();
-                        if (paidBtn) {
-                            paidBtn.textContent = this.labels.markCompleted;
-                            paidBtn.className = 'rounded-md bg-zem-green px-6 py-3 text-base font-bold text-white transition hover:opacity-90 min-h-[56px]';
-                            paidBtn.onclick = () => this.markCompleted(orderId);
-                        }
-                        this.applyFilter();
-                    }
-                    this.showToast('Order #' + orderId + ' marked as paid (' + paymentMethod + ')');
-                }
-            })
-            .catch(() => this.showToast('Failed to mark order #' + orderId + ' as paid', 'error'));
+            const method = document.getElementById('payment-method-' + orderId)?.value;
+            if (!method) { this.showToast('Select a payment method first', 'error'); return; }
+            return this.mutateOrder(orderId, 'paid', method);
         },
-
-        updateStatus(orderId, status) {
-            const url = this.orderUpdateUrl.replace('__ID__', orderId);
-            const formData = new FormData();
-            formData.append('_token', '{{ csrf_token() }}');
-            formData.append('_method', 'PATCH');
-            formData.append('status', status);
-            fetch(url, { method: 'POST', body: formData, headers: { 'X-Requested-With': 'XMLHttpRequest', 'Accept': 'application/json' } })
-            .then(r => { if (!r.ok) throw new Error('Server returned ' + r.status); return r.json(); })
-            .then(data => {
-                if (data.success) {
-                    const article = this.$refs.ordersList.querySelector('[data-order-id="' + orderId + '"]');
-                    if (article) {
-                        article.dataset.status = status;
-                        const badge = article.querySelector('[data-status-badge]');
-                        if (badge) badge.innerHTML = this.getStatusBadge(status);
-                        const btn = article.querySelector('button');
-                        if (btn) {
-                            if (status === 'preparing') {
-                                btn.textContent = 'Mark Served';
-                                btn.className = 'rounded-md bg-green-600 px-6 py-3 text-base font-bold text-white transition hover:opacity-90 min-h-[56px]';
-                                btn.onclick = () => this.updateStatus(orderId, 'served');
-                            } else if (status === 'served') {
-                                btn.remove();
-                            }
-                        }
-                        this.applyFilter();
-                    }
-                    this.showToast('Order #' + orderId + ' status: ' + status);
-                }
-            })
-            .catch(() => this.showToast('Failed to update order #' + orderId, 'error'));
+        markPayment(orderId) {
+            const method = document.getElementById('payment-method-' + orderId)?.value;
+            if (!method) { this.showToast('Select a payment method first', 'error'); return; }
+            return this.mutateOrder(orderId, method === 'room_credit' ? 'completed' : 'paid', method);
         },
-
-        markCompleted(orderId) {
-            const url = this.orderUpdateUrl.replace('__ID__', orderId);
+        markCreditPaid(orderId) {
+            if (this.pendingOrders.has(orderId)) return;
+            this.pendingOrders.add(orderId);
             const formData = new FormData();
             formData.append('_token', '{{ csrf_token() }}');
             formData.append('_method', 'PATCH');
-            formData.append('status', 'completed');
-
-            fetch(url, {
-                method: 'POST',
-                body: formData,
-                headers: { 'X-Requested-With': 'XMLHttpRequest', 'Accept': 'application/json' },
-            })
-            .then(r => {
-                if (!r.ok) throw new Error('Server returned ' + r.status);
-                return r.json();
-            })
-            .then(data => {
-                if (data.success) {
-                    const article = this.$refs.ordersList.querySelector('[data-order-id="' + orderId + '"]');
-                    if (article) {
-                        article.dataset.status = 'completed';
-                        article.classList.remove('border-l-zem-gold');
-                        article.classList.add('border-l-gray-400', 'opacity-60');
-                        const btn = article.querySelector('button');
-                        if (btn) btn.remove();
-                        const badge = article.querySelector('[data-status-badge]');
-                        if (badge) badge.innerHTML = this.getStatusBadge('completed');
-                        this.activeCount--;
-                        this.completedCount++;
-                        this.applyFilter();
-                    }
-                    this.showToast(this.labels.order + ' #' + orderId + ' ' + @js(__('Completed')));
-                }
-            })
-            .catch(() => this.showToast(this.labels.failedOrder + ' #' + orderId, 'error'));
+            fetch(this.creditPaidUrl.replace('__ID__', orderId), { method: 'POST', body: formData, headers: { 'X-Requested-With': 'XMLHttpRequest', 'Accept': 'application/json' } })
+                .then(async response => { const data = await response.json(); if (!response.ok || !data.success) throw new Error(data.message || this.labels.failedOrder); this.showToast('Room credit marked paid'); })
+                .catch(error => this.showToast(error.message || this.labels.failedOrder, 'error'))
+                .finally(async () => { this.pendingOrders.delete(orderId); if (this.pollPromise) await this.pollPromise; await this.poll(); });
         },
 
         markRequestCompleted(requestId) {
@@ -547,74 +504,70 @@ function workBoard() {
         },
 
         poll() {
-            if (this.polling) return;
+            if (this.polling) return this.pollPromise;
             this.polling = true;
             clearTimeout(this.pollTimer);
             this.updatePollCountdown();
-            const params = new URLSearchParams({
-                order_since: this.latestOrderId,
-                request_since: this.latestRequestId,
-            });
-            if (this.latestConfirmedAt) params.append('confirmed_since', this.latestConfirmedAt);
-            this.$refs.ordersList.querySelectorAll('[data-order-id]').forEach(el => params.append('visible_order_ids[]', el.dataset.orderId));
-            fetch(this.pollUrl + '?' + params.toString(), {
-                cache: 'no-store',
+            const params = new URLSearchParams({ filter: this.filter, page: this.page });
+            this.pollPromise = fetch(this.pollUrl + '?' + params, {
+                cache: 'no-store', signal: AbortSignal.timeout(15000),
                 headers: { 'X-Requested-With': 'XMLHttpRequest', 'Accept': 'application/json' },
             })
             .then(r => {
-                if (!r.ok) return { orders: [], requests: [], activeRequests: this.activeRequests, latestOrderId: this.latestOrderId, latestRequestId: this.latestRequestId };
+                if (!r.ok) throw new Error('Server returned ' + r.status);
                 return r.json();
             })
             .then(data => {
-                if (typeof data.activeRequests === 'number') this.activeRequests = data.activeRequests;
-                const changed = Boolean(data.hasChanges) || (data.orders || []).length > 0 || (data.requests || []).length > 0;
-
-                if (data.orders.length > 0) {
-                    [...data.orders].sort((a, b) => a.id - b.id).forEach(order => {
-                        if (this.$refs.ordersList.querySelector('[data-order-id="' + order.id + '"]')) return;
-                        if (order.status !== 'completed' && order.status !== 'cancelled') this.activeCount++;
-                        else if (order.status === 'completed') this.completedCount++;
+                if (!Array.isArray(data.orders) || !Array.isArray(data.requests)) throw new Error('Invalid update');
+                this.pollError = '';
+                const ids = new Set(data.orders.map(order => String(order.id)));
+                this.$refs.ordersList.querySelectorAll('[data-order-id]').forEach(el => {
+                    if (!ids.has(el.dataset.orderId)) el.remove();
+                });
+                let hasNewOrder = false;
+                data.orders.forEach(order => {
+                    let article = this.$refs.ordersList.querySelector('[data-order-id="' + order.id + '"]');
+                    if (!article) {
+                        hasNewOrder = hasNewOrder || order.id > this.latestOrderId ||
+                            (this.staffRole === 'kitchen' && order.confirmed && order.created_at);
                         this.prependOrder(order);
-                    });
-                    if (localStorage.getItem('zemtabOrderSoundEnabled') === '1') this.playBeep();
+                        article = this.$refs.ordersList.querySelector('[data-order-id="' + order.id + '"]');
+                    }
+                    this.$refs.ordersList.appendChild(article);
+                });
+                this.syncOrderStatuses(data.orders);
+                if (!data.orders.length) {
+                    this.$refs.ordersList.innerHTML = '<p class="p-8 text-center text-zem-muted">' + this.escapeHtml(@js(__('No orders in this view.'))) + '</p>';
+                } else {
+                    this.$refs.ordersList.querySelectorAll(':scope > p').forEach(el => el.remove());
                 }
-
-                if (data.requests.length > 0) {
-                    [...data.requests].sort((a, b) => a.id - b.id).forEach(req => {
-                        if (!this.$refs.requestsList.querySelector('[data-request-id="' + req.id + '"]')) this.prependRequest(req);
-                    });
+                if (this.$refs.pagination) this.$refs.pagination.innerHTML = data.pagination || '';
+                if (this.staffRole !== 'kitchen' && this.$refs.requestsList) {
+                    this.$refs.requestsList.innerHTML = '';
+                    [...data.requests].reverse().forEach(req => this.prependRequest(req));
                 }
-                this.latestOrderId = Math.max(this.latestOrderId, Number(data.latestOrderId || 0));
-                if (data.latestConfirmedAt) this.latestConfirmedAt = data.latestConfirmedAt;
-                this.latestRequestId = Math.max(this.latestRequestId, Number(data.latestRequestId || 0));
-                this.syncOrderStatuses(data.orderStatuses || []);
-                this.idlePolls = changed ? 0 : this.idlePolls + 1;
-                this.pollDelay = document.hidden ? 60000 : (this.idlePolls > 12 ? 45000 : (this.idlePolls > 3 ? 25000 : 15000));
+                this.activeCount = data.activeCount;
+                this.completedCount = data.completedCount;
+                this.activeRequests = data.activeRequests;
+                this.latestOrderId = Number(data.latestOrderId || 0);
+                this.latestConfirmedAt = data.latestConfirmedAt;
+                this.latestRequestId = Number(data.latestRequestId || 0);
+                if (hasNewOrder) this.playBeep();
+                this.pollDelay = document.hidden ? 60000 : 15000;
             })
             .catch(() => {
-                this.pollDelay = document.hidden ? 60000 : 45000;
+                this.pollError = @js(__('Update failed. Showing last known orders. Retry or refresh.'));
+                this.pollDelay = document.hidden ? 60000 : 30000;
             })
             .finally(() => {
                 this.polling = false;
                 this.schedulePoll(this.pollDelay);
             });
+            return this.pollPromise;
         },
 
         playBeep() {
-            const AudioContext = window.AudioContext || window.webkitAudioContext;
-            if (!AudioContext) return;
-            const context = new AudioContext();
-            const oscillator = context.createOscillator();
-            const gain = context.createGain();
-            oscillator.type = 'sine';
-            oscillator.frequency.value = 880;
-            gain.gain.setValueAtTime(0.001, context.currentTime);
-            gain.gain.exponentialRampToValueAtTime(0.22, context.currentTime + 0.02);
-            gain.gain.exponentialRampToValueAtTime(0.001, context.currentTime + 0.45);
-            oscillator.connect(gain);
-            gain.connect(context.destination);
-            oscillator.start();
-            oscillator.stop(context.currentTime + 0.5);
+            window.zemtabOrderAlerts?.notify();
         },
 
         prependOrder(order) {
@@ -627,19 +580,22 @@ function workBoard() {
             article.className = 'rounded-md border-l-4 border border-zem-border bg-zem-card p-4 animate-slide-in ' + (isCompleted ? 'border-l-gray-400 opacity-60' : 'border-l-zem-gold');
             article.dataset.orderId = order.id;
             article.dataset.status = order.status;
+            article.dataset.paymentStatus = order.payment_status || '';
+            article.dataset.paymentMethod = order.payment_method || '';
             article.dataset.confirmed = order.confirmed ? '1' : '0';
+            article.dataset.needsConfirmation = order.needs_confirmation ? '1' : '0';
 
             let itemsHtml = order.items.map(item =>
                 '<p class="flex justify-between gap-3 rounded-md border border-zem-border bg-zem-bg px-3 py-2 text-sm text-zem-cream"><span>' + Number(item.quantity) + ' x ' + this.escapeHtml(item.name) + (item.note ? ' <em class="text-zem-muted">(' + this.escapeHtml(item.note) + ')</em>' : '') + '</span><strong class="shrink-0 text-zem-cream">' + new Intl.NumberFormat('en-US').format(item.total_price) + ' ETB</strong></p>'
             ).join('');
 
             const statusBadge = this.getStatusBadge(order.status);
-            const orderTags = (order.order_type === 'delivery' ? ' <span class="ml-1 rounded-full bg-purple-100 px-2 py-0.5 text-xs font-bold text-purple-700">Delivery</span>' : '') + (order.needs_confirmation ? ' <span class="ml-1 rounded-full bg-yellow-100 px-2 py-0.5 text-xs font-bold text-yellow-700">' + this.escapeHtml(this.labels.needsConfirm) + '</span>' : '');
+            const orderTags = (order.order_type === 'delivery' ? ' <span class="ml-1 rounded-full bg-purple-100 px-2 py-0.5 text-xs font-bold text-purple-700">Driver pickup</span>' : '') + (order.payment_method === 'room_credit' && order.payment_status !== 'paid' ? ' <span class="ml-1 rounded-full bg-yellow-100 px-2 py-0.5 text-xs font-bold text-yellow-700">Room credit · unpaid</span>' : '') + (order.needs_confirmation ? ' <span class="ml-1 rounded-full bg-yellow-100 px-2 py-0.5 text-xs font-bold text-yellow-700">' + this.escapeHtml(this.labels.needsConfirm) + '</span>' : '');
 
             article.innerHTML =
                 '<div class="flex flex-wrap items-start justify-between gap-3"><div><h2 class="font-display text-xl font-bold">' + this.escapeHtml(this.labels.order) + ' #' + order.id + '</h2><p class="text-sm text-zem-muted">' + this.escapeHtml(order.table_label || order.table_number) + orderTags + ' - <span data-created-at="' + this.escapeHtml(order.created_at) + '">' + this.relativeTime(order.created_at) + '</span></p></div><span data-status-badge>' + statusBadge + '</span></div>' +
                 '<div class="mt-4 space-y-2">' + itemsHtml + '</div>' +
-                '<p class="mt-3 text-sm text-zem-muted">' + this.escapeHtml(this.labels.note) + ': ' + this.escapeHtml(order.note || this.labels.none) + '</p>' +
+                (order.note ? '<p class="mt-3 text-sm text-zem-muted">' + this.escapeHtml(this.labels.note) + ': ' + this.escapeHtml(order.note) + '</p>' : '') +
                 '<div class="mt-4 flex flex-wrap items-center justify-between gap-3" data-order-actions><strong>' + new Intl.NumberFormat('en-US').format(order.total) + ' ETB</strong></div>';
 
             list.prepend(article);
@@ -652,14 +608,18 @@ function workBoard() {
             if (!actions) return;
             const total = actions.querySelector('strong')?.outerHTML || '';
             let control = '';
-            const confirmed = article.dataset.confirmed === '1';
-            if (!['completed', 'cancelled'].includes(status)) {
-                if (['owner_manager', 'cashier'].includes(this.staffRole) && !confirmed) {
+            const needsConfirmation = article.dataset.needsConfirmation === '1';
+            const paymentStatus = article.dataset.paymentStatus || '';
+            const paymentMethod = article.dataset.paymentMethod || '';
+            if (status === 'completed' && paymentMethod === 'room_credit' && paymentStatus !== 'paid' && ['owner_manager', 'cashier'].includes(this.staffRole)) {
+                control = '<span class="rounded-md border border-zem-gold/40 bg-zem-gold/10 px-4 py-3 text-sm font-bold text-zem-gold">Room credit · unpaid</span><button type="button" data-mark-credit-paid class="rounded-md bg-emerald-600 px-6 py-3 text-base font-bold text-white transition hover:opacity-90 min-h-[56px]">Mark credit paid</button>';
+            } else if (!['completed', 'cancelled'].includes(status)) {
+                if (['owner_manager', 'cashier'].includes(this.staffRole) && needsConfirmation) {
                     control = '<button type="button" data-confirm-order class="rounded-md bg-yellow-500 px-6 py-3 text-base font-bold text-white transition hover:opacity-90 min-h-[56px]">' + this.escapeHtml(this.labels.confirmOrder) + '</button>';
                 } else if (!this.kitchenScreenEnabled && ['owner_manager', 'cashier'].includes(this.staffRole)) {
                     control = '<button type="button" data-mark-completed class="rounded-md bg-zem-green px-6 py-3 text-base font-bold text-white transition hover:opacity-90 min-h-[56px]">' + this.escapeHtml(this.labels.markCompleted) + '</button>';
-                } else if (this.staffRole === 'cashier' && status === 'served') {
-                    control = '<div class="flex gap-2"><select id="payment-method-' + orderId + '" class="rounded-md border border-zem-border bg-white px-3 py-3 text-sm"><option value="">Payment method...</option>' + this.paymentMethods.map(method => '<option value="' + this.escapeHtml(method) + '">' + this.escapeHtml(method.charAt(0).toUpperCase() + method.slice(1)) + '</option>').join('') + '</select><button type="button" data-mark-paid class="rounded-md bg-emerald-600 px-6 py-3 text-base font-bold text-white transition hover:opacity-90 min-h-[56px]">Mark Paid</button></div>';
+                } else if (['owner_manager', 'cashier'].includes(this.staffRole) && status === 'served') {
+                    control = '<div class="flex gap-2"><select id="payment-method-' + orderId + '" class="rounded-md border border-zem-border bg-white px-3 py-3 text-sm"><option value="">Payment method...</option>' + this.paymentMethods.map(method => '<option value="' + this.escapeHtml(method) + '">' + this.escapeHtml(method === 'room_credit' ? 'Room credit (pay later)' : method.charAt(0).toUpperCase() + method.slice(1)) + '</option>').join('') + '</select><button type="button" data-mark-payment class="rounded-md bg-emerald-600 px-6 py-3 text-base font-bold text-white transition hover:opacity-90 min-h-[56px]">Apply payment</button></div>';
                 } else if (this.staffRole === 'cashier' && status !== 'paid') {
                     control = '<span class="rounded-md border border-zem-border bg-zem-soft px-4 py-3 text-sm font-bold text-zem-muted">Waiting for kitchen</span>';
                 } else if (this.staffRole === 'cashier' && status === 'paid') {
@@ -675,6 +635,8 @@ function workBoard() {
             actions.innerHTML = total + control;
             actions.querySelector('[data-confirm-order]')?.addEventListener('click', () => this.confirmOrder(orderId));
             actions.querySelector('[data-mark-paid]')?.addEventListener('click', () => this.markPaid(orderId));
+            actions.querySelector('[data-mark-payment]')?.addEventListener('click', () => this.markPayment(orderId));
+            actions.querySelector('[data-mark-credit-paid]')?.addEventListener('click', () => this.markCreditPaid(orderId));
             actions.querySelector('[data-mark-completed]')?.addEventListener('click', () => this.markCompleted(orderId));
             actions.querySelector('[data-start-preparing]')?.addEventListener('click', () => this.updateStatus(orderId, 'preparing'));
             actions.querySelector('[data-mark-served]')?.addEventListener('click', () => this.updateStatus(orderId, 'served'));
@@ -682,6 +644,7 @@ function workBoard() {
 
         prependRequest(req) {
             const list = this.$refs.requestsList;
+            if (!list || this.staffRole === 'kitchen') return;
             const emptyDiv = list.querySelector('div.text-center');
             if (emptyDiv) emptyDiv.remove();
 
@@ -714,8 +677,8 @@ function workBoard() {
         applyFilter() {
             if (!this.$refs.ordersList) return;
             this.$refs.ordersList.querySelectorAll('[data-order-id]').forEach(el => {
-                const completed = el.dataset.status === 'completed';
-                const active = !['completed', 'cancelled'].includes(el.dataset.status);
+                const completed = this.staffRole === 'kitchen' ? ['served', 'paid', 'completed'].includes(el.dataset.status) : el.dataset.status === 'completed';
+                const active = this.staffRole === 'kitchen' ? ['new', 'preparing'].includes(el.dataset.status) : !['completed', 'cancelled'].includes(el.dataset.status);
                 el.style.display = this.filter === 'all' || (this.filter === 'completed' && completed) || (this.filter === 'active' && active) ? '' : 'none';
             });
             if (!this.$refs.requestsList) return;
@@ -728,18 +691,31 @@ function workBoard() {
         syncOrderStatuses(rows) {
             rows.forEach(row => {
                 const article = this.$refs.ordersList.querySelector('[data-order-id="' + row.id + '"]');
-                if (!article || article.dataset.status === row.status) return;
-                const wasActive = !['completed', 'cancelled'].includes(article.dataset.status);
-                const isActive = !['completed', 'cancelled'].includes(row.status);
-                if (wasActive && !isActive) this.activeCount = Math.max(0, this.activeCount - 1);
-                if (row.status === 'completed') this.completedCount++;
+                if (!article) return;
+                const confirmed = row.confirmed ? '1' : '0';
+                const needsConfirmation = row.needs_confirmation ? '1' : '0';
+                const changed = article.dataset.status !== row.status ||
+                    article.dataset.paymentStatus !== (row.payment_status || '') ||
+                    article.dataset.paymentMethod !== (row.payment_method || '') ||
+                    article.dataset.confirmed !== confirmed ||
+                    article.dataset.needsConfirmation !== needsConfirmation;
                 article.dataset.status = row.status;
-                article.classList.toggle('opacity-60', !isActive);
-                article.classList.toggle('border-l-zem-gold', isActive);
-                article.classList.toggle('border-l-gray-400', !isActive);
-                const badge = article.querySelector('[data-status-badge]');
-                if (badge) badge.innerHTML = this.getStatusBadge(row.status);
-                this.renderOrderActions(article, row.id, row.status);
+                article.dataset.paymentStatus = row.payment_status || '';
+                article.dataset.paymentMethod = row.payment_method || '';
+                article.dataset.confirmed = confirmed;
+                article.dataset.needsConfirmation = needsConfirmation;
+                const active = !['completed', 'cancelled'].includes(row.status);
+                article.classList.toggle('opacity-60', !active);
+                article.classList.toggle('border-l-zem-gold', active && !row.needs_confirmation);
+                article.classList.toggle('border-l-yellow-400', active && row.needs_confirmation);
+                article.classList.toggle('border-l-gray-400', !active);
+                if (!row.needs_confirmation) article.querySelectorAll('.bg-yellow-100.text-yellow-700').forEach(el => el.remove());
+                if (changed) {
+                    const badge = article.querySelector('[data-status-badge]');
+                    if (badge) badge.innerHTML = this.getStatusBadge(row.status);
+                    // Replace controls, including old Alpine listeners, as one unit.
+                    this.renderOrderActions(article, row.id, row.status);
+                }
             });
             this.applyFilter();
         },
@@ -783,30 +759,5 @@ function workBoard() {
         },
     }
 }
-// Order timer - update elapsed time every second
-    function updateOrderTimers() {
-        document.querySelectorAll('[data-order-timer]').forEach(el => {
-            const orderTime = parseInt(el.dataset.orderTime);
-            const elapsed = Math.floor((Date.now() / 1000) - orderTime);
-            const mins = Math.floor(elapsed / 60);
-            const secs = elapsed % 60;
-            const timeStr = mins + ':' + secs.toString().padStart(2, '0');
-
-            if (mins < 5) {
-                el.className = 'mt-1 text-xs font-bold text-zem-green';
-            } else if (mins < 10) {
-                el.className = 'mt-1 text-xs font-bold text-zem-gold';
-            } else {
-                el.className = 'mt-1 text-xs font-bold text-red-500';
-            }
-            el.textContent = '⏱ ' + timeStr + ' ago';
-        });
-    }
-    updateOrderTimers();
-    setInterval(updateOrderTimers, 1000);
-
-    // Add timer to dynamically prepended orders
-    const originalPrependOrder = this.prependOrder;
-    // (Timer will be added by the existing code via data-order-time)
 </script>
 @endsection

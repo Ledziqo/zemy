@@ -32,6 +32,39 @@ class StaffProfileController extends Controller
         ]);
     }
 
+    public function show(Request $request, StaffProfile $staffProfile)
+    {
+        $this->ensureOwnerManager($request);
+        $restaurant = $this->restaurant($request);
+        abort_unless($staffProfile->restaurant_id === $restaurant->id, 403);
+
+        $filters = $request->validate([
+            'date_from' => ['nullable', 'date'],
+            'date_to' => ['nullable', 'date', 'after_or_equal:date_from'],
+        ]);
+        $dateFrom = $filters['date_from'] ?? now()->startOfMonth()->toDateString();
+        $dateTo = $filters['date_to'] ?? now()->toDateString();
+        $base = $restaurant->orders()
+            ->where('handled_by_profile_id', $staffProfile->id)
+            ->whereBetween('created_at', [$dateFrom.' 00:00:00', $dateTo.' 23:59:59']);
+
+        $orders = (clone $base)->with(['items', 'table'])->latest('id')->paginate(30)->appends([
+            'date_from' => $dateFrom,
+            'date_to' => $dateTo,
+        ]);
+
+        return view('restaurant.staff-profiles.show', [
+            'restaurant' => $restaurant,
+            'profile' => $staffProfile,
+            'orders' => $orders,
+            'date_from' => $dateFrom,
+            'date_to' => $dateTo,
+            'orderCount' => (clone $base)->whereNotIn('status', ['cancelled'])->count(),
+            'salesTotal' => (clone $base)->whereIn('status', ['paid', 'completed'])->sum('total'),
+            'roomCreditTotal' => (clone $base)->where('payment_method', 'room_credit')->where('payment_status', '!=', 'paid')->sum('total'),
+        ]);
+    }
+
     public function store(Request $request)
     {
         $this->ensureOwnerManager($request);
@@ -43,6 +76,8 @@ class StaffProfileController extends Controller
             'password' => ['required', 'string', 'min:4', 'max:255'],
             'is_active' => ['nullable', 'boolean'],
         ]);
+
+        abort_if($data['role'] === 'kitchen' && ! $restaurant->kitchenScreenEnabled(), 422, 'Enable the Kitchen screen before adding a Kitchen profile.');
 
         StaffProfile::create([
             'restaurant_id' => $restaurant->id,
@@ -60,6 +95,8 @@ class StaffProfileController extends Controller
         $this->ensureOwnerManager($request);
         $restaurant = $this->restaurant($request);
         abort_unless($staffProfile->restaurant_id === $restaurant->id, 403);
+
+        abort_if($staffProfile->role === 'owner_manager', 403, 'Ask your administrator to update the Owner/Manager profile.');
 
         $data = $request->validate([
             'name' => ['required', 'string', 'max:255'],

@@ -13,8 +13,14 @@ echo '<'.'?'.'xml version="1.0" encoding="UTF-8"?'.'>';
         <image:image>
             <image:loc>{{ asset('logo/zemtab-pantone-1795-c-icon-text-transparent.png') }}</image:loc>
             <image:title>ZemTab Logo</image:title>
-            <image:caption>ZemTab — QR Menu & Table Ordering for Restaurants in Ethiopia</image:caption>
+            <image:caption>ZemTab — QR Menu &amp; Table Ordering for Restaurants in Ethiopia</image:caption>
         </image:image>
+    </url>
+
+    <url>
+        <loc>{{ route('demo') }}</loc>
+        <changefreq>monthly</changefreq>
+        <priority>0.7</priority>
     </url>
 
     {{-- Restaurant Menu Pages --}}
@@ -28,7 +34,7 @@ echo '<'.'?'.'xml version="1.0" encoding="UTF-8"?'.'>';
                 @if($restaurant->logo_path)
                 <image:image>
                     <image:loc>{{ asset($restaurant->logo_path) }}</image:loc>
-                    <image:title>{{ htmlspecialchars($restaurant->name, ENT_XML1) }} Logo</image:title>
+                    <image:title>{{ $restaurant->name }} Logo</image:title>
                 </image:image>
                 @endif
             </url>

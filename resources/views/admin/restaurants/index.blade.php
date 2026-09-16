@@ -14,14 +14,19 @@
             <option value="hotel">Hotel</option>
             <option value="both">Restaurant + Hotel</option>
         </select>
-        <label class="flex items-center gap-2 rounded-md border border-zem-border px-3 py-2"><input name="kitchen_screen_enabled" type="checkbox" value="1"> Kitchen screen</label>
+        <label class="flex items-center gap-2 rounded-md border border-zem-border px-3 py-2"><input name="kitchen_screen_enabled" type="checkbox" value="1" class="accent-zem-gold"> Kitchen screen enabled</label>
         <input name="phone" placeholder="Phone" class="rounded-md border border-zem-border bg-zem-bg px-3 py-2">
         <input name="email" type="email" placeholder="Owner login email" class="rounded-md border border-zem-border bg-zem-bg px-3 py-2">
         <input name="owner_password" type="password" placeholder="Owner login password" class="rounded-md border border-zem-border bg-zem-bg px-3 py-2">
         <input name="location" placeholder="Location" class="rounded-md border border-zem-border bg-zem-bg px-3 py-2">
-        <input name="subscription_starts_at" type="date" placeholder="Subscription start date" class="rounded-md border border-zem-border bg-zem-bg px-3 py-2">
+        <label class="text-xs font-semibold text-zem-muted">Subscription starts
+            <input name="subscription_starts_at" type="date" class="mt-1 block w-full rounded-md border border-zem-border bg-zem-bg px-3 py-2 text-sm text-zem-cream">
+        </label>
+        <label class="text-xs font-semibold text-zem-muted">Subscription ends
+            <input name="subscription_ends_at" type="date" class="mt-1 block w-full rounded-md border border-zem-border bg-zem-bg px-3 py-2 text-sm text-zem-cream">
+        </label>
         <input name="monthly_price" type="number" step="0.01" placeholder="Monthly price (ETB)" class="rounded-md border border-zem-border bg-zem-bg px-3 py-2">
-        <label class="flex items-center gap-2"><input name="is_active" type="checkbox" value="1" checked> Public active</label>
+        <label class="flex items-center gap-2"><input name="is_active" type="checkbox" value="1" checked class="accent-zem-gold"> Public account active</label>
         <input type="hidden" name="dashboard_access_status" value="active">
         @unless($hasBusinessType)
             <p class="text-sm text-red-200 md:col-span-4">Run migrations to enable hotel accounts.</p>
@@ -36,6 +41,7 @@
         @php($owner = $restaurant->users->first())
         @php($subStatusColors = ['active' => 'bg-green-100 text-green-700 border-green-300', 'unpaid' => 'bg-red-100 text-red-700 border-red-300', 'trial' => 'bg-zem-gold/20 text-zem-gold border-zem-gold/40', 'cancelled' => 'bg-gray-100 text-gray-600 border-gray-300'])
         @php($accessStatusColors = ['active' => 'bg-green-100 text-green-700 border-green-300', 'payment_required' => 'bg-zem-gold/20 text-zem-gold border-zem-gold/40', 'revoked' => 'bg-red-100 text-red-700 border-red-300'])
+        @php($daysRemaining = $subscription?->ends_at ? now()->startOfDay()->diffInDays($subscription->ends_at, false) : null)
         <article class="rounded-md border border-zem-border bg-zem-card p-4">
             <div class="flex flex-wrap items-start justify-between gap-3">
                 <div>
@@ -45,6 +51,9 @@
                         <span class="rounded-full border border-zem-border bg-zem-soft px-3 py-1 text-xs font-bold text-zem-cream">{{ $restaurant->kitchenScreenEnabled() ? 'Kitchen screen' : 'Worker-only' }}</span>
                         <span class="rounded-full border px-3 py-1 text-xs font-bold {{ $subStatusColors[$subscription?->status ?? 'trial'] ?? 'border-zem-border text-zem-muted' }}">{{ $subscription?->status ?? 'trial' }}</span>
                         <span class="rounded-full border px-3 py-1 text-xs font-bold {{ $accessStatusColors[$restaurant->dashboard_access_status ?? 'active'] ?? 'border-zem-border text-zem-muted' }}">{{ $restaurant->dashboard_access_status ?? 'active' }}</span>
+                        <span class="rounded-full border px-3 py-1 text-xs font-bold {{ $daysRemaining === null ? 'border-zem-border text-zem-muted' : ($daysRemaining < 0 ? 'border-red-300 bg-red-100 text-red-700' : ($daysRemaining <= 3 ? 'border-zem-gold/40 bg-zem-gold/20 text-zem-gold' : 'border-green-300 bg-green-100 text-green-700')) }}">
+                            @if($daysRemaining === null) No expiry set @elseif($daysRemaining < 0) Expired {{ abs($daysRemaining) }} {{ abs($daysRemaining) === 1 ? 'day' : 'days' }} ago @elseif($daysRemaining === 0) Expires today @else {{ $daysRemaining }} {{ $daysRemaining === 1 ? 'day' : 'days' }} left @endif
+                        </span>
                     </div>
                     <p class="mt-2 text-sm text-zem-muted">{{ $restaurant->location ?: 'No location' }} - {{ number_format($restaurant->orders_count) }} orders - Login: {{ $owner?->email ?? 'No login account yet' }}</p>
                 </div>
@@ -61,11 +70,20 @@
                             <option value="{{ $value }}" @selected(($restaurant->business_type ?? 'restaurant') === $value)>{{ $label }}</option>
                         @endforeach
                     </select>
-                    <label class="flex items-center gap-2 rounded-md border border-zem-border px-3 py-2"><input name="kitchen_screen_enabled" type="checkbox" value="1" @checked($restaurant->kitchenScreenEnabled())> Kitchen screen</label>
+                    <label class="flex items-center gap-2 rounded-md border border-zem-border px-3 py-2"><input name="kitchen_screen_enabled" type="checkbox" value="1" @checked($restaurant->kitchenScreenEnabled()) class="accent-zem-gold"> Kitchen screen enabled</label>
                     <input name="phone" value="{{ $restaurant->phone }}" class="rounded-md border border-zem-border bg-zem-card px-3 py-2">
                     <input name="email" value="{{ $restaurant->email }}" class="rounded-md border border-zem-border bg-zem-card px-3 py-2">
                     <input name="location" value="{{ $restaurant->location }}" class="rounded-md border border-zem-border bg-zem-card px-3 py-2">
-                    <label class="flex items-center gap-2"><input name="is_active" type="checkbox" value="1" @checked($restaurant->is_active)> Public active</label>
+                    <label class="flex items-center gap-2"><input name="is_active" type="checkbox" value="1" @checked($restaurant->is_active) class="accent-zem-gold"> Public account active</label>
+                    <label class="text-xs font-semibold text-zem-muted">Subscription starts
+                        <input name="subscription_starts_at" type="date" value="{{ optional($subscription?->starts_at)->format('Y-m-d') }}" class="mt-1 block w-full rounded-md border border-zem-border bg-zem-card px-3 py-2 text-sm text-zem-cream">
+                    </label>
+                    <label class="text-xs font-semibold text-zem-muted">Subscription ends
+                        <input name="subscription_ends_at" type="date" value="{{ optional($subscription?->ends_at)->format('Y-m-d') }}" class="mt-1 block w-full rounded-md border border-zem-border bg-zem-card px-3 py-2 text-sm text-zem-cream">
+                    </label>
+                    <label class="text-xs font-semibold text-zem-muted">Monthly price (ETB)
+                        <input name="monthly_price" type="number" min="0" step="0.01" value="{{ $subscription?->monthly_price }}" class="mt-1 block w-full rounded-md border border-zem-border bg-zem-card px-3 py-2 text-sm text-zem-cream">
+                    </label>
                     <select name="subscription_status" class="rounded-md border border-zem-border bg-zem-card px-3 py-2">
                         @foreach(['active' => 'Paid / active', 'unpaid' => 'Unpaid', 'trial' => 'Trial', 'cancelled' => 'Cancelled'] as $value => $label)
                             <option value="{{ $value }}" @selected(($subscription?->status ?? 'trial') === $value)>{{ $label }}</option>

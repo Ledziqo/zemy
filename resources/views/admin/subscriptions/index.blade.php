@@ -24,6 +24,7 @@
 
 <div class="grid gap-3">
     @forelse($subscriptions as $subscription)
+        @php($daysRemaining = $subscription->ends_at ? now()->startOfDay()->diffInDays($subscription->ends_at, false) : null)
         <form method="post" action="{{ route('admin.subscriptions.update', $subscription) }}" class="rounded-md border border-zem-border bg-zem-card p-4">
             @csrf @method('PATCH')
             <div class="flex flex-wrap items-start justify-between gap-3">
@@ -37,6 +38,9 @@
                     @if($subscription->starts_at || $subscription->ends_at)
                         <p class="mt-1 text-sm text-zem-muted">{{ optional($subscription->starts_at)->format('M j, Y') }} to {{ optional($subscription->ends_at)->format('M j, Y') }}</p>
                     @endif
+                    <p class="mt-2 text-sm font-bold {{ $daysRemaining === null ? 'text-zem-muted' : ($daysRemaining < 0 ? 'text-red-600' : ($daysRemaining <= 3 ? 'text-zem-gold' : 'text-green-700')) }}">
+                        @if($daysRemaining === null) No expiry set @elseif($daysRemaining < 0) Expired {{ abs($daysRemaining) }} {{ abs($daysRemaining) === 1 ? 'day' : 'days' }} ago @elseif($daysRemaining === 0) Expires today @else {{ $daysRemaining }} {{ $daysRemaining === 1 ? 'day' : 'days' }} left @endif
+                    </p>
                 </div>
             </div>
             <details class="mt-3 rounded-md border border-zem-border bg-zem-bg p-3">

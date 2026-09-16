@@ -13,13 +13,27 @@ use Illuminate\Support\Facades\Route;
 
 Route::middleware('locale')->group(function () {
     Route::get('/', [PublicController::class, 'landing'])->name('home');
+    Route::view('/demo', 'public.demo')->name('demo');
     Route::post('/demo-request', [PublicController::class, 'storeDemoRequest'])->middleware('throttle:5,1')->name('demo-requests.store');
     Route::post('/locale', [LocaleController::class, 'update'])->name('locale.update');
 });
 Route::get('/sitemap.xml', [PublicController::class, 'sitemap'])->name('sitemap');
 
-Route::get('/setup', [SetupController::class, 'show'])->name('setup.show');
-Route::post('/setup/run', [SetupController::class, 'run'])->name('setup.run');
+// Readiness complements /up by checking whether the database can answer a query.
+Route::get('/ready', function () {
+    try {
+        \Illuminate\Support\Facades\DB::select('SELECT 1');
+        return response()->json(['status' => 'ok'])->header('Cache-Control', 'no-store');
+    } catch (\Throwable $exception) {
+        report($exception);
+        return response()->json(['status' => 'unavailable'], 503)->header('Cache-Control', 'no-store');
+    }
+})->middleware('throttle:60,1')->name('ready');
+
+Route::middleware(['auth', 'role:admin'])->group(function () {
+    Route::get('/setup', [SetupController::class, 'show'])->name('setup.show');
+    Route::post('/setup/run', [SetupController::class, 'run'])->name('setup.run');
+});
 
 Route::get('/login', [AuthController::class, 'showLogin'])->name('login');
 Route::post('/login', [AuthController::class, 'login'])->middleware('throttle:10,1')->name('login.store');
@@ -38,7 +52,7 @@ Route::middleware(['auth', 'role:restaurant_owner,staff', 'locale'])->prefix('re
 
     // Profile selection (after login, before dashboard)
     Route::get('/profile-select', [AuthController::class, 'showProfileSelect'])->name('profile-select');
-    Route::post('/profile-login', [AuthController::class, 'profileLogin'])->name('profile-login');
+    Route::post('/profile-login', [AuthController::class, 'profileLogin'])->middleware('throttle:10,1')->name('profile-login');
 
     Route::middleware(['restaurant.access', 'profile.selected'])->group(function () {
         Route::get('/dashboard', [Restaurant\DashboardController::class, 'index'])->name('dashboard');
@@ -47,6 +61,7 @@ Route::middleware(['auth', 'role:restaurant_owner,staff', 'locale'])->prefix('re
         Route::post('/orders/manual', [Restaurant\DashboardController::class, 'storeManualOrder'])->name('orders.manual.store');
         Route::get('/orders/poll', [Restaurant\DashboardController::class, 'poll'])->name('orders.poll');
         Route::patch('/orders/{order}/confirm', [Restaurant\DashboardController::class, 'confirmOrder'])->name('orders.confirm');
+        Route::patch('/orders/{order}/credit-paid', [Restaurant\DashboardController::class, 'markCreditPaid'])->name('orders.credit-paid');
         Route::patch('/orders/{order}', [Restaurant\DashboardController::class, 'updateOrder'])->name('orders.update');
         Route::patch('/menu-items/reorder', [Restaurant\MenuItemController::class, 'reorder'])->name('menu-items.reorder');
         Route::patch('/menu-items/{menu_item}/availability', [Restaurant\MenuItemController::class, 'toggleAvailability'])->name('menu-items.availability');
@@ -70,6 +85,7 @@ Route::middleware(['auth', 'role:restaurant_owner,staff', 'locale'])->prefix('re
 
         // Staff profile management (owner/manager only)
         Route::get('/staff-profiles', [Restaurant\StaffProfileController::class, 'index'])->name('staff-profiles.index');
+        Route::get('/staff-profiles/{staffProfile}', [Restaurant\StaffProfileController::class, 'show'])->name('staff-profiles.show');
         Route::post('/staff-profiles', [Restaurant\StaffProfileController::class, 'store'])->name('staff-profiles.store');
         Route::patch('/staff-profiles/{staffProfile}', [Restaurant\StaffProfileController::class, 'update'])->name('staff-profiles.update');
         Route::delete('/staff-profiles/{staffProfile}', [Restaurant\StaffProfileController::class, 'destroy'])->name('staff-profiles.destroy');

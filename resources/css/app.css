@@ -1,0 +1,24 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+[x-cloak] { display: none !important; }
+
+:focus-visible { outline: 3px solid #D22630; outline-offset: 3px; }
+html { scroll-behavior: smooth; }
+@media (prefers-reduced-motion: reduce) {
+    html { scroll-behavior: auto; }
+    *, *::before, *::after { animation: none !important; transition: none !important; }
+}
+
+/* Standalone setup/print pages previously used Tailwind's default font stack. */
+html[data-zem-palette="plain"] {
+    font-family: ui-sans-serif, system-ui, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
+}
+
+/* Keep the profile picker palette independent of the dashboard theme. */
+html[data-zem-palette="profile"] {
+    --zem-text: 26 26 26;
+    --zem-muted: 107 114 128;
+    --zem-border: 229 231 235;
+}

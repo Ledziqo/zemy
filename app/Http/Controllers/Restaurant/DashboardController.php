@@ -7,7 +7,6 @@ use App\Models\MenuItem;
 use App\Models\Order;
 use App\Models\OrderItem;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 
 class DashboardController extends Controller
@@ -29,6 +28,39 @@ class DashboardController extends Controller
         return $query;
     }
 
+    protected function orderFilter(Request $request): string
+    {
+        return in_array($request->query('filter'), ['active', 'completed', 'all'], true)
+            ? $request->query('filter') : 'active';
+    }
+
+    protected function boardOrders(Request $request, $restaurant)
+    {
+        $query = $this->visibleOrders($request, $restaurant)->with(['items', 'table']);
+        $filter = $this->orderFilter($request);
+        $kitchen = $request->session()->get('staff_profile_role') === 'kitchen';
+        if ($filter === 'active') {
+            // The live queue must never be hidden behind history pagination.
+            return ($kitchen ? $query->whereIn('status', ['new', 'preparing']) : $query->whereNotIn('status', ['completed', 'cancelled']))->orderBy('id')->get();
+        }
+        if ($filter === 'completed') {
+            $query->whereIn('status', $kitchen ? ['served', 'paid', 'completed'] : ['completed']);
+        }
+        return $query->orderByDesc('id')->paginate(30, ['*'], 'page', max(1, (int) $request->query('page', 1)))
+            ->appends(['filter' => $filter]);
+    }
+
+    protected function boardCounts(Request $request, $restaurant): array
+    {
+        $query = $this->visibleOrders($request, $restaurant);
+        return [
+            'activeCount' => $request->session()->get('staff_profile_role') === 'kitchen'
+                ? (clone $query)->whereIn('status', ['new', 'preparing'])->count()
+                : (clone $query)->whereNotIn('status', ['completed', 'cancelled'])->count(),
+            'completedCount' => (clone $query)->where('status', 'completed')->whereDate('created_at', today())->count(),
+        ];
+    }
+
     protected function serializeOrder(Order $order): array
     {
         return [
@@ -40,6 +72,7 @@ class DashboardController extends Controller
             'note' => $order->note,
             'order_type' => $order->order_type ?? 'dine_in',
             'payment_method' => $order->payment_method,
+            'payment_status' => $order->payment_status,
             'confirmed' => (bool) $order->confirmed_at,
             'needs_confirmation' => $this->needsConfirmation($order),
             'created_at' => $order->created_at->toIso8601String(),
@@ -61,6 +94,10 @@ class DashboardController extends Controller
 
     public function index(Request $request)
     {
+        if ($request->session()->get('staff_profile_role') !== 'owner_manager') {
+            return $this->orders($request);
+        }
+
         $restaurant = $this->restaurant($request);
         $todayOrders = $restaurant->orders()->whereDate('created_at', today());
 
@@ -86,7 +123,7 @@ class DashboardController extends Controller
             'completedOrders' => (clone $todayOrders)->where('status', 'completed')->count(),
             'revenue' => (clone $todayOrders)->whereIn('status', ['paid', 'completed'])->sum('total'),
             'allOrders' => $restaurant->orders()->count(),
-            'recentOrders' => $restaurant->orders()->with(['items', 'table'])->latest()->limit(8)->get(),
+            'recentOrders' => $restaurant->orders()->with(['items', 'table'])->latest('id')->limit(8)->get(),
             'popularItems' => $popularItems,
             'latestOrderId' => $restaurant->orders()->max('id') ?? 0,
             'latestRequestId' => $restaurant->serviceRequests()->max('id') ?? 0,
@@ -100,7 +137,9 @@ class DashboardController extends Controller
 
         return view('restaurant.orders.index', [
             'restaurant' => $restaurant,
-            'orders' => (clone $ordersQuery)->with(['items', 'table'])->latest()->paginate(30),
+            'orders' => $this->boardOrders($request, $restaurant),
+            'filter' => $this->orderFilter($request),
+            ...$this->boardCounts($request, $restaurant),
             'menuItems' => $restaurant->menuItems()->where('is_available', true)->orderBy('name')->get(),
             'categories' => $restaurant->categories()
                 ->with(['menuItems' => fn ($query) => $query->where('is_available', true)->orderBy('sort_order')->orderBy('name')])
@@ -114,7 +153,7 @@ class DashboardController extends Controller
                 ->get(),
             'activeRequests' => $restaurant->serviceRequests()->whereIn('status', ['pending', 'acknowledged'])->count(),
             'statuses' => Order::STATUSES,
-            'paymentMethods' => Order::PAYMENT_METHODS,
+            'paymentMethods' => $restaurant->isHotel() ? Order::PAYMENT_METHODS : array_values(array_diff(Order::PAYMENT_METHODS, ['room_credit'])),
             'latestOrderId' => (clone $ordersQuery)->max('id') ?? 0,
             'latestConfirmedAt' => (clone $ordersQuery)->max('confirmed_at'),
             'latestRequestId' => $restaurant->serviceRequests()->max('id') ?? 0,
@@ -135,8 +174,8 @@ class DashboardController extends Controller
             'customer_name' => ['nullable', 'string', 'max:255'],
             'customer_phone' => ['nullable', 'string', 'max:50'],
             'note' => ['nullable', 'string', 'max:2000'],
-            'items' => ['required', 'array', 'min:1'],
-            'items.*.id' => ['required', 'integer', 'exists:menu_items,id'],
+            'items' => ['required', 'array', 'min:1', 'max:100'],
+            'items.*.id' => ['required', 'integer', 'distinct', 'exists:menu_items,id'],
             'items.*.quantity' => ['required', 'integer', 'min:1', 'max:50'],
             'items.*.note' => ['nullable', 'string', 'max:1000'],
         ]);
@@ -165,10 +204,16 @@ class DashboardController extends Controller
                 ->first()
             : null;
 
+        if ($data['order_mode'] === 'table' && ! $table) {
+            throw \Illuminate\Validation\ValidationException::withMessages([
+                'table_number' => 'Select an active table or room belonging to this restaurant.',
+            ]);
+        }
+
         $order = DB::transaction(function () use ($data, $restaurant, $table, $tableNumber, $menuItems) {
             $orderNote = $data['note'] ?? null;
             if ($data['order_mode'] === 'delivery') {
-                $orderNote = trim('Delivery app: '.($data['delivery_app'] ?? '').($orderNote ? "\n".$orderNote : ''));
+                $orderNote = trim('Pickup source / driver: '.($data['delivery_app'] ?? '').($orderNote ? "\n".$orderNote : ''));
             }
 
             $subtotal = 0;
@@ -223,94 +268,35 @@ class DashboardController extends Controller
     {
         $restaurant = $this->restaurant($request);
         $ordersQuery = $this->visibleOrders($request, $restaurant);
-        $orderSince = (int) $request->query('order_since', 0);
-        $confirmedSince = $request->query('confirmed_since');
-        $requestSince = (int) $request->query('request_since', 0);
-        $visibleOrderIds = collect($request->query('visible_order_ids', []))
-            ->map(fn ($id) => (int) $id)
-            ->filter(fn ($id) => $id > 0)
-            ->unique()
-            ->take(100);
-
-        $role = $request->session()->get('staff_profile_role', 'owner_manager');
-        $cacheKey = "poll:{$restaurant->id}:{$role}:{$orderSince}:{$confirmedSince}:{$requestSince}:" . $visibleOrderIds->implode('-');
-        if ($cached = Cache::get($cacheKey)) {
-            return response()->json($cached);
-        }
-
-        $latestOrderId = (int) ((clone $ordersQuery)->max('id') ?? 0);
-        $latestConfirmedAt = (clone $ordersQuery)->max('confirmed_at');
-        $latestRequestId = (int) ($restaurant->serviceRequests()->max('id') ?? 0);
-        $hasNewOrderIds = $latestOrderId > $orderSince;
-        $hasNewConfirmations = $role === 'kitchen' && $confirmedSince && $latestConfirmedAt && $latestConfirmedAt > $confirmedSince;
-        $orderStatuses = $visibleOrderIds->isEmpty()
+        $orders = $this->boardOrders($request, $restaurant);
+        $requests = $request->session()->get('staff_profile_role') === 'kitchen'
             ? collect()
-            : (clone $ordersQuery)->whereIn('id', $visibleOrderIds)->get(['id', 'status', 'confirmed_at'])->values();
+            : $restaurant->serviceRequests()->with('table')
+                ->orderByRaw("CASE status WHEN 'pending' THEN 1 WHEN 'acknowledged' THEN 2 ELSE 3 END")
+                ->orderByDesc('id')->limit(40)->get();
 
-        if (! $hasNewOrderIds && ! $hasNewConfirmations && $latestRequestId <= $requestSince) {
-            $response = [
-                'orders' => [],
-                'requests' => [],
-                'orderStatuses' => $orderStatuses,
-                'latestOrderId' => max($orderSince, $latestOrderId),
-                'latestConfirmedAt' => $latestConfirmedAt,
-                'latestRequestId' => max($requestSince, $latestRequestId),
-                'activeRequests' => null,
-                'hasChanges' => false,
-            ];
-            Cache::put($cacheKey, $response, 5);
-            return response()->json($response);
-        }
-
-        $newOrdersRaw = ($hasNewOrderIds || $hasNewConfirmations)
-            ? (clone $ordersQuery)
-                ->with('items')
-                ->where(function ($query) use ($orderSince, $confirmedSince, $role) {
-                    $query->where('id', '>', $orderSince);
-                    if ($role === 'kitchen' && $confirmedSince) {
-                        $query->orWhere('confirmed_at', '>', $confirmedSince);
-                    }
-                })
-                ->orderBy('id')
-                ->with('table')
-                ->limit(100)
-                ->get()
-            : collect();
-
-        $newOrders = $newOrdersRaw->map(fn ($order) => $this->serializeOrder($order));
-
-        $newRequestsRaw = $latestRequestId > $requestSince
-            ? $restaurant->serviceRequests()
-                ->where('id', '>', $requestSince)
-                ->orderBy('id')
-                ->limit(100)
-                ->get()
-            : collect();
-
-        $newRequests = $newRequestsRaw->map(fn ($req) => [
-                'id' => $req->id,
-                'table_number' => $req->table_number,
-                'table_label' => $req->table?->displayLabel() ?: $req->table_number,
-                'type' => $req->type,
-                'status' => $req->status,
-                'note' => $req->note,
-                'created_at' => $req->created_at->toIso8601String(),
-            ]);
-
-        $response = [
-            'orders' => $newOrders,
-            'requests' => $newRequests,
-            'orderStatuses' => $orderStatuses,
-            'latestOrderId' => max($orderSince, $latestOrderId, (int) ($newOrders->max('id') ?? 0)),
-            'latestConfirmedAt' => $latestConfirmedAt,
-            'latestRequestId' => max($requestSince, $latestRequestId, (int) ($newRequests->max('id') ?? 0)),
-            'activeRequests' => $newRequestsRaw->isEmpty()
-                ? null
-                : $restaurant->serviceRequests()->whereIn('status', ['pending', 'acknowledged'])->count(),
-            'hasChanges' => $newOrdersRaw->isNotEmpty() || $newRequestsRaw->isNotEmpty(),
-        ];
-        Cache::put($cacheKey, $response, 5);
-        return response()->json($response);
+        // Return an authoritative snapshot: status/confirmation changes do not
+        // necessarily change the latest ID, and timestamp cursors can miss ties.
+        return response()->json([
+            'orders' => collect($orders instanceof \Illuminate\Pagination\LengthAwarePaginator ? $orders->items() : $orders->all())
+                ->map(fn ($order) => $this->serializeOrder($order)),
+            'requests' => $requests->map(fn ($row) => [
+                'id' => $row->id,
+                'table_number' => $row->table_number,
+                'table_label' => $row->table?->displayLabel() ?: $row->table_number,
+                'type' => $row->type,
+                'status' => $row->status,
+                'note' => $row->note,
+                'created_at' => $row->created_at->toIso8601String(),
+            ]),
+            'pagination' => $this->orderFilter($request) === 'active'
+                ? '' : $orders->withPath(route('restaurant.orders.index'))->links()->toHtml(),
+            'latestOrderId' => (clone $ordersQuery)->max('id') ?? 0,
+            'latestConfirmedAt' => (clone $ordersQuery)->max('confirmed_at'),
+            'latestRequestId' => $restaurant->serviceRequests()->max('id') ?? 0,
+            'activeRequests' => $restaurant->serviceRequests()->whereIn('status', ['pending', 'acknowledged'])->count(),
+            ...$this->boardCounts($request, $restaurant),
+        ]);
     }
 
     public function analytics(Request $request)
@@ -375,23 +361,46 @@ class DashboardController extends Controller
         $profileId = $request->session()->get('staff_profile_id');
         $profileRole = $request->session()->get('staff_profile_role');
 
-        abort_if($this->needsConfirmation($order) && $data['status'] !== 'cancelled', 422, 'Confirm this order before sending it forward.');
-        abort_if($restaurant->kitchenScreenEnabled() && $profileRole === 'cashier' && $data['status'] === 'paid' && $order->status !== 'served', 422, 'Kitchen must mark this order served before payment.');
+        abort_unless(in_array($profileRole, ['owner_manager', 'cashier', 'kitchen'], true), 403);
 
-        $updateData = [
-            'status' => $data['status'],
-            'payment_status' => in_array($data['status'], ['paid', 'completed'], true) ? 'paid' : $order->payment_status,
-        ];
+        DB::transaction(function () use ($order, $restaurant, $data, $profileRole, $profileId) {
+            // Serialize concurrent actions and validate against the current status.
+            $current = $restaurant->orders()->whereKey($order->id)->lockForUpdate()->firstOrFail();
+            abort_if($this->needsConfirmation($current) && $data['status'] !== 'cancelled', 422, 'Confirm this order before sending it forward.');
+            abort_if(in_array($current->status, ['completed', 'cancelled'], true), 422, 'This order is already closed.');
 
-        // Record which cashier handled the payment
-        if (in_array($data['status'], ['paid', 'completed'], true) && $profileRole === 'cashier' && $profileId) {
-            $updateData['handled_by_profile_id'] = $profileId;
-            if (! empty($data['payment_method'])) {
-                $updateData['payment_method'] = $data['payment_method'];
+            if ($profileRole === 'kitchen') {
+                abort_unless($restaurant->kitchenScreenEnabled() && $current->confirmed_at, 403);
+                $allowed = ['new' => ['preparing'], 'preparing' => ['served']];
+                abort_unless(in_array($data['status'], $allowed[$current->status] ?? [], true), 422, 'Kitchen can only start preparation or mark a preparing order served.');
+            } elseif ($profileRole === 'cashier') {
+                $allowed = $restaurant->kitchenScreenEnabled()
+                    ? ['served' => ['paid', 'completed'], 'paid' => ['completed']]
+                    : ['new' => ['completed'], 'preparing' => ['completed'], 'served' => ['completed'], 'paid' => ['completed']];
+                abort_unless(in_array($data['status'], $allowed[$current->status] ?? [], true), 422, 'This transition is not available to this staff profile.');
             }
-        }
 
-        $order->update($updateData);
+            if ($data['status'] === 'paid') {
+                abort_if(empty($data['payment_method']), 422, 'Select a payment method.');
+            }
+            $isRoomCredit = ($data['payment_method'] ?? null) === 'room_credit';
+            abort_if($isRoomCredit && ! $restaurant->isHotel(), 422, 'Room credit is available for hotel accounts only.');
+            abort_if($isRoomCredit && $data['status'] !== 'completed', 422, 'Room credit orders must be completed and settled later.');
+            $updateData = [
+                'status' => $data['status'],
+                'payment_status' => $isRoomCredit ? 'unpaid' : (in_array($data['status'], ['paid', 'completed'], true) ? 'paid' : $current->payment_status),
+            ];
+            if (in_array($data['status'], ['paid', 'completed'], true)) {
+                if (in_array($profileRole, ['owner_manager', 'cashier'], true) && $profileId) {
+                    $updateData['handled_by_profile_id'] = $profileId;
+                }
+                if (! empty($data['payment_method'])) {
+                    $updateData['payment_method'] = $data['payment_method'];
+                }
+            }
+            $current->update($updateData);
+            $order->setRawAttributes($current->getAttributes(), true);
+        });
 
         if ($request->wantsJson() || $request->header('X-Requested-With') === 'XMLHttpRequest') {
             return response()->json(['success' => true, 'status' => $order->status]);
@@ -400,16 +409,35 @@ class DashboardController extends Controller
         return back()->with('success', 'Order updated.');
     }
 
+    public function markCreditPaid(Request $request, Order $order)
+    {
+        $restaurant = $this->restaurant($request);
+        abort_unless($order->restaurant_id === $restaurant->id && $restaurant->isHotel(), 403);
+        abort_unless(in_array($request->session()->get('staff_profile_role'), ['owner_manager', 'cashier'], true), 403);
+
+        $current = $restaurant->orders()->whereKey($order->id)->lockForUpdate()->firstOrFail();
+        abort_unless($current->payment_method === 'room_credit' && $current->payment_status !== 'paid', 422, 'This order is not an unpaid room credit order.');
+        $current->update(['payment_status' => 'paid']);
+
+        if ($request->wantsJson() || $request->header('X-Requested-With') === 'XMLHttpRequest') {
+            return response()->json(['success' => true, 'payment_status' => 'paid']);
+        }
+
+        return back()->with('success', 'Room credit for order #'.$order->id.' marked paid.');
+    }
+
     public function confirmOrder(Request $request, Order $order)
     {
         $restaurant = $this->restaurant($request);
         abort_unless($order->restaurant_id === $restaurant->id, 403);
         abort_unless(in_array($request->session()->get('staff_profile_role'), ['owner_manager', 'cashier'], true), 403);
-        abort_if(in_array($order->status, ['completed', 'cancelled'], true), 422, 'This order can no longer be confirmed.');
-
-        if (! $order->confirmed_at) {
-            $order->update(['confirmed_at' => now()]);
-        }
+        DB::transaction(function () use ($restaurant, $order) {
+            $current = $restaurant->orders()->whereKey($order->id)->lockForUpdate()->firstOrFail();
+            abort_if(in_array($current->status, ['completed', 'cancelled'], true), 422, 'This order can no longer be confirmed.');
+            if (! $current->confirmed_at) {
+                $current->update(['confirmed_at' => now()]);
+            }
+        });
 
         if ($request->wantsJson() || $request->header('X-Requested-With') === 'XMLHttpRequest') {
             return response()->json(['success' => true, 'confirmed' => true]);

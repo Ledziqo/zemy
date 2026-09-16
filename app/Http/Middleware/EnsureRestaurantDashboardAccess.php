@@ -4,7 +4,6 @@ namespace App\Http\Middleware;
 
 use Closure;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Cache;
 use Symfony\Component\HttpFoundation\Response;
 
 class EnsureRestaurantDashboardAccess
@@ -16,28 +15,20 @@ class EnsureRestaurantDashboardAccess
             return redirect()->route('login');
         }
 
-        // 5-minute file cache for subscription/access check — eliminates DB queries on every poll
-        $cacheKey = "access:{$restaurant->id}";
-        $allowed = Cache::remember($cacheKey, 300, function () use ($restaurant) {
-            $status = $restaurant->dashboard_access_status ?? 'active';
-            $latestSubscription = $restaurant->subscriptions()->latest('starts_at')->first();
-
-            // Auto-lockout: if subscription end date has passed, set payment_required
-            if ($latestSubscription && $latestSubscription->ends_at) {
-                try {
-                    if ($latestSubscription->ends_at->lessThan(today())) {
-                        if ($status === 'active') {
-                            $restaurant->update(['dashboard_access_status' => 'payment_required']);
-                            $status = 'payment_required';
-                        }
-                    }
-                } catch (\Exception $e) {}
-            }
-
-            return $status === 'active' && (! $latestSubscription || $latestSubscription->status !== 'unpaid');
-        });
+        // Access changes take effect on the next request, including an existing staff session.
+        // Do not mutate billing state during reads or retain an obsolete permission in cache.
+        $subscription = $restaurant->subscriptions()->latest('starts_at')->latest('id')->first();
+        $allowed = $restaurant->is_active
+            && ($restaurant->dashboard_access_status ?? 'active') === 'active'
+            && (! $subscription || (
+                in_array($subscription->status, ['active', 'trial'], true)
+                && (! $subscription->ends_at || ! $subscription->ends_at->lessThan(today()))
+            ));
 
         if (! $allowed) {
+            if ($request->expectsJson()) {
+                abort(403, 'Dashboard access is unavailable. Contact your manager or ZemTab support.');
+            }
             return redirect()->route('restaurant.access-required');
         }
 
