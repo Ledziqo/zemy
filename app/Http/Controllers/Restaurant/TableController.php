@@ -22,10 +22,23 @@ class TableController extends Controller
     public function setupPack(Request $request)
     {
         $restaurant = $this->restaurant($request);
+        $tables = $restaurant->tables()
+            ->where('is_active', true)
+            ->orderByRaw('CAST(table_number AS UNSIGNED)')
+            ->get();
+
+        // Embed the QR SVGs in the print document so the browser cannot take
+        // its print snapshot before the authenticated image requests finish.
+        $qrImages = $tables->mapWithKeys(function (RestaurantTable $table) use ($restaurant) {
+            $result = $this->buildQr($restaurant, $table);
+
+            return [$table->id => 'data:'.$result->getMimeType().';base64,'.base64_encode($result->getString())];
+        });
 
         return view('restaurant.tables.setup_pack', [
             'restaurant' => $restaurant,
-            'tables' => $restaurant->tables()->where('is_active', true)->orderByRaw('CAST(table_number AS UNSIGNED)')->get(),
+            'tables' => $tables,
+            'qrImages' => $qrImages,
         ]);
     }
 
@@ -60,17 +73,22 @@ class TableController extends Controller
         $restaurant = $this->restaurant($request);
         abort_unless($table->restaurant_id === $restaurant->id, 403);
 
-        $result = (new Builder(
-            writer: new SvgWriter(),
-            data: route('menu.show', [$restaurant->slug, $table->table_number]),
-            size: 500,
-            margin: 20,
-        ))->build();
+        $result = $this->buildQr($restaurant, $table);
 
         return response($result->getString(), 200, [
             'Content-Type' => $result->getMimeType(),
             'Content-Disposition' => 'inline; filename="zemtab-'.$restaurant->slug.'-'.strtolower($table->locationTypeLabel()).'-'.$table->table_number.'.svg"',
         ]);
+    }
+
+    private function buildQr($restaurant, RestaurantTable $table)
+    {
+        return (new Builder(
+            writer: new SvgWriter(),
+            data: route('menu.show', [$restaurant->slug, $table->table_number]),
+            size: 500,
+            margin: 20,
+        ))->build();
     }
 
     private function validated(Request $request): array
