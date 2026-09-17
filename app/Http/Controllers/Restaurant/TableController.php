@@ -22,10 +22,18 @@ class TableController extends Controller
     public function setupPack(Request $request)
     {
         $restaurant = $this->restaurant($request);
+        $tables = $restaurant->tables()->where('is_active', true)->orderByRaw('CAST(table_number AS UNSIGNED)')->get();
+
+        // Keep this compatibility map for setup-pack views compiled by an
+        // older deployment, without generating QR images during page load.
+        $qrImages = $tables->mapWithKeys(fn (RestaurantTable $table) => [
+            $table->id => route('restaurant.tables.qr', $table),
+        ]);
 
         return view('restaurant.tables.setup_pack', [
             'restaurant' => $restaurant,
-            'tables' => $restaurant->tables()->where('is_active', true)->orderByRaw('CAST(table_number AS UNSIGNED)')->get(),
+            'tables' => $tables,
+            'qrImages' => $qrImages,
         ]);
     }
 
