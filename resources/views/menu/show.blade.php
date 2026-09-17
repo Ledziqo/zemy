@@ -66,7 +66,8 @@
             <nav class="mt-3 flex gap-2 overflow-x-auto pb-1">
                 <button type="button" @click="activeCategory = 'all'" :class="activeCategory === 'all' ? 'bg-zem-gold text-white' : 'border border-black/10 bg-white text-neutral-700'" class="whitespace-nowrap rounded-full px-4 py-2 text-sm font-extrabold transition">{{ __('All') }}</button>
                 @foreach($categories as $category)
-                    <button type="button" @click="activeCategory = 'cat-{{ $category->id }}'" :class="activeCategory === 'cat-{{ $category->id }}' ? 'bg-zem-gold text-white' : 'border border-black/10 bg-white text-neutral-700'" class="whitespace-nowrap rounded-full px-4 py-2 text-sm font-extrabold transition">{{ $category->name }}</button>
+                    @php($categoryLabel = match (strtolower(trim($category->name))) { 'food' => __('Food'), 'drinks' => __('Drinks'), default => $category->name })
+                    <button type="button" @click="activeCategory = 'cat-{{ $category->id }}'" :class="activeCategory === 'cat-{{ $category->id }}' ? 'bg-zem-gold text-white' : 'border border-black/10 bg-white text-neutral-700'" class="whitespace-nowrap rounded-full px-4 py-2 text-sm font-extrabold transition">{{ $categoryLabel }}</button>
                 @endforeach
             </nav>
         </div>
@@ -235,8 +236,9 @@
 
     <section id="all" class="mx-auto max-w-5xl space-y-8 px-4">
         @foreach($categories as $category)
+            @php($categoryLabel = match (strtolower(trim($category->name))) { 'food' => __('Food'), 'drinks' => __('Drinks'), default => $category->name })
             <section id="cat-{{ $category->id }}" x-show="categoryVisible({{ $category->id }})" class="scroll-mt-28">
-                <h2 class="mb-3 font-display text-2xl font-extrabold">{{ $category->name }}</h2>
+                <h2 class="mb-3 font-display text-2xl font-extrabold">{{ $categoryLabel }}</h2>
                 <div class="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
                     @foreach($category->menuItems as $item)
                         @php($imageUrl = $item->image_path ? (\Illuminate\Support\Str::startsWith($item->image_path, ['http://', 'https://', 'uploads/']) ? (str_starts_with($item->image_path, 'uploads/') ? asset($item->image_path) : $item->image_path) : asset('storage/'.$item->image_path)) : null)
