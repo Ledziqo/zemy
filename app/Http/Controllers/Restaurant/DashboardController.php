@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\MenuItem;
 use App\Models\Order;
 use App\Models\OrderItem;
+use App\Support\GuestVisitManager;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 
@@ -348,7 +349,7 @@ class DashboardController extends Controller
         ]);
     }
 
-    public function updateOrder(Request $request, Order $order)
+    public function updateOrder(Request $request, Order $order, GuestVisitManager $visits)
     {
         $restaurant = $this->restaurant($request);
         abort_unless($order->restaurant_id === $restaurant->id, 403);
@@ -401,6 +402,7 @@ class DashboardController extends Controller
             $current->update($updateData);
             $order->setRawAttributes($current->getAttributes(), true);
         });
+        $visits->closeIfSettled($order->guest_session_id);
 
         if ($request->wantsJson() || $request->header('X-Requested-With') === 'XMLHttpRequest') {
             return response()->json(['success' => true, 'status' => $order->status]);
@@ -409,7 +411,7 @@ class DashboardController extends Controller
         return back()->with('success', 'Order updated.');
     }
 
-    public function markCreditPaid(Request $request, Order $order)
+    public function markCreditPaid(Request $request, Order $order, GuestVisitManager $visits)
     {
         $restaurant = $this->restaurant($request);
         abort_unless($order->restaurant_id === $restaurant->id && $restaurant->isHotel(), 403);
@@ -418,6 +420,7 @@ class DashboardController extends Controller
         $current = $restaurant->orders()->whereKey($order->id)->lockForUpdate()->firstOrFail();
         abort_unless($current->payment_method === 'room_credit' && $current->payment_status !== 'paid', 422, 'This order is not an unpaid room credit order.');
         $current->update(['payment_status' => 'paid']);
+        $visits->closeIfSettled($current->guest_session_id);
 
         if ($request->wantsJson() || $request->header('X-Requested-With') === 'XMLHttpRequest') {
             return response()->json(['success' => true, 'payment_status' => 'paid']);

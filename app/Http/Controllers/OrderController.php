@@ -86,6 +86,8 @@ class OrderController extends Controller
             return $order;
         });
 
+        $visits->keepOpen($visit);
+
         return redirect()->route('menu.confirmation', [$restaurant->slug, $table_number])
             ->with('order_id', $order->id)
             ->withCookie($visits->cookie($visit));

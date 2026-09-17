@@ -88,7 +88,11 @@
                         <p class="text-xs font-extrabold uppercase tracking-widest text-zem-gold">Your visit</p>
                         <h2 class="font-display text-2xl font-extrabold">{{ number_format($visitTotal) }} ETB</h2>
                     </div>
-                    <p class="rounded-full bg-neutral-100 px-3 py-2 text-xs font-bold text-neutral-600">Active until {{ $visit->expires_at->format('H:i') }}</p>
+                    @if($visit->hasUnsettledWork())
+                        <p class="rounded-full bg-neutral-100 px-3 py-2 text-xs font-bold text-neutral-600">Table session stays open until paid / finished</p>
+                    @else
+                        <p class="rounded-full bg-neutral-100 px-3 py-2 text-xs font-bold text-neutral-600">Active until {{ $visit->expires_at->format('H:i') }}</p>
+                    @endif
                 </div>
 
                 <div class="mt-4 grid gap-3 md:grid-cols-2">

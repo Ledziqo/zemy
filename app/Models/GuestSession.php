@@ -25,6 +25,19 @@ class GuestSession extends Model
     public function serviceRequests() { return $this->hasMany(ServiceRequest::class); }
     public function payments() { return $this->hasMany(Payment::class); }
 
+    public function hasUnsettledWork(): bool
+    {
+        return $this->orders()
+            ->where(function ($query) {
+                $query->whereNotIn('status', ['completed', 'cancelled'])
+                    ->orWhere(function ($roomCredit) {
+                        $roomCredit->where('payment_method', 'room_credit')
+                            ->where('payment_status', '!=', 'paid');
+                    });
+            })
+            ->exists();
+    }
+
     public function isOpen(): bool
     {
         return $this->closed_at === null && $this->expires_at?->isFuture();
