@@ -24,11 +24,12 @@ class TableController extends Controller
         $restaurant = $this->restaurant($request);
         $tables = $restaurant->tables()->where('is_active', true)->orderByRaw('CAST(table_number AS UNSIGNED)')->get();
 
-        // Keep this compatibility map for setup-pack views compiled by an
-        // older deployment, without generating QR images during page load.
+        // Reuse the page's database connection; separate authenticated QR
+        // requests consume the host's hourly connection allowance per image.
         $qrImages = $tables->mapWithKeys(fn (RestaurantTable $table) => [
-            $table->id => route('restaurant.tables.qr', $table),
+            $table->id => $this->buildQr($restaurant, $table)->getDataUri(),
         ]);
+        $tables->each(fn (RestaurantTable $table) => $table->setRelation('restaurant', $restaurant));
 
         return view('restaurant.tables.setup_pack', [
             'restaurant' => $restaurant,

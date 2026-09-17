@@ -44,7 +44,7 @@
             </div>
             <p class="scan-label mt-3 text-lg font-black uppercase tracking-[.2em]" style="color: {{ $accentColor }}">{{ $table->scanInstruction() }}</p>
             <div class="mt-3 grid place-items-center">
-                <img src="{{ route('restaurant.tables.qr', $table) }}" alt="QR code for {{ $table->locationTypeLabel() }} {{ $table->table_number }}" class="h-48 w-48 contrast-125" data-print-resource width="192" height="192">
+                <img src="{{ $qrImages[$table->id] }}" alt="QR code for {{ $table->locationTypeLabel() }} {{ $table->table_number }}" class="h-48 w-48 contrast-125" data-print-resource width="192" height="192">
             </div>
             <p class="mt-3 text-5xl font-black">{{ $table->displayLabel() }}</p>
             <p class="mt-2 break-all text-xs font-semibold text-neutral-600">{{ $menuUrl }}</p>
@@ -69,6 +69,11 @@
                 resource.addEventListener('error', resolve, { once: true });
             });
         }));
+
+        if (resources.some((resource) => resource.naturalWidth === 0)) {
+            alert('Some QR codes could not load. Reload the setup pack before printing.');
+            return;
+        }
 
         window.print();
     }
