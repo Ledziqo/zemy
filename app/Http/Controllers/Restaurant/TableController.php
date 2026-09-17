@@ -32,9 +32,9 @@ class TableController extends Controller
     public function store(Request $request)
     {
         $restaurant = $this->restaurant($request);
-        $restaurant->tables()->create($this->validated($request));
+        $table = $restaurant->tables()->create($this->validated($request));
         PublicMenuCache::bump($restaurant);
-        return back()->with('success', $restaurant->locationLabelTitle().' added.');
+        return back()->with('success', $table->locationTypeLabel().' added.');
     }
 
     public function update(Request $request, RestaurantTable $table)
@@ -43,7 +43,7 @@ class TableController extends Controller
         abort_unless($table->restaurant_id === $restaurant->id, 403);
         $table->update($this->validated($request));
         PublicMenuCache::bump($restaurant);
-        return back()->with('success', $restaurant->locationLabelTitle().' updated.');
+        return back()->with('success', $table->locationTypeLabel().' updated.');
     }
 
     public function destroy(Request $request, RestaurantTable $table)
@@ -69,7 +69,7 @@ class TableController extends Controller
 
         return response($result->getString(), 200, [
             'Content-Type' => $result->getMimeType(),
-            'Content-Disposition' => 'inline; filename="zemtab-'.$restaurant->slug.'-'.$restaurant->locationLabel().'-'.$table->table_number.'.svg"',
+            'Content-Disposition' => 'inline; filename="zemtab-'.$restaurant->slug.'-'.strtolower($table->locationTypeLabel()).'-'.$table->table_number.'.svg"',
         ]);
     }
 
@@ -77,6 +77,7 @@ class TableController extends Controller
     {
         return $request->validate([
             'table_number' => ['required', 'string', 'max:50'],
+            'location_type' => ['required', 'in:table,room'],
             'table_name' => ['nullable', 'string', 'max:255'],
             'is_active' => ['nullable', 'boolean'],
         ]) + ['is_active' => $request->boolean('is_active')];

@@ -72,6 +72,7 @@ class RestaurantController extends Controller
         $this->ensureBusinessTypeColumn();
 
         $data = $this->validated($request, $restaurant->id);
+        $owner = $this->ownerLogin($restaurant);
         $ownerPassword = $data['owner_password'] ?? null;
         $subscriptionStatus = $data['subscription_status'] ?? null;
         $subscriptionData = $this->subscriptionData($data);
@@ -92,8 +93,14 @@ class RestaurantController extends Controller
         $previousKitchenMode = $restaurant->kitchenScreenEnabled();
         $restaurant->update($data);
 
+        // The restaurant email is also the main login identifier. Keep both
+        // records in sync when the email is changed from the account form.
+        if ($owner && array_key_exists('email', $data) && $owner->email !== $data['email']) {
+            $owner->update(['email' => $data['email']]);
+        }
+
         if ($ownerPassword) {
-            $owner = $restaurant->users()->first();
+            $owner ??= $this->ownerLogin($restaurant);
             if (! $owner) {
                 if (! $restaurant->email) {
                     throw ValidationException::withMessages(['owner_password' => 'Add an owner login email before creating a password.']);
@@ -183,6 +190,14 @@ class RestaurantController extends Controller
         if ($restaurantId === null) {
             $emailRules[] = 'required_with:owner_password';
             $emailRules[] = Rule::unique('users', 'email');
+        } else {
+            $ownerId = User::where('restaurant_id', $restaurantId)
+                ->orderByRaw("CASE role WHEN 'restaurant_owner' THEN 0 ELSE 1 END")
+                ->orderBy('id')
+                ->value('id');
+            $emailRules[] = $ownerId
+                ? Rule::unique('users', 'email')->ignore($ownerId)
+                : Rule::unique('users', 'email');
         }
 
         return $request->validate([
@@ -204,6 +219,14 @@ class RestaurantController extends Controller
             'is_active' => $request->boolean('is_active'),
             'kitchen_screen_enabled' => $request->boolean('kitchen_screen_enabled'),
         ];
+    }
+
+    private function ownerLogin(Restaurant $restaurant): ?User
+    {
+        return $restaurant->users()
+            ->orderByRaw("CASE role WHEN 'restaurant_owner' THEN 0 ELSE 1 END")
+            ->orderBy('id')
+            ->first();
     }
 
     private function subscriptionData(array $data): array

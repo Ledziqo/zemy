@@ -1,16 +1,20 @@
-@extends('layouts.dashboard', ['heading' => __($restaurant->locationLabelTitle(true)).' / QR'])
+@extends('layouts.dashboard', ['heading' => 'Tables & Rooms / QR'])
 
 @section('content')
 @php($place = $restaurant->locationLabel())
 @php($placeTitle = $restaurant->locationLabelTitle())
 <div class="mb-6 flex flex-wrap items-center justify-between gap-3">
-    <h2 class="font-display text-lg font-bold">{{ __('Add') }} {{ __(ucfirst($place)) }}</h2>
+    <h2 class="font-display text-lg font-bold">{{ __('Add table or room QR') }}</h2>
     <a href="{{ route('restaurant.tables.setup-pack') }}" target="_blank" class="rounded-md bg-zem-gold px-4 py-2 text-sm font-bold text-white">{{ __('Print setup pack') }}</a>
 </div>
-<form method="post" action="{{ route('restaurant.tables.store') }}" class="mb-6 grid gap-3 rounded-md border border-zem-border bg-zem-card p-4 md:grid-cols-[1fr_1fr_auto_auto]">
+<form method="post" action="{{ route('restaurant.tables.store') }}" class="mb-6 grid gap-3 rounded-md border border-zem-border bg-zem-card p-4 md:grid-cols-[1fr_1fr_1fr_auto_auto]">
     @csrf
-    <input name="table_number" required placeholder="{{ $placeTitle }} number, e.g. {{ $restaurant->isHotel() ? '204' : '1' }}" class="rounded-md border border-zem-border bg-zem-bg px-3 py-3">
-    <input name="table_name" placeholder="{{ $placeTitle }} name optional" class="rounded-md border border-zem-border bg-zem-bg px-3 py-3">
+    <input name="table_number" required placeholder="Table or room number, e.g. 1 or 204" class="rounded-md border border-zem-border bg-zem-bg px-3 py-3">
+    <select name="location_type" required class="rounded-md border border-zem-border bg-zem-bg px-3 py-3">
+        <option value="table">Table</option>
+        <option value="room">Room</option>
+    </select>
+    <input name="table_name" placeholder="Custom name optional" class="rounded-md border border-zem-border bg-zem-bg px-3 py-3">
     <label class="flex items-center gap-2 rounded-md border border-zem-border bg-zem-bg px-3 py-3"><input name="is_active" type="checkbox" value="1" checked> {{ __('Active') }}</label>
     <button class="rounded-md bg-zem-gold px-5 py-3 font-bold text-white">{{ __('Generate QR') }}</button>
 </form>
@@ -21,14 +25,14 @@
     <article class="rounded-md border border-zem-border bg-zem-card p-4">
         <div class="flex items-start justify-between gap-3">
             <div>
-                <p class="text-xs font-bold uppercase tracking-widest text-zem-gold">{{ $placeTitle }} QR</p>
-                <h2 class="mt-1 font-display text-2xl font-bold">{{ $table->table_name ?: $placeTitle.' '.$table->table_number }}</h2>
+                <p class="text-xs font-bold uppercase tracking-widest text-zem-gold">{{ $table->locationTypeLabel() }} QR</p>
+                <h2 class="mt-1 font-display text-2xl font-bold">{{ $table->displayLabel() }}</h2>
                 <p class="text-sm text-zem-muted">QR identifier: {{ $table->table_number }}</p>
             </div>
             <x-status :status="$table->is_active ? 'active' : 'cancelled'" />
         </div>
         <div class="mt-4 grid place-items-center rounded-md bg-white p-4">
-            <img src="{{ route('restaurant.tables.qr', $table) }}" alt="QR code for {{ $place }} {{ $table->table_number }}" class="h-64 w-64">
+            <img src="{{ route('restaurant.tables.qr', $table) }}" alt="QR code for {{ $table->locationTypeLabel() }} {{ $table->table_number }}" class="h-64 w-64">
         </div>
         <a class="mt-3 block break-all rounded-md border border-zem-border bg-zem-bg p-3 text-sm text-zem-gold" href="{{ $url }}" target="_blank">{{ $url }}</a>
         <div class="mt-2 flex items-center justify-center gap-2"><span class="text-xs font-semibold text-zem-muted">Powered by</span><img src="{{ asset('logo/zemtab-pantone-1795-c-icon-text-transparent.png') }}" alt="ZemTab" class="h-5 w-auto"></div>
@@ -41,7 +45,11 @@
             <form method="post" action="{{ route('restaurant.tables.update', $table) }}" class="mt-3 grid gap-3">
                 @csrf @method('PATCH')
                 <input name="table_number" value="{{ $table->table_number }}" class="rounded-md border border-zem-border bg-zem-card px-3 py-2">
-                <input name="table_name" value="{{ $table->table_name }}" class="rounded-md border border-zem-border bg-zem-card px-3 py-2">
+                <select name="location_type" required class="rounded-md border border-zem-border bg-zem-card px-3 py-2">
+                    <option value="table" @selected($table->locationTypeLabel() === 'Table')>Table</option>
+                    <option value="room" @selected($table->locationTypeLabel() === 'Room')>Room</option>
+                </select>
+                <input name="table_name" value="{{ $table->table_name }}" placeholder="Custom name optional" class="rounded-md border border-zem-border bg-zem-card px-3 py-2">
                 <label class="flex items-center gap-2"><input name="is_active" type="checkbox" value="1" @checked($table->is_active)> Active</label>
                 <button class="rounded-md bg-zem-gold px-4 py-2 font-bold text-white">Save {{ $place }}</button>
             </form>

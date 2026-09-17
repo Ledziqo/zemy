@@ -38,7 +38,7 @@
 <div class="grid gap-3">
     @foreach($restaurants as $restaurant)
         @php($subscription = $restaurant->subscriptions->sortByDesc('created_at')->first())
-        @php($owner = $restaurant->users->first())
+        @php($owner = $restaurant->users->firstWhere('role', 'restaurant_owner') ?? $restaurant->users->first())
         @php($subStatusColors = ['active' => 'bg-green-100 text-green-700 border-green-300', 'unpaid' => 'bg-red-100 text-red-700 border-red-300', 'trial' => 'bg-zem-gold/20 text-zem-gold border-zem-gold/40', 'cancelled' => 'bg-gray-100 text-gray-600 border-gray-300', 'expired' => 'bg-red-100 text-red-700 border-red-300'])
         @php($accessStatusColors = ['active' => 'bg-green-100 text-green-700 border-green-300', 'payment_required' => 'bg-zem-gold/20 text-zem-gold border-zem-gold/40', 'revoked' => 'bg-red-100 text-red-700 border-red-300'])
         @php($daysRemaining = $subscription?->ends_at ? now()->startOfDay()->diffInDays($subscription->ends_at, false) : null)

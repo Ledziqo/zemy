@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Restaurant;
 use App\Models\User;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\Rule;
 
@@ -73,7 +74,17 @@ class UserController extends Controller
             unset($data['password']);
         }
 
-        $user->update($data);
+        DB::transaction(function () use ($user, $data) {
+            $user->update($data);
+
+            // The restaurant account form displays the restaurant email, while
+            // authentication uses the owner User record. Keep them aligned
+            // when an administrator edits the owner directly.
+            if ($user->role === 'restaurant_owner' && $user->restaurant) {
+                $user->restaurant->update(['email' => $user->email]);
+            }
+        });
+
         return back()->with('success', 'User updated.');
     }
 }
