@@ -49,6 +49,16 @@
                     {{ __('Cart') }} <span x-text="count()"></span>
                 </button>
             </div>
+            <div class="mt-3 flex justify-end">
+                <form method="post" action="{{ route('locale.update') }}">@csrf
+                    <label for="menu-locale" class="sr-only">{{ __('Language') }}</label>
+                    <select id="menu-locale" name="locale" onchange="this.form.submit()" class="rounded-full border border-black/10 bg-white px-3 py-2 text-xs font-bold text-black shadow-sm outline-none">
+                        @foreach(['en' => 'English', 'am' => 'አማርኛ', 'ar' => 'العربية', 'zh' => '中文'] as $localeCode => $localeLabel)
+                            <option value="{{ $localeCode }}" @selected(app()->getLocale() === $localeCode)>{{ $localeLabel }}</option>
+                        @endforeach
+                    </select>
+                </form>
+            </div>
             <label class="mt-3 block">
                 <span class="sr-only">{{ __('Search menu') }}</span>
                 <input type="search" x-model="menuSearch" placeholder="{{ __('Search the menu...') }}" class="w-full rounded-xl border border-black/10 bg-neutral-100 px-4 py-3 text-sm font-semibold outline-none transition focus:border-zem-gold focus:bg-white">
@@ -61,22 +71,11 @@
             </nav>
         </div>
     </header>
-    <div class="fixed top-4 right-4 z-40 rounded-full border border-black/10 bg-white/90 px-2 py-1 text-xs font-bold shadow-sm backdrop-blur" x-cloak>
-        <form method="post" action="{{ route('locale.update') }}">@csrf
-            <label for="menu-locale" class="sr-only">{{ __('Language') }}</label>
-            <select id="menu-locale" name="locale" onchange="this.form.submit()" class="rounded-full border-0 bg-transparent px-2 py-1 text-xs font-bold text-black outline-none">
-                @foreach(['en' => 'English', 'am' => 'አማርኛ', 'ar' => 'العربية', 'zh' => '中文'] as $localeCode => $localeLabel)
-                    <option value="{{ $localeCode }}" @selected(app()->getLocale() === $localeCode)>{{ $localeLabel }}</option>
-                @endforeach
-            </select>
-        </form>
-    </div>
-
     <section class="mx-auto max-w-5xl px-4 py-4">
         @if(session('success'))<div class="mb-4 rounded-xl bg-zem-green px-4 py-3 text-sm font-bold text-white">{{ session('success') }}</div>@endif
         @if($errors->any())<div class="mb-4 rounded-xl bg-red-600 px-4 py-3 text-sm font-bold text-white">{{ $errors->first() }}</div>@endif
         <div class="grid grid-cols-3 gap-3">
-            <form method="post" action="{{ route('service-requests.store', [$restaurant->slug, $table->table_number]) }}">@csrf<input type="hidden" name="type" value="call_waiter"><button class="w-full rounded-xl bg-black px-4 py-3 font-extrabold text-white">{{ $restaurant->staffRequestLabel() }}</button></form>
+            <form method="post" action="{{ route('service-requests.store', [$restaurant->slug, $table->table_number]) }}">@csrf<input type="hidden" name="type" value="call_waiter"><button class="w-full rounded-xl bg-black px-4 py-3 font-extrabold text-white">{{ __($restaurant->staffRequestLabel()) }}</button></form>
             <form method="post" action="{{ route('service-requests.store', [$restaurant->slug, $table->table_number]) }}">@csrf<input type="hidden" name="type" value="request_bill"><button class="w-full rounded-xl bg-zem-gold px-4 py-3 font-extrabold text-white">{{ __('Request Bill') }}</button></form>
             @if($activePaymentMethods->isNotEmpty())
                 <button type="button" @click="paymentOpen = true; selectedPayment = null" class="w-full rounded-xl border-2 border-black/10 bg-white px-4 py-3 font-extrabold text-black">
@@ -201,8 +200,8 @@
 
                             @if($method === 'cash')
                                 <div class="mt-4 rounded-xl border border-black/10 bg-neutral-50 p-4">
-                                    <p class="font-extrabold">Cash payment</p>
-                                    <p class="mt-2 text-sm text-neutral-600">Pay with cash when staff brings your order or bill. Request bill to call a staff member to confirm your final amount.</p>
+                    <p class="font-extrabold">{{ __('Cash payment') }}</p>
+                    <p class="mt-2 text-sm text-neutral-600">{{ __('Pay with cash when staff brings your order or bill. Request bill to call a staff member to confirm your final amount.') }}</p>
                                 </div>
                             @else
                                 @php($accountNumber = $settings[$meta['account_field']] ?? null)
@@ -210,17 +209,17 @@
                                 @php($qrUrl = ! empty($qrPath) ? asset($qrPath) : null)
                                 <div class="mt-4 grid gap-3 sm:grid-cols-2">
                                     <div class="rounded-xl border border-black/10 bg-neutral-50 p-4">
-                                        <p class="text-xs font-extrabold uppercase tracking-widest text-zem-gold">Account number</p>
+                                        <p class="text-xs font-extrabold uppercase tracking-widest text-zem-gold">{{ __('Account number') }}</p>
                                         <p class="mt-2 break-words text-lg font-extrabold">{{ $accountNumber ?? 'Ask staff for the account number.' }}</p>
                                         <p class="mt-3 text-sm text-neutral-600">Transfer to this {{ $meta['label'] }} account, then show your payment screenshot to staff for confirmation.</p>
                                     </div>
                                     <div class="rounded-xl border border-black/10 bg-neutral-50 p-4">
-                                        <p class="text-xs font-extrabold uppercase tracking-widest text-zem-gold">Payment QR</p>
+                                        <p class="text-xs font-extrabold uppercase tracking-widest text-zem-gold">{{ __('Payment QR') }}</p>
                                         @if($qrUrl)
                                             <img src="{{ $qrUrl }}" alt="{{ $meta['label'] }} payment QR" class="mt-2 h-40 w-40 rounded-lg border border-black/10 bg-white object-contain p-2">
-                                            <p class="mt-2 text-xs text-neutral-500">Scan this QR code with your banking app to pay.</p>
+                                            <p class="mt-2 text-xs text-neutral-500">{{ __('Scan this QR code with your banking app to pay.') }}</p>
                                         @else
-                                            <div class="mt-2 grid h-40 w-40 place-items-center rounded-lg border border-black/10 bg-white p-2 text-center text-xs font-bold text-neutral-500">QR not added</div>
+                                            <div class="mt-2 grid h-40 w-40 place-items-center rounded-lg border border-black/10 bg-white p-2 text-center text-xs font-bold text-neutral-500">{{ __('QR not added') }}</div>
                                         @endif
                                     </div>
                                 </div>
@@ -282,30 +281,30 @@
             @csrf
             <div class="mx-auto max-w-3xl">
                 <div class="flex items-center justify-between">
-                    <h2 class="font-display text-2xl font-extrabold">Checkout</h2>
-                    <button type="button" @click="open=false" class="rounded-lg border border-black/10 px-3 py-2 font-bold">Close</button>
+                    <h2 class="font-display text-2xl font-extrabold">{{ __('Checkout') }}</h2>
+                    <button type="button" @click="open=false" class="rounded-lg border border-black/10 px-3 py-2 font-bold">{{ __('Close') }}</button>
                 </div>
 
-                <template x-if="items.length === 0"><p class="mt-5 rounded-xl bg-neutral-100 p-4 text-sm text-neutral-500">Your cart is empty.</p></template>
+                <template x-if="items.length === 0"><p class="mt-5 rounded-xl bg-neutral-100 p-4 text-sm text-neutral-500">{{ __('Your cart is empty.') }}</p></template>
                 <template x-for="item in items" :key="item.id">
                     <div class="mt-4 rounded-2xl border border-black/10 bg-neutral-50 p-3">
                         <div class="flex items-center justify-between gap-3">
                             <div><p class="font-extrabold" x-text="item.name"></p><p class="text-sm text-neutral-500" x-text="money(item.price)"></p></div>
                             <div class="flex items-center gap-2"><button type="button" @click="dec(item.id)" class="h-10 w-10 rounded-lg border border-black/10 font-bold">-</button><span class="w-7 text-center font-bold" x-text="item.quantity"></span><button type="button" @click="add(item)" class="h-10 w-10 rounded-lg border border-black/10 font-bold">+</button></div>
                         </div>
-                        <input x-model="item.note" placeholder="Special note for this item" class="mt-3 w-full rounded-lg border border-black/10 px-3 py-3 text-sm outline-none focus:border-zem-gold">
+                        <input x-model="item.note" placeholder="{{ __('Special note for this item') }}" class="mt-3 w-full rounded-lg border border-black/10 px-3 py-3 text-sm outline-none focus:border-zem-gold">
                     </div>
                 </template>
 
                 <div class="mt-5 grid gap-3">
-                    <textarea name="note" rows="3" placeholder="Order note" class="rounded-lg border border-black/10 px-3 py-3 outline-none focus:border-zem-gold"></textarea>
+                    <textarea name="note" rows="3" placeholder="{{ __('Order note') }}" class="rounded-lg border border-black/10 px-3 py-3 outline-none focus:border-zem-gold"></textarea>
                     <div id="cart-fields"></div>
                     <div class="rounded-xl bg-neutral-100 p-4">
-                        <div class="flex items-center justify-between text-sm font-bold text-neutral-600"><span>Items total</span><span x-text="money(total())"></span></div>
-                        <div x-show="extraPercentage() > 0" class="mt-2 flex items-center justify-between text-sm font-bold text-neutral-600"><span>VAT + service charge (<span x-text="extraPercentage()"></span>%)</span><span x-text="'+ ' + money(extraCharges())"></span></div>
-                        <div class="mt-3 flex items-center justify-between border-t border-black/10 pt-3 text-lg font-extrabold"><span>Final total</span><span x-text="money(finalTotal())"></span></div>
+                        <div class="flex items-center justify-between text-sm font-bold text-neutral-600"><span>{{ __('Items total') }}</span><span x-text="money(total())"></span></div>
+                        <div x-show="extraPercentage() > 0" class="mt-2 flex items-center justify-between text-sm font-bold text-neutral-600"><span>{{ __('VAT + service charge') }} (<span x-text="extraPercentage()"></span>%)</span><span x-text="'+ ' + money(extraCharges())"></span></div>
+                        <div class="mt-3 flex items-center justify-between border-t border-black/10 pt-3 text-lg font-extrabold"><span>{{ __('Final total') }}</span><span x-text="money(finalTotal())"></span></div>
                     </div>
-                    <button class="rounded-xl bg-zem-gold py-4 font-extrabold text-white" :disabled="items.length === 0">Place order</button>
+                    <button class="rounded-xl bg-zem-gold py-4 font-extrabold text-white" :disabled="items.length === 0">{{ __('Place order') }}</button>
                 </div>
             </div>
         </form>
