@@ -41,7 +41,7 @@ class DashboardController extends Controller
         $kitchen = $request->session()->get('staff_profile_role') === 'kitchen';
         if ($filter === 'active') {
             // The live queue must never be hidden behind history pagination.
-            return ($kitchen ? $query->whereIn('status', ['new', 'preparing']) : $query->whereNotIn('status', ['completed', 'cancelled']))->orderBy('id')->get();
+            return ($kitchen ? $query->whereIn('status', ['new', 'preparing']) : $query->whereNotIn('status', ['completed', 'cancelled']))->orderByDesc('id')->get();
         }
         if ($filter === 'completed') {
             $query->whereIn('status', $kitchen ? ['served', 'paid', 'completed'] : ['completed']);
