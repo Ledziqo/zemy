@@ -4,7 +4,7 @@
     $accentRgb = implode(' ', sscanf($accentColor, '#%02x%02x%02x'));
 @endphp
 <!doctype html>
-<html lang="{{ app()->getLocale() }}" style="--zem-accent: {{ $accentColor }}; --zem-accent-rgb: {{ $accentRgb }};">
+<html lang="{{ app()->getLocale() }}" dir="{{ app()->getLocale() === 'ar' ? 'rtl' : 'ltr' }}" style="--zem-accent: {{ $accentColor }}; --zem-accent-rgb: {{ $accentRgb }};">
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=5">

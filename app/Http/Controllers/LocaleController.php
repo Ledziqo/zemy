@@ -10,7 +10,7 @@ class LocaleController extends Controller
     public function update(Request $request)
     {
         $data = $request->validate([
-            'locale' => ['required', Rule::in(['en', 'am'])],
+            'locale' => ['required', Rule::in(['en', 'am', 'ar', 'zh'])],
         ]);
 
         return back()->withCookie(cookie('zemtab_locale', $data['locale'], 60 * 24 * 365, null, null, null, true, false, 'lax'));

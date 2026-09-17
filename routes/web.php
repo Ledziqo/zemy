@@ -40,12 +40,12 @@ Route::post('/login', [AuthController::class, 'login'])->middleware('throttle:10
 Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
 
 Route::get('/r/{restaurant_slug}/table/{table_number}', [MenuController::class, 'show'])
-    ->middleware('throttle:300,1')
+    ->middleware(['locale', 'throttle:300,1'])
     ->name('menu.show');
-Route::post('/r/{restaurant_slug}/table/{table_number}/orders', [OrderController::class, 'store'])->middleware('throttle:30,1')->name('orders.store');
+Route::post('/r/{restaurant_slug}/table/{table_number}/orders', [OrderController::class, 'store'])->middleware(['locale', 'throttle:30,1'])->name('orders.store');
 Route::patch('/r/{restaurant_slug}/table/{table_number}/orders/{order}/cancel', [OrderController::class, 'cancel'])->name('orders.cancel');
-Route::post('/r/{restaurant_slug}/table/{table_number}/service-requests', [ServiceRequestController::class, 'store'])->middleware('throttle:30,1')->name('service-requests.store');
-Route::get('/r/{restaurant_slug}/table/{table_number}/confirmation', [MenuController::class, 'confirmation'])->name('menu.confirmation');
+Route::post('/r/{restaurant_slug}/table/{table_number}/service-requests', [ServiceRequestController::class, 'store'])->middleware(['locale', 'throttle:30,1'])->name('service-requests.store');
+Route::get('/r/{restaurant_slug}/table/{table_number}/confirmation', [MenuController::class, 'confirmation'])->middleware('locale')->name('menu.confirmation');
 
 Route::middleware(['auth', 'role:restaurant_owner,staff', 'locale'])->prefix('restaurant')->name('restaurant.')->group(function () {
     Route::get('/access-required', [Restaurant\AccessController::class, 'show'])->name('access-required');
@@ -92,7 +92,7 @@ Route::middleware(['auth', 'role:restaurant_owner,staff', 'locale'])->prefix('re
     });
 });
 
-Route::middleware(['auth', 'role:admin'])->prefix('admin')->name('admin.')->group(function () {
+Route::middleware(['auth', 'role:admin', 'locale'])->prefix('admin')->name('admin.')->group(function () {
     Route::get('/dashboard', [Admin\DashboardController::class, 'index'])->name('dashboard');
     Route::get('/database', [Admin\DashboardController::class, 'database'])->name('database');
     Route::post('/setup-run', [SetupController::class, 'run'])->name('setup.run');

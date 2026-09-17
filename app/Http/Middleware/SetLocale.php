@@ -11,7 +11,7 @@ class SetLocale
     public function handle(Request $request, Closure $next): Response
     {
         $locale = $request->cookie('zemtab_locale', config('app.locale'));
-        app()->setLocale(in_array($locale, ['en', 'am'], true) ? $locale : 'en');
+        app()->setLocale(in_array($locale, ['en', 'am', 'ar', 'zh'], true) ? $locale : 'en');
 
         return $next($request);
     }

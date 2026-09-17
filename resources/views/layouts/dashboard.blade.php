@@ -14,7 +14,8 @@
 
     $staffRole = session('staff_profile_role', 'owner_manager');
     $profileName = session('staff_profile_name', 'Owner/Manager');
-    $accountLabel = $isAdmin ? 'Admin' : ($dashboardRestaurant?->name ?? 'Restaurant') . ' - ' . ($staffRole === 'owner_manager' ? 'Owner/Manager' : ($staffRole === 'cashier' ? 'Cashier' : 'Kitchen'));
+    $accountLabel = $isAdmin ? __('Admin') : ($dashboardRestaurant?->name ?? __('Restaurant')) . ' - ' . ($staffRole === 'owner_manager' ? __('Owner/Manager') : ($staffRole === 'cashier' ? __('Cashier') : __('Kitchen')));
+    $supportedLocales = ['en' => 'English', 'am' => 'አማርኛ', 'ar' => 'العربية', 'zh' => '中文'];
 
     $links = $isAdmin
         ? [
@@ -50,7 +51,7 @@
         );
 @endphp
 <!doctype html>
-<html lang="{{ app()->getLocale() }}">
+<html lang="{{ app()->getLocale() }}" dir="{{ app()->getLocale() === 'ar' ? 'rtl' : 'ltr' }}">
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -103,13 +104,13 @@
             <button type="button" @click="navigationOpen = !navigationOpen" :aria-expanded="navigationOpen" aria-controls="dashboard-navigation" class="rounded-lg border border-zem-border px-3 py-2 text-sm font-semibold lg:hidden">{{ __('Menu') }}</button>
         </div>
         <div class="hidden px-5 pb-5 lg:block">
-            <p class="truncate text-sm font-bold">{{ $isAdmin ? 'Platform administration' : $dashboardRestaurant?->name }}</p>
+            <p class="truncate text-sm font-bold">{{ $isAdmin ? __('Platform administration') : $dashboardRestaurant?->name }}</p>
             <p class="mt-1 text-xs text-zem-muted">{{ $isAdmin ? auth()->user()->name : $profileName }}</p>
         </div>
         <nav id="dashboard-navigation" aria-label="{{ __('Main navigation') }}" :class="navigationOpen ? 'block' : 'hidden'" class="dashboard-nav hidden space-y-1 overflow-y-auto px-3 pb-4 lg:!block lg:flex-1">
             @foreach($links as [$label, $url])
                 @if(($isAdmin && $loop->index === 4) || (!$isAdmin && $staffRole === 'owner_manager' && $loop->index === 4))
-                    <p class="px-3 pb-2 pt-5 text-[11px] font-semibold uppercase tracking-widest text-zem-muted">{{ $isAdmin ? 'Billing & settings' : __('Manage your space') }}</p>
+                    <p class="px-3 pb-2 pt-5 text-[11px] font-semibold uppercase tracking-widest text-zem-muted">{{ $isAdmin ? __('Billing & settings') : __('Manage your space') }}</p>
                 @endif
                 <a href="{{ $url }}" @if(url()->current() === $url) aria-current="page" @endif class="rounded-lg px-3 py-2 text-sm font-medium text-zem-muted transition hover:bg-zem-soft hover:text-zem-cream">{{ $label }}</a>
             @endforeach
@@ -128,9 +129,14 @@
                 <h1 class="font-display text-2xl font-bold md:text-3xl">{{ $heading ?? 'Dashboard' }}</h1>
             </div>
             <div class="flex flex-wrap items-center gap-2">
-                @unless($isAdmin)
-                    <form method="post" action="{{ route('locale.update') }}">@csrf<input type="hidden" name="locale" value="{{ app()->getLocale() === 'am' ? 'en' : 'am' }}"><button class="rounded-full border border-zem-border bg-zem-card px-3 py-2 text-sm font-bold text-zem-muted">{{ app()->getLocale() === 'am' ? 'English' : 'Amharic' }}</button></form>
-                @endunless
+                <form method="post" action="{{ route('locale.update') }}" class="flex items-center gap-2">@csrf
+                    <label for="dashboard-locale" class="sr-only">{{ __('Language') }}</label>
+                    <select id="dashboard-locale" name="locale" onchange="this.form.submit()" class="rounded-full border border-zem-border bg-zem-card px-3 py-2 text-sm font-bold text-zem-muted">
+                        @foreach($supportedLocales as $localeCode => $localeLabel)
+                            <option value="{{ $localeCode }}" @selected(app()->getLocale() === $localeCode)>{{ $localeLabel }}</option>
+                        @endforeach
+                    </select>
+                </form>
                 <button type="button" onclick="toggleZemtabTheme()" class="rounded-full border border-zem-border bg-zem-card px-3 py-2 text-sm font-bold text-zem-muted" aria-label="{{ __('Switch color theme') }}"><span class="dark:hidden">{{ __('Dark') }}</span><span class="hidden dark:inline">{{ __('Light') }}</span></button>
                 <span class="hidden text-xs text-zem-muted xl:inline">{{ $isAdmin ? 'Admin' : ($staffRole === 'owner_manager' ? __('Owner/Manager') : ucfirst($staffRole)) }}</span>
             </div>

@@ -42,28 +42,34 @@
                     <div class="min-w-0">
                         <p class="text-xs font-extrabold uppercase tracking-widest text-zem-gold">{{ $table->displayLabel() }}</p>
                         <h1 class="truncate font-display text-2xl font-extrabold">{{ $restaurant->name }}</h1>
-                        <p class="truncate text-sm text-neutral-500">{{ $restaurant->location ?: 'Digital menu' }}</p>
+                        <p class="truncate text-sm text-neutral-500">{{ $restaurant->location ?: __('Digital menu') }}</p>
                     </div>
                 </div>
                 <button type="button" @click="open = true" class="rounded-xl bg-black px-4 py-3 text-sm font-extrabold text-white">
-                    Cart <span x-text="count()"></span>
+                    {{ __('Cart') }} <span x-text="count()"></span>
                 </button>
             </div>
             <label class="mt-3 block">
-                <span class="sr-only">Search menu</span>
-                <input type="search" x-model="menuSearch" placeholder="Search the menu..." class="w-full rounded-xl border border-black/10 bg-neutral-100 px-4 py-3 text-sm font-semibold outline-none transition focus:border-zem-gold focus:bg-white">
+                <span class="sr-only">{{ __('Search menu') }}</span>
+                <input type="search" x-model="menuSearch" placeholder="{{ __('Search the menu...') }}" class="w-full rounded-xl border border-black/10 bg-neutral-100 px-4 py-3 text-sm font-semibold outline-none transition focus:border-zem-gold focus:bg-white">
             </label>
             <nav class="mt-3 flex gap-2 overflow-x-auto pb-1">
-                <button type="button" @click="activeCategory = 'all'" :class="activeCategory === 'all' ? 'bg-zem-gold text-white' : 'border border-black/10 bg-white text-neutral-700'" class="whitespace-nowrap rounded-full px-4 py-2 text-sm font-extrabold transition">All</button>
+                <button type="button" @click="activeCategory = 'all'" :class="activeCategory === 'all' ? 'bg-zem-gold text-white' : 'border border-black/10 bg-white text-neutral-700'" class="whitespace-nowrap rounded-full px-4 py-2 text-sm font-extrabold transition">{{ __('All') }}</button>
                 @foreach($categories as $category)
                     <button type="button" @click="activeCategory = 'cat-{{ $category->id }}'" :class="activeCategory === 'cat-{{ $category->id }}' ? 'bg-zem-gold text-white' : 'border border-black/10 bg-white text-neutral-700'" class="whitespace-nowrap rounded-full px-4 py-2 text-sm font-extrabold transition">{{ $category->name }}</button>
                 @endforeach
             </nav>
         </div>
     </header>
-    <div class="fixed top-4 right-4 z-40 flex gap-1 rounded-full border border-black/10 bg-white/90 px-2 py-1 text-xs font-bold shadow-sm backdrop-blur" x-data="{lang: 'en'}" x-cloak>
-        <button @click="lang='en'" :class="lang==='en'?'bg-zem-gold text-white':''" class="rounded-full px-3 py-1 transition">EN</button>
-        <button @click="lang='am'" :class="lang==='am'?'bg-zem-gold text-white':''" class="rounded-full px-3 py-1 transition">አማ</button>
+    <div class="fixed top-4 right-4 z-40 rounded-full border border-black/10 bg-white/90 px-2 py-1 text-xs font-bold shadow-sm backdrop-blur" x-cloak>
+        <form method="post" action="{{ route('locale.update') }}">@csrf
+            <label for="menu-locale" class="sr-only">{{ __('Language') }}</label>
+            <select id="menu-locale" name="locale" onchange="this.form.submit()" class="rounded-full border-0 bg-transparent px-2 py-1 text-xs font-bold text-black outline-none">
+                @foreach(['en' => 'English', 'am' => 'አማርኛ', 'ar' => 'العربية', 'zh' => '中文'] as $localeCode => $localeLabel)
+                    <option value="{{ $localeCode }}" @selected(app()->getLocale() === $localeCode)>{{ $localeLabel }}</option>
+                @endforeach
+            </select>
+        </form>
     </div>
 
     <section class="mx-auto max-w-5xl px-4 py-4">
@@ -71,10 +77,10 @@
         @if($errors->any())<div class="mb-4 rounded-xl bg-red-600 px-4 py-3 text-sm font-bold text-white">{{ $errors->first() }}</div>@endif
         <div class="grid grid-cols-3 gap-3">
             <form method="post" action="{{ route('service-requests.store', [$restaurant->slug, $table->table_number]) }}">@csrf<input type="hidden" name="type" value="call_waiter"><button class="w-full rounded-xl bg-black px-4 py-3 font-extrabold text-white">{{ $restaurant->staffRequestLabel() }}</button></form>
-            <form method="post" action="{{ route('service-requests.store', [$restaurant->slug, $table->table_number]) }}">@csrf<input type="hidden" name="type" value="request_bill"><button class="w-full rounded-xl bg-zem-gold px-4 py-3 font-extrabold text-white">Request Bill</button></form>
+            <form method="post" action="{{ route('service-requests.store', [$restaurant->slug, $table->table_number]) }}">@csrf<input type="hidden" name="type" value="request_bill"><button class="w-full rounded-xl bg-zem-gold px-4 py-3 font-extrabold text-white">{{ __('Request Bill') }}</button></form>
             @if($activePaymentMethods->isNotEmpty())
                 <button type="button" @click="paymentOpen = true; selectedPayment = null" class="w-full rounded-xl border-2 border-black/10 bg-white px-4 py-3 font-extrabold text-black">
-                    Payment
+                    {{ __('Payment') }}
                 </button>
             @endif
         </div>
@@ -85,11 +91,11 @@
             <div class="rounded-2xl border border-black/10 bg-white p-4 shadow-sm">
                 <div class="flex flex-wrap items-center justify-between gap-3">
                     <div>
-                        <p class="text-xs font-extrabold uppercase tracking-widest text-zem-gold">Your visit</p>
+                        <p class="text-xs font-extrabold uppercase tracking-widest text-zem-gold">{{ __('Your visit') }}</p>
                         <h2 class="font-display text-2xl font-extrabold">{{ number_format($visitTotal) }} ETB</h2>
                     </div>
                     @if($visit->hasUnsettledWork())
-                        <p class="rounded-full bg-neutral-100 px-3 py-2 text-xs font-bold text-neutral-600">Table session stays open until paid / finished</p>
+                        <p class="rounded-full bg-neutral-100 px-3 py-2 text-xs font-bold text-neutral-600">{{ __('Table session stays open until paid / finished') }}</p>
                     @else
                         <p class="rounded-full bg-neutral-100 px-3 py-2 text-xs font-bold text-neutral-600">Active until {{ $visit->expires_at->format('H:i') }}</p>
                     @endif
@@ -97,7 +103,7 @@
 
                 <div class="mt-4 grid gap-3 md:grid-cols-2">
                     <div class="rounded-xl bg-neutral-50 p-3">
-                        <h3 class="font-extrabold">Orders</h3>
+                        <h3 class="font-extrabold">{{ __('Orders') }}</h3>
                         <div class="mt-2 space-y-2">
                             @foreach($visitOrders->take(4) as $order)
                                 @php($cancelDeadline = $order->created_at->copy()->addMinutes(2))
@@ -123,12 +129,12 @@
                         </div>
                     </div>
                     <div class="rounded-xl bg-neutral-50 p-3">
-                        <h3 class="font-extrabold">Requests & payment</h3>
+                        <h3 class="font-extrabold">{{ __('Requests & payment') }}</h3>
                         <div class="mt-2 space-y-2 text-sm">
                             @forelse($visitRequests->take(3) as $requestRow)
                                 <p class="rounded-lg border border-black/10 bg-white p-3">{{ $restaurant->requestTypeLabel($requestRow->type) }} - {{ ucfirst($requestRow->status) }}</p>
                             @empty
-                                <p class="rounded-lg border border-black/10 bg-white p-3 text-neutral-500">No service requests yet.</p>
+                                <p class="rounded-lg border border-black/10 bg-white p-3 text-neutral-500">{{ __('No service requests yet.') }}</p>
                             @endforelse
                             
                         </div>
@@ -145,13 +151,13 @@
         <div class="absolute bottom-0 max-h-[92vh] w-full overflow-y-auto rounded-t-3xl bg-white p-4 text-zem-ink shadow-2xl">
             <div class="mx-auto max-w-3xl">
                 <div class="flex items-center justify-between">
-                    <h2 class="font-display text-2xl font-extrabold">Payment</h2>
-                    <button type="button" @click="paymentOpen=false" class="rounded-lg border border-black/10 px-3 py-2 font-bold">Close</button>
+                    <h2 class="font-display text-2xl font-extrabold">{{ __('Payment') }}</h2>
+                    <button type="button" @click="paymentOpen=false" class="rounded-lg border border-black/10 px-3 py-2 font-bold">{{ __('Close') }}</button>
                 </div>
 
                 {{-- Step 1: Select payment method --}}
                 <div x-show="selectedPayment === null" class="mt-5">
-                    <p class="text-sm text-neutral-500">Choose a payment method to see account details and QR code.</p>
+                    <p class="text-sm text-neutral-500">{{ __('Choose a payment method to see account details and QR code.') }}</p>
                     <div class="mt-4 grid grid-cols-1 gap-3 sm:grid-cols-2">
                         @foreach($activePaymentMethods as $method => $meta)
                             <button type="button" @click="selectedPayment = '{{ $method }}'" class="flex items-center gap-3 rounded-2xl border border-black/10 bg-neutral-50 p-4 text-left transition hover:border-zem-gold hover:bg-zem-gold/10">
@@ -163,22 +169,22 @@
                                 <div class="min-w-0">
                                     <p class="font-extrabold">{{ $meta['label'] }}</p>
                                     @if($method === 'cash')
-                                        <p class="text-sm text-neutral-500">Pay with cash when staff brings your order or bill.</p>
+                                        <p class="text-sm text-neutral-500">{{ __('Pay with cash when staff brings your order or bill.') }}</p>
                                     @else
-                                        <p class="text-sm text-neutral-500">Transfer to {{ $meta['label'] }} and show proof to staff.</p>
+                                        <p class="text-sm text-neutral-500">{{ __('Transfer to') }} {{ $meta['label'] }} {{ __('and show proof to staff.') }}</p>
                                     @endif
                                 </div>
                             </button>
                         @endforeach
                     </div>
                     @if($visitTotal > 0)
-                        <p class="mt-4 rounded-xl bg-zem-gold/10 px-4 py-3 text-sm font-bold text-zem-gold">Current total: {{ number_format($visitTotal) }} ETB</p>
+                        <p class="mt-4 rounded-xl bg-zem-gold/10 px-4 py-3 text-sm font-bold text-zem-gold">{{ __('Current total:') }} {{ number_format($visitTotal) }} ETB</p>
                     @endif
                 </div>
 
                 {{-- Step 2: Show account details + QR for selected method --}}
                 <div x-show="selectedPayment !== null" class="mt-5">
-                    <button type="button" @click="selectedPayment = null" class="mb-4 inline-flex items-center gap-1 text-sm font-bold text-zem-gold">&larr; Back to methods</button>
+                    <button type="button" @click="selectedPayment = null" class="mb-4 inline-flex items-center gap-1 text-sm font-bold text-zem-gold">&larr; {{ __('Back to methods') }}</button>
                     @foreach($activePaymentMethods as $method => $meta)
                         <div x-show="selectedPayment === '{{ $method }}'">
                             <div class="flex items-center gap-3 rounded-2xl border border-black/10 bg-neutral-50 p-4">
@@ -188,7 +194,7 @@
                                     <div class="grid h-16 w-16 shrink-0 place-items-center rounded-lg border border-black/10 bg-white text-2xl font-extrabold">$</div>
                                 @endif
                                 <div>
-                                    <p class="text-xs font-extrabold uppercase tracking-widest text-zem-gold">Selected method</p>
+                                    <p class="text-xs font-extrabold uppercase tracking-widest text-zem-gold">{{ __('Selected method') }}</p>
                                     <p class="font-display text-xl font-extrabold">{{ $meta['label'] }}</p>
                                 </div>
                             </div>
