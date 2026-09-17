@@ -10,8 +10,8 @@
         @media print {
             .no-print { display: none !important; }
             body { background: #fff !important; color: #000 !important; margin: 0; padding: 0; }
-            main { display: grid !important; grid-template-columns: repeat(2, 1fr) !important; grid-auto-rows: 140mm !important; gap: 0 !important; max-width: none !important; padding: 0 !important; }
-            article { break-inside: avoid; page-break-inside: avoid; box-shadow: none !important; border-radius: 0 !important; border: 1px solid #000 !important; padding: 20px !important; min-height: 140mm !important; }
+            main { display: grid !important; grid-template-columns: repeat(2, 1fr) !important; grid-auto-rows: 210mm !important; gap: 0 !important; max-width: none !important; padding: 0 !important; }
+            article { break-inside: avoid; page-break-inside: avoid; box-shadow: none !important; border-radius: 0 !important; border: 1px solid #000 !important; padding: 24px !important; min-height: 210mm !important; }
             .qr-card, .qr-card * { color: #000 !important; }
             .scan-label { color: {{ $restaurant->primary_color ?: '#D22630' }} !important; }
             @page { size: A3 portrait; margin: 0; }
@@ -27,7 +27,7 @@
 <div class="no-print mb-5 flex flex-wrap items-center justify-between gap-3">
     <div>
         <h1 class="text-2xl font-black text-black">{{ $restaurant->name }} QR setup pack</h1>
-        <p class="text-sm font-semibold text-neutral-800">Print this page — 6 QR cards per A3 page.</p>
+        <p class="text-sm font-semibold text-neutral-800">Print this page — 4 QR cards per A3 page.</p>
     </div>
     <button type="button" onclick="printSetupPack()" class="rounded-lg bg-black px-5 py-3 font-bold text-white">Print setup pack</button>
 </div>
@@ -36,21 +36,21 @@
     @forelse($tables as $table)
         @php($menuUrl = route('menu.show', [$restaurant->slug, $table->table_number]))
         <article class="qr-card flex flex-col items-center rounded-xl border-2 border-black bg-white p-5 text-center shadow-sm">
-            <div class="flex min-h-16 items-center justify-center gap-3 w-full">
+            <div class="flex flex-col items-center justify-center gap-2 w-full">
                 @if($logoUrl)
-                    <img src="{{ $logoUrl }}" alt="{{ $restaurant->name }} logo" class="h-20 w-20 rounded-lg border border-neutral-300 bg-white object-contain">
+                    <img src="{{ $logoUrl }}" alt="{{ $restaurant->name }} logo" class="h-28 w-28 rounded-lg border border-neutral-300 bg-white object-contain">
                 @endif
-                <h2 class="text-4xl font-black">{{ $restaurant->name }}</h2>
+                <h2 class="text-5xl font-black">{{ $restaurant->name }}</h2>
             </div>
             <p class="scan-label mt-3 text-lg font-black uppercase tracking-[.2em]" style="color: {{ $accentColor }}">{{ $table->scanInstruction() }}</p>
             <div class="mt-3 grid place-items-center">
-                <img src="{{ $qrImages[$table->id] }}" alt="QR code for {{ $table->locationTypeLabel() }} {{ $table->table_number }}" class="h-48 w-48 contrast-125" data-print-resource width="192" height="192">
+                <img src="{{ $qrImages[$table->id] }}" alt="QR code for {{ $table->locationTypeLabel() }} {{ $table->table_number }}" class="h-56 w-56 contrast-125" data-print-resource width="224" height="224">
             </div>
             <p class="mt-3 text-5xl font-black">{{ $table->displayLabel() }}</p>
             <p class="mt-2 break-all text-xs font-semibold text-neutral-600">{{ $menuUrl }}</p>
             <div class="mt-4 flex items-center justify-center gap-2 border-t border-neutral-200 pt-3 w-full">
-                <span class="text-sm font-semibold text-neutral-500">Powered by</span>
-                <img src="{{ asset('logo/zemtab-pantone-1795-c-icon-text-transparent.png') }}" alt="ZemTab" class="h-8 w-auto">
+                <span class="text-base font-semibold text-neutral-500">Powered by</span>
+                <img src="{{ asset('logo/zemtab-pantone-1795-c-icon-text-transparent.png') }}" alt="ZemTab" class="h-10 w-auto">
             </div>
         </article>
     @empty
