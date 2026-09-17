@@ -29,7 +29,7 @@
         <h1 class="text-2xl font-black text-black">{{ $restaurant->name }} QR setup pack</h1>
         <p class="text-sm font-semibold text-neutral-800">Print this page — 6 QR cards per A3 page.</p>
     </div>
-    <button onclick="window.print()" class="rounded-lg bg-black px-5 py-3 font-bold text-white">Print setup pack</button>
+    <button type="button" onclick="printSetupPack()" class="rounded-lg bg-black px-5 py-3 font-bold text-white">Print setup pack</button>
 </div>
 
 <main class="grid gap-4 sm:grid-cols-2 max-w-4xl mx-auto">
@@ -44,7 +44,7 @@
             </div>
             <p class="scan-label mt-3 text-lg font-black uppercase tracking-[.2em]" style="color: {{ $accentColor }}">{{ $table->scanInstruction() }}</p>
             <div class="mt-3 grid place-items-center">
-                <img src="{{ $qrImages[$table->id] }}" alt="QR code for {{ $table->locationTypeLabel() }} {{ $table->table_number }}" class="h-48 w-48 contrast-125">
+                <img src="{{ route('restaurant.tables.qr', $table) }}" alt="QR code for {{ $table->locationTypeLabel() }} {{ $table->table_number }}" class="h-48 w-48 contrast-125" data-print-resource width="192" height="192">
             </div>
             <p class="mt-3 text-5xl font-black">{{ $table->displayLabel() }}</p>
             <p class="mt-2 break-all text-xs font-semibold text-neutral-600">{{ $menuUrl }}</p>
@@ -57,5 +57,21 @@
         <p class="rounded-xl bg-white p-5 font-semibold text-neutral-900 col-span-2">No active tables or rooms are available for this setup pack.</p>
     @endforelse
 </main>
+<script>
+    async function printSetupPack() {
+        const resources = Array.from(document.querySelectorAll('[data-print-resource]'));
+
+        await Promise.all(resources.map((resource) => {
+            if (resource.complete) return Promise.resolve();
+
+            return new Promise((resolve) => {
+                resource.addEventListener('load', resolve, { once: true });
+                resource.addEventListener('error', resolve, { once: true });
+            });
+        }));
+
+        window.print();
+    }
+</script>
 </body>
 </html>

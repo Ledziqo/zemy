@@ -22,23 +22,10 @@ class TableController extends Controller
     public function setupPack(Request $request)
     {
         $restaurant = $this->restaurant($request);
-        $tables = $restaurant->tables()
-            ->where('is_active', true)
-            ->orderByRaw('CAST(table_number AS UNSIGNED)')
-            ->get();
-
-        // Embed the QR SVGs in the print document so the browser cannot take
-        // its print snapshot before the authenticated image requests finish.
-        $qrImages = $tables->mapWithKeys(function (RestaurantTable $table) use ($restaurant) {
-            $result = $this->buildQr($restaurant, $table);
-
-            return [$table->id => 'data:'.$result->getMimeType().';base64,'.base64_encode($result->getString())];
-        });
 
         return view('restaurant.tables.setup_pack', [
             'restaurant' => $restaurant,
-            'tables' => $tables,
-            'qrImages' => $qrImages,
+            'tables' => $restaurant->tables()->where('is_active', true)->orderByRaw('CAST(table_number AS UNSIGNED)')->get(),
         ]);
     }
 
