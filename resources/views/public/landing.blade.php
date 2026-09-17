@@ -30,14 +30,28 @@
                 <a class="transition hover:text-zem-gold" href="#demo">{{ __('Demo') }}</a>
             </nav>
             <div class="flex items-center gap-3 md:hidden">
-                <form method="post" action="{{ route('locale.update') }}">@csrf<input type="hidden" name="locale" value="{{ app()->getLocale() === 'am' ? 'en' : 'am' }}"><button class="rounded-lg border border-zem-border px-2 py-2 text-xs font-extrabold">{{ app()->getLocale() === 'am' ? 'EN' : 'አማ' }}</button></form>
+                <form method="post" action="{{ route('locale.update') }}">@csrf
+                    <label for="landing-locale-mobile" class="sr-only">{{ __('Language') }}</label>
+                    <select id="landing-locale-mobile" name="locale" onchange="this.form.submit()" class="rounded-lg border border-zem-border bg-white px-2 py-2 text-xs font-extrabold text-zem-cream">
+                        @foreach (['en' => 'English', 'am' => 'አማርኛ', 'ar' => 'العربية', 'zh' => '中文'] as $localeCode => $localeName)
+                            <option value="{{ $localeCode }}" @selected(app()->getLocale() === $localeCode)>{{ $localeName }}</option>
+                        @endforeach
+                    </select>
+                </form>
                 <a href="#demo" class="rounded-lg bg-zem-gold px-3 py-2 text-xs font-extrabold text-white">{{ __('Demo') }}</a>
                 <button id="mobile-menu-toggle" class="rounded-lg border border-zem-border p-2 text-zem-cream" aria-label="Open menu" aria-expanded="false" aria-controls="mobile-menu">
                     <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M4 6h16M4 12h16M4 18h16"/></svg>
                 </button>
             </div>
             <div class="hidden items-center gap-3 md:flex">
-                <form method="post" action="{{ route('locale.update') }}">@csrf<input type="hidden" name="locale" value="{{ app()->getLocale() === 'am' ? 'en' : 'am' }}"><button class="rounded-lg border border-zem-border px-3 py-2 text-sm font-extrabold text-zem-muted">{{ app()->getLocale() === 'am' ? 'English' : 'አማርኛ' }}</button></form>
+                <form method="post" action="{{ route('locale.update') }}">@csrf
+                    <label for="landing-locale" class="sr-only">{{ __('Language') }}</label>
+                    <select id="landing-locale" name="locale" onchange="this.form.submit()" class="rounded-lg border border-zem-border bg-white px-3 py-2 text-sm font-extrabold text-zem-muted">
+                        @foreach (['en' => 'English', 'am' => 'አማርኛ', 'ar' => 'العربية', 'zh' => '中文'] as $localeCode => $localeName)
+                            <option value="{{ $localeCode }}" @selected(app()->getLocale() === $localeCode)>{{ $localeName }}</option>
+                        @endforeach
+                    </select>
+                </form>
                 <a href="{{ route('login') }}" class="rounded-lg border border-zem-border px-4 py-2 text-sm font-extrabold text-zem-cream transition hover:border-zem-gold hover:bg-zem-gold/10">{{ __('Login') }}</a>
                 <a href="#demo" class="rounded-lg bg-zem-charcoal px-4 py-2 text-sm font-extrabold text-white transition hover:bg-zem-gold">{{ __('Request Demo') }}</a>
             </div>

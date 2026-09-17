@@ -31,7 +31,7 @@
     <meta property="og:title" content="{{ $title ?? 'ZemTab' }}">
     <meta property="og:description" content="{{ $description ?? 'ZemTab is a modern QR menu, table ordering, waiter request, and restaurant dashboard system built for restaurants in Ethiopia. Scan. Order. Pay.' }}">
     <meta property="og:image" content="{{ $ogImage ?? asset('logo/zemtab-pantone-1795-c-icon-text-transparent.png') }}">
-    <meta property="og:locale" content="{{ app()->getLocale() === 'am' ? 'am_ET' : 'en_ET' }}">
+    <meta property="og:locale" content="{{ ['am' => 'am_ET', 'ar' => 'ar_SA', 'zh' => 'zh_CN'][app()->getLocale()] ?? 'en_ET' }}">
     <meta property="og:site_name" content="ZemTab">
 
     {{-- Twitter Card --}}
