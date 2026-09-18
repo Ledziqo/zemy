@@ -1,0 +1,101 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="900" viewBox="0 0 1600 900" role="img" aria-labelledby="title desc">
+  <title id="title">ZemTab Launch Readiness Report</title>
+  <desc id="desc">Production stress testing report for ZemTab restaurant and hotel operations.</desc>
+  <rect width="1600" height="900" fill="#0b0b0b"/>
+  <style>
+    .sans { font-family: Inter, Arial, sans-serif; fill: #f5f5f5; }
+    .muted { fill: #a9a9a9; }
+    .red { fill: #ed1c24; }
+    .label { font-size: 14px; letter-spacing: 2.5px; }
+    .small { font-size: 16px; }
+    .body { font-size: 20px; }
+    .metric { font-size: 42px; font-weight: 700; }
+    .headline { font-size: 72px; font-weight: 700; letter-spacing: -2px; }
+    .title { font-size: 42px; font-weight: 700; letter-spacing: -1px; }
+    .section { font-size: 20px; font-weight: 700; letter-spacing: 1.3px; }
+    .panel { fill: #151515; stroke: #373737; stroke-width: 1.5; }
+    .rule { stroke: #404040; stroke-width: 1; }
+    .accent-rule { stroke: #ed1c24; stroke-width: 3; }
+  </style>
+
+  <!-- Header -->
+  <text x="48" y="105" class="sans" font-size="58" font-weight="700" letter-spacing="-3">Zem<tspan class="red">Tab</tspan></text>
+  <text x="50" y="132" class="sans muted" font-size="8" letter-spacing="1.1">RESTAURANT &amp; HOTEL OPERATIONS PLATFORM</text>
+  <line x1="410" y1="38" x2="410" y2="148" class="accent-rule"/>
+  <text x="450" y="82" class="sans title">ZemTab Launch Readiness Report</text>
+  <text x="452" y="119" class="sans body muted">Production stress testing  ·  17 September 2026</text>
+  <line x1="46" y1="176" x2="1554" y2="176" class="rule"/>
+
+  <!-- KPI panel -->
+  <rect x="46" y="204" width="430" height="286" rx="3" class="panel"/>
+  <text x="74" y="244" class="sans label muted">PRODUCTION STRESS TEST</text>
+  <text x="74" y="343" class="sans headline">100</text>
+  <text x="76" y="385" class="sans" font-size="28" font-weight="700" letter-spacing="-0.6">restaurants/hotels verified</text>
+  <line x1="76" y1="411" x2="446" y2="411" class="accent-rule"/>
+  <text x="76" y="453" class="sans body">1,070 requests  ·  0 real errors</text>
+
+  <!-- Metrics panel -->
+  <rect x="500" y="204" width="650" height="286" rx="3" class="panel"/>
+  <text x="530" y="244" class="sans section">PERFORMANCE METRICS</text>
+  <text x="1118" y="244" text-anchor="end" class="sans label muted">OBSERVED IN PRODUCTION</text>
+  <line x1="530" y1="264" x2="1120" y2="264" class="rule"/>
+  <text x="548" y="300" class="sans small muted">Poll average</text>
+  <text x="548" y="344" class="sans metric">548 ms</text>
+  <text x="765" y="300" class="sans small muted">Poll p95</text>
+  <text x="765" y="344" class="sans metric">1,257 ms</text>
+  <text x="978" y="300" class="sans small muted">Poll p99</text>
+  <text x="978" y="344" class="sans metric">1,385 ms</text>
+  <line x1="530" y1="370" x2="1120" y2="370" class="rule"/>
+  <text x="548" y="402" class="sans small muted">Response-time distribution across the live polling window</text>
+  <line x1="552" y1="452" x2="1110" y2="452" class="rule"/>
+  <line x1="552" y1="410" x2="552" y2="452" class="rule"/>
+  <polyline points="552,435 590,432 628,434 666,430 704,432 742,429 780,431 818,428 856,430 894,427 932,429 970,426 1008,428 1046,425 1084,427 1110,424" fill="none" stroke="#f5f5f5" stroke-width="2"/>
+  <polyline points="552,420 590,416 628,418 666,413 704,416 742,411 780,414 818,409 856,412 894,408 932,410 970,406 1008,409 1046,405 1084,407 1110,404" fill="none" stroke="#ed1c24" stroke-width="2"/>
+  <text x="552" y="476" class="sans small muted">Average</text>
+  <text x="620" y="476" class="sans small red">p95 / p99</text>
+
+  <!-- Coverage panel -->
+  <rect x="1174" y="204" width="380" height="286" rx="3" class="panel"/>
+  <text x="1204" y="244" class="sans section">TEST COVERAGE</text>
+  <line x1="1204" y1="264" x2="1524" y2="264" class="rule"/>
+  <circle cx="1222" cy="299" r="9" fill="none" stroke="#ed1c24" stroke-width="2"/><path d="M1217 299l4 4 7-9" fill="none" stroke="#ed1c24" stroke-width="2"/>
+  <text x="1245" y="306" class="sans small">Authenticated profiles</text>
+  <circle cx="1222" cy="344" r="9" fill="none" stroke="#ed1c24" stroke-width="2"/><path d="M1217 344l4 4 7-9" fill="none" stroke="#ed1c24" stroke-width="2"/>
+  <text x="1245" y="351" class="sans small">Work Board polling every 15 seconds</text>
+  <circle cx="1222" cy="389" r="9" fill="none" stroke="#ed1c24" stroke-width="2"/><path d="M1217 389l4 4 7-9" fill="none" stroke="#ed1c24" stroke-width="2"/>
+  <text x="1245" y="396" class="sans small">Guest QR/menu scans</text>
+  <circle cx="1222" cy="434" r="9" fill="none" stroke="#ed1c24" stroke-width="2"/><path d="M1217 434l4 4 7-9" fill="none" stroke="#ed1c24" stroke-width="2"/>
+  <text x="1245" y="441" class="sans small">Synthetic order creation</text>
+
+  <!-- Ramp -->
+  <rect x="46" y="520" width="1508" height="148" rx="3" class="panel"/>
+  <text x="76" y="559" class="sans section">LOAD RAMP TIMELINE</text>
+  <text x="1524" y="559" text-anchor="end" class="sans label muted">ALL CHECKPOINTS PASSED</text>
+  <line x1="98" y1="601" x2="1498" y2="601" class="accent-rule"/>
+  <g class="sans small" text-anchor="middle">
+    <circle cx="98" cy="601" r="10" fill="#0b0b0b" stroke="#ed1c24" stroke-width="3"/><text x="98" y="635">10</text><text x="98" y="654" class="muted">PASS</text>
+    <circle cx="254" cy="601" r="10" fill="#0b0b0b" stroke="#ed1c24" stroke-width="3"/><text x="254" y="635">20</text><text x="254" y="654" class="muted">PASS</text>
+    <circle cx="410" cy="601" r="10" fill="#0b0b0b" stroke="#ed1c24" stroke-width="3"/><text x="410" y="635">30</text><text x="410" y="654" class="muted">PASS</text>
+    <circle cx="566" cy="601" r="10" fill="#0b0b0b" stroke="#ed1c24" stroke-width="3"/><text x="566" y="635">40</text><text x="566" y="654" class="muted">PASS</text>
+    <circle cx="722" cy="601" r="10" fill="#0b0b0b" stroke="#ed1c24" stroke-width="3"/><text x="722" y="635">50</text><text x="722" y="654" class="muted">PASS</text>
+    <circle cx="878" cy="601" r="10" fill="#0b0b0b" stroke="#ed1c24" stroke-width="3"/><text x="878" y="635">60</text><text x="878" y="654" class="muted">PASS</text>
+    <circle cx="1034" cy="601" r="10" fill="#0b0b0b" stroke="#ed1c24" stroke-width="3"/><text x="1034" y="635">70</text><text x="1034" y="654" class="muted">PASS</text>
+    <circle cx="1190" cy="601" r="10" fill="#0b0b0b" stroke="#ed1c24" stroke-width="3"/><text x="1190" y="635">80</text><text x="1190" y="654" class="muted">PASS</text>
+    <circle cx="1346" cy="601" r="10" fill="#0b0b0b" stroke="#ed1c24" stroke-width="3"/><text x="1346" y="635">90</text><text x="1346" y="654" class="muted">PASS</text>
+    <circle cx="1498" cy="601" r="13" fill="#ed1c24"/><text x="1498" y="635">100</text><text x="1498" y="654" class="muted">PASS</text>
+  </g>
+
+  <!-- Conclusion -->
+  <rect x="46" y="698" width="1508" height="142" rx="3" fill="#111111" stroke="#ed1c24" stroke-width="1.5"/>
+  <text x="76" y="737" class="sans section">CONCLUSION</text>
+  <line x1="76" y1="754" x2="1524" y2="754" class="rule"/>
+  <text x="76" y="785" class="sans label muted">VERIFIED CAPACITY</text>
+  <text x="76" y="820" class="sans metric">100 restaurants/hotels</text>
+  <line x1="610" y1="775" x2="610" y2="824" class="rule"/>
+  <text x="650" y="785" class="sans label muted">CONSERVATIVE LAUNCH RECOMMENDATION</text>
+  <text x="650" y="820" class="sans metric">75 restaurants/hotels</text>
+  <line x1="1150" y1="775" x2="1150" y2="824" class="rule"/>
+  <text x="1190" y="785" class="sans body">No 500 / 502 / 503 errors</text>
+  <text x="1190" y="817" class="sans body muted">or timeouts observed.</text>
+  <text x="46" y="874" class="sans small muted">Method note: staged authentication, live Work Board polling, guest menu scans, and synthetic orders. Synthetic tenants remain disposable.</text>
+</svg>
