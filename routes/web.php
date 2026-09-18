@@ -96,6 +96,7 @@ Route::middleware(['auth', 'role:admin', 'locale'])->prefix('admin')->name('admi
     Route::get('/dashboard', [Admin\DashboardController::class, 'index'])->name('dashboard');
     Route::get('/database', [Admin\DashboardController::class, 'database'])->name('database');
     Route::post('/setup-run', [SetupController::class, 'run'])->name('setup.run');
+    Route::post('/database/menu-refresh', [SetupController::class, 'refreshTulipMenu'])->name('database.menu-refresh');
     Route::patch('/restaurants/{restaurant}/password', [Admin\RestaurantController::class, 'updatePassword'])->name('restaurants.password.update');
     Route::post('/restaurants/{restaurant}/staff-profiles', [Admin\StaffProfileController::class, 'store'])->name('restaurants.staff-profiles.store');
     Route::patch('/restaurants/{restaurant}/staff-profiles/{staffProfile}', [Admin\StaffProfileController::class, 'update'])->name('restaurants.staff-profiles.update');

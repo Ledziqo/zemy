@@ -29,8 +29,13 @@
             <input type="checkbox" name="seed_demo_data" value="1" class="mt-1 rounded border-zem-border">
             <span>Also refresh demo/admin seed data (normally leave this unchecked in production).</span>
         </label>
-        <button class="mt-4 rounded-md bg-zem-gold px-5 py-3 font-bold text-white">Run database maintenance</button>
+        <div class="mt-4 flex flex-wrap gap-3">
+            <button name="maintenance" value="1" class="rounded-md bg-zem-gold px-5 py-3 font-bold text-white">Run database maintenance</button>
+            <button formaction="{{ route('admin.database.menu-refresh') }}" class="rounded-md border border-emerald-400/50 bg-emerald-400/10 px-5 py-3 font-bold text-emerald-200">Apply Tulip Olympia menu update</button>
+        </div>
     </form>
+
+    <p class="mt-3 text-xs text-zem-muted">Use the green button after the latest code and menu images are deployed. It applies the pending menu migration and clears caches; it does not seed demo data.</p>
 
     @if(session('setup_output'))
         <div class="mt-4 rounded-md border border-zem-border bg-zem-bg p-4">

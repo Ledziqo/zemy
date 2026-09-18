@@ -126,6 +126,28 @@ class SetupController extends Controller
         $output[] = 'Stress test restaurants, users, orders, and related data removed.';
     }
 
+    public function refreshTulipMenu(Request $request)
+    {
+        abort_unless($request->user()?->role === 'admin', 403);
+
+        $output = [];
+        $this->applySubmittedDatabaseConfig($request, $output);
+
+        try {
+            $output[] = 'Applying the Tulip Olympia menu update...';
+            Artisan::call('migrate', ['--force' => true]);
+            $output[] = Artisan::output();
+
+            $output[] = 'Clearing cached config/routes/views...';
+            Artisan::call('optimize:clear');
+            $output[] = Artisan::output();
+
+            return redirect()->route('admin.database')->with('setup_output', trim(implode("\n", $output)));
+        } catch (Throwable $exception) {
+            return redirect()->route('admin.database')->with('setup_output', $this->friendlyError($exception));
+        }
+    }
+
     private function setStressTestMode(bool $enabled, array &$output): void
     {
         if (! $this->updateEnv(['STRESS_TEST_ALLOW_PRODUCTION' => $enabled ? 'true' : 'false'])) {
