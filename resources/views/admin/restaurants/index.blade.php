@@ -74,7 +74,7 @@
                     </select>
                     <label class="flex items-center gap-2 rounded-md border border-zem-border px-3 py-2"><input name="kitchen_screen_enabled" type="checkbox" value="1" @checked($restaurant->kitchenScreenEnabled()) class="accent-zem-gold"> Kitchen screen enabled</label>
                     <input name="phone" value="{{ $restaurant->phone }}" class="rounded-md border border-zem-border bg-zem-card px-3 py-2">
-                    <input name="email" value="{{ $restaurant->email }}" class="rounded-md border border-zem-border bg-zem-card px-3 py-2">
+                    <input name="email" type="email" value="{{ $restaurant->email }}" class="rounded-md border border-zem-border bg-zem-card px-3 py-2">
                     <input name="owner_password" type="password" minlength="8" placeholder="New main login password (optional)" class="rounded-md border border-zem-border bg-zem-card px-3 py-2">
                     <input name="location" value="{{ $restaurant->location }}" class="rounded-md border border-zem-border bg-zem-card px-3 py-2">
                     <label class="flex items-center gap-2"><input name="is_active" type="checkbox" value="1" @checked($restaurant->is_active) class="accent-zem-gold"> Public account active</label>

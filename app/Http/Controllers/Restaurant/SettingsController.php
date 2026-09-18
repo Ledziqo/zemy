@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Support\ImageOptimizer;
 use App\Support\PublicMenuCache;
 use Illuminate\Http\Request;
+use Illuminate\Validation\Rule;
 
 class SettingsController extends Controller
 {
@@ -23,6 +24,7 @@ class SettingsController extends Controller
             'slug' => ['required', 'alpha_dash', 'max:255', 'unique:restaurants,slug,'.$restaurant->id],
             'phone' => ['nullable', 'string', 'max:50'],
             'location' => ['nullable', 'string', 'max:255'],
+            'email' => ['required', 'email', 'max:255', Rule::unique('users', 'email')->ignore($request->user()->id)],
             'logo_path' => ['nullable', 'string', 'max:255'],
             'logo' => ['nullable', 'image', 'max:4096'],
             'cropped_logo' => ['nullable', 'string', 'max:5600000'],
@@ -41,9 +43,29 @@ class SettingsController extends Controller
             'awash_qr' => ['nullable', 'image', 'max:4096'],
             'abyssinia_qr' => ['nullable', 'image', 'max:4096'],
             'kitchen_screen_enabled' => ['nullable', 'boolean'],
+            'sticker_background_color' => ['required', 'regex:/^#[0-9A-Fa-f]{6}$/'],
+            'sticker_border_color' => ['required', 'regex:/^#[0-9A-Fa-f]{6}$/'],
+            'sticker_text_color' => ['required', 'regex:/^#[0-9A-Fa-f]{6}$/'],
+            'sticker_accent_color' => ['required', 'regex:/^#[0-9A-Fa-f]{6}$/'],
+            'sticker_qr_color' => ['required', 'regex:/^#[0-9A-Fa-f]{6}$/'],
+            'sticker_qr_background_color' => ['required', 'regex:/^#[0-9A-Fa-f]{6}$/'],
+            'sticker_design' => ['required', 'in:classic,rounded,bold'],
+            'sticker_table_scan_text' => ['required', 'string', 'max:80'],
+            'sticker_room_scan_text' => ['required', 'string', 'max:80'],
         ]);
 
         $settings = $restaurant->settings ?? [];
+        $stickerSettings = [
+            'background_color' => $data['sticker_background_color'],
+            'border_color' => $data['sticker_border_color'],
+            'text_color' => $data['sticker_text_color'],
+            'accent_color' => $data['sticker_accent_color'],
+            'qr_color' => $data['sticker_qr_color'],
+            'qr_background_color' => $data['sticker_qr_background_color'],
+            'design' => $data['sticker_design'],
+            'table_scan_text' => $data['sticker_table_scan_text'],
+            'room_scan_text' => $data['sticker_room_scan_text'],
+        ];
         if ($request->filled('cropped_logo')) {
             $data['logo_path'] = ImageOptimizer::storeDataUrl((string) $request->input('cropped_logo'), 'restaurants', 600);
         } elseif ($request->hasFile('logo')) {
@@ -67,8 +89,9 @@ class SettingsController extends Controller
         }
 
         $restaurant->update([
-            ...collect($data)->except(['service_charge_percentage', 'vat_percentage', 'payment_methods', 'telebirr_number', 'cbe_account_number', 'awash_account_number', 'abyssinia_account_number', 'telebirr_qr', 'telebirr_qr_path', 'cbe_qr', 'cbe_qr_path', 'awash_qr', 'awash_qr_path', 'abyssinia_qr', 'abyssinia_qr_path', 'logo', 'cropped_logo'])->all(),
+            ...collect($data)->except(['service_charge_percentage', 'vat_percentage', 'payment_methods', 'telebirr_number', 'cbe_account_number', 'awash_account_number', 'abyssinia_account_number', 'telebirr_qr', 'telebirr_qr_path', 'cbe_qr', 'cbe_qr_path', 'awash_qr', 'awash_qr_path', 'abyssinia_qr', 'abyssinia_qr_path', 'logo', 'cropped_logo', 'sticker_background_color', 'sticker_border_color', 'sticker_text_color', 'sticker_accent_color', 'sticker_qr_color', 'sticker_qr_background_color', 'sticker_design', 'sticker_table_scan_text', 'sticker_room_scan_text'])->all(),
             'settings' => array_merge($settings, [
+                'qr_sticker' => array_merge($settings['qr_sticker'] ?? [], $stickerSettings),
                 'service_charge_percentage' => $data['service_charge_percentage'] ?? 0,
                 'vat_percentage' => $data['vat_percentage'] ?? 0,
                 'payment_methods' => array_values($data['payment_methods'] ?? []),
@@ -82,6 +105,8 @@ class SettingsController extends Controller
                 'abyssinia_qr_path' => $data['abyssinia_qr_path'] ?? ($settings['abyssinia_qr_path'] ?? null),
             ]),
         ]);
+
+        $request->user()->update(['email' => $data['email']]);
 
         if ($isOwnerManager) {
             $restaurant->update(['kitchen_screen_enabled' => $request->boolean('kitchen_screen_enabled')]);

@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Restaurant;
 use App\Http\Controllers\Controller;
 use App\Models\RestaurantTable;
 use App\Support\PublicMenuCache;
+use Endroid\QrCode\Color\Color;
 use Endroid\QrCode\Builder\Builder;
 use Endroid\QrCode\Writer\SvgWriter;
 use Illuminate\Http\Request;
@@ -23,11 +24,12 @@ class TableController extends Controller
     {
         $restaurant = $this->restaurant($request);
         $tables = $restaurant->tables()->where('is_active', true)->orderByRaw('CAST(table_number AS UNSIGNED)')->get();
+        $sticker = array_merge($this->defaultStickerSettings(), $restaurant->settings['qr_sticker'] ?? []);
 
         // Reuse the page's database connection; separate authenticated QR
         // requests consume the host's hourly connection allowance per image.
         $qrImages = $tables->mapWithKeys(fn (RestaurantTable $table) => [
-            $table->id => $this->buildQr($restaurant, $table)->getDataUri(),
+            $table->id => 'data:image/svg+xml;base64,'.base64_encode($this->buildQr($restaurant, $table)->getString()),
         ]);
         $tables->each(fn (RestaurantTable $table) => $table->setRelation('restaurant', $restaurant));
 
@@ -35,6 +37,7 @@ class TableController extends Controller
             'restaurant' => $restaurant,
             'tables' => $tables,
             'qrImages' => $qrImages,
+            'sticker' => $sticker,
         ]);
     }
 
@@ -79,12 +82,44 @@ class TableController extends Controller
 
     private function buildQr($restaurant, RestaurantTable $table)
     {
+        $sticker = array_merge($this->defaultStickerSettings(), $restaurant->settings['qr_sticker'] ?? []);
+
         return (new Builder(
             writer: new SvgWriter(),
             data: route('menu.show', [$restaurant->slug, $table->table_number]),
             size: 500,
             margin: 20,
+            foregroundColor: $this->qrColor($sticker['qr_color']),
+            backgroundColor: $this->qrColor($sticker['qr_background_color']),
         ))->build();
+    }
+
+    private function qrColor(string $hex): Color
+    {
+        if (! preg_match('/^#[0-9A-Fa-f]{6}$/', $hex)) {
+            $hex = '#111111';
+        }
+
+        return new Color(
+            hexdec(substr($hex, 1, 2)),
+            hexdec(substr($hex, 3, 2)),
+            hexdec(substr($hex, 5, 2)),
+        );
+    }
+
+    private function defaultStickerSettings(): array
+    {
+        return [
+            'background_color' => '#FFFFFF',
+            'border_color' => '#111111',
+            'text_color' => '#111111',
+            'accent_color' => '#D22630',
+            'qr_color' => '#111111',
+            'qr_background_color' => '#FFFFFF',
+            'design' => 'classic',
+            'table_scan_text' => 'SCAN TO ORDER',
+            'room_scan_text' => 'SCAN FOR ROOM SERVICE',
+        ];
     }
 
     private function validated(Request $request): array
