@@ -92,6 +92,7 @@ class DashboardController extends Controller
     public function database()
     {
         return view('admin.database', [
+            'restaurants' => Restaurant::query()->orderBy('name')->get(['id', 'name', 'slug']),
             'stressTestEnabled' => ! app()->environment('production') || (bool) config('stress.allow_production', false),
             'stressBatchSize' => (int) config('stress.batch_size', 10),
             'stressMaxRestaurants' => (int) config('stress.max_restaurants', 150),

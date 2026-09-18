@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\Restaurant;
 use App\Models\User;
+use App\Support\EmailValidation;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
@@ -25,7 +26,7 @@ class UserController extends Controller
     {
         $data = $request->validate([
             'name' => ['required', 'string', 'max:255'],
-            'email' => ['required', 'email', 'unique:users,email'],
+            'email' => array_merge(EmailValidation::rules(), ['unique:users,email']),
             'password' => ['required', 'min:6'],
             'role' => ['required', 'in:admin,restaurant_owner,staff'],
             'restaurant_id' => [
@@ -57,7 +58,7 @@ class UserController extends Controller
     {
         $data = $request->validate([
             'name' => ['required', 'string', 'max:255'],
-            'email' => ['required', 'email', Rule::unique('users', 'email')->ignore($user->id)],
+            'email' => array_merge(EmailValidation::rules(), [Rule::unique('users', 'email')->ignore($user->id)]),
             'password' => ['nullable', 'string', 'min:6'],
             'role' => ['required', 'in:admin,restaurant_owner,staff'],
             'restaurant_id' => [

@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Restaurant;
 use App\Models\Subscription;
 use App\Models\User;
+use App\Support\EmailValidation;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
@@ -186,7 +187,7 @@ class RestaurantController extends Controller
 
     private function validated(Request $request, ?int $restaurantId = null): array
     {
-        $emailRules = ['nullable', 'email', 'max:255'];
+        $emailRules = EmailValidation::rules(false);
         if ($restaurantId === null) {
             $emailRules[] = 'required_with:owner_password';
             $emailRules[] = Rule::unique('users', 'email');

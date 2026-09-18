@@ -31,15 +31,43 @@
         </label>
         <div class="mt-4 flex flex-wrap gap-3">
             <button name="maintenance" value="1" class="rounded-md bg-zem-gold px-5 py-3 font-bold text-white">Run database maintenance</button>
-            <button formaction="{{ route('admin.database.menu-refresh') }}" class="rounded-md border border-emerald-400/50 bg-emerald-400/10 px-5 py-3 font-bold text-emerald-200">Apply Tulip Olympia menu update</button>
         </div>
     </form>
 
-    <p class="mt-3 text-xs text-zem-muted">Use the green button after the latest code and menu images are deployed. It applies the pending menu migration and clears caches; it does not seed demo data.</p>
+    <p class="mt-3 text-xs text-zem-muted">Run this after deploying code updates. For a complete menu replacement, use the import package below.</p>
 
     @if(session('setup_output'))
         <div class="mt-4 rounded-md border border-zem-border bg-zem-bg p-4">
             <pre class="whitespace-pre-wrap text-sm text-zem-muted">{{ session('setup_output') }}</pre>
+        </div>
+    @endif
+</div>
+
+<div class="mt-6 max-w-3xl rounded-md border border-emerald-400/40 bg-zem-card p-5">
+    <h2 class="font-display text-xl font-bold">Replace menu from import package</h2>
+    <p class="mt-1 text-sm text-zem-muted">Upload the ZemTab ZIP package supplied for a restaurant. It replaces that restaurant's categories, descriptions, prices, availability, and photos in one transaction. Existing orders, tables, and users are preserved.</p>
+
+    <form method="post" action="{{ route('admin.menu-import.store') }}" enctype="multipart/form-data" class="mt-5 grid gap-3 md:grid-cols-2" onsubmit="return confirm('Replace this restaurant menu completely from the uploaded package? Existing menu categories and items will be replaced.');">
+        @csrf
+        <label class="grid gap-1 text-sm">
+            <span class="font-bold text-zem-muted">Restaurant</span>
+            <select name="restaurant_id" required class="rounded-md border border-zem-border bg-zem-bg px-3 py-2">
+                <option value="">Choose restaurant</option>
+                @foreach($restaurants as $restaurant)
+                    <option value="{{ $restaurant->id }}">{{ $restaurant->name }} ({{ $restaurant->slug }})</option>
+                @endforeach
+            </select>
+        </label>
+        <label class="grid gap-1 text-sm">
+            <span class="font-bold text-zem-muted">Menu package ZIP</span>
+            <input name="menu_package" type="file" accept=".zip,application/zip" required class="rounded-md border border-zem-border bg-zem-bg px-3 py-2 text-sm">
+        </label>
+        <button class="rounded-md bg-emerald-500 px-5 py-3 font-bold text-black md:col-span-2">Import and replace menu</button>
+    </form>
+
+    @if(session('menu_import_output'))
+        <div class="mt-4 rounded-md border border-emerald-400/40 bg-emerald-400/10 p-4">
+            <pre class="whitespace-pre-wrap text-sm text-emerald-100">{{ session('menu_import_output') }}</pre>
         </div>
     @endif
 </div>

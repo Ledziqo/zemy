@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\DemoRequest;
 use App\Models\Restaurant;
+use App\Support\EmailValidation;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Response;
 use Illuminate\Support\Facades\Schema;
@@ -23,7 +24,7 @@ class PublicController extends Controller
             'restaurant_name' => ['required', 'string', 'max:255'],
             'business_type' => ['required', Rule::in(['restaurant', 'hotel'])],
             'phone' => ['required', 'string', 'max:50'],
-            'email' => ['nullable', 'email', 'max:255'],
+            'email' => EmailValidation::rules(false),
             'location' => ['nullable', 'string', 'max:255'],
             'message' => ['nullable', 'string', 'max:2000'],
         ]);

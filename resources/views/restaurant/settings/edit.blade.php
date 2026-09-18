@@ -45,7 +45,7 @@
     </label>
     <fieldset class="rounded-md border border-zem-border bg-zem-bg p-4 md:col-span-2 xl:col-span-3">
         <legend class="px-2 text-sm font-bold text-zem-gold">QR sticker design</legend>
-        <p class="text-xs text-zem-muted">Customize the 6-up landscape A3 stickers. Keep the QR color dark enough to scan against its background.</p>
+        <p class="text-xs text-zem-muted">Customize the 9-up landscape A3 stickers. Keep the QR color dark enough to scan against its background.</p>
         <div class="mt-3 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
             <label class="grid gap-1 text-xs font-semibold text-zem-muted">Sticker background <input name="sticker_background_color" value="{{ $sticker['background_color'] }}" type="color" class="h-10 w-full cursor-pointer rounded border border-zem-border bg-zem-card p-1"></label>
             <label class="grid gap-1 text-xs font-semibold text-zem-muted">Border color <input name="sticker_border_color" value="{{ $sticker['border_color'] }}" type="color" class="h-10 w-full cursor-pointer rounded border border-zem-border bg-zem-card p-1"></label>

@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Restaurant;
 
 use App\Http\Controllers\Controller;
 use App\Support\ImageOptimizer;
+use App\Support\EmailValidation;
 use App\Support\PublicMenuCache;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
@@ -24,7 +25,7 @@ class SettingsController extends Controller
             'slug' => ['required', 'alpha_dash', 'max:255', 'unique:restaurants,slug,'.$restaurant->id],
             'phone' => ['nullable', 'string', 'max:50'],
             'location' => ['nullable', 'string', 'max:255'],
-            'email' => ['required', 'email', 'max:255', Rule::unique('users', 'email')->ignore($request->user()->id)],
+            'email' => array_merge(EmailValidation::rules(), [Rule::unique('users', 'email')->ignore($request->user()->id)]),
             'logo_path' => ['nullable', 'string', 'max:255'],
             'logo' => ['nullable', 'image', 'max:4096'],
             'cropped_logo' => ['nullable', 'string', 'max:5600000'],

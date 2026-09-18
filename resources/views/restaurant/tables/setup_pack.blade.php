@@ -26,7 +26,7 @@
             .qr-page {
                 display: grid !important;
                 grid-template-columns: repeat(3, 140mm) !important;
-                grid-template-rows: repeat(2, 148.5mm) !important;
+                grid-template-rows: repeat(3, 99mm) !important;
                 gap: 0 !important;
                 width: 420mm !important;
                 height: 297mm !important;
@@ -37,9 +37,9 @@
             .qr-card {
                 box-sizing: border-box;
                 width: 140mm;
-                height: 148.5mm;
+                height: 99mm;
                 min-height: 0 !important;
-                padding: 8mm !important;
+                padding: 4mm !important;
                 break-inside: avoid;
                 page-break-inside: avoid;
                 box-shadow: none !important;
@@ -48,14 +48,14 @@
                 justify-content: flex-start !important;
                 gap: 2mm;
             }
-            .qr-brand-logo { width: 22mm !important; height: 18mm !important; }
-            .qr-brand-name { font-size: 17pt !important; }
-            .scan-label { margin-top: 3mm !important; font-size: 10pt !important; }
-            .qr-image { width: 54mm !important; height: 54mm !important; margin: 2mm 0 !important; }
-            .qr-type { font-size: 11pt !important; letter-spacing: .12em; }
-            .qr-location { margin-top: 1mm !important; font-size: 22pt !important; line-height: 1.05 !important; }
-            .qr-url { margin-top: 3mm !important; font-size: 7pt !important; }
-            .qr-footer { margin-top: auto !important; padding-top: 2mm !important; }
+            .qr-brand-logo { width: 16mm !important; height: 12mm !important; }
+            .qr-brand-name { font-size: 11pt !important; }
+            .scan-label { margin-top: 1mm !important; font-size: 7pt !important; }
+            .qr-image { width: 35mm !important; height: 35mm !important; margin: 1mm 0 !important; }
+            .qr-type { font-size: 8pt !important; letter-spacing: .1em; }
+            .qr-location { margin-top: .5mm !important; font-size: 14pt !important; line-height: 1 !important; }
+            .qr-url { margin-top: 1mm !important; font-size: 5.5pt !important; }
+            .qr-footer { margin-top: auto !important; padding-top: 1mm !important; }
         }
     </style>
 </head>
@@ -66,7 +66,7 @@
 <div class="no-print mb-5 flex flex-wrap items-center justify-between gap-3">
     <div>
         <h1 class="text-2xl font-black text-black">{{ $restaurant->name }} QR setup pack</h1>
-        <p class="text-sm font-semibold text-neutral-800">Print this page — 6 QR cards per landscape A3 page. Choose A3, Landscape, 100% scale, and no margins.</p>
+        <p class="text-sm font-semibold text-neutral-800">Print this page — 9 QR cards per landscape A3 page. Choose A3, Landscape, 100% scale, and no margins.</p>
     </div>
     <button type="button" onclick="printSetupPack()" class="rounded-lg bg-black px-5 py-3 font-bold text-white">Print setup pack</button>
 </div>
@@ -75,7 +75,7 @@
     @if($tables->isEmpty())
         <p class="rounded-xl bg-white p-5 font-semibold text-neutral-900">No active tables or rooms are available for this setup pack.</p>
     @else
-        @foreach($tables->chunk(6) as $pageTables)
+        @foreach($tables->chunk(9) as $pageTables)
             <section class="qr-page">
                 @foreach($pageTables as $table)
                     @php($menuUrl = route('menu.show', [$restaurant->slug, $table->table_number]))
