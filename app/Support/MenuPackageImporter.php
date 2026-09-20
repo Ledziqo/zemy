@@ -19,7 +19,9 @@ final class MenuPackageImporter
     public function import(Restaurant $restaurant, UploadedFile $package): array
     {
         $workDir = storage_path('app/menu-imports/'.Str::uuid());
-        File::makeDirectory($workDir, 0755, true);
+        if (! is_dir($workDir) && ! File::makeDirectory($workDir, 0755, true, true) && ! is_dir($workDir)) {
+            throw new RuntimeException('The menu import workspace could not be created.');
+        }
         $copiedFiles = [];
         $committed = false;
 
@@ -28,7 +30,10 @@ final class MenuPackageImporter
             $manifest = json_decode(File::get($manifestPath), true, 512, JSON_THROW_ON_ERROR);
             $rows = $this->validateManifest($manifest, $workDir);
 
-            File::makeDirectory(public_path('uploads/menu-items'), 0755, true);
+            $menuDirectory = public_path('uploads/menu-items');
+            if (! is_dir($menuDirectory) && ! File::makeDirectory($menuDirectory, 0755, true, true) && ! is_dir($menuDirectory)) {
+                throw new RuntimeException('The menu image directory could not be created.');
+            }
             foreach ($rows['items'] as $index => $row) {
                 $extension = strtolower(pathinfo($row['source_image'], PATHINFO_EXTENSION));
                 $filename = Str::slug($row['category_key'].'-'.$row['name']).'-'.substr($row['image_hash'], 0, 10).'.'.$extension;
