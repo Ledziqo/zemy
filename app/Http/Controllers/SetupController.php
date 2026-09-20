@@ -96,9 +96,7 @@ class SetupController extends Controller
             $output[] = Artisan::output();
         }
 
-        $output[] = 'Clearing cached config/routes/views after setup...';
-        Artisan::call('optimize:clear');
-        $output[] = Artisan::output();
+        $this->rebuildRuntimeCaches($output);
     }
 
     private function seedStressData(array &$output, int $batch): void
@@ -138,13 +136,20 @@ class SetupController extends Controller
             Artisan::call('migrate', ['--force' => true]);
             $output[] = Artisan::output();
 
-            $output[] = 'Clearing cached config/routes/views...';
-            Artisan::call('optimize:clear');
-            $output[] = Artisan::output();
+            $this->rebuildRuntimeCaches($output);
 
             return redirect()->route('admin.database')->with('setup_output', trim(implode("\n", $output)));
         } catch (Throwable $exception) {
             return redirect()->route('admin.database')->with('setup_output', $this->friendlyError($exception));
+        }
+    }
+
+    private function rebuildRuntimeCaches(array &$output): void
+    {
+        $output[] = 'Rebuilding production config, route, and view caches...';
+        foreach (['config:cache', 'route:cache', 'view:cache'] as $command) {
+            Artisan::call($command);
+            $output[] = Artisan::output();
         }
     }
 

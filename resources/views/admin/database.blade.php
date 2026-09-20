@@ -3,7 +3,7 @@
 @section('content')
 <div class="max-w-3xl rounded-md border border-zem-border bg-zem-card p-5">
     <h2 class="font-display text-xl font-bold">Database maintenance</h2>
-    <p class="mt-1 text-sm text-zem-muted">Run migrations and clear caches after deploying code updates. Database credentials are only needed when they have changed.</p>
+    <p class="mt-1 text-sm text-zem-muted">Apply pending migrations and rebuild the production config, route, and view caches after deploying code updates. Database credentials are only needed when they have changed.</p>
 
     <form method="post" action="{{ route('admin.setup.run') }}" class="mt-5">
         @csrf
@@ -34,7 +34,7 @@
         </div>
     </form>
 
-    <p class="mt-3 text-xs text-zem-muted">Run this after deploying code updates. For a complete menu replacement, use the import package below.</p>
+    <p class="mt-3 text-xs text-zem-muted">This performs the server-side steps needed after a GitHub deployment. For a complete menu replacement, use the import package below.</p>
 
     @if(session('setup_output'))
         <div class="mt-4 rounded-md border border-zem-border bg-zem-bg p-4">
