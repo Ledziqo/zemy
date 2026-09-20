@@ -44,7 +44,8 @@
         <input name="primary_color" value="{{ $primaryColor }}" type="color" class="h-10 w-20 cursor-pointer rounded border border-zem-border bg-zem-card p-1">
     </label>
     <fieldset class="rounded-md border border-zem-border bg-zem-bg p-4 md:col-span-2 xl:col-span-3">
-        <legend class="px-2 text-sm font-bold text-zem-gold">QR sticker design</legend>
+        <legend class="px-2 text-sm font-bold text-zem-gold">ZemTab signature QR palette</legend>
+        <p class="text-sm font-semibold">One signature design for every venue. Customize the colors below, save, then open the setup pack to preview.</p>
         <p class="text-xs text-zem-muted">Customize the 12-up portrait A3 stickers. Pick a preset or set every color yourself. Keep the QR color dark enough to scan against its background.</p>
         <div class="mt-3 flex flex-wrap items-center gap-2" data-qr-presets>
             <span class="mr-1 text-xs font-bold text-zem-muted">Quick themes:</span>
@@ -57,17 +58,10 @@
             <label class="grid gap-1 text-xs font-semibold text-zem-muted">Sticker background <input name="sticker_background_color" value="{{ $sticker['background_color'] }}" type="color" class="h-10 w-full cursor-pointer rounded border border-zem-border bg-zem-card p-1"></label>
             <label class="grid gap-1 text-xs font-semibold text-zem-muted">Border color <input name="sticker_border_color" value="{{ $sticker['border_color'] }}" type="color" class="h-10 w-full cursor-pointer rounded border border-zem-border bg-zem-card p-1"></label>
             <label class="grid gap-1 text-xs font-semibold text-zem-muted">Text color <input name="sticker_text_color" value="{{ $sticker['text_color'] }}" type="color" class="h-10 w-full cursor-pointer rounded border border-zem-border bg-zem-card p-1"></label>
-            <label class="grid gap-1 text-xs font-semibold text-zem-muted">Scan message color <input name="sticker_accent_color" value="{{ $sticker['accent_color'] }}" type="color" class="h-10 w-full cursor-pointer rounded border border-zem-border bg-zem-card p-1"></label>
+            <label class="grid gap-1 text-xs font-semibold text-zem-muted">Abstract artwork and frame <input name="sticker_accent_color" value="{{ $sticker['accent_color'] }}" type="color" class="h-10 w-full cursor-pointer rounded border border-zem-border bg-zem-card p-1"></label>
             <label class="grid gap-1 text-xs font-semibold text-zem-muted">QR color <input name="sticker_qr_color" value="{{ $sticker['qr_color'] }}" type="color" class="h-10 w-full cursor-pointer rounded border border-zem-border bg-zem-card p-1"></label>
             <label class="grid gap-1 text-xs font-semibold text-zem-muted">QR background <input name="sticker_qr_background_color" value="{{ $sticker['qr_background_color'] }}" type="color" class="h-10 w-full cursor-pointer rounded border border-zem-border bg-zem-card p-1"></label>
-            <label class="grid gap-1 text-xs font-semibold text-zem-muted">Sticker style
-                <select name="sticker_design" class="rounded-md border border-zem-border bg-zem-card px-3 py-2 text-sm text-zem-cream">
-                    <option value="classic" @selected($sticker['design'] === 'classic')>Classic line</option>
-                    <option value="rounded" @selected($sticker['design'] === 'rounded')>Rounded</option>
-                    <option value="bold" @selected($sticker['design'] === 'bold')>Bold frame</option>
-                    <option value="abstract" @selected($sticker['design'] === 'abstract')>Abstract shapes</option>
-                </select>
-            </label>
+            <input type="hidden" name="sticker_design" value="abstract">
             <label class="grid gap-1 text-xs font-semibold text-zem-muted">Table scan text <input name="sticker_table_scan_text" value="{{ $sticker['table_scan_text'] }}" class="rounded-md border border-zem-border bg-zem-card px-3 py-2 text-sm"></label>
             <label class="grid gap-1 text-xs font-semibold text-zem-muted">Room scan text <input name="sticker_room_scan_text" value="{{ $sticker['room_scan_text'] }}" class="rounded-md border border-zem-border bg-zem-card px-3 py-2 text-sm"></label>
         </div>
@@ -143,6 +137,10 @@
         };
         document.querySelectorAll('[data-qr-preset]').forEach((button) => {
             button.addEventListener('click', () => {
+                const currentBrand = document.querySelector('[name="primary_color"]').value;
+                presets.brand.border_color = currentBrand;
+                presets.brand.accent_color = currentBrand;
+                presets.brand.text_color = '#111111';
                 Object.entries(presets[button.dataset.qrPreset] || {}).forEach(([key, value]) => {
                     if (fields[key]) fields[key].value = value;
                 });
