@@ -3,7 +3,7 @@
 .signature-card *{box-sizing:border-box}
 .signature-card .signature-art{position:absolute;inset:0;width:100%;height:100%;z-index:-1;opacity:var(--art-opacity);pointer-events:none}
 .signature-logo-wrap{width:100%;height:var(--logo-size);display:flex;align-items:center;justify-content:center;flex-shrink:0}
-.signature-logo{width:53mm;height:100%;object-fit:contain;background:white;border-radius:2mm;padding:2mm}
+.signature-logo{width:53mm;height:100%;object-fit:contain;background:transparent;border-radius:0;padding:0;filter:drop-shadow(0 .35mm .45mm rgba(255,255,255,.7))}
 .signature-heading{height:24mm;width:100%;display:flex;flex-direction:column;justify-content:center;align-items:center;flex-shrink:0}
 .signature-kicker{width:100%;font-size:max(4pt,calc(var(--text-size) * .34));font-weight:700;letter-spacing:.16em;margin:0 0 2mm;display:flex;align-items:center;justify-content:center;gap:1.5mm;line-height:1}
 .signature-kicker-cross{font-size:2.6em;font-weight:400;letter-spacing:0;line-height:.68;color:var(--card-accent);flex:0 0 auto;transform:translateY(-.02em)}
