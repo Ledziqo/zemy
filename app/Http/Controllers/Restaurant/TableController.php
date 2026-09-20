@@ -17,7 +17,31 @@ class TableController extends Controller
     public function index(Request $request)
     {
         $restaurant = $this->restaurant($request);
-        return view('restaurant.tables.index', ['restaurant' => $restaurant, 'tables' => $restaurant->tables()->orderByRaw('CAST(table_number AS UNSIGNED)')->paginate(50)]);
+        $tables = $restaurant->tables()->orderByRaw('CAST(table_number AS UNSIGNED)')->paginate(50);
+        $sticker = array_merge($this->defaultStickerSettings($restaurant), $restaurant->settings['qr_sticker'] ?? []);
+        $previewTable = $tables->first();
+        $previewQr = $previewTable ? 'data:image/svg+xml;base64,'.base64_encode($this->buildQr($restaurant, $previewTable)->getString()) : null;
+        return view('restaurant.tables.index', compact('restaurant', 'tables', 'sticker', 'previewTable', 'previewQr'));
+    }
+
+    public function saveDesign(Request $request)
+    {
+        $rules = [];
+        foreach (['background_color', 'border_color', 'text_color', 'accent_color'] as $key) {
+            $rules[$key] = ['required', 'regex:/^#[0-9a-fA-F]{6}$/'];
+        }
+        foreach (['logo_size' => [18, 30], 'text_size' => [14, 22], 'qr_size' => [38, 50], 'detail_size' => [6, 9], 'art_opacity' => [10, 100]] as $key => [$min, $max]) {
+            $rules[$key] = ['required', 'integer', "between:$min,$max"];
+        }
+        $rules['table_scan_text'] = ['required', 'string', 'max:40'];
+        $rules['room_scan_text'] = ['required', 'string', 'max:40'];
+        $data = $request->validate($rules);
+        $restaurant = $this->restaurant($request);
+        $settings = $restaurant->settings ?? [];
+        // Keep the QR itself high contrast regardless of the decorative palette.
+        $settings['qr_sticker'] = array_merge($settings['qr_sticker'] ?? [], $data, ['qr_color' => '#111111', 'qr_background_color' => '#FFFFFF']);
+        $restaurant->update(['settings' => $settings]);
+        return back()->with('success', 'QR design saved. Open the setup pack to print your updated cards.');
     }
 
     public function setupPack(Request $request)
@@ -119,6 +143,11 @@ class TableController extends Controller
             'design' => 'classic',
             'table_scan_text' => 'SCAN TO ORDER',
             'room_scan_text' => 'SCAN FOR ROOM SERVICE',
+            'logo_size' => 24,
+            'text_size' => 18,
+            'qr_size' => 46,
+            'detail_size' => 7,
+            'art_opacity' => 100,
         ];
     }
 

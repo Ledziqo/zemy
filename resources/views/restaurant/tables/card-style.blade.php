@@ -1,0 +1,33 @@
+<style>
+.signature-card{box-sizing:border-box;width:74.25mm;height:140mm;padding:6mm;position:relative;isolation:isolate;overflow:hidden;display:flex;flex-direction:column;align-items:center;justify-content:space-between;gap:1mm;background:var(--card-bg);color:var(--card-text);border:.2mm solid var(--card-border);font-family:Arial,Helvetica,sans-serif;text-align:center;print-color-adjust:exact;-webkit-print-color-adjust:exact;flex-shrink:0}
+.signature-card *{box-sizing:border-box}
+.signature-card .signature-art{position:absolute;inset:0;width:100%;height:100%;z-index:-1;opacity:var(--art-opacity);pointer-events:none}
+.signature-logo-wrap{width:100%;height:var(--logo-size);display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.signature-logo{width:53mm;height:100%;object-fit:contain;background:white;border-radius:2mm;padding:2mm}
+.signature-heading{height:24mm;width:100%;display:flex;flex-direction:column;justify-content:center;align-items:center;flex-shrink:0}
+.signature-kicker{font-size:6pt;font-weight:700;letter-spacing:.2em;margin:0 0 2mm;display:flex;align-items:center;gap:2mm}
+.signature-kicker:before,.signature-kicker:after{content:'';width:5mm;height:.45mm;background:var(--card-accent)}
+.signature-title{font-size:var(--text-size);font-weight:900;letter-spacing:-.045em;line-height:.98;margin:0;width:100%;overflow-wrap:anywhere;text-wrap:balance}
+.signature-scan{display:flex;flex-direction:column;align-items:center;gap:2mm;flex-shrink:0}
+.signature-frame{padding:2mm;background:#fff;border-radius:3mm;position:relative;box-shadow:0 0 0 .45mm var(--card-accent),1.5mm 1.5mm 0 var(--card-accent)}
+.signature-frame img{display:block;width:var(--qr-size);height:var(--qr-size)}
+.signature-hint{font-size:var(--detail-size);margin:1mm 0 0;letter-spacing:.015em;line-height:1.2}
+.signature-footer{height:7mm;display:flex;align-items:center;justify-content:center;gap:1.5mm;background:#fff;color:#171717;padding:1mm 3mm;border-radius:12mm;flex-shrink:0}
+.signature-footer span{font-size:var(--detail-size);font-weight:600}
+.signature-footer img{width:19mm;height:5mm;object-fit:contain}
+@media print{.signature-card{break-inside:avoid;page-break-inside:avoid}}
+</style>
+<script>
+window.fitSignatureTitles = function(root = document) {
+    root.querySelectorAll('.signature-heading').forEach(heading => {
+        const title = heading.querySelector('.signature-title');
+        title.style.fontSize = '';
+        let size = parseFloat(getComputedStyle(title).fontSize);
+        while (heading.scrollHeight > heading.clientHeight + 1 && size > 12) {
+            size -= .5;
+            title.style.fontSize = size + 'px';
+        }
+    });
+};
+window.addEventListener('load', () => window.fitSignatureTitles());
+</script>

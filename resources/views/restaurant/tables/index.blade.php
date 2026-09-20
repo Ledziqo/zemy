@@ -3,6 +3,7 @@
 @section('content')
 @php($place = $restaurant->locationLabel())
 @php($placeTitle = $restaurant->locationLabelTitle())
+@include('restaurant.tables.design-settings')
 <div class="mb-6 flex flex-wrap items-center justify-between gap-3">
     <h2 class="font-display text-lg font-bold">{{ __('Add table or room QR') }}</h2>
     <a href="{{ route('restaurant.tables.setup-pack') }}" target="_blank" class="rounded-md bg-zem-gold px-4 py-2 text-sm font-bold text-white">{{ __('Print setup pack') }}</a>

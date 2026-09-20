@@ -70,6 +70,7 @@ Route::middleware(['auth', 'role:restaurant_owner,staff', 'locale'])->prefix('re
         Route::resource('/categories', Restaurant\CategoryController::class)->only(['index', 'store', 'update', 'destroy']);
         Route::get('/tables/{table}/qr', [Restaurant\TableController::class, 'qr'])->name('tables.qr');
         Route::get('/tables/qr/setup-pack', [Restaurant\TableController::class, 'setupPack'])->name('tables.setup-pack');
+        Route::patch('/tables/qr/design', [Restaurant\TableController::class, 'saveDesign'])->name('tables.design');
         Route::resource('/tables', Restaurant\TableController::class)->only(['index', 'store', 'update', 'destroy']);
         Route::get('/service-requests', [Restaurant\ServiceRequestController::class, 'index'])->name('service-requests.index');
         Route::patch('/service-requests/{serviceRequest}', [Restaurant\ServiceRequestController::class, 'update'])->name('service-requests.update');
