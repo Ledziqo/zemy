@@ -51,7 +51,7 @@
 <p>Add your first table or room to preview its QR card. You can save your design now.</p>
 @endif
 </aside>
-</form></section>
+</form></details>
 <script>
 (() => {
  const form=document.getElementById('qr-design-form'),card=form.querySelector('.signature-card'),type=document.getElementById('qr-preview-type'),status=document.getElementById('qr-design-status'),logoInput=form.elements.namedItem('qr_logo');
