@@ -37,9 +37,10 @@ class SetupController extends Controller
         }
 
         $output = [];
-        $this->applySubmittedDatabaseConfig($request, $output);
 
         try {
+            $this->applySubmittedDatabaseConfig($request, $output);
+
             if ($request->input('stress_mode') === 'enable') {
                 $this->setStressTestMode(true, $output);
             } elseif ($request->input('stress_mode') === 'disable') {
@@ -129,9 +130,10 @@ class SetupController extends Controller
         abort_unless($request->user()?->role === 'admin', 403);
 
         $output = [];
-        $this->applySubmittedDatabaseConfig($request, $output);
 
         try {
+            $this->applySubmittedDatabaseConfig($request, $output);
+
             $output[] = 'Applying the Tulip Olympia menu update...';
             Artisan::call('migrate', ['--force' => true]);
             $output[] = Artisan::output();
@@ -146,7 +148,13 @@ class SetupController extends Controller
 
     private function adminMaintenanceResponse(string $output, bool $success)
     {
-        return response()->view('admin.maintenance-result', compact('output', 'success'));
+        $title = $success ? 'Maintenance completed' : 'Maintenance failed';
+        $message = $success
+            ? 'The server finished the requested migration and cache work.'
+            : 'The server returned an error while running maintenance.';
+        $escapedOutput = htmlspecialchars($output, ENT_QUOTES, 'UTF-8');
+
+        return response('<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>'.$title.' · ZemTab</title><style>body{margin:0;background:#0f1115;color:#f5f7fa;font-family:system-ui,sans-serif}main{max-width:760px;margin:12vh auto;padding:24px}section{border:1px solid '.($success ? '#34d399' : '#f87171').';border-radius:14px;background:#181b22;padding:24px}h1{font-size:24px;margin:0 0 8px}p{color:#a7b0be}pre{white-space:pre-wrap;overflow:auto;border:1px solid #303541;border-radius:8px;background:#0f1115;padding:16px;color:#a7b0be}a{display:inline-block;margin-top:16px;padding:12px 18px;border-radius:8px;background:#d22630;color:#fff;text-decoration:none;font-weight:700}</style></head><body><main><section><h1>'.$title.'</h1><p>'.$message.'</p><pre>'.$escapedOutput.'</pre><a href="/admin/database">Back to database maintenance</a></section></main></body></html>');
     }
 
     private function rebuildRuntimeCaches(array &$output): void
