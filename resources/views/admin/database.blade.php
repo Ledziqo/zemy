@@ -5,7 +5,7 @@
     <h2 class="font-display text-xl font-bold">Database maintenance</h2>
     <p class="mt-1 text-sm text-zem-muted">Apply pending migrations and rebuild the production config, route, and view caches after deploying code updates. Database credentials are only needed when they have changed.</p>
 
-    <form method="post" action="{{ route('admin.setup.run') }}" class="mt-5">
+    <form method="post" action="{{ route('admin.setup.run') }}" class="mt-5" data-maintenance-form>
         @csrf
         <div class="grid gap-3 md:grid-cols-2">
             <label class="grid gap-1 text-sm">
@@ -30,7 +30,8 @@
             <span>Also refresh demo/admin seed data (normally leave this unchecked in production).</span>
         </label>
         <div class="mt-4 flex flex-wrap gap-3">
-            <button name="maintenance" value="1" class="rounded-md bg-zem-gold px-5 py-3 font-bold text-white">Run database maintenance</button>
+            <button name="maintenance" value="1" class="rounded-md bg-zem-gold px-5 py-3 font-bold text-white" data-maintenance-button>Run database maintenance</button>
+            <span class="self-center text-sm text-zem-muted" data-maintenance-status aria-live="polite"></span>
         </div>
     </form>
 
@@ -42,6 +43,18 @@
         </div>
     @endif
 </div>
+
+<script>
+    document.querySelector('[data-maintenance-form]')?.addEventListener('submit', () => {
+        const button = document.querySelector('[data-maintenance-button]');
+        const status = document.querySelector('[data-maintenance-status]');
+        if (button) {
+            button.disabled = true;
+            button.textContent = 'Running maintenance…';
+        }
+        if (status) status.textContent = 'Applying migrations and rebuilding caches. Please wait…';
+    });
+</script>
 
 <div class="mt-6 max-w-3xl rounded-md border border-emerald-400/40 bg-zem-card p-5">
     <h2 class="font-display text-xl font-bold">Replace menu from import package</h2>

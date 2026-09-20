@@ -60,7 +60,7 @@ class SetupController extends Controller
             }
 
             if ($request->is('admin/*')) {
-                return redirect()->route('admin.database')->with('setup_output', trim(implode("\n", $output)));
+                return redirect('/admin/database')->with('setup_output', trim(implode("\n", $output)));
             }
             return view('setup.show', [
                 'success' => true,
@@ -68,7 +68,7 @@ class SetupController extends Controller
             ]);
         } catch (Throwable $exception) {
             if ($request->is('admin/*')) {
-                return redirect()->route('admin.database')->with('setup_output', $this->friendlyError($exception));
+                return redirect('/admin/database')->with('setup_output', $this->friendlyError($exception));
             }
             return view('setup.show', [
                 'success' => false,
@@ -138,9 +138,9 @@ class SetupController extends Controller
 
             $this->rebuildRuntimeCaches($output);
 
-            return redirect()->route('admin.database')->with('setup_output', trim(implode("\n", $output)));
+            return redirect('/admin/database')->with('setup_output', trim(implode("\n", $output)));
         } catch (Throwable $exception) {
-            return redirect()->route('admin.database')->with('setup_output', $this->friendlyError($exception));
+            return redirect('/admin/database')->with('setup_output', $this->friendlyError($exception));
         }
     }
 
