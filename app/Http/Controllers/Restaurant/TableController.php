@@ -24,7 +24,7 @@ class TableController extends Controller
     {
         $restaurant = $this->restaurant($request);
         $tables = $restaurant->tables()->where('is_active', true)->orderByRaw('CAST(table_number AS UNSIGNED)')->get();
-        $sticker = array_merge($this->defaultStickerSettings(), $restaurant->settings['qr_sticker'] ?? []);
+        $sticker = array_merge($this->defaultStickerSettings($restaurant), $restaurant->settings['qr_sticker'] ?? []);
 
         // Reuse the page's database connection; separate authenticated QR
         // requests consume the host's hourly connection allowance per image.
@@ -82,7 +82,7 @@ class TableController extends Controller
 
     private function buildQr($restaurant, RestaurantTable $table)
     {
-        $sticker = array_merge($this->defaultStickerSettings(), $restaurant->settings['qr_sticker'] ?? []);
+        $sticker = array_merge($this->defaultStickerSettings($restaurant), $restaurant->settings['qr_sticker'] ?? []);
 
         return (new Builder(
             writer: new SvgWriter(),
@@ -107,13 +107,13 @@ class TableController extends Controller
         );
     }
 
-    private function defaultStickerSettings(): array
+    private function defaultStickerSettings($restaurant = null): array
     {
         return [
             'background_color' => '#FFFFFF',
             'border_color' => '#111111',
             'text_color' => '#111111',
-            'accent_color' => '#D22630',
+            'accent_color' => $restaurant?->primary_color ?: '#D22630',
             'qr_color' => '#111111',
             'qr_background_color' => '#FFFFFF',
             'design' => 'classic',

@@ -4,7 +4,7 @@
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/cropperjs@1.6.2/dist/cropper.min.css">
 @php($logoUrl = $restaurant->logo_path ? (\Illuminate\Support\Str::startsWith($restaurant->logo_path, ['http://', 'https://', 'uploads/']) ? (str_starts_with($restaurant->logo_path, 'uploads/') ? asset($restaurant->logo_path) : $restaurant->logo_path) : asset('storage/'.$restaurant->logo_path)) : null)
 @php($primaryColor = $restaurant->primary_color ?: '#D22630')
-@php($sticker = array_merge(['background_color' => '#FFFFFF', 'border_color' => '#111111', 'text_color' => '#111111', 'accent_color' => '#D22630', 'qr_color' => '#111111', 'qr_background_color' => '#FFFFFF', 'design' => 'classic', 'table_scan_text' => 'SCAN TO ORDER', 'room_scan_text' => 'SCAN FOR ROOM SERVICE'], $restaurant->settings['qr_sticker'] ?? []))
+@php($sticker = array_merge(['background_color' => '#FFFFFF', 'border_color' => '#111111', 'text_color' => '#111111', 'accent_color' => $primaryColor, 'qr_color' => '#111111', 'qr_background_color' => '#FFFFFF', 'design' => 'classic', 'table_scan_text' => 'SCAN TO ORDER', 'room_scan_text' => 'SCAN FOR ROOM SERVICE'], $restaurant->settings['qr_sticker'] ?? []))
 @php($serviceCharge = (float) ($restaurant->settings['service_charge_percentage'] ?? 0))
 @php($vat = (float) ($restaurant->settings['vat_percentage'] ?? 0))
 @php($businessType = strtolower($restaurant->businessTypeLabel()))
@@ -45,7 +45,14 @@
     </label>
     <fieldset class="rounded-md border border-zem-border bg-zem-bg p-4 md:col-span-2 xl:col-span-3">
         <legend class="px-2 text-sm font-bold text-zem-gold">QR sticker design</legend>
-        <p class="text-xs text-zem-muted">Customize the 9-up landscape A3 stickers. Keep the QR color dark enough to scan against its background.</p>
+        <p class="text-xs text-zem-muted">Customize the 12-up portrait A3 stickers. Pick a preset or set every color yourself. Keep the QR color dark enough to scan against its background.</p>
+        <div class="mt-3 flex flex-wrap items-center gap-2" data-qr-presets>
+            <span class="mr-1 text-xs font-bold text-zem-muted">Quick themes:</span>
+            <button type="button" class="rounded-md border border-zem-border bg-zem-card px-3 py-2 text-xs font-bold text-zem-cream" data-qr-preset="clean">Clean</button>
+            <button type="button" class="rounded-md border border-zem-border bg-zem-card px-3 py-2 text-xs font-bold text-zem-cream" data-qr-preset="dark">Dark</button>
+            <button type="button" class="rounded-md border border-zem-border bg-zem-card px-3 py-2 text-xs font-bold text-zem-cream" data-qr-preset="warm">Warm</button>
+            <button type="button" class="rounded-md border border-zem-border bg-zem-card px-3 py-2 text-xs font-bold text-zem-cream" data-qr-preset="brand">Use venue brand</button>
+        </div>
         <div class="mt-3 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
             <label class="grid gap-1 text-xs font-semibold text-zem-muted">Sticker background <input name="sticker_background_color" value="{{ $sticker['background_color'] }}" type="color" class="h-10 w-full cursor-pointer rounded border border-zem-border bg-zem-card p-1"></label>
             <label class="grid gap-1 text-xs font-semibold text-zem-muted">Border color <input name="sticker_border_color" value="{{ $sticker['border_color'] }}" type="color" class="h-10 w-full cursor-pointer rounded border border-zem-border bg-zem-card p-1"></label>
@@ -115,6 +122,33 @@
     </fieldset>
     <button class="rounded-md bg-zem-gold px-4 py-3 font-bold text-white md:col-span-2 xl:col-span-3">{{ __('Save settings') }}</button>
 </form>
+
+<script>
+    (() => {
+        const fields = {
+            background_color: document.querySelector('[name="sticker_background_color"]'),
+            border_color: document.querySelector('[name="sticker_border_color"]'),
+            text_color: document.querySelector('[name="sticker_text_color"]'),
+            accent_color: document.querySelector('[name="sticker_accent_color"]'),
+            qr_color: document.querySelector('[name="sticker_qr_color"]'),
+            qr_background_color: document.querySelector('[name="sticker_qr_background_color"]'),
+        };
+        const brandColor = @json($primaryColor);
+        const presets = {
+            clean: { background_color: '#FFFFFF', border_color: '#111111', text_color: '#111111', accent_color: brandColor, qr_color: '#111111', qr_background_color: '#FFFFFF' },
+            dark: { background_color: '#111318', border_color: '#FFFFFF', text_color: '#FFFFFF', accent_color: brandColor, qr_color: '#111111', qr_background_color: '#FFFFFF' },
+            warm: { background_color: '#FFF8EA', border_color: '#7C4A21', text_color: '#3A2112', accent_color: '#C45A24', qr_color: '#111111', qr_background_color: '#FFFFFF' },
+            brand: { background_color: '#FFFFFF', border_color: brandColor, text_color: brandColor, accent_color: brandColor, qr_color: '#111111', qr_background_color: '#FFFFFF' },
+        };
+        document.querySelectorAll('[data-qr-preset]').forEach((button) => {
+            button.addEventListener('click', () => {
+                Object.entries(presets[button.dataset.qrPreset] || {}).forEach(([key, value]) => {
+                    if (fields[key]) fields[key].value = value;
+                });
+            });
+        });
+    })();
+</script>
 
 <div id="logo-crop-modal" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/80 px-4 py-6">
     <div class="w-full max-w-3xl rounded-xl border border-zem-border bg-zem-card p-4 shadow-2xl">

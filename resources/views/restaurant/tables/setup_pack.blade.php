@@ -9,53 +9,60 @@
     <style>
         .qr-page {
             display: grid;
-            grid-template-columns: repeat(3, minmax(0, 1fr));
+            grid-template-columns: repeat(4, minmax(0, 1fr));
             gap: 1rem;
         }
 
         .qr-card {
-            min-height: 350px;
+            min-height: 420px;
+            aspect-ratio: 1 / 1.8;
+        }
+
+        .qr-logo {
+            width: min(100%, 48mm);
+            height: 34mm;
+            object-fit: contain;
+        }
+
+        .qr-image {
+            width: min(100%, 48mm);
+            height: auto;
+            aspect-ratio: 1;
         }
 
         @media print {
             .no-print { display: none !important; }
-            @page { size: A3 landscape; margin: 0; }
-            html, body { width: 420mm; min-height: 297mm; }
+            @page { size: A3 portrait; margin: 0; }
+            html, body { width: 297mm; min-height: 420mm; }
             body { background: #fff !important; color: #000 !important; margin: 0; padding: 0; }
             main { max-width: none !important; margin: 0 !important; padding: 0 !important; }
             .qr-page {
                 display: grid !important;
-                grid-template-columns: repeat(3, 140mm) !important;
-                grid-template-rows: repeat(3, 99mm) !important;
+                grid-template-columns: repeat(4, 74.25mm) !important;
+                grid-template-rows: repeat(3, 140mm) !important;
                 gap: 0 !important;
-                width: 420mm !important;
-                height: 297mm !important;
+                width: 297mm !important;
+                height: 420mm !important;
                 break-after: page;
                 page-break-after: always;
             }
             .qr-page:last-child { break-after: auto; page-break-after: auto; }
             .qr-card {
                 box-sizing: border-box;
-                width: 140mm;
-                height: 99mm;
+                width: 74.25mm;
+                height: 140mm;
                 min-height: 0 !important;
-                padding: 4mm !important;
+                padding: 7mm 5mm !important;
                 break-inside: avoid;
                 page-break-inside: avoid;
                 box-shadow: none !important;
                 border-radius: 0 !important;
                 overflow: hidden;
-                justify-content: flex-start !important;
-                gap: 2mm;
+                justify-content: space-evenly !important;
+                gap: 4mm;
             }
-            .qr-brand-logo { width: 16mm !important; height: 12mm !important; }
-            .qr-brand-name { font-size: 11pt !important; }
-            .scan-label { margin-top: 1mm !important; font-size: 7pt !important; }
-            .qr-image { width: 35mm !important; height: 35mm !important; margin: 1mm 0 !important; }
-            .qr-type { font-size: 8pt !important; letter-spacing: .1em; }
-            .qr-location { margin-top: .5mm !important; font-size: 14pt !important; line-height: 1 !important; }
-            .qr-url { margin-top: 1mm !important; font-size: 5.5pt !important; }
-            .qr-footer { margin-top: auto !important; padding-top: 1mm !important; }
+            .qr-logo { width: 48mm !important; height: 34mm !important; }
+            .qr-image { width: 48mm !important; height: 48mm !important; margin: 0 !important; }
         }
     </style>
 </head>
@@ -66,7 +73,7 @@
 <div class="no-print mb-5 flex flex-wrap items-center justify-between gap-3">
     <div>
         <h1 class="text-2xl font-black text-black">{{ $restaurant->name }} QR setup pack</h1>
-        <p class="text-sm font-semibold text-neutral-800">Print this page — 9 QR cards per landscape A3 page. Choose A3, Landscape, 100% scale, and no margins.</p>
+        <p class="text-sm font-semibold text-neutral-800">Print this page — 12 QR cards per portrait A3 page in a 4 × 3 grid. Choose A3, Portrait, 100% scale, and no margins.</p>
     </div>
     <button type="button" onclick="printSetupPack()" class="rounded-lg bg-black px-5 py-3 font-bold text-white">Print setup pack</button>
 </div>
@@ -75,28 +82,14 @@
     @if($tables->isEmpty())
         <p class="rounded-xl bg-white p-5 font-semibold text-neutral-900">No active tables or rooms are available for this setup pack.</p>
     @else
-        @foreach($tables->chunk(9) as $pageTables)
+        @foreach($tables->chunk(12) as $pageTables)
             <section class="qr-page">
                 @foreach($pageTables as $table)
-                    @php($menuUrl = route('menu.show', [$restaurant->slug, $table->table_number]))
-                    <article class="qr-card flex flex-col items-center justify-between {{ $cardClass }} p-4 text-center" style="background-color: {{ $sticker['background_color'] }}; border-color: {{ $sticker['border_color'] }}; color: {{ $sticker['text_color'] }};">
-                        <div class="flex w-full items-center justify-center gap-3">
-                            @if($logoUrl)
-                                <img src="{{ $logoUrl }}" alt="{{ $restaurant->name }} logo" class="qr-brand-logo h-12 w-14 object-contain">
-                            @endif
-                            <span class="qr-brand-name text-lg font-black leading-none" style="color: {{ $sticker['text_color'] }}">{{ $restaurant->name }}</span>
-                        </div>
-                        <p class="scan-label mt-1 text-[9px] font-black uppercase tracking-[.12em]" style="color: {{ $sticker['accent_color'] }}">{{ $table->isRoomServicePoint() ? $sticker['room_scan_text'] : $sticker['table_scan_text'] }}</p>
-                        <img src="{{ $qrImages[$table->id] }}" alt="QR code for {{ $table->locationTypeLabel() }} {{ $table->table_number }}" class="qr-image h-28 w-28 contrast-125" data-print-resource width="112" height="112">
-                        <div>
-                            <p class="qr-type text-[10px] font-black uppercase" style="color: {{ $sticker['accent_color'] }}">{{ $table->locationTypeLabel() }}</p>
-                            <p class="qr-location mt-1 text-xl font-black leading-tight" style="color: {{ $sticker['text_color'] }}">{{ $table->displayLabel() }}</p>
-                            <p class="qr-url mt-1 break-all text-[8px] text-neutral-600">{{ $menuUrl }}</p>
-                        </div>
-                        <div class="qr-footer flex w-full items-center justify-center gap-1 border-t pt-1" style="border-color: {{ $sticker['border_color'] }};">
-                            <span class="text-[8px] font-bold" style="color: {{ $sticker['text_color'] }}">Powered by</span>
-                            <img src="{{ asset('logo/zemtab-pantone-1795-c-icon-text-transparent.png') }}" alt="ZemTab" class="h-5 w-auto">
-                        </div>
+                    <article class="qr-card flex flex-col items-center justify-center {{ $cardClass }} p-4 text-center" style="background-color: {{ $sticker['background_color'] }}; border-color: {{ $sticker['border_color'] }}; color: {{ $sticker['text_color'] }};">
+                        @if($logoUrl)
+                            <img src="{{ $logoUrl }}" alt="{{ $restaurant->name }} logo" class="qr-logo" data-print-resource>
+                        @endif
+                        <img src="{{ $qrImages[$table->id] }}" alt="QR code for {{ $table->locationTypeLabel() }} {{ $table->table_number }}" class="qr-image contrast-125" data-print-resource width="500" height="500">
                     </article>
                 @endforeach
             </section>
