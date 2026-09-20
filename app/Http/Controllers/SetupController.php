@@ -60,7 +60,7 @@ class SetupController extends Controller
             }
 
             if ($request->is('admin/*')) {
-                return redirect('/admin/database')->with('setup_output', trim(implode("\n", $output)));
+                return $this->adminMaintenanceResponse(trim(implode("\n", $output)), true);
             }
             return view('setup.show', [
                 'success' => true,
@@ -68,7 +68,7 @@ class SetupController extends Controller
             ]);
         } catch (Throwable $exception) {
             if ($request->is('admin/*')) {
-                return redirect('/admin/database')->with('setup_output', $this->friendlyError($exception));
+                return $this->adminMaintenanceResponse($this->friendlyError($exception), false);
             }
             return view('setup.show', [
                 'success' => false,
@@ -138,10 +138,15 @@ class SetupController extends Controller
 
             $this->rebuildRuntimeCaches($output);
 
-            return redirect('/admin/database')->with('setup_output', trim(implode("\n", $output)));
+            return $this->adminMaintenanceResponse(trim(implode("\n", $output)), true);
         } catch (Throwable $exception) {
-            return redirect('/admin/database')->with('setup_output', $this->friendlyError($exception));
+            return $this->adminMaintenanceResponse($this->friendlyError($exception), false);
         }
+    }
+
+    private function adminMaintenanceResponse(string $output, bool $success)
+    {
+        return response()->view('admin.maintenance-result', compact('output', 'success'));
     }
 
     private function rebuildRuntimeCaches(array &$output): void
