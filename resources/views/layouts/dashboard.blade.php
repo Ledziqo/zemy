@@ -69,7 +69,6 @@
         })();
     </script>
     @include('components.frontend-assets', ['alpine' => true])
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Noto+Sans+Ethiopic:wght@400;500;600;700;800&family=Sora:wght@600;700;800&display=swap" rel="stylesheet">
     <style>
         :root{--zem-bg:248 250 252;--zem-card:255 255 255;--zem-text:0 0 0;--zem-muted:71 84 103;--zem-border:216 224 231;--zem-soft:238 243 247;color-scheme:light}
         .dark{--zem-bg:15 17 21;--zem-card:24 27 34;--zem-text:245 247 250;--zem-muted:167 176 190;--zem-border:48 53 65;--zem-soft:32 36 45;color-scheme:dark}

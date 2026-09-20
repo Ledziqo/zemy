@@ -123,12 +123,12 @@ class MenuItemController extends Controller
         ]);
 
         if ($request->filled('cropped_image')) {
-            $imagePath = ImageOptimizer::storeDataUrl($request->input('cropped_image'), 'menu-items', 1200);
+            $imagePath = ImageOptimizer::storeDataUrl($request->input('cropped_image'), 'menu-items', 640, 78);
             if ($imagePath) {
                 $data['image_path'] = $imagePath;
             }
         } elseif ($request->hasFile('image')) {
-            $data['image_path'] = ImageOptimizer::storeUpload($request->file('image'), 'menu-items', 1200);
+            $data['image_path'] = ImageOptimizer::storeUpload($request->file('image'), 'menu-items', 640, 78);
         }
 
         unset($data['image'], $data['cropped_image']);

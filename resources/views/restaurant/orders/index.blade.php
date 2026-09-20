@@ -184,11 +184,11 @@
                                         <h4 class="mb-2 font-display text-lg font-bold">{{ $category->name }}</h4>
                                         <div class="grid gap-2">
                                             @foreach($category->menuItems as $item)
-                                                @php($imageUrl = $item->image_path ? (\Illuminate\Support\Str::startsWith($item->image_path, ['http://', 'https://', 'uploads/']) ? (str_starts_with($item->image_path, 'uploads/') ? asset($item->image_path) : $item->image_path) : asset('storage/'.$item->image_path)) : null)
+                                                @php($imageUrl = \App\Support\MenuImage::url($item->image_path))
                                                 <article class="flex gap-3 rounded-md border border-zem-border bg-zem-bg p-2">
                                                     <div class="h-16 w-16 shrink-0 overflow-hidden rounded-md bg-zem-soft">
                                                         @if($imageUrl)
-                                                            <img src="{{ $imageUrl }}" alt="{{ $item->name }}" class="h-full w-full object-cover">
+                                                            <img src="{{ $imageUrl }}" alt="{{ $item->name }}" width="64" height="64" loading="lazy" decoding="async" class="h-full w-full object-cover">
                                                         @else
                                                             <div class="grid h-full place-items-center text-lg font-bold">{{ strtoupper(substr($item->name, 0, 1)) }}</div>
                                                         @endif
@@ -322,9 +322,10 @@ function workBoard() {
         latestConfirmedAt: null,
         latestRequestId: 0,
         pollTimer: null,
-        pollDelay: 15000,
+        pollDelay: ['slow-2g', '2g'].includes(navigator.connection?.effectiveType) || navigator.connection?.saveData ? 30000 : 15000,
         idlePolls: 0,
         polling: false,
+        pollEtag: null,
         pollUrl: '{{ route("restaurant.orders.poll") }}',
         orderUpdateUrl: '{{ route("restaurant.orders.update", ["__ID__"]) }}',
         orderConfirmUrl: '{{ route("restaurant.orders.confirm", ["__ID__"]) }}',
@@ -450,6 +451,11 @@ function workBoard() {
             if (!method) { this.showToast('Select a payment method first', 'error'); return; }
             return this.mutateOrder(orderId, 'paid', method);
         },
+
+        slowConnection() {
+            const connection = navigator.connection;
+            return Boolean(connection?.saveData || ['slow-2g', '2g'].includes(connection?.effectiveType));
+        },
         markPayment(orderId) {
             const method = document.getElementById('payment-method-' + orderId)?.value;
             if (!method) { this.showToast('Select a payment method first', 'error'); return; }
@@ -509,15 +515,25 @@ function workBoard() {
             clearTimeout(this.pollTimer);
             this.updatePollCountdown();
             const params = new URLSearchParams({ filter: this.filter, page: this.page });
+            const headers = { 'X-Requested-With': 'XMLHttpRequest', 'Accept': 'application/json' };
+            if (this.pollEtag) headers['If-None-Match'] = this.pollEtag;
             this.pollPromise = fetch(this.pollUrl + '?' + params, {
                 cache: 'no-store', signal: AbortSignal.timeout(15000),
-                headers: { 'X-Requested-With': 'XMLHttpRequest', 'Accept': 'application/json' },
+                headers,
             })
-            .then(r => {
+            .then(async r => {
+                if (r.status === 304) return null;
                 if (!r.ok) throw new Error('Server returned ' + r.status);
-                return r.json();
+                return { data: await r.json(), etag: r.headers.get('ETag') };
             })
-            .then(data => {
+            .then(payload => {
+                if (!payload) {
+                    this.pollError = '';
+                    this.pollDelay = this.slowConnection() ? 45000 : 15000;
+                    return;
+                }
+                this.pollEtag = payload.etag || this.pollEtag;
+                const data = payload.data;
                 if (!Array.isArray(data.orders) || !Array.isArray(data.requests)) throw new Error('Invalid update');
                 this.pollError = '';
                 const ids = new Set(data.orders.map(order => String(order.id)));
@@ -553,11 +569,11 @@ function workBoard() {
                 this.latestConfirmedAt = data.latestConfirmedAt;
                 this.latestRequestId = Number(data.latestRequestId || 0);
                 if (hasNewOrder) this.playBeep();
-                this.pollDelay = document.hidden ? 60000 : 15000;
+                this.pollDelay = document.hidden ? 60000 : (this.slowConnection() ? 30000 : 15000);
             })
             .catch(() => {
                 this.pollError = @js(__('Update failed. Showing last known orders. Retry or refresh.'));
-                this.pollDelay = document.hidden ? 60000 : 30000;
+                this.pollDelay = document.hidden ? 60000 : (this.slowConnection() ? 60000 : 30000);
             })
             .finally(() => {
                 this.polling = false;

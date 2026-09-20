@@ -2,6 +2,7 @@ const color = (name, fallback) => `rgb(var(--zem-${name}, ${fallback}) / <alpha-
 
 module.exports = {
   darkMode: 'class',
+  safelist: ['tracking-[.2em]'],
   content: [
     './resources/views/**/*.blade.php',
     './resources/js/**/*.js',

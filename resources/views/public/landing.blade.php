@@ -5,6 +5,7 @@
     'canonical' => url('/'),
     'ogType' => 'website',
     'ogImage' => asset('logo/zemtab-pantone-1795-c-icon-text-transparent.png'),
+    'alpine' => true,
 ])
 
 @section('content')

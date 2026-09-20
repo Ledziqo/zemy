@@ -7,6 +7,8 @@
     'ogImage' => $restaurant->cover_image_path ? asset($restaurant->cover_image_path) : asset('logo/zemtab-pantone-1795-c-icon-text-transparent.png'),
     'robots' => 'index, follow',
     'accentColor' => $restaurant->primary_color,
+    'offlineMenu' => true,
+    'alpine' => true,
 ])
 
 @section('content')
@@ -59,11 +61,11 @@
                     </select>
                 </form>
             </div>
-            <label class="mt-3 block">
+            <label class="js-only mt-3 block">
                 <span class="sr-only">{{ __('Search menu') }}</span>
                 <input type="search" x-model="menuSearch" placeholder="{{ __('Search the menu...') }}" class="w-full rounded-xl border border-black/10 bg-neutral-100 px-4 py-3 text-sm font-semibold outline-none transition focus:border-zem-gold focus:bg-white">
             </label>
-            <nav class="mt-3 flex gap-2 overflow-x-auto pb-1">
+            <nav class="js-only mt-3 flex gap-2 overflow-x-auto pb-1">
                 <button type="button" @click="activeCategory = 'all'" :class="activeCategory === 'all' ? 'bg-zem-gold text-white' : 'border border-black/10 bg-white text-neutral-700'" class="whitespace-nowrap rounded-full px-4 py-2 text-sm font-extrabold transition">{{ __('All') }}</button>
                 @foreach($categories as $category)
                     @php($categoryLabel = match (strtolower(trim($category->name))) { 'food' => __('Food'), 'drinks' => __('Drinks'), default => $category->name })
@@ -241,11 +243,15 @@
                 <h2 class="mb-3 font-display text-2xl font-extrabold">{{ $categoryLabel }}</h2>
                 <div class="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
                     @foreach($category->menuItems as $item)
-                        @php($imageUrl = $item->image_path ? (\Illuminate\Support\Str::startsWith($item->image_path, ['http://', 'https://', 'uploads/']) ? (str_starts_with($item->image_path, 'uploads/') ? asset($item->image_path) : $item->image_path) : asset('storage/'.$item->image_path)) : null)
+                        @php($imageUrl = \App\Support\MenuImage::url($item->image_path))
+                        @php($webpImageUrl = \App\Support\MenuImage::webpUrl($item->image_path))
                         <article x-show="itemVisible({{ $category->id }}, @js($item->name), @js($item->description ?? ''))" class="overflow-hidden rounded-2xl border border-black/10 bg-white shadow-sm" itemscope itemtype="https://schema.org/MenuItem">
                             <div class="aspect-square bg-neutral-200">
                                 @if($imageUrl)
-                                    <img src="{{ $imageUrl }}" alt="{{ $item->name }}" class="h-full w-full object-cover" loading="lazy">
+                                    <picture>
+                                        @if($webpImageUrl)<source srcset="{{ $webpImageUrl }}" type="image/webp">@endif
+                                        <img src="{{ $imageUrl }}" alt="{{ $item->name }}" width="640" height="640" class="h-full w-full object-cover" loading="lazy" decoding="async">
+                                    </picture>
                                 @else
                                     <div class="grid h-full place-items-center text-5xl font-extrabold text-white" style="background: linear-gradient(135deg, #111, var(--zem-accent));">{{ strtoupper(substr($item->name, 0, 1)) }}</div>
                                 @endif
@@ -260,7 +266,7 @@
                                     <span itemprop="priceCurrency" content="ETB">ETB</span>
                                 </p>
                                 @if($item->is_available)
-                                    <button type="button" @click="add({ id: {{ $item->id }}, name: @js($item->name), price: {{ $item->price }} })" class="mt-3 w-full rounded-xl bg-black px-3 py-3 text-sm font-extrabold text-white">Add</button>
+                                    <button type="button" @click="add({ id: {{ $item->id }}, name: @js($item->name), price: {{ $item->price }} })" class="js-only mt-3 w-full rounded-xl bg-black px-3 py-3 text-sm font-extrabold text-white">Add</button>
                                 @else
                                     <span class="mt-3 block rounded-xl bg-red-100 px-3 py-3 text-center text-sm font-extrabold text-red-700">Unavailable</span>
                                 @endif
@@ -274,7 +280,7 @@
         <p x-show="!hasVisibleItems()" x-cloak class="rounded-xl border border-dashed border-black/10 bg-white p-6 text-center font-bold text-neutral-500">No menu items match your search.</p>
     </section>
 
-    <button type="button" @click="open = true" x-show="count() > 0" class="fixed bottom-4 left-1/2 z-40 flex w-[calc(100%-2rem)] max-w-3xl -translate-x-1/2 items-center justify-between rounded-2xl bg-black px-5 py-4 font-extrabold text-white shadow-2xl shadow-black/40">
+    <button type="button" @click="open = true" x-show="count() > 0" class="js-only fixed bottom-4 left-1/2 z-40 flex w-[calc(100%-2rem)] max-w-3xl -translate-x-1/2 items-center justify-between rounded-2xl bg-black px-5 py-4 font-extrabold text-white shadow-2xl shadow-black/40">
         <span x-text="count() + ' item(s)'"></span><span class="text-zem-gold" x-text="money(total())"></span>
     </button>
 
@@ -313,13 +319,28 @@
     </div>
 </main>
 
+<noscript><div class="mx-auto mb-4 max-w-5xl rounded-xl border border-amber-300 bg-amber-50 px-4 py-3 text-sm font-bold text-amber-900">You can browse the menu and call staff here. Enable JavaScript to build and submit an order.</div></noscript>
+<div id="connection-status" class="fixed bottom-3 left-1/2 z-50 hidden -translate-x-1/2 rounded-full bg-black px-4 py-2 text-xs font-bold text-white shadow-xl" role="status"></div>
+
 <script>
+const connectionStatus = document.getElementById('connection-status');
+function updateConnectionStatus() {
+    if (!connectionStatus) return;
+    const offline = !navigator.onLine;
+    connectionStatus.textContent = offline ? 'Offline: browsing is available, but ordering needs connection.' : '';
+    connectionStatus.classList.toggle('hidden', !offline);
+}
+window.addEventListener('online', updateConnectionStatus);
+window.addEventListener('offline', updateConnectionStatus);
+updateConnectionStatus();
+
 function menuCart(config) {
     return {
         open: false,
         activeCategory: 'all',
         menuSearch: '',
         items: [],
+        clientRequestId: null,
         paymentDetails: config.paymentDetails || {},
         serviceChargePercentage: Number(config.serviceChargePercentage || 0),
         vatPercentage: Number(config.vatPercentage || 0),
@@ -348,6 +369,14 @@ function menuCart(config) {
                     holder.appendChild(input);
                 });
             });
+            if (!this.clientRequestId) {
+                this.clientRequestId = window.crypto?.randomUUID?.() || ('zemtab-' + Date.now() + '-' + Math.random().toString(16).slice(2));
+            }
+            const requestId = document.createElement('input');
+            requestId.type = 'hidden';
+            requestId.name = 'client_request_id';
+            requestId.value = this.clientRequestId;
+            holder.appendChild(requestId);
         }
     }
 }

@@ -43,6 +43,7 @@ final class MenuPackageImporter
                     File::copy($row['source_image'], $destination);
                     $copiedFiles[] = $destination;
                 }
+                ImageOptimizer::createMenuDerivatives($destination, $filename);
 
                 $rows['items'][$index]['stored_image_path'] = 'uploads/menu-items/'.$filename;
             }

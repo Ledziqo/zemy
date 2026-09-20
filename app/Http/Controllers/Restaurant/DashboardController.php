@@ -276,6 +276,23 @@ class DashboardController extends Controller
                 ->orderByRaw("CASE status WHEN 'pending' THEN 1 WHEN 'acknowledged' THEN 2 ELSE 3 END")
                 ->orderByDesc('id')->limit(40)->get();
 
+        $latestOrderId = (clone $ordersQuery)->max('id') ?? 0;
+        $latestOrderUpdatedAt = (clone $ordersQuery)->max('updated_at') ?? '';
+        $latestRequestId = $restaurant->serviceRequests()->max('id') ?? 0;
+        $latestRequestUpdatedAt = $restaurant->serviceRequests()->max('updated_at') ?? '';
+        $etag = '"'.sha1(json_encode([
+            $this->orderFilter($request),
+            $request->query('page', 1),
+            $latestOrderId,
+            (string) $latestOrderUpdatedAt,
+            $latestRequestId,
+            (string) $latestRequestUpdatedAt,
+        ])).'"';
+
+        if ($request->header('If-None-Match') === $etag) {
+            return response('', 304)->header('ETag', $etag)->header('Cache-Control', 'private, no-cache');
+        }
+
         // Return an authoritative snapshot: status/confirmation changes do not
         // necessarily change the latest ID, and timestamp cursors can miss ties.
         return response()->json([
@@ -292,12 +309,12 @@ class DashboardController extends Controller
             ]),
             'pagination' => $this->orderFilter($request) === 'active'
                 ? '' : $orders->withPath(route('restaurant.orders.index'))->links()->toHtml(),
-            'latestOrderId' => (clone $ordersQuery)->max('id') ?? 0,
+            'latestOrderId' => $latestOrderId,
             'latestConfirmedAt' => (clone $ordersQuery)->max('confirmed_at'),
-            'latestRequestId' => $restaurant->serviceRequests()->max('id') ?? 0,
+            'latestRequestId' => $latestRequestId,
             'activeRequests' => $restaurant->serviceRequests()->whereIn('status', ['pending', 'acknowledged'])->count(),
             ...$this->boardCounts($request, $restaurant),
-        ]);
+        ])->header('ETag', $etag)->header('Cache-Control', 'private, no-cache');
     }
 
     public function analytics(Request $request)

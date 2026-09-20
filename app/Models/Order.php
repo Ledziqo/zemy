@@ -11,7 +11,7 @@ class Order extends Model
     public const PAYMENT_METHODS = ['cash', 'telebirr', 'cbe', 'awash', 'abyssinia', 'room_credit'];
 
     protected $fillable = [
-        'restaurant_id', 'table_id', 'guest_session_id', 'table_number', 'customer_name', 'customer_phone', 'note',
+        'restaurant_id', 'table_id', 'guest_session_id', 'client_request_id', 'table_number', 'customer_name', 'customer_phone', 'note',
         'status', 'payment_method', 'payment_status', 'subtotal', 'service_charge', 'tax', 'total',
         'handled_by_profile_id', 'order_type', 'confirmed_at',
     ];

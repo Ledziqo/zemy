@@ -6,7 +6,6 @@
     <meta name="robots" content="noindex, nofollow">
     <title>Select Profile — {{ $restaurant->name }}</title>
     @include('components.frontend-assets', ['alpine' => true])
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Sora:wght@600;700;800&display=swap" rel="stylesheet">
 </head>
 <body class="bg-zem-bg min-h-screen flex items-center justify-center px-4 py-10">
     <div class="w-full max-w-md">

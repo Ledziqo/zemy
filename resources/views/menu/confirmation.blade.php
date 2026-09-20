@@ -4,6 +4,7 @@
     'robots' => 'noindex, nofollow',
     'canonical' => route('menu.confirmation', [$restaurant->slug, $table]),
     'accentColor' => $restaurant->primary_color,
+    'alpine' => true,
 ])
 
 @section('content')

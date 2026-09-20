@@ -4,7 +4,7 @@
     $accentRgb = implode(' ', sscanf($accentColor, '#%02x%02x%02x'));
 @endphp
 <!doctype html>
-<html lang="{{ app()->getLocale() }}" dir="{{ app()->getLocale() === 'ar' ? 'rtl' : 'ltr' }}" style="--zem-accent: {{ $accentColor }}; --zem-accent-rgb: {{ $accentRgb }};">
+<html class="no-js" lang="{{ app()->getLocale() }}" dir="{{ app()->getLocale() === 'ar' ? 'rtl' : 'ltr' }}" style="--zem-accent: {{ $accentColor }}; --zem-accent-rgb: {{ $accentRgb }};">
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=5">
@@ -41,18 +41,15 @@
     <meta name="twitter:description" content="{{ $description ?? 'ZemTab is a modern QR menu, table ordering, waiter request, and restaurant dashboard system built for restaurants in Ethiopia. Scan. Order. Pay.' }}">
     <meta name="twitter:image" content="{{ $ogImage ?? asset('logo/zemtab-pantone-1795-c-icon-text-transparent.png') }}">
 
-    {{-- Performance: DNS Prefetch & Preconnect --}}
-    <link rel="dns-prefetch" href="//fonts.googleapis.com">
-    <link rel="dns-prefetch" href="//fonts.gstatic.com">
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-
     {{-- Structured Data Injection --}}
     @stack('structured-data')
 
-    @include('components.frontend-assets', ['alpine' => true])
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Noto+Sans+Ethiopic:wght@400;500;600;700;800&family=Sora:wght@600;700;800&display=swap" rel="stylesheet">
-    <style>[x-cloak]{display:none!important}</style>
+    <script>document.documentElement.classList.replace('no-js', 'js');</script>
+    @include('components.frontend-assets', ['alpine' => $alpine ?? false])
+    @if($offlineMenu ?? false)
+        <link rel="manifest" href="{{ asset('manifest.webmanifest') }}">
+    @endif
+    <style>[x-cloak]{display:none!important}.no-js .js-only{display:none!important}</style>
 </head>
 <body class="bg-zem-bg text-zem-cream font-sans antialiased">
     <div class="min-h-screen">
@@ -65,5 +62,12 @@
         {{ $slot ?? '' }}
         @yield('content')
     </div>
+    @if($offlineMenu ?? false)
+        <script>
+            if ('serviceWorker' in navigator) {
+                window.addEventListener('load', () => navigator.serviceWorker.register('{{ asset('sw.js') }}', {scope: '/'}).catch(() => {}));
+            }
+        </script>
+    @endif
 </body>
 </html>

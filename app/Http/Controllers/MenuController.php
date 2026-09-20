@@ -10,7 +10,7 @@ use Illuminate\Support\Facades\Cache;
 
 class MenuController extends Controller
 {
-    private const PUBLIC_MENU_CACHE_SECONDS = 60;
+    private const PUBLIC_MENU_CACHE_SECONDS = 3600;
 
     public function show(Request $request, GuestVisitManager $visits, string $restaurant_slug, string $table_number)
     {
@@ -32,7 +32,8 @@ class MenuController extends Controller
             'table' => $restaurantTable,
             'categories' => $restaurant->categories->where('is_active', true),
             'visit' => $visit,
-        ]);
+        ])->header('Cache-Control', 'private, no-cache, must-revalidate')
+            ->header('Vary', 'Cookie, Accept-Encoding');
     }
 
     public function confirmation(Request $request, GuestVisitManager $visits, string $restaurant_slug, string $table_number)
@@ -44,33 +45,32 @@ class MenuController extends Controller
             $visit->load('orders.items');
         }
         $table = $table_number;
-        return response()->view('menu.confirmation', compact('restaurant', 'table', 'visit'));
+        return response()->view('menu.confirmation', compact('restaurant', 'table', 'visit'))
+            ->header('Cache-Control', 'no-store');
     }
 
     private function publicMenuPayload(string $restaurantSlug, string $tableNumber): array
     {
         $version = PublicMenuCache::versionForSlug($restaurantSlug);
 
-        return Cache::remember(
-            "public_menu:{$restaurantSlug}:v{$version}:{$tableNumber}",
+        $restaurant = Cache::remember(
+            "public_menu:{$restaurantSlug}:v{$version}",
             now()->addSeconds(self::PUBLIC_MENU_CACHE_SECONDS),
-            function () use ($restaurantSlug, $tableNumber) {
-                $restaurant = Restaurant::where('slug', $restaurantSlug)->where('is_active', true)
-                    ->with([
-                        'categories' => fn ($query) => $query->where('is_active', true),
-                        'categories.menuItems' => fn ($query) => $query
-                            ->orderBy('sort_order')
-                            ->orderBy('id'),
-                    ])
-                    ->firstOrFail();
-
-                $restaurantTable = $restaurant->tables()
-                    ->where('table_number', $tableNumber)
-                    ->where('is_active', true)
-                    ->firstOrFail();
-
-                return [$restaurant, $restaurantTable];
-            }
+            fn () => Restaurant::where('slug', $restaurantSlug)->where('is_active', true)
+                ->with([
+                    'categories' => fn ($query) => $query->where('is_active', true),
+                    'categories.menuItems' => fn ($query) => $query
+                        ->orderBy('sort_order')
+                        ->orderBy('id'),
+                ])
+                ->firstOrFail()
         );
+
+        $restaurantTable = $restaurant->tables()
+            ->where('table_number', $tableNumber)
+            ->where('is_active', true)
+            ->firstOrFail();
+
+        return [$restaurant, $restaurantTable];
     }
 }

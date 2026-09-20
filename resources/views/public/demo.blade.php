@@ -1,4 +1,4 @@
-@extends('layouts.app', ['title' => 'Try ZemTab · Interactive demo', 'description' => 'Try a sample guest menu and staff work board. No account, real orders or payments required.'])
+@extends('layouts.app', ['title' => 'Try ZemTab · Interactive demo', 'description' => 'Try a sample guest menu and staff work board. No account, real orders or payments required.', 'alpine' => true])
 @section('content')
 <main class="mx-auto max-w-6xl px-4 py-6 sm:px-6 sm:py-10"><div class="mb-8 flex flex-wrap items-center justify-between gap-4"><a href="{{ route('home') }}" aria-label="ZemTab home"><img src="{{ asset('logo/zemtab-pantone-1795-c-icon-text-transparent.png') }}" alt="ZemTab" class="h-9 w-auto"></a><a href="{{ route('home') }}#demo" class="rounded-xl bg-zem-gold px-5 py-3 text-sm font-semibold text-white">{{ __('Set up my venue') }} →</a></div><h1 class="font-display text-3xl font-bold">{{ __('Take ZemTab for a spin.') }}</h1><p class="mb-7 mt-3 text-zem-muted">{{ __('Be the guest. Then be the team. Try the full flow below.') }}</p>@include('components.product-demo')</main>
 @endsection

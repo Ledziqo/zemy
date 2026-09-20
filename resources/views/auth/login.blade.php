@@ -7,7 +7,6 @@
     <title>Login - ZemTab</title>
     <link rel="icon" type="image/png" href="{{ asset('logo/zemtab-pantone-1795-c-icon-transparent.png') }}">
     @include('components.frontend-assets')
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Sora:wght@600;700;800&display=swap" rel="stylesheet">
 </head>
 <body class="min-h-screen bg-[radial-gradient(circle_at_top_right,rgba(210,38,48,.16),transparent_28%),linear-gradient(180deg,#F8FAFC,#EEF3F7)] font-sans">
     <div class="min-h-screen flex flex-col items-center justify-center px-4 py-8">

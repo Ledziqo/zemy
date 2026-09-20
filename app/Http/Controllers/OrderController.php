@@ -8,6 +8,7 @@ use App\Models\Restaurant;
 use App\Support\GuestVisitManager;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
 
 class OrderController extends Controller
@@ -21,6 +22,7 @@ class OrderController extends Controller
             'customer_name' => ['nullable', 'string', 'max:255'],
             'customer_phone' => ['nullable', 'string', 'max:50'],
             'note' => ['nullable', 'string', 'max:2000'],
+            'client_request_id' => ['nullable', 'string', 'max:80', 'regex:/^[A-Za-z0-9._-]+$/'],
             'payment_method' => ['nullable', Rule::in($restaurant->settings['payment_methods'] ?? ['cash', 'telebirr', 'cbe', 'awash', 'abyssinia'])],
             'items' => ['required', 'array', 'min:1', 'max:100'],
             'items.*.id' => ['required', 'integer', 'distinct', 'exists:menu_items,id'],
@@ -41,7 +43,24 @@ class OrderController extends Controller
 
         $visit = $visits->resolve($request, $restaurant, $restaurantTable);
 
-        $order = DB::transaction(function () use ($data, $restaurant, $restaurantTable, $visit, $table_number, $menuItems) {
+        $clientRequestId = $data['client_request_id'] ?? null;
+        if ($clientRequestId) {
+            $existing = Order::where('restaurant_id', $restaurant->id)
+                ->where('table_id', $restaurantTable->id)
+                ->where('guest_session_id', $visit->id)
+                ->where('client_request_id', $clientRequestId)
+                ->first();
+
+            if ($existing) {
+                return redirect()->route('menu.confirmation', [$restaurant->slug, $table_number])
+                    ->with('order_id', $existing->id)
+                    ->withCookie($visits->cookie($visit));
+            }
+        }
+
+        $clientRequestId ??= (string) Str::uuid();
+
+        $order = DB::transaction(function () use ($data, $restaurant, $restaurantTable, $visit, $table_number, $menuItems, $clientRequestId) {
             $subtotal = 0;
             foreach ($data['items'] as $line) {
                 $item = $menuItems[$line['id']];
@@ -57,6 +76,7 @@ class OrderController extends Controller
                 'restaurant_id' => $restaurant->id,
                 'table_id' => $restaurantTable->id,
                 'guest_session_id' => $visit->id,
+                'client_request_id' => $clientRequestId,
                 'table_number' => $table_number,
                 'customer_name' => $data['customer_name'] ?? null,
                 'customer_phone' => $data['customer_phone'] ?? null,

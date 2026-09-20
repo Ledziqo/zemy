@@ -44,11 +44,11 @@
 
 <div class="grid gap-4 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4" data-reorder-list>
 @foreach($items as $menuItem)
-    @php($imageUrl = $menuItem->image_path ? (\Illuminate\Support\Str::startsWith($menuItem->image_path, ['http://', 'https://', 'uploads/']) ? (str_starts_with($menuItem->image_path, 'uploads/') ? asset($menuItem->image_path) : $menuItem->image_path) : asset('storage/'.$menuItem->image_path)) : null)
+    @php($imageUrl = \App\Support\MenuImage::url($menuItem->image_path))
     <article class="overflow-hidden rounded-md border border-zem-border bg-zem-card transition" draggable="true" data-reorder-item data-menu-item-id="{{ $menuItem->id }}">
         <div class="relative aspect-square bg-zem-bg">
             @if($imageUrl)
-                <img src="{{ $imageUrl }}" alt="{{ $menuItem->name }}" class="h-full w-full object-cover">
+                <img src="{{ $imageUrl }}" alt="{{ $menuItem->name }}" width="640" height="640" loading="lazy" decoding="async" class="h-full w-full object-cover">
             @else
                 <div class="grid h-full place-items-center bg-[linear-gradient(135deg,#111,#2b1009)] text-5xl font-extrabold text-white">{{ strtoupper(substr($menuItem->name, 0, 1)) }}</div>
             @endif
