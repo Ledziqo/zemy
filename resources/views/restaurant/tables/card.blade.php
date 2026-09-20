@@ -11,19 +11,18 @@
         <path d="M-35 435C70 439 29 532 147 527S257 522 320 550M-35 445C70 449 29 542 147 537S257 532 320 560M-35 455C70 459 29 552 147 547S257 542 320 570" fill="none" stroke="var(--card-bg)" stroke-width="1.5" opacity=".7"/>
         <path d="M0 411C66 446 40 490 124 503" fill="none" stroke="var(--card-border)" stroke-width=".8" opacity=".3"/>
         <circle cx="282" cy="244" r="3" fill="var(--card-accent)"/>
-        <path d="M12 167h12m-6-6v12" stroke="var(--card-accent)" stroke-width="1.3"/>
         <path d="M12 268v100M285 286v80" stroke="var(--card-border)" stroke-width=".6" opacity=".2"/>
     </svg>
     <div class="signature-logo-wrap">
         @if($logoUrl)<img src="{{ $logoUrl }}" alt="{{ $restaurant->name }} logo" class="signature-logo" data-print-resource>@endif
     </div>
     <div class="signature-heading">
-        <p class="signature-kicker">A LITTLE SCAN. A LOT TO ENJOY.</p>
+        <p class="signature-kicker"><span class="signature-kicker-cross" aria-hidden="true">＋</span><span class="signature-kicker-line" aria-hidden="true"></span><span class="signature-kicker-text">AT YOUR SERVICE</span><span class="signature-kicker-line" aria-hidden="true"></span></p>
         <p class="signature-title">{{ $scanText }}</p>
     </div>
     <div class="signature-scan">
         <div class="signature-frame"><img src="{{ $qrImage }}" alt="Menu QR code" width="500" height="500" data-print-resource></div>
-        <p class="signature-hint">Open your camera · Scan · Enjoy</p>
+        <p class="signature-hint">Scan. Tap. Enjoy.</p>
     </div>
     <div class="signature-footer"><span>Powered by</span><img src="{{ asset('logo/zemtab-pantone-1795-c-icon-text-transparent.png') }}" alt="ZemTab" data-print-resource></div>
 </article>

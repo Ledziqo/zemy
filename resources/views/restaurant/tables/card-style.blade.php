@@ -5,8 +5,10 @@
 .signature-logo-wrap{width:100%;height:var(--logo-size);display:flex;align-items:center;justify-content:center;flex-shrink:0}
 .signature-logo{width:53mm;height:100%;object-fit:contain;background:white;border-radius:2mm;padding:2mm}
 .signature-heading{height:24mm;width:100%;display:flex;flex-direction:column;justify-content:center;align-items:center;flex-shrink:0}
-.signature-kicker{font-size:6pt;font-weight:700;letter-spacing:.2em;margin:0 0 2mm;display:flex;align-items:center;gap:2mm}
-.signature-kicker:before,.signature-kicker:after{content:'';width:5mm;height:.45mm;background:var(--card-accent)}
+.signature-kicker{width:100%;font-size:max(4pt,calc(var(--text-size) * .34));font-weight:700;letter-spacing:.16em;margin:0 0 2mm;display:flex;align-items:center;justify-content:center;gap:1.5mm;line-height:1}
+.signature-kicker-cross{font-size:1.25em;font-weight:400;letter-spacing:0;line-height:.8;color:var(--card-accent);flex:0 0 auto}
+.signature-kicker-line{height:.35mm;background:var(--card-accent);opacity:.9;flex:1 1 auto;min-width:2mm}
+.signature-kicker-text{white-space:nowrap;flex:0 1 auto}
 .signature-title{font-size:var(--text-size);font-weight:900;letter-spacing:-.045em;line-height:.98;margin:0;width:100%;overflow-wrap:anywhere;text-wrap:balance}
 .signature-scan{display:flex;flex-direction:column;align-items:center;gap:2mm;flex-shrink:0}
 .signature-frame{padding:2mm;background:#fff;border-radius:3mm;position:relative;box-shadow:0 0 0 .45mm var(--card-accent),1.5mm 1.5mm 0 var(--card-accent)}
