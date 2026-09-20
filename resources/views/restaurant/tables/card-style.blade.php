@@ -12,9 +12,10 @@
 .signature-frame{padding:2mm;background:#fff;border-radius:3mm;position:relative;box-shadow:0 0 0 .45mm var(--card-accent),1.5mm 1.5mm 0 var(--card-accent)}
 .signature-frame img{display:block;width:var(--qr-size);height:var(--qr-size)}
 .signature-hint{font-size:var(--detail-size);margin:1mm 0 0;letter-spacing:.015em;line-height:1.2}
-.signature-footer{height:7mm;display:flex;align-items:center;justify-content:center;gap:1.5mm;background:#fff;color:#171717;padding:1mm 3mm;border-radius:12mm;flex-shrink:0}
-.signature-footer span{font-size:var(--detail-size);font-weight:600}
-.signature-footer img{width:19mm;height:5mm;object-fit:contain}
+.signature-footer{width:100%;height:8mm;display:flex;align-items:center;justify-content:center;gap:2mm;background:rgba(255,255,255,.96);color:#171717;padding:1mm 2.5mm;border-top:.35mm solid var(--card-accent);border-bottom:.35mm solid var(--card-accent);border-radius:1.5mm;flex-shrink:0}
+.signature-footer:before,.signature-footer:after{content:'';height:.3mm;flex:1;background:var(--card-accent);opacity:.55}
+.signature-footer span{font-size:calc(var(--detail-size) * .85);font-weight:700;letter-spacing:.11em;text-transform:uppercase;white-space:nowrap}
+.signature-footer img{width:24mm;height:6mm;object-fit:contain}
 @media print{.signature-card{break-inside:avoid;page-break-inside:avoid}}
 </style>
 <script>
