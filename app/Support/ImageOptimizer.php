@@ -26,7 +26,10 @@ class ImageOptimizer
         $targetHeight = max(1, (int) round($height * $scale));
 
         $target = imagecreatetruecolor($targetWidth, $targetHeight);
-        imagealphablending($target, true);
+        // Keep the alpha channel while resizing transparent logos and menu art.
+        // Blending onto the new canvas first can turn transparent pixels into
+        // a solid black/white block when the result is saved as WebP.
+        imagealphablending($target, false);
         imagesavealpha($target, true);
         $white = imagecolorallocate($target, 255, 255, 255);
         imagefilledrectangle($target, 0, 0, $targetWidth, $targetHeight, $white);
@@ -76,6 +79,7 @@ class ImageOptimizer
         imagefilledrectangle($target, 0, 0, $targetWidth, $targetHeight, $transparent);
 
         imagecopyresampled($target, $image, 0, 0, 0, 0, $targetWidth, $targetHeight, $width, $height);
+        imagesavealpha($target, true);
 
         $filename = Str::uuid().'.webp';
         $path = $directory.DIRECTORY_SEPARATOR.$filename;
