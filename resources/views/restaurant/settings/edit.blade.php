@@ -65,6 +65,7 @@
                     <option value="classic" @selected($sticker['design'] === 'classic')>Classic line</option>
                     <option value="rounded" @selected($sticker['design'] === 'rounded')>Rounded</option>
                     <option value="bold" @selected($sticker['design'] === 'bold')>Bold frame</option>
+                    <option value="abstract" @selected($sticker['design'] === 'abstract')>Abstract shapes</option>
                 </select>
             </label>
             <label class="grid gap-1 text-xs font-semibold text-zem-muted">Table scan text <input name="sticker_table_scan_text" value="{{ $sticker['table_scan_text'] }}" class="rounded-md border border-zem-border bg-zem-card px-3 py-2 text-sm"></label>

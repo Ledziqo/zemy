@@ -50,7 +50,7 @@ class SettingsController extends Controller
             'sticker_accent_color' => ['required', 'regex:/^#[0-9A-Fa-f]{6}$/'],
             'sticker_qr_color' => ['required', 'regex:/^#[0-9A-Fa-f]{6}$/'],
             'sticker_qr_background_color' => ['required', 'regex:/^#[0-9A-Fa-f]{6}$/'],
-            'sticker_design' => ['required', 'in:classic,rounded,bold'],
+            'sticker_design' => ['required', 'in:classic,rounded,bold,abstract'],
             'sticker_table_scan_text' => ['required', 'string', 'max:80'],
             'sticker_room_scan_text' => ['required', 'string', 'max:80'],
         ]);
