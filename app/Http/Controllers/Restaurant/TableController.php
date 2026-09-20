@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Restaurant;
 
 use App\Http\Controllers\Controller;
 use App\Models\RestaurantTable;
+use App\Support\ImageOptimizer;
 use App\Support\PublicMenuCache;
 use Endroid\QrCode\Color\Color;
 use Endroid\QrCode\Builder\Builder;
@@ -36,8 +37,17 @@ class TableController extends Controller
         $rules['table_scan_text'] = ['required', 'string', 'max:40'];
         $rules['room_scan_text'] = ['required', 'string', 'max:40'];
         $data = $request->validate($rules);
+        $request->validate([
+            'qr_logo' => ['nullable', 'file', 'mimes:png,jpg,jpeg,webp,svg', 'max:4096'],
+            'remove_qr_logo' => ['nullable', 'boolean'],
+        ]);
         $restaurant = $this->restaurant($request);
         $settings = $restaurant->settings ?? [];
+        if ($request->hasFile('qr_logo')) {
+            $data['qr_logo_path'] = ImageOptimizer::storeUpload($request->file('qr_logo'), 'restaurants/qr-logos', 800);
+        } elseif ($request->boolean('remove_qr_logo')) {
+            $data['qr_logo_path'] = null;
+        }
         // Keep the QR itself high contrast regardless of the decorative palette.
         $settings['qr_sticker'] = array_merge($settings['qr_sticker'] ?? [], $data, ['qr_color' => '#111111', 'qr_background_color' => '#FFFFFF']);
         $restaurant->update(['settings' => $settings]);
@@ -148,6 +158,7 @@ class TableController extends Controller
             'qr_size' => 46,
             'detail_size' => 7,
             'art_opacity' => 100,
+            'qr_logo_path' => null,
         ];
     }
 

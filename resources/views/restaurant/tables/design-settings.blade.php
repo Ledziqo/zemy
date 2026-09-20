@@ -1,6 +1,6 @@
 @include('restaurant.tables.card-style')
 <style>
-.qr-studio{margin-bottom:28px;border:1px solid #8884;border-radius:16px;overflow:hidden}
+.qr-studio{margin-bottom:28px;border:1px solid #8884;border-radius:16px;overflow:hidden}.qr-studio summary{list-style:none;cursor:pointer}.qr-studio summary::-webkit-details-marker{display:none}.qr-studio summary:after{content:'＋';float:right;font-size:24px;font-weight:400;line-height:1}.qr-studio[open] summary:after{content:'−'}
 .qr-studio-head{padding:22px;border-bottom:1px solid #8884}.qr-studio-head h2{font-size:22px;font-weight:800;margin:0}.qr-studio-head p{margin:6px 0 0;opacity:.75;font-size:14px}
 .qr-studio-body{display:grid;grid-template-columns:minmax(0,1fr) 330px;gap:28px;padding:24px}
 .qr-studio fieldset{margin:0 0 22px;padding:0;border:0}.qr-studio legend{font-size:12px;font-weight:800;letter-spacing:.12em;text-transform:uppercase;margin-bottom:12px}
@@ -10,10 +10,10 @@
 .qr-preview{background:#d9d9d6;border-radius:12px;padding:20px 12px;color:#171717;align-self:start;display:flex;flex-direction:column;align-items:center;gap:14px}.qr-preview select{background:white}.qr-preview p:not(.signature-title):not(.signature-kicker):not(.signature-hint){font-size:12px;text-align:center;margin:0}.qr-save{background:#d22630;color:#fff;border:0;border-radius:8px;padding:12px 18px;font-weight:700;cursor:pointer}.qr-notice{font-size:12px;opacity:.75;margin:12px 0}
 @media(max-width:1000px){.qr-studio-body{grid-template-columns:1fr}.qr-preview{width:100%}}@media(max-width:480px){.qr-studio-body{padding:12px}.qr-controls{grid-template-columns:1fr}.qr-preview{padding:12px 0;overflow:auto}}
 </style>
-<section class="qr-studio">
-<div class="qr-studio-head"><h2>QR design studio</h2><p>The ZemTab signature collection. Your brand, beautifully presented.</p></div>
+<details class="qr-studio">
+<summary class="qr-studio-head"><h2>QR design studio</h2><p>The ZemTab signature collection. Your brand, beautifully presented. Open to customize.</p></summary>
 @php($designSaveUrl = \Illuminate\Support\Facades\Route::has('restaurant.tables.design') ? route('restaurant.tables.design') : url('/restaurant/tables/qr/design'))
-<form method="post" action="{{ $designSaveUrl }}" id="qr-design-form" class="qr-studio-body">
+<form method="post" action="{{ $designSaveUrl }}" id="qr-design-form" class="qr-studio-body" enctype="multipart/form-data">
 @csrf @method('PATCH')
 <div>
 @if($errors->any())<p role="alert" class="mb-4 text-red-500">{{ $errors->first() }}</p>@endif
@@ -33,6 +33,11 @@
 <label>Table headline<input type="text" name="table_scan_text" required maxlength="40" value="{{ old('table_scan_text',$sticker['table_scan_text']) }}"></label>
 <label>Room headline<input type="text" name="room_scan_text" required maxlength="40" value="{{ old('room_scan_text',$sticker['room_scan_text']) }}"></label>
 </div></fieldset>
+<fieldset><legend>04 / QR logo</legend>
+<label class="qr-logo-upload">Insert a logo for the QR cards<input type="file" name="qr_logo" accept="image/png,image/jpeg,image/webp,image/svg+xml" class="mt-2 block w-full rounded-md border border-zem-border bg-zem-bg px-3 py-2"></label>
+<label class="mt-3 flex items-center gap-2 text-sm"><input type="checkbox" name="remove_qr_logo" value="1"> Remove the custom QR logo and use the restaurant logo again</label>
+<p class="qr-notice">The uploaded logo replaces the current logo on printed QR cards only. It does not change the restaurant’s main logo. PNG, JPG, WEBP, or SVG up to 4 MB.</p>
+</fieldset>
 <p class="qr-notice">12 upright cards per A3 portrait sheet. QR codes stay dark on white for scanning. Long headlines shrink to fit. Save before opening the print pack.</p>
 <button class="qr-save">Save QR design</button> <button type="button" class="qr-reset" id="qr-design-reset">Reset to signature</button>
 <p id="qr-design-status" class="qr-notice" role="status">Preview of saved settings.</p>
@@ -49,7 +54,7 @@
 </form></section>
 <script>
 (() => {
- const form=document.getElementById('qr-design-form'),card=form.querySelector('.signature-card'),type=document.getElementById('qr-preview-type'),status=document.getElementById('qr-design-status');
+ const form=document.getElementById('qr-design-form'),card=form.querySelector('.signature-card'),type=document.getElementById('qr-preview-type'),status=document.getElementById('qr-design-status'),logoInput=form.elements.namedItem('qr_logo');
  const palettes={signature:['#FFFFFF','#171717','#D22630','#D6D0CA'],forest:['#FBF8F0','#173F35','#38715C','#B7C3B5'],midnight:['#15232D','#FFF7E7','#B99151','#57636A'],brand:['#FFFFFF','#171717',@json($restaurant->primary_color ?: '#D22630'),'#D6D0CA']};
  const keys=['background_color','text_color','accent_color','border_color'];
  function update(dirty=true){
@@ -59,6 +64,7 @@
   if(dirty)status.textContent='Unsaved preview — save your design to apply it to the print pack.';
  }
  form.addEventListener('input',()=>update());type.addEventListener('change',()=>update(false));
+ logoInput?.addEventListener('change',()=>{const file=logoInput.files?.[0];if(!file||!card)return;const reader=new FileReader();reader.onload=event=>{let logo=card.querySelector('.signature-logo');if(!logo){logo=document.createElement('img');logo.className='signature-logo';logo.alt='QR logo';card.querySelector('.signature-logo-wrap').appendChild(logo);}logo.src=event.target.result;status.textContent='Logo preview updated — save your design to apply it to the print pack.';};reader.readAsDataURL(file);});
  form.querySelectorAll('[data-palette]').forEach(button=>button.addEventListener('click',()=>{keys.forEach((key,index)=>form.elements.namedItem(key).value=palettes[button.dataset.palette][index]);update();}));
  document.getElementById('qr-design-reset').addEventListener('click',()=>{keys.forEach((key,index)=>form.elements.namedItem(key).value=palettes.signature[index]);Object.entries({logo_size:24,text_size:18,qr_size:46,detail_size:7,art_opacity:100,table_scan_text:'SCAN TO ORDER',room_scan_text:'SCAN FOR ROOM SERVICE'}).forEach(([key,value])=>form.elements.namedItem(key).value=value);update();});
  update(false);
