@@ -73,7 +73,10 @@ class ImageOptimizer
         $targetHeight = max(1, (int) round($height * $scale));
 
         $target = imagecreatetruecolor($targetWidth, $targetHeight);
-        imagealphablending($target, true);
+        // QR logos may be transparent PNGs. Keep the destination canvas in
+        // alpha mode while resampling so saving the uploaded logo does not
+        // turn its transparent area into a black or white rectangle.
+        imagealphablending($target, false);
         imagesavealpha($target, true);
         $transparent = imagecolorallocatealpha($target, 255, 255, 255, 127);
         imagefilledrectangle($target, 0, 0, $targetWidth, $targetHeight, $transparent);

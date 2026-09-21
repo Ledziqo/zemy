@@ -36,11 +36,12 @@ class TableController extends Controller
         }
         $rules['table_scan_text'] = ['required', 'string', 'max:40'];
         $rules['room_scan_text'] = ['required', 'string', 'max:40'];
+        $rules['qr_logo'] = ['nullable', 'file', 'mimes:png,jpg,jpeg,webp,svg', 'max:4096'];
+        $rules['remove_qr_logo'] = ['nullable', 'boolean'];
         $data = $request->validate($rules);
-        $request->validate([
-            'qr_logo' => ['nullable', 'file', 'mimes:png,jpg,jpeg,webp,svg', 'max:4096'],
-            'remove_qr_logo' => ['nullable', 'boolean'],
-        ]);
+        // These controls are request-only; never store the UploadedFile or the
+        // checkbox itself inside the JSON settings column.
+        unset($data['qr_logo'], $data['remove_qr_logo']);
         $restaurant = $this->restaurant($request);
         $settings = $restaurant->settings ?? [];
         if ($request->hasFile('qr_logo')) {
@@ -154,6 +155,7 @@ class TableController extends Controller
             'table_scan_text' => 'SCAN TO ORDER',
             'room_scan_text' => 'SCAN FOR ROOM SERVICE',
             'logo_size' => 24,
+            'logo_width' => 53,
             'text_size' => 18,
             'qr_size' => 46,
             'detail_size' => 7,

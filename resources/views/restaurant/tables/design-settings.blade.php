@@ -14,7 +14,7 @@
 <summary class="qr-studio-head"><h2>QR design studio</h2><p>The ZemTab signature collection. Your brand, beautifully presented. Open to customize.</p></summary>
 @php($designSaveUrl = \Illuminate\Support\Facades\Route::has('restaurant.tables.design') ? route('restaurant.tables.design') : url('/restaurant/tables/qr/design'))
 <form method="post" action="{{ $designSaveUrl }}" id="qr-design-form" class="qr-studio-body" enctype="multipart/form-data">
-@csrf @method('PATCH')
+@csrf
 <div>
 @if($errors->any())<p role="alert" class="mb-4 text-red-500">{{ $errors->first() }}</p>@endif
 <fieldset><legend>01 / Brand palette</legend>
@@ -25,7 +25,7 @@
 @endforeach
 </div></fieldset>
 <fieldset><legend>02 / Scale & detail</legend><div class="qr-controls">
-@foreach(['logo_size'=>['Logo height',14,34,'mm'],'text_size'=>['Headline size',14,22,'pt'],'qr_size'=>['QR size',38,50,'mm'],'detail_size'=>['Small text',6,9,'pt'],'art_opacity'=>['Artwork intensity',10,100,'%']] as $key=>[$label,$min,$max,$unit])
+@foreach(['logo_size'=>['Logo height',14,34,'mm'],'logo_width'=>['Logo width',24,70,'mm'],'text_size'=>['Headline size',14,22,'pt'],'qr_size'=>['QR size',38,50,'mm'],'detail_size'=>['Small text',6,9,'pt'],'art_opacity'=>['Artwork intensity',10,100,'%']] as $key=>[$label,$min,$max,$unit])
 <label>{{ $label }} <output data-value="{{ $key }}"></output><input type="range" name="{{ $key }}" min="{{ $min }}" max="{{ $max }}" step="1" value="{{ old($key,$sticker[$key]) }}" data-unit="{{ $unit }}"></label>
 @endforeach
 </div></fieldset>
@@ -38,7 +38,7 @@
 <label class="mt-3 flex items-center gap-2 text-sm"><input type="checkbox" name="remove_qr_logo" value="1"> Remove the custom QR logo and use the restaurant logo again</label>
 <p class="qr-notice">The uploaded logo replaces the current logo on printed QR cards only. It does not change the restaurant’s main logo. PNG, JPG, WEBP, or SVG up to 4 MB.</p>
 </fieldset>
-<p class="qr-notice">Click the logo in the preview to select it, then drag the corner handle or use the logo slider. 12 upright cards per A3 portrait sheet. Save before opening the print pack.</p>
+<p class="qr-notice">Click the logo in the preview to select it. Use the edge handles for width or height, the corner handle for both, or use the independent sliders. 12 upright cards per A3 portrait sheet. Save before opening the print pack.</p>
 <button class="qr-save">Save QR design</button> <button type="button" class="qr-reset" id="qr-design-reset">Reset to signature</button>
 <p id="qr-design-status" class="qr-notice" role="status">Preview of saved settings.</p>
 </div>
@@ -54,24 +54,38 @@
 </form></details>
 <script>
 (() => {
- const form=document.getElementById('qr-design-form'),card=form.querySelector('.signature-card'),type=document.getElementById('qr-preview-type'),status=document.getElementById('qr-design-status'),logoInput=form.elements.namedItem('qr_logo'),logoWrap=card?.querySelector('.signature-logo-wrap'),resizeHandle=card?.querySelector('.logo-resize-handle'),logoSizeInput=form.elements.namedItem('logo_size');
+ const form=document.getElementById('qr-design-form'),card=form.querySelector('.signature-card'),type=document.getElementById('qr-preview-type'),status=document.getElementById('qr-design-status'),logoInput=form.elements.namedItem('qr_logo'),logoWrap=card?.querySelector('.signature-logo-wrap'),resizeHandles=card?.querySelectorAll('.logo-resize-handle'),logoSizeInput=form.elements.namedItem('logo_size'),logoWidthInput=form.elements.namedItem('logo_width');
  const palettes={signature:['#FFFFFF','#171717','#D22630','#D6D0CA'],forest:['#FBF8F0','#173F35','#38715C','#B7C3B5'],midnight:['#15232D','#FFF7E7','#B99151','#57636A'],brand:['#FFFFFF','#171717',@json($restaurant->primary_color ?: '#D22630'),'#D6D0CA']};
  const keys=['background_color','text_color','accent_color','border_color'];
  function update(dirty=true){
-  const properties={background_color:'--card-bg',text_color:'--card-text',accent_color:'--card-accent',border_color:'--card-border',logo_size:'--logo-size',text_size:'--text-size',qr_size:'--qr-size',detail_size:'--detail-size',art_opacity:'--art-opacity'};
+  const properties={background_color:'--card-bg',text_color:'--card-text',accent_color:'--card-accent',border_color:'--card-border',logo_size:'--logo-size',logo_width:'--logo-width',text_size:'--text-size',qr_size:'--qr-size',detail_size:'--detail-size',art_opacity:'--art-opacity'};
   Object.entries(properties).forEach(([key,property])=>{const input=form.elements.namedItem(key),unit=input.dataset.unit||'',value=key==='art_opacity'?Number(input.value)/100:input.value+unit;if(card)card.style.setProperty(property,value);const output=form.querySelector('[data-value="'+key+'"]');if(output)output.textContent=input.value+unit;});
   if(card){card.querySelector('.signature-title').textContent=form.elements.namedItem(type.value+'_scan_text').value;window.fitSignatureTitles(form);}
   if(dirty)status.textContent='Unsaved preview — save your design to apply it to the print pack.';
  }
  form.addEventListener('input',()=>update());type.addEventListener('change',()=>update(false));
- logoWrap?.addEventListener('click',event=>{if(event.target!==resizeHandle)logoWrap.classList.toggle('is-selected');});
+ logoWrap?.addEventListener('click',event=>{if(!event.target.closest('.logo-resize-handle'))logoWrap.classList.toggle('is-selected');});
  let resizeState=null;
- resizeHandle?.addEventListener('pointerdown',event=>{event.preventDefault();event.stopPropagation();resizeState={startY:event.clientY,startSize:Number(logoSizeInput.value),pixelsPerMillimetre:card.getBoundingClientRect().height/140};resizeHandle.setPointerCapture(event.pointerId);logoWrap.classList.add('is-selected');});
- resizeHandle?.addEventListener('pointermove',event=>{if(!resizeState)return;const next=Math.max(14,Math.min(34,resizeState.startSize+(event.clientY-resizeState.startY)/resizeState.pixelsPerMillimetre));logoSizeInput.value=Math.round(next);update();});
- resizeHandle?.addEventListener('pointerup',()=>{resizeState=null;status.textContent='Logo size adjusted — save your design to apply it to the print pack.';});
+ resizeHandles?.forEach(handle=>{
+  handle.addEventListener('pointerdown',event=>{
+   event.preventDefault();event.stopPropagation();
+   resizeState={axis:handle.dataset.resize,startX:event.clientX,startY:event.clientY,startWidth:Number(logoWidthInput.value),startHeight:Number(logoSizeInput.value),pixelsPerMillimetre:card.getBoundingClientRect().height/140};
+   handle.setPointerCapture(event.pointerId);logoWrap.classList.add('is-selected');
+  });
+  handle.addEventListener('pointermove',event=>{
+   if(!resizeState)return;
+   const dx=(event.clientX-resizeState.startX)/resizeState.pixelsPerMillimetre;
+   const dy=(event.clientY-resizeState.startY)/resizeState.pixelsPerMillimetre;
+   if(resizeState.axis==='width'||resizeState.axis==='both')logoWidthInput.value=Math.round(Math.max(24,Math.min(70,resizeState.startWidth+dx)));
+   if(resizeState.axis==='height'||resizeState.axis==='both')logoSizeInput.value=Math.round(Math.max(14,Math.min(34,resizeState.startHeight+dy)));
+   update();
+  });
+  handle.addEventListener('pointerup',()=>{resizeState=null;status.textContent='Logo size adjusted — save your design to apply it to the print pack.';});
+  handle.addEventListener('pointercancel',()=>{resizeState=null;});
+ });
  logoInput?.addEventListener('change',()=>{const file=logoInput.files?.[0];if(!file||!card)return;const reader=new FileReader();reader.onload=event=>{let logo=card.querySelector('.signature-logo');if(!logo){logo=document.createElement('img');logo.className='signature-logo';logo.alt='QR logo';card.querySelector('.signature-logo-wrap').appendChild(logo);}logo.src=event.target.result;status.textContent='Logo preview updated — save your design to apply it to the print pack.';};reader.readAsDataURL(file);});
  form.querySelectorAll('[data-palette]').forEach(button=>button.addEventListener('click',()=>{keys.forEach((key,index)=>form.elements.namedItem(key).value=palettes[button.dataset.palette][index]);update();}));
- document.getElementById('qr-design-reset').addEventListener('click',()=>{keys.forEach((key,index)=>form.elements.namedItem(key).value=palettes.signature[index]);Object.entries({logo_size:24,text_size:18,qr_size:46,detail_size:7,art_opacity:100,table_scan_text:'SCAN TO ORDER',room_scan_text:'SCAN FOR ROOM SERVICE'}).forEach(([key,value])=>form.elements.namedItem(key).value=value);logoWrap?.classList.remove('is-selected');update();});
+ document.getElementById('qr-design-reset').addEventListener('click',()=>{keys.forEach((key,index)=>form.elements.namedItem(key).value=palettes.signature[index]);Object.entries({logo_size:24,logo_width:53,text_size:18,qr_size:46,detail_size:7,art_opacity:100,table_scan_text:'SCAN TO ORDER',room_scan_text:'SCAN FOR ROOM SERVICE'}).forEach(([key,value])=>form.elements.namedItem(key).value=value);logoWrap?.classList.remove('is-selected');update();});
  update(false);
 })();
 </script>
