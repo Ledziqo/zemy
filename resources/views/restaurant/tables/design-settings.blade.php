@@ -14,7 +14,7 @@
 <summary class="qr-studio-head"><h2>QR design studio</h2><p>The ZemTab signature collection. Your brand, beautifully presented. Open to customize.</p></summary>
 @php($designSaveUrl = \Illuminate\Support\Facades\Route::has('restaurant.tables.design') ? route('restaurant.tables.design') : url('/restaurant/tables/qr/design'))
 <form method="post" action="{{ $designSaveUrl }}" id="qr-design-form" class="qr-studio-body" enctype="multipart/form-data">
-@csrf
+@csrf @method('PATCH')
 <div>
 @if($errors->any())<p role="alert" class="mb-4 text-red-500">{{ $errors->first() }}</p>@endif
 <fieldset><legend>01 / Brand palette</legend>
