@@ -15,6 +15,7 @@
     </svg>
     <div class="signature-logo-wrap">
         @if($logoUrl)<img src="{{ $logoUrl }}" alt="{{ $restaurant->name }} logo" class="signature-logo" data-print-resource>@endif
+        <span class="logo-resize-handle no-print" title="Drag to resize logo" aria-label="Drag to resize logo"></span>
     </div>
     <div class="signature-heading">
         <p class="signature-kicker"><span class="signature-kicker-cross" aria-hidden="true">＋</span><span class="signature-kicker-line" aria-hidden="true"></span><span class="signature-kicker-text">AT YOUR SERVICE</span><span class="signature-kicker-line" aria-hidden="true"></span></p>
