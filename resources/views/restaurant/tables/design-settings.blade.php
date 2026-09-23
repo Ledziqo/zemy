@@ -25,7 +25,7 @@
 @endforeach
 </div></fieldset>
 <fieldset><legend>02 / Scale & detail</legend><div class="qr-controls">
-@foreach(['logo_size'=>['Logo height',14,34,'mm'],'logo_width'=>['Logo width',24,70,'mm'],'text_size'=>['Headline size',14,22,'pt'],'qr_size'=>['QR size',38,50,'mm'],'detail_size'=>['Small text',6,9,'pt'],'art_opacity'=>['Artwork intensity',10,100,'%']] as $key=>[$label,$min,$max,$unit])
+@foreach(['logo_size'=>['Logo height',1,200,'mm'],'logo_width'=>['Logo width',1,200,'mm'],'text_size'=>['Headline size',14,22,'pt'],'qr_size'=>['QR size',38,50,'mm'],'detail_size'=>['Small text',6,9,'pt'],'art_opacity'=>['Artwork intensity',10,100,'%']] as $key=>[$label,$min,$max,$unit])
 <label>{{ $label }} <output data-value="{{ $key }}"></output><input type="range" name="{{ $key }}" min="{{ $min }}" max="{{ $max }}" step="1" value="{{ old($key,$sticker[$key]) }}" data-unit="{{ $unit }}"></label>
 @endforeach
 </div></fieldset>
@@ -60,6 +60,7 @@
  function update(dirty=true){
   const properties={background_color:'--card-bg',text_color:'--card-text',accent_color:'--card-accent',border_color:'--card-border',logo_size:'--logo-size',logo_width:'--logo-width',text_size:'--text-size',qr_size:'--qr-size',detail_size:'--detail-size',art_opacity:'--art-opacity'};
   Object.entries(properties).forEach(([key,property])=>{const input=form.elements.namedItem(key),unit=input.dataset.unit||'',value=key==='art_opacity'?Number(input.value)/100:input.value+unit;if(card)card.style.setProperty(property,value);const output=form.querySelector('[data-value="'+key+'"]');if(output)output.textContent=input.value+unit;});
+  if(card){card.style.setProperty('--logo-half-width',(Number(logoWidthInput.value)/2)+'mm');card.style.setProperty('--logo-half-height',(Number(logoSizeInput.value)/2)+'mm');}
   if(card){card.querySelector('.signature-title').textContent=form.elements.namedItem(type.value+'_scan_text').value;window.fitSignatureTitles(form);}
   if(dirty)status.textContent='Unsaved preview — save your design to apply it to the print pack.';
  }
@@ -76,8 +77,8 @@
    if(!resizeState)return;
    const dx=(event.clientX-resizeState.startX)/resizeState.pixelsPerMillimetre;
    const dy=(event.clientY-resizeState.startY)/resizeState.pixelsPerMillimetre;
-   if(resizeState.axis==='width'||resizeState.axis==='both')logoWidthInput.value=Math.round(Math.max(24,Math.min(70,resizeState.startWidth+dx)));
-   if(resizeState.axis==='height'||resizeState.axis==='both')logoSizeInput.value=Math.round(Math.max(14,Math.min(34,resizeState.startHeight+dy)));
+   if(resizeState.axis==='width'||resizeState.axis==='both')logoWidthInput.value=Math.round(Math.max(1,Math.min(200,resizeState.startWidth+dx)));
+   if(resizeState.axis==='height'||resizeState.axis==='both')logoSizeInput.value=Math.round(Math.max(1,Math.min(200,resizeState.startHeight+dy)));
    update();
   });
   handle.addEventListener('pointerup',()=>{resizeState=null;status.textContent='Logo size adjusted — save your design to apply it to the print pack.';});

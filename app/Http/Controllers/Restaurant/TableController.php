@@ -31,7 +31,7 @@ class TableController extends Controller
         foreach (['background_color', 'border_color', 'text_color', 'accent_color'] as $key) {
             $rules[$key] = ['required', 'regex:/^#[0-9a-fA-F]{6}$/'];
         }
-        foreach (['logo_size' => [14, 34], 'text_size' => [14, 22], 'qr_size' => [38, 50], 'detail_size' => [6, 9], 'art_opacity' => [10, 100]] as $key => [$min, $max]) {
+        foreach (['logo_size' => [1, 200], 'logo_width' => [1, 200], 'text_size' => [14, 22], 'qr_size' => [38, 50], 'detail_size' => [6, 9], 'art_opacity' => [10, 100]] as $key => [$min, $max]) {
             $rules[$key] = ['required', 'integer', "between:$min,$max"];
         }
         $rules['table_scan_text'] = ['required', 'string', 'max:40'];
@@ -73,7 +73,7 @@ class TableController extends Controller
         ]);
     }
 
-    private function setupPackBatch(Request $request)
+    public function setupPackBatch(Request $request)
     {
         $restaurant = $this->restaurant($request);
         $page = max(0, (int) $request->input('page', 0));
