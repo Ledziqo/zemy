@@ -72,7 +72,7 @@ class TableController extends Controller
     public function setupPackBatch(Request $request)
     {
         $restaurant = $this->restaurant($request);
-        $page = max(0, (int) $request->integer('page', 0));
+        $page = max(0, (int) $request->input('page', 0));
         $batchSize = 12;
         $tables = $restaurant->tables()
             ->where('is_active', true)
@@ -86,7 +86,7 @@ class TableController extends Controller
         ]);
         $tables->each(fn (RestaurantTable $table) => $table->setRelation('restaurant', $restaurant));
 
-        return view('restaurant.tables.setup_pack_batch', compact('tables', 'qrImages', 'sticker'));
+        return view('restaurant.tables.setup_pack_batch', compact('restaurant', 'tables', 'qrImages', 'sticker'));
     }
 
     public function store(Request $request)
