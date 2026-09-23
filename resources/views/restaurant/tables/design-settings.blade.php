@@ -25,7 +25,7 @@
 @endforeach
 </div></fieldset>
 <fieldset><legend>02 / Scale & detail</legend><div class="qr-controls">
-@foreach(['logo_size'=>['Logo height',1,200,'mm'],'logo_width'=>['Logo width',1,200,'mm'],'text_size'=>['Headline size',14,22,'pt'],'qr_size'=>['QR size',38,50,'mm'],'detail_size'=>['Small text',6,9,'pt'],'art_opacity'=>['Artwork intensity',10,100,'%']] as $key=>[$label,$min,$max,$unit])
+@foreach(['logo_size'=>['Logo height',1,200,'mm'],'logo_width'=>['Logo width',1,200,'mm'],'text_size'=>['Headline size',14,22,'pt'],'qr_size'=>['QR size',38,50,'mm'],'detail_size'=>['Small text',6,9,'pt'],'footer_size'=>['Powered-by size',50,200,'%'],'art_opacity'=>['Artwork intensity',10,100,'%']] as $key=>[$label,$min,$max,$unit])
 <label>{{ $label }} <output data-value="{{ $key }}"></output><input type="range" name="{{ $key }}" min="{{ $min }}" max="{{ $max }}" step="1" value="{{ old($key,$sticker[$key]) }}" data-unit="{{ $unit }}"></label>
 @endforeach
 </div></fieldset>
@@ -38,9 +38,10 @@
 <label class="mt-3 flex items-center gap-2 text-sm"><input type="checkbox" name="remove_qr_logo" value="1"> Remove the custom QR logo and use the restaurant logo again</label>
 <p class="qr-notice">The uploaded logo replaces the current logo on printed QR cards only. It does not change the restaurant’s main logo. PNG, JPG, WEBP, or SVG up to 4 MB.</p>
 </fieldset>
-<input type="hidden" name="logo_x" value="{{ old('logo_x',$sticker['logo_x'] ?? 37) }}">
-<input type="hidden" name="logo_y" value="{{ old('logo_y',$sticker['logo_y'] ?? 18) }}">
-<p class="qr-notice">The preview card shows the saved table or room label. Drag the logo anywhere on the card to move it, or use the handles to resize it. It can overlap the artwork and text without moving anything else. Save before opening the print pack.</p>
+@foreach(['logo_x'=>37,'logo_y'=>18,'heading_x'=>0,'heading_y'=>0,'scan_x'=>0,'scan_y'=>-3,'footer_x'=>0,'footer_y'=>0] as $key=>$default)
+<input type="hidden" name="{{ $key }}" value="{{ old($key,$sticker[$key] ?? $default) }}">
+@endforeach
+<p class="qr-notice">Drag the logo, headline, QR block, or powered-by footer anywhere on the preview. Resize the logo, QR, text, and powered-by block with the controls. Dragged elements can overlap without moving anything else. Save before opening the print pack.</p>
 <button class="qr-save">Save QR design</button> <button type="button" class="qr-reset" id="qr-design-reset">Reset to signature</button>
 <p id="qr-design-status" class="qr-notice" role="status">Preview of saved settings.</p>
 </div>
@@ -58,11 +59,16 @@
 (() => {
  const form=document.getElementById('qr-design-form'),card=form.querySelector('.signature-card'),type=document.getElementById('qr-preview-type'),status=document.getElementById('qr-design-status'),logoInput=form.elements.namedItem('qr_logo'),logoWrap=card?.querySelector('.signature-logo-wrap'),resizeHandles=card?.querySelectorAll('.logo-resize-handle'),logoSizeInput=form.elements.namedItem('logo_size'),logoWidthInput=form.elements.namedItem('logo_width'),logoXInput=form.elements.namedItem('logo_x'),logoYInput=form.elements.namedItem('logo_y');
  let logo=card?.querySelector('.signature-logo');
+ const draggableElements=[
+  {element:card?.querySelector('.signature-heading'),x:form.elements.namedItem('heading_x'),y:form.elements.namedItem('heading_y'),label:'headline'},
+  {element:card?.querySelector('.signature-scan'),x:form.elements.namedItem('scan_x'),y:form.elements.namedItem('scan_y'),label:'QR block'},
+  {element:card?.querySelector('.signature-footer'),x:form.elements.namedItem('footer_x'),y:form.elements.namedItem('footer_y'),label:'powered-by footer'},
+ ];
  const palettes={signature:['#FFFFFF','#171717','#D22630','#D6D0CA'],forest:['#FBF8F0','#173F35','#38715C','#B7C3B5'],midnight:['#15232D','#FFF7E7','#B99151','#57636A'],brand:['#FFFFFF','#171717',@json($restaurant->primary_color ?: '#D22630'),'#D6D0CA']};
  const keys=['background_color','text_color','accent_color','border_color'];
  function update(dirty=true){
-  const properties={background_color:'--card-bg',text_color:'--card-text',accent_color:'--card-accent',border_color:'--card-border',logo_size:'--logo-size',logo_width:'--logo-width',logo_x:'--logo-x',logo_y:'--logo-y',text_size:'--text-size',qr_size:'--qr-size',detail_size:'--detail-size',art_opacity:'--art-opacity'};
-  Object.entries(properties).forEach(([key,property])=>{const input=form.elements.namedItem(key),unit=input.dataset.unit||'',value=key==='art_opacity'?Number(input.value)/100:input.value+unit;if(card)card.style.setProperty(property,value);const output=form.querySelector('[data-value="'+key+'"]');if(output)output.textContent=input.value+unit;});
+  const properties={background_color:'--card-bg',text_color:'--card-text',accent_color:'--card-accent',border_color:'--card-border',logo_size:'--logo-size',logo_width:'--logo-width',logo_x:'--logo-x',logo_y:'--logo-y',heading_x:'--heading-x',heading_y:'--heading-y',scan_x:'--scan-x',scan_y:'--scan-y',footer_x:'--footer-x',footer_y:'--footer-y',text_size:'--text-size',qr_size:'--qr-size',detail_size:'--detail-size',footer_size:'--footer-scale',art_opacity:'--art-opacity'};
+  Object.entries(properties).forEach(([key,property])=>{const input=form.elements.namedItem(key),unit=input.dataset.unit||'',value=['art_opacity','footer_size'].includes(key)?Number(input.value)/100:input.value+unit;if(card)card.style.setProperty(property,value);const output=form.querySelector('[data-value="'+key+'"]');if(output)output.textContent=input.value+unit;});
   if(card){card.style.setProperty('--logo-half-width',(Number(logoWidthInput.value)/2)+'mm');card.style.setProperty('--logo-half-height',(Number(logoSizeInput.value)/2)+'mm');}
   if(card){card.querySelector('.signature-title').textContent=form.elements.namedItem(type.value+'_scan_text').value;window.fitSignatureTitles(form);}
   if(dirty)status.textContent='Unsaved preview — save your design to apply it to the print pack.';
@@ -87,6 +93,25 @@
   handle.addEventListener('pointerup',()=>{resizeState=null;status.textContent='Logo size adjusted — save your design to apply it to the print pack.';});
   handle.addEventListener('pointercancel',()=>{resizeState=null;});
  });
+ draggableElements.forEach(({element,x,y,label})=>{
+  if(!element||!x||!y)return;
+  element.addEventListener('pointerdown',event=>{
+   if(event.target.closest('.signature-logo,.logo-resize-handle'))return;
+   event.preventDefault();event.stopPropagation();element.setPointerCapture(event.pointerId);
+   const rect=card.getBoundingClientRect();
+   resizeState={axis:'move-element',element,x,y,label,startX:event.clientX,startY:event.clientY,startElementX:Number(x.value),startElementY:Number(y.value),pixelsPerMillimetre:rect.width/74.25};
+  });
+  element.addEventListener('pointermove',event=>{
+   if(!resizeState||resizeState.axis!=='move-element'||resizeState.element!==element)return;
+   const dx=(event.clientX-resizeState.startX)/resizeState.pixelsPerMillimetre;
+   const dy=(event.clientY-resizeState.startY)/resizeState.pixelsPerMillimetre;
+   x.value=Math.round(Math.max(-300,Math.min(400,resizeState.startElementX+dx)));
+   y.value=Math.round(Math.max(-300,Math.min(400,resizeState.startElementY+dy)));
+   update();
+  });
+  element.addEventListener('pointerup',()=>{if(resizeState?.axis==='move-element'&&resizeState.element===element){resizeState=null;status.textContent=label.charAt(0).toUpperCase()+label.slice(1)+' moved — save your design to apply it to the print pack.';}});
+  element.addEventListener('pointercancel',()=>{if(resizeState?.axis==='move-element'&&resizeState.element===element)resizeState=null;});
+ });
  logo?.addEventListener('pointerdown',event=>{
   event.preventDefault();event.stopPropagation();
   logo.setPointerCapture(event.pointerId);
@@ -107,7 +132,7 @@
  logo?.addEventListener('pointercancel',()=>{if(resizeState?.axis==='move')resizeState=null;});
  logoInput?.addEventListener('change',()=>{const file=logoInput.files?.[0];if(!file||!card)return;const reader=new FileReader();reader.onload=event=>{if(!logo){logo=document.createElement('img');logo.className='signature-logo';logo.alt='QR logo';card.querySelector('.signature-logo-wrap').appendChild(logo);}logo.src=event.target.result;status.textContent='Logo preview updated — drag it to position it, then save your design.';};reader.readAsDataURL(file);});
  form.querySelectorAll('[data-palette]').forEach(button=>button.addEventListener('click',()=>{keys.forEach((key,index)=>form.elements.namedItem(key).value=palettes[button.dataset.palette][index]);update();}));
- document.getElementById('qr-design-reset').addEventListener('click',()=>{keys.forEach((key,index)=>form.elements.namedItem(key).value=palettes.signature[index]);Object.entries({logo_size:24,logo_width:53,logo_x:37,logo_y:18,text_size:18,qr_size:46,detail_size:7,art_opacity:100,table_scan_text:'SCAN TO ORDER',room_scan_text:'SCAN FOR ROOM SERVICE'}).forEach(([key,value])=>form.elements.namedItem(key).value=value);logoWrap?.classList.remove('is-selected');update();});
+ document.getElementById('qr-design-reset').addEventListener('click',()=>{keys.forEach((key,index)=>form.elements.namedItem(key).value=palettes.signature[index]);Object.entries({logo_size:24,logo_width:53,logo_x:37,logo_y:18,heading_x:0,heading_y:0,scan_x:0,scan_y:-3,footer_x:0,footer_y:0,text_size:18,qr_size:46,detail_size:7,footer_size:100,art_opacity:100,table_scan_text:'SCAN TO ORDER',room_scan_text:'SCAN FOR ROOM SERVICE'}).forEach(([key,value])=>form.elements.namedItem(key).value=value);logoWrap?.classList.remove('is-selected');update();});
  update(false);
 })();
 </script>
