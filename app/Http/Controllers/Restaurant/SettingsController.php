@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Support\ImageOptimizer;
 use App\Support\EmailValidation;
 use App\Support\PublicMenuCache;
+use App\Support\QrSetupPackStore;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
 
@@ -114,6 +115,7 @@ class SettingsController extends Controller
         }
 
         PublicMenuCache::bump($restaurant);
+        QrSetupPackStore::invalidate((int) $restaurant->id);
 
         return back()->with('success', 'Settings saved.');
     }

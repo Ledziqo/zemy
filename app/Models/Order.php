@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use App\Support\WorkBoardRevision;
 
 class Order extends Model
 {
@@ -25,6 +26,13 @@ class Order extends Model
             'total' => 'decimal:2',
             'confirmed_at' => 'datetime',
         ];
+    }
+
+    protected static function booted(): void
+    {
+        foreach (['created', 'updated', 'deleted', 'restored'] as $event) {
+            static::{$event}(fn (self $order) => WorkBoardRevision::bumpAfterCommit((int) $order->restaurant_id));
+        }
     }
 
     public function restaurant() { return $this->belongsTo(Restaurant::class); }

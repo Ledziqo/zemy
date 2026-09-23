@@ -7,6 +7,7 @@ use App\Models\Order;
 use Database\Seeders\StressTestSeeder;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Artisan;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Schema;
@@ -137,6 +138,11 @@ class SetupController extends Controller
             $output[] = 'Applying the Tulip Olympia menu update...';
             Artisan::call('migrate', ['--force' => true]);
             $output[] = Artisan::output();
+
+            // This migration can update menu rows directly, so discard cached
+            // public-menu snapshots and Work Board revisions without touching
+            // a possibly DB-backed default cache store.
+            Cache::store('file')->flush();
 
             $this->rebuildRuntimeCaches($output);
 

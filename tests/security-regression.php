@@ -75,6 +75,18 @@ function check(bool $condition, string $label): void
     $checks++;
 }
 
+$pollRoute = $router->getRoutes()->getByName('restaurant.orders.poll');
+if ($pollRoute) {
+    $pollMiddleware = $pollRoute->gatherMiddleware();
+    check(in_array('signed', $pollMiddleware) && in_array('throttle:300,1', $pollMiddleware), 'Work Board polling must use a signed throttled URL');
+    check(! in_array('auth', $pollMiddleware), 'unchanged Work Board polls must not load the database-backed auth provider');
+}
+$qrPrintRoute = $router->getRoutes()->getByName('qr.print');
+if ($qrPrintRoute) {
+    $qrMiddleware = $qrPrintRoute->gatherMiddleware();
+    check(in_array('signed', $qrMiddleware) && ! in_array('auth', $qrMiddleware), 'prepared QR print links must expire by signature and avoid DB auth');
+}
+
 foreach (['setup.show', 'setup.run', 'admin.setup.run'] as $name) {
     $middleware = $router->getRoutes()->getByName($name)->gatherMiddleware();
     check(in_array('auth', $middleware) && in_array('role:admin', $middleware), "$name requires admin");

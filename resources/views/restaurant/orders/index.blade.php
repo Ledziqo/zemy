@@ -313,7 +313,7 @@ function workBoard() {
         completedCount: 0,
         activeRequests: 0,
         nextPollAt: null,
-        nextPollSeconds: 15,
+        nextPollSeconds: 30,
         countdownTimer: null,
         toast: false,
         toastMessage: '',
@@ -322,11 +322,10 @@ function workBoard() {
         latestConfirmedAt: null,
         latestRequestId: 0,
         pollTimer: null,
-        pollDelay: ['slow-2g', '2g'].includes(navigator.connection?.effectiveType) || navigator.connection?.saveData ? 30000 : 15000,
-        idlePolls: 0,
+        pollDelay: 30000,
         polling: false,
-        pollEtag: null,
-        pollUrl: '{{ route("restaurant.orders.poll") }}',
+        pollUrl: @js($pollUrl),
+        pollRevision: null,
         orderUpdateUrl: '{{ route("restaurant.orders.update", ["__ID__"]) }}',
         orderConfirmUrl: '{{ route("restaurant.orders.confirm", ["__ID__"]) }}',
         creditPaidUrl: '{{ route("restaurant.orders.credit-paid", ["__ID__"]) }}',
@@ -353,14 +352,13 @@ function workBoard() {
             this.activeRequests = {{ $activeRequests }};
             this.activeCount = {{ $activeCount }};
             this.completedCount = {{ $completedCount }};
-            this.schedulePoll(15000);
+            this.schedulePoll(30000);
             this.visibilityHandler = () => {
                 if (document.hidden) {
                     this.schedulePoll(60000);
                     return;
                 }
-                this.pollDelay = 15000;
-                this.idlePolls = 0;
+                this.pollDelay = 30000;
                 this.poll();
             };
             document.addEventListener('visibilitychange', this.visibilityHandler);
@@ -514,25 +512,25 @@ function workBoard() {
             this.polling = true;
             clearTimeout(this.pollTimer);
             this.updatePollCountdown();
-            const params = new URLSearchParams({ filter: this.filter, page: this.page });
             const headers = { 'X-Requested-With': 'XMLHttpRequest', 'Accept': 'application/json' };
-            if (this.pollEtag) headers['If-None-Match'] = this.pollEtag;
-            this.pollPromise = fetch(this.pollUrl + '?' + params, {
+            if (this.pollRevision !== null) headers['X-Board-Revision'] = String(this.pollRevision);
+            this.pollPromise = fetch(this.pollUrl, {
                 cache: 'no-store', signal: AbortSignal.timeout(15000),
                 headers,
             })
             .then(async r => {
+                if (r.status === 403) { window.location.reload(); return null; }
                 if (r.status === 304) return null;
                 if (!r.ok) throw new Error('Server returned ' + r.status);
-                return { data: await r.json(), etag: r.headers.get('ETag') };
+                return { data: await r.json(), revision: r.headers.get('X-Board-Revision') };
             })
             .then(payload => {
                 if (!payload) {
                     this.pollError = '';
-                    this.pollDelay = this.slowConnection() ? 45000 : 15000;
+                    this.pollDelay = 30000;
                     return;
                 }
-                this.pollEtag = payload.etag || this.pollEtag;
+                this.pollRevision = payload.revision || String(payload.data.revision || '');
                 const data = payload.data;
                 if (!Array.isArray(data.orders) || !Array.isArray(data.requests)) throw new Error('Invalid update');
                 this.pollError = '';
@@ -569,7 +567,7 @@ function workBoard() {
                 this.latestConfirmedAt = data.latestConfirmedAt;
                 this.latestRequestId = Number(data.latestRequestId || 0);
                 if (hasNewOrder) this.playBeep();
-                this.pollDelay = document.hidden ? 60000 : (this.slowConnection() ? 30000 : 15000);
+                this.pollDelay = document.hidden ? 60000 : 30000;
             })
             .catch(() => {
                 this.pollError = @js(__('Update failed. Showing last known orders. Retry or refresh.'));

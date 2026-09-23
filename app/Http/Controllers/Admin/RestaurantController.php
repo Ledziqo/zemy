@@ -7,6 +7,8 @@ use App\Models\Restaurant;
 use App\Models\Subscription;
 use App\Models\User;
 use App\Support\EmailValidation;
+use App\Support\PublicMenuCache;
+use App\Support\QrSetupPackStore;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
@@ -71,6 +73,7 @@ class RestaurantController extends Controller
     public function update(Request $request, Restaurant $restaurant)
     {
         $this->ensureBusinessTypeColumn();
+        $previousSlug = $restaurant->slug;
 
         $data = $this->validated($request, $restaurant->id);
         $owner = $this->ownerLogin($restaurant);
@@ -93,6 +96,11 @@ class RestaurantController extends Controller
 
         $previousKitchenMode = $restaurant->kitchenScreenEnabled();
         $restaurant->update($data);
+        PublicMenuCache::bump($restaurant);
+        QrSetupPackStore::invalidate((int) $restaurant->id);
+        if ($previousSlug !== $restaurant->slug) {
+            \Illuminate\Support\Facades\Cache::store('file')->forget(PublicMenuCache::payloadKey($previousSlug));
+        }
 
         // The restaurant email is also the main login identifier. Keep both
         // records in sync when the email is changed from the account form.
@@ -181,6 +189,8 @@ class RestaurantController extends Controller
 
     public function destroy(Restaurant $restaurant)
     {
+        \Illuminate\Support\Facades\Cache::store('file')->forget(PublicMenuCache::payloadKey($restaurant->slug));
+        QrSetupPackStore::invalidate((int) $restaurant->id);
         $restaurant->delete();
         return back()->with('success', 'Restaurant deleted.');
     }

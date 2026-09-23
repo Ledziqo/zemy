@@ -2,6 +2,9 @@
 
 return [
     'default' => env('CACHE_STORE', 'file'),
+    // Laravel's throttle middleware must not silently create DB-backed cache
+    // traffic on every menu/order/poll request if CACHE_STORE is later changed.
+    'limiter' => 'file',
     'stores' => [
         'array' => ['driver' => 'array', 'serialize' => false],
         'database' => [

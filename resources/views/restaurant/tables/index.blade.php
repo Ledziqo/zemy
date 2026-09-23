@@ -6,7 +6,7 @@
 @include('restaurant.tables.design-settings')
 <div class="mb-6 flex flex-wrap items-center justify-between gap-3">
     <h2 class="font-display text-lg font-bold">{{ __('Add table or room QR') }}</h2>
-    <a href="{{ route('restaurant.tables.setup-pack') }}" target="_blank" class="rounded-md bg-zem-gold px-4 py-2 text-sm font-bold text-white">{{ __('Print setup pack') }}</a>
+    <a href="{{ \App\Support\QrSetupPackStore::currentUrl((int) $restaurant->id) ?? route('restaurant.tables.setup-pack') }}" target="_blank" class="rounded-md bg-zem-gold px-4 py-2 text-sm font-bold text-white">{{ __('Print setup pack') }}</a>
 </div>
 <form method="post" action="{{ route('restaurant.tables.store') }}" class="mb-6 grid gap-3 rounded-md border border-zem-border bg-zem-card p-4 md:grid-cols-[1fr_1fr_1fr_auto_auto]">
     @csrf

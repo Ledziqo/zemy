@@ -19,23 +19,40 @@ body{margin:0;padding:24px;background:#e9e9e7;color:#171717;font-family:Arial,He
 <main class="pack-scroll" id="qr-pack" aria-busy="true"></main>
 <script>
 const setupPackBatchUrl=@json(url('/restaurant/tables/qr/setup-pack'));
+const setupPackPublishUrl=@json(route('restaurant.tables.setup-pack.publish'));
+const setupPackCsrf=@json(csrf_token());
+const setupPackBuildToken=@json($buildToken);
 const setupPackPageCount=Math.ceil({{ $tableCount }}/{{ $batchSize }});
 const pack=document.getElementById('qr-pack');
 const packStatus=document.getElementById('pack-status');
 const printButton=document.getElementById('print-pack-button');
+let allPagesReady=false;
 
 async function loadSetupPack(){
  if(setupPackPageCount===0){pack.innerHTML='<p>No active tables or rooms are available for this setup pack.</p>';packStatus.textContent='No active tables or rooms found.';printButton.disabled=true;return;}
  for(let page=0;page<setupPackPageCount;page++){
   packStatus.textContent=`Preparing A3 page ${page+1} of ${setupPackPageCount}…`;
-  const response=await fetch(`${setupPackBatchUrl}?page=${page}`,{credentials:'same-origin',headers:{'X-Requested-With':'XMLHttpRequest'}});
+  const response=await fetch(`${setupPackBatchUrl}?page=${page}&build=${encodeURIComponent(setupPackBuildToken)}`,{credentials:'same-origin',headers:{'X-Requested-With':'XMLHttpRequest'}});
   if(!response.ok)throw new Error(`Batch ${page+1} failed (${response.status})`);
   pack.insertAdjacentHTML('beforeend',await response.text());
  }
+ allPagesReady=true;
  pack.setAttribute('aria-busy','false');
- packStatus.textContent=`${setupPackPageCount} A3 page${setupPackPageCount===1?'':'s'} ready. Your computer will print them together.`;
+ packStatus.textContent=`${setupPackPageCount} A3 page${setupPackPageCount===1?'':'s'} ready. Saving a reusable print file…`;
  printButton.disabled=false;
  printButton.textContent='Print setup pack';
+ window.fitSignatureTitles();
+ const shell=document.documentElement.cloneNode(true);
+ const shellPack=shell.querySelector('#qr-pack');
+ shellPack.innerHTML='<!--QR_PACK_PAGES-->';
+ shellPack.setAttribute('aria-busy','false');
+ const shellStatus=shell.querySelector('#pack-status');
+ if(shellStatus)shellStatus.textContent='All QR pages are ready. Choose Print setup pack to print this A3 set.';
+ const publish=await fetch(setupPackPublishUrl,{method:'POST',credentials:'same-origin',headers:{'X-Requested-With':'XMLHttpRequest','Accept':'application/json','Content-Type':'application/json','X-CSRF-TOKEN':setupPackCsrf},body:JSON.stringify({build:setupPackBuildToken,page_count:setupPackPageCount,shell:'<!doctype html>'+shell.outerHTML})});
+ if(!publish.ok)throw new Error(`Could not save reusable print file (${publish.status})`);
+ const result=await publish.json();
+ packStatus.textContent='Reusable A3 print file ready.';
+ window.location.replace(result.url);
 }
 
 async function printSetupPack(){
@@ -44,6 +61,6 @@ async function printSetupPack(){
  if(resources.some(resource=>resource.naturalWidth===0)){alert('A logo or QR image could not load. Reload before printing.');return;}
  window.fitSignatureTitles();window.print();
 }
-loadSetupPack().catch(error=>{console.error(error);packStatus.textContent='The QR pack could not finish loading. Reload and try again.';printButton.textContent='Retry setup pack';printButton.disabled=false;printButton.onclick=()=>window.location.reload();});
+loadSetupPack().catch(error=>{console.error(error);packStatus.textContent=allPagesReady?'The prepared pages are ready, but the reusable print file could not be saved. You can still print this pack.':'The QR pack could not finish loading. Reload and try again.';printButton.textContent=allPagesReady?'Print prepared pages':'Retry setup pack';printButton.disabled=false;printButton.onclick=allPagesReady?()=>printSetupPack():()=>window.location.reload();});
 </script>
 </body></html>

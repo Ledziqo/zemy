@@ -6,9 +6,12 @@ use App\Http\Controllers\Controller;
 use App\Models\MenuItem;
 use App\Models\Order;
 use App\Models\OrderItem;
+use App\Models\Restaurant;
 use App\Support\GuestVisitManager;
+use App\Support\WorkBoardRevision;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\URL;
 
 class DashboardController extends Controller
 {
@@ -138,6 +141,12 @@ class DashboardController extends Controller
 
         return view('restaurant.orders.index', [
             'restaurant' => $restaurant,
+            'pollUrl' => URL::temporarySignedRoute('restaurant.orders.poll', now()->addHours(16), [
+                'restaurantId' => $restaurant->id,
+                'session' => hash('sha256', $request->session()->getId()),
+                'filter' => $this->orderFilter($request),
+                'page' => max(1, (int) $request->query('page', 1)),
+            ]),
             'orders' => $this->boardOrders($request, $restaurant),
             'filter' => $this->orderFilter($request),
             ...$this->boardCounts($request, $restaurant),
@@ -265,9 +274,21 @@ class DashboardController extends Controller
         return back()->with('success', $label.' #'.$order->id.' created.');
     }
 
-    public function poll(Request $request)
+    public function poll(Request $request, int $restaurantId)
     {
-        $restaurant = $this->restaurant($request);
+        abort_unless(hash_equals(
+            (string) $request->query('session', ''),
+            hash('sha256', $request->session()->getId())
+        ), 403);
+
+        $revision = WorkBoardRevision::current($restaurantId);
+        if ($request->header('X-Board-Revision') !== null && hash_equals($revision, (string) $request->header('X-Board-Revision'))) {
+            return response('', 304)
+                ->header('X-Board-Revision', (string) $revision)
+                ->header('Cache-Control', 'private, no-store');
+        }
+
+        $restaurant = Restaurant::findOrFail($restaurantId);
         $ordersQuery = $this->visibleOrders($request, $restaurant);
         $orders = $this->boardOrders($request, $restaurant);
         $requests = $request->session()->get('staff_profile_role') === 'kitchen'
@@ -277,21 +298,7 @@ class DashboardController extends Controller
                 ->orderByDesc('id')->limit(40)->get();
 
         $latestOrderId = (clone $ordersQuery)->max('id') ?? 0;
-        $latestOrderUpdatedAt = (clone $ordersQuery)->max('updated_at') ?? '';
         $latestRequestId = $restaurant->serviceRequests()->max('id') ?? 0;
-        $latestRequestUpdatedAt = $restaurant->serviceRequests()->max('updated_at') ?? '';
-        $etag = '"'.sha1(json_encode([
-            $this->orderFilter($request),
-            $request->query('page', 1),
-            $latestOrderId,
-            (string) $latestOrderUpdatedAt,
-            $latestRequestId,
-            (string) $latestRequestUpdatedAt,
-        ])).'"';
-
-        if ($request->header('If-None-Match') === $etag) {
-            return response('', 304)->header('ETag', $etag)->header('Cache-Control', 'private, no-cache');
-        }
 
         // Return an authoritative snapshot: status/confirmation changes do not
         // necessarily change the latest ID, and timestamp cursors can miss ties.
@@ -312,9 +319,10 @@ class DashboardController extends Controller
             'latestOrderId' => $latestOrderId,
             'latestConfirmedAt' => (clone $ordersQuery)->max('confirmed_at'),
             'latestRequestId' => $latestRequestId,
+            'revision' => $revision,
             'activeRequests' => $restaurant->serviceRequests()->whereIn('status', ['pending', 'acknowledged'])->count(),
             ...$this->boardCounts($request, $restaurant),
-        ])->header('ETag', $etag)->header('Cache-Control', 'private, no-cache');
+        ])->header('X-Board-Revision', (string) $revision)->header('Cache-Control', 'private, no-store');
     }
 
     public function analytics(Request $request)

@@ -10,7 +10,7 @@ use Illuminate\Support\Facades\Cache;
 
 class MenuController extends Controller
 {
-    private const PUBLIC_MENU_CACHE_SECONDS = 3600;
+    private const PUBLIC_MENU_CACHE_SECONDS = 43200;
 
     public function show(Request $request, GuestVisitManager $visits, string $restaurant_slug, string $table_number)
     {
@@ -51,10 +51,8 @@ class MenuController extends Controller
 
     private function publicMenuPayload(string $restaurantSlug, string $tableNumber): array
     {
-        $version = PublicMenuCache::versionForSlug($restaurantSlug);
-
-        $restaurant = Cache::remember(
-            "public_menu:{$restaurantSlug}:v{$version}",
+        $restaurant = Cache::store('file')->remember(
+            PublicMenuCache::payloadKey($restaurantSlug),
             now()->addSeconds(self::PUBLIC_MENU_CACHE_SECONDS),
             fn () => Restaurant::where('slug', $restaurantSlug)->where('is_active', true)
                 ->with([
@@ -62,14 +60,14 @@ class MenuController extends Controller
                     'categories.menuItems' => fn ($query) => $query
                         ->orderBy('sort_order')
                         ->orderBy('id'),
+                    'tables' => fn ($query) => $query->where('is_active', true),
                 ])
                 ->firstOrFail()
         );
 
-        $restaurantTable = $restaurant->tables()
-            ->where('table_number', $tableNumber)
-            ->where('is_active', true)
-            ->firstOrFail();
+        $restaurantTable = $restaurant->tables->firstWhere('table_number', $tableNumber);
+        abort_unless($restaurantTable, 404);
+        $restaurantTable->setRelation('restaurant', $restaurant);
 
         return [$restaurant, $restaurantTable];
     }

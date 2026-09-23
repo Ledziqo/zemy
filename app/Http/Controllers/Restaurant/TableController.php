@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\RestaurantTable;
 use App\Support\ImageOptimizer;
 use App\Support\PublicMenuCache;
+use App\Support\QrSetupPackStore;
 use Endroid\QrCode\Color\Color;
 use Endroid\QrCode\Builder\Builder;
 use Endroid\QrCode\Writer\SvgWriter;
@@ -59,6 +60,7 @@ class TableController extends Controller
         // Keep the QR itself high contrast regardless of the decorative palette.
         $settings['qr_sticker'] = array_merge($settings['qr_sticker'] ?? [], $data, ['qr_color' => '#111111', 'qr_background_color' => '#FFFFFF']);
         $restaurant->update(['settings' => $settings]);
+        QrSetupPackStore::invalidate((int) $restaurant->id);
         return redirect()->route('restaurant.tables.index', [], 303)->with('success', 'QR design saved. Open the setup pack to print your updated cards.');
     }
 
@@ -69,14 +71,20 @@ class TableController extends Controller
             return $this->setupPackBatch($request);
         }
 
+        if ($url = QrSetupPackStore::currentUrl((int) $restaurant->id)) {
+            return redirect()->away($url);
+        }
+
         $sticker = array_merge($this->defaultStickerSettings($restaurant), $restaurant->settings['qr_sticker'] ?? []);
         $tableCount = $restaurant->tables()->where('is_active', true)->count();
+        $buildToken = QrSetupPackStore::begin($restaurant, $tableCount);
 
         return view('restaurant.tables.setup_pack', [
             'restaurant' => $restaurant,
             'sticker' => $sticker,
             'tableCount' => $tableCount,
             'batchSize' => 12,
+            'buildToken' => $buildToken,
         ]);
     }
 
@@ -97,7 +105,36 @@ class TableController extends Controller
         ]);
         $tables->each(fn (RestaurantTable $table) => $table->setRelation('restaurant', $restaurant));
 
-        return view('restaurant.tables.setup_pack_batch', compact('restaurant', 'tables', 'qrImages', 'sticker'));
+        $html = view('restaurant.tables.setup_pack_batch', compact('restaurant', 'tables', 'qrImages', 'sticker'))->render();
+        QrSetupPackStore::storePage($restaurant, (string) $request->query('build'), $page, $html);
+
+        return response($html)->header('Cache-Control', 'private, no-store');
+    }
+
+    public function publishSetupPack(Request $request)
+    {
+        $restaurant = $this->restaurant($request);
+        $data = $request->validate([
+            'build' => ['required', 'regex:/^[A-Za-z0-9]{48}$/'],
+            'page_count' => ['required', 'integer', 'between:1,1000'],
+            'shell' => ['required', 'string', 'max:500000'],
+        ]);
+
+        return response()->json([
+            'url' => QrSetupPackStore::publish($restaurant, $data['build'], $data['shell'], (int) $data['page_count']),
+        ])->header('Cache-Control', 'no-store');
+    }
+
+    public function servePreparedPack(int $restaurantId, string $token)
+    {
+        $html = QrSetupPackStore::preparedHtml($restaurantId, $token);
+        abort_unless($html !== null, 404);
+
+        return response($html, 200, [
+            'Content-Type' => 'text/html; charset=UTF-8',
+            'Cache-Control' => 'private, no-store',
+            'X-Robots-Tag' => 'noindex, nofollow',
+        ]);
     }
 
     public function store(Request $request)
@@ -106,6 +143,7 @@ class TableController extends Controller
         $table = $restaurant->tables()->create($this->validated($request));
         $this->cachedQrSvg($restaurant, $table);
         PublicMenuCache::bump($restaurant);
+        QrSetupPackStore::invalidate((int) $restaurant->id);
         return back()->with('success', $table->locationTypeLabel().' added.');
     }
 
@@ -116,6 +154,7 @@ class TableController extends Controller
         $table->update($this->validated($request));
         $this->cachedQrSvg($restaurant, $table);
         PublicMenuCache::bump($restaurant);
+        QrSetupPackStore::invalidate((int) $restaurant->id);
         return back()->with('success', $table->locationTypeLabel().' updated.');
     }
 
@@ -125,6 +164,7 @@ class TableController extends Controller
         abort_unless($table->restaurant_id === $restaurant->id, 403);
         $table->delete();
         PublicMenuCache::bump($restaurant);
+        QrSetupPackStore::invalidate((int) $restaurant->id);
         return back()->with('success', $restaurant->locationLabelTitle().' deleted.');
     }
 

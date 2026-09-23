@@ -34,6 +34,9 @@
     </div>
 </main>
 <script>
+@if(session('order_id'))
+try { localStorage.removeItem(@js('zemtab-cart:'.$restaurant->id.':'.$table)); } catch (_) {}
+@endif
 function cancelTimer(deadline) {
     return {
         remaining: Math.max(0, Math.ceil((new Date(deadline).getTime() - Date.now()) / 1000)),

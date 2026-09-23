@@ -29,8 +29,11 @@ return [
             'engine' => null,
             'options' => extension_loaded('pdo_mysql') ? array_filter([
                 PDO::MYSQL_ATTR_SSL_CA => env('MYSQL_ATTR_SSL_CA'),
+                // Hostinger recommends persistent handles to avoid opening
+                // a new MySQL connection for every PHP request. Their pool
+                // is per worker, so keep other limits in mind when scaling.
                 PDO::ATTR_PERSISTENT => env('DB_PERSISTENT', true),
-            ]) : [],
+            ], static fn ($value) => $value !== null) : [],
         ],
     ],
     'migrations' => [

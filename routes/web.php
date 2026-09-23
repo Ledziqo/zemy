@@ -39,6 +39,22 @@ Route::get('/login', [AuthController::class, 'showLogin'])->name('login');
 Route::post('/login', [AuthController::class, 'login'])->middleware('throttle:10,1')->name('login.store');
 Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
 
+// A session-bound, short-lived signed URL lets an open Work Board check its
+// file-backed revision without running the database-backed auth provider on
+// every background poll. Full snapshots still use the database after a write.
+Route::get('/restaurant/orders/poll/{restaurantId}', [Restaurant\DashboardController::class, 'poll'])
+    ->middleware(['signed', 'throttle:300,1', 'locale'])
+    ->whereNumber('restaurantId')
+    ->name('restaurant.orders.poll');
+
+// Prepared QR print files live outside the public webroot and are served from
+// disk through a time-limited signed URL, without loading auth or MySQL.
+Route::get('/qr-print/{restaurantId}/{token}', [Restaurant\TableController::class, 'servePreparedPack'])
+    ->middleware(['signed', 'throttle:30,1'])
+    ->whereNumber('restaurantId')
+    ->where('token', '[A-Za-z0-9]{48}')
+    ->name('qr.print');
+
 Route::get('/r/{restaurant_slug}/table/{table_number}', [MenuController::class, 'show'])
     ->middleware(['locale', 'throttle:300,1'])
     ->name('menu.show');
@@ -59,7 +75,6 @@ Route::middleware(['auth', 'role:restaurant_owner,staff', 'locale'])->prefix('re
         Route::get('/analytics', [Restaurant\DashboardController::class, 'analytics'])->name('analytics');
         Route::get('/orders', [Restaurant\DashboardController::class, 'orders'])->name('orders.index');
         Route::post('/orders/manual', [Restaurant\DashboardController::class, 'storeManualOrder'])->name('orders.manual.store');
-        Route::get('/orders/poll', [Restaurant\DashboardController::class, 'poll'])->name('orders.poll');
         Route::patch('/orders/{order}/confirm', [Restaurant\DashboardController::class, 'confirmOrder'])->name('orders.confirm');
         Route::patch('/orders/{order}/credit-paid', [Restaurant\DashboardController::class, 'markCreditPaid'])->name('orders.credit-paid');
         Route::patch('/orders/{order}', [Restaurant\DashboardController::class, 'updateOrder'])->name('orders.update');
@@ -70,6 +85,7 @@ Route::middleware(['auth', 'role:restaurant_owner,staff', 'locale'])->prefix('re
         Route::resource('/categories', Restaurant\CategoryController::class)->only(['index', 'store', 'update', 'destroy']);
         Route::get('/tables/{table}/qr', [Restaurant\TableController::class, 'qr'])->name('tables.qr');
         Route::get('/tables/qr/setup-pack', [Restaurant\TableController::class, 'setupPack'])->name('tables.setup-pack');
+        Route::post('/tables/qr/setup-pack/publish', [Restaurant\TableController::class, 'publishSetupPack'])->middleware('throttle:5,1')->name('tables.setup-pack.publish');
         // Accept a native POST so multipart logo uploads are parsed reliably;
         // PATCH remains supported for older clients/bookmarked forms.
         Route::match(['post', 'patch'], '/tables/qr/design', [Restaurant\TableController::class, 'saveDesign'])->name('tables.design');

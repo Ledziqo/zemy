@@ -31,7 +31,7 @@
     ];
     $activePaymentMethods = collect($allPaymentMethods)->filter(fn ($m, $key) => in_array($key, $enabledPaymentMethods, true));
 @endphp
-<main x-data="{ ...menuCart({ paymentDetails: {}, serviceChargePercentage: {{ (float) ($settings['service_charge_percentage'] ?? 0) }}, vatPercentage: {{ (float) ($settings['vat_percentage'] ?? 0) }} }), paymentOpen: false, selectedPayment: null }" class="min-h-screen bg-neutral-100 pb-28 text-zem-ink">
+<main x-data="{ ...menuCart({ cartKey: @js('zemtab-cart:'.$restaurant->id.':'.$table->table_number), paymentDetails: {}, serviceChargePercentage: {{ (float) ($settings['service_charge_percentage'] ?? 0) }}, vatPercentage: {{ (float) ($settings['vat_percentage'] ?? 0) }} }), paymentOpen: false, selectedPayment: null }" class="min-h-screen bg-neutral-100 pb-28 text-zem-ink">
     <header class="sticky top-0 z-30 border-b border-black/10 bg-white/95 px-4 py-3 shadow-sm backdrop-blur">
         <div class="mx-auto max-w-5xl">
             <div class="flex items-center justify-between gap-3">
@@ -341,11 +341,22 @@ function menuCart(config) {
         menuSearch: '',
         items: [],
         clientRequestId: null,
+        cartKey: config.cartKey,
         paymentDetails: config.paymentDetails || {},
         serviceChargePercentage: Number(config.serviceChargePercentage || 0),
         vatPercentage: Number(config.vatPercentage || 0),
-        add(item) { const existing = this.items.find(i => i.id === item.id); existing ? existing.quantity++ : this.items.push({...item, quantity: 1, note: ''}); },
-        dec(id) { const item = this.items.find(i => i.id === id); if (!item) return; item.quantity--; if (item.quantity <= 0) this.items = this.items.filter(i => i.id !== id); },
+        init() {
+            try {
+                const saved = JSON.parse(localStorage.getItem(this.cartKey) || 'null');
+                if (Array.isArray(saved?.items)) this.items = saved.items.filter(item => Number.isInteger(item.id) && item.quantity > 0);
+                if (typeof saved?.clientRequestId === 'string') this.clientRequestId = saved.clientRequestId;
+            } catch (_) {}
+        },
+        persistCart() {
+            try { localStorage.setItem(this.cartKey, JSON.stringify({ items: this.items, clientRequestId: this.clientRequestId })); } catch (_) {}
+        },
+        add(item) { const existing = this.items.find(i => i.id === item.id); existing ? existing.quantity++ : this.items.push({...item, quantity: 1, note: ''}); this.persistCart(); },
+        dec(id) { const item = this.items.find(i => i.id === id); if (!item) return; item.quantity--; if (item.quantity <= 0) this.items = this.items.filter(i => i.id !== id); this.persistCart(); },
         count() { return this.items.reduce((sum, item) => sum + item.quantity, 0); },
         total() { return this.items.reduce((sum, item) => sum + item.quantity * item.price, 0); },
         extraPercentage() { return this.serviceChargePercentage + this.vatPercentage; },
@@ -377,6 +388,7 @@ function menuCart(config) {
             requestId.name = 'client_request_id';
             requestId.value = this.clientRequestId;
             holder.appendChild(requestId);
+            this.persistCart();
         }
     }
 }

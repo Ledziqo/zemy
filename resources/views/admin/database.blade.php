@@ -10,7 +10,8 @@
         <div class="grid gap-3 md:grid-cols-2">
             <label class="grid gap-1 text-sm">
                 <span class="font-bold text-zem-muted">DB Host</span>
-                <input name="db_host" value="{{ old('db_host', config('database.connections.mysql.host')) }}" placeholder="localhost" class="rounded-md border border-zem-border bg-zem-bg px-3 py-2">
+                <input name="db_host" value="{{ old('db_host', 'localhost') }}" placeholder="localhost" class="rounded-md border border-zem-border bg-zem-bg px-3 py-2">
+                <span class="text-xs text-zem-muted">Hostinger recommends localhost when this website and its database are on the same hosting server.</span>
             </label>
             <label class="grid gap-1 text-sm">
                 <span class="font-bold text-zem-muted">DB Name</span>
