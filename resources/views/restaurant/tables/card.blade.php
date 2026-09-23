@@ -26,6 +26,7 @@
     <div class="signature-scan">
         <div class="signature-frame"><img src="{{ $qrImage }}" alt="Menu QR code" width="500" height="500" data-print-resource></div>
         <p class="signature-hint">Scan. Tap. Enjoy.</p>
+        @if(!empty($locationLabel ?? null))<p class="signature-location">{{ $locationLabel }}</p>@endif
     </div>
     <div class="signature-footer"><span>Powered by</span><img src="{{ asset('logo/zemtab-pantone-1795-c-icon-text-transparent.png') }}" alt="ZemTab" data-print-resource></div>
 </article>

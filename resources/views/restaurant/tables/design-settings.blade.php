@@ -45,7 +45,7 @@
 <aside class="qr-preview">
 <select id="qr-preview-type" aria-label="Preview headline"><option value="table">Table card preview</option><option value="room">Room card preview</option></select>
 @if($previewQr)
-@include('restaurant.tables.card',['qrImage'=>$previewQr,'scanText'=>$sticker['table_scan_text']])
+@include('restaurant.tables.card',['qrImage'=>$previewQr,'scanText'=>$sticker['table_scan_text'],'locationLabel'=>$previewTable?->displayLabel()])
 <p>Actual QR for {{ $previewTable->displayLabel() }}.<br>Headline toggle only; the preview link stays the same.</p>
 @else
 <p>Add your first table or room to preview its QR card. You can save your design now.</p>
