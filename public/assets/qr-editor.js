@@ -1,6 +1,6 @@
 window.initQrEditor = function (form, card) {
     if (!card) return;
-    const names = {logo:'Venue logo', cross:'Cross', line_left:'Left line', line_right:'Right line', kicker_text:'At your service', title:'Headline', location:'Table / room label', frame:'QR code', hint:'Scan. Tap. Enjoy.', footer:'Footer background / group', credit:'Powered by text', zemtab:'ZemTab logo', art:'Abstract artwork'};
+    const names = {logo:'Venue logo', cross:'Cross', line_left:'Left line', line_right:'Right line', kicker_text:'At your service', title:'Headline', location:'Table / room label', frame:'QR code', hint:'Scan. Tap. Enjoy.', footer:'Powered by ZemTab (whole pill)', art:'Abstract artwork'};
     const select = form.querySelector('#qr-layer');
     const width = form.querySelector('#qr-layer-width'), height = form.querySelector('#qr-layer-height');
     const status = form.querySelector('#qr-design-status');

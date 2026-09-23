@@ -55,7 +55,7 @@
 <button type="button" id="qr-layer-reset" class="qr-reset">Reset selected element</button>
 <p>Drag the selection to move. Drag its right, bottom, or corner handle to resize. Use the list to reach overlapping elements.</p>
 </div>
-@foreach(['logo','cross','line_left','line_right','kicker_text','title','location','frame','hint','footer','credit','zemtab','art'] as $element)
+@foreach(['logo','cross','line_left','line_right','kicker_text','title','location','frame','hint','footer','art'] as $element)
 @foreach(['x'=>0,'y'=>0,'sx'=>1,'sy'=>1] as $dimension=>$default)
 <input type="hidden" name="elements[{{ $element }}][{{ $dimension }}]" value="{{ old('elements.'.$element.'.'.$dimension,$sticker['elements'][$element][$dimension] ?? $default) }}">
 @endforeach
@@ -69,7 +69,7 @@
 @endif
 </aside>
 </form></details>
-<script src="{{ asset('assets/qr-editor.js') }}?v=1"></script>
+<script src="{{ asset('assets/qr-editor.js') }}?v=2"></script>
 <script>
 (() => {
  const form=document.getElementById('qr-design-form'),card=form.querySelector('.signature-card'),type=document.getElementById('qr-preview-type'),status=document.getElementById('qr-design-status'),logoInput=form.elements.namedItem('qr_logo'),logoWrap=card?.querySelector('.signature-logo-wrap'),resizeHandles=card?.querySelectorAll('.logo-resize-handle'),logoSizeInput=form.elements.namedItem('logo_size'),logoWidthInput=form.elements.namedItem('logo_width'),logoXInput=form.elements.namedItem('logo_x'),logoYInput=form.elements.namedItem('logo_y');

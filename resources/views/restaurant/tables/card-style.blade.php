@@ -24,10 +24,10 @@
 .signature-frame img{display:block;width:var(--qr-size);height:var(--qr-size)}
 .signature-hint{font-size:var(--detail-size);margin:1mm 0 0;letter-spacing:.015em;line-height:1.2;transform:translate(var(--hint-x),var(--hint-y));touch-action:none}
 .signature-location{display:block;max-width:100%;margin:1.5mm 0 0;padding:.8mm 2.5mm;color:var(--card-accent);font-size:calc(var(--detail-size) * 1.15);font-weight:900;letter-spacing:.08em;line-height:1.05;text-transform:uppercase;overflow-wrap:anywhere;transform:translate(var(--location-x),var(--location-y));touch-action:none}
-.signature-footer{position:absolute;left:6mm;right:6mm;bottom:3mm;width:auto;height:8mm;display:flex;align-items:center;justify-content:center;gap:2mm;background:rgba(255,255,255,.96);color:#171717;padding:1mm 2.5mm;border:0;box-shadow:none;border-radius:1.5mm;z-index:2;transform:translate(var(--footer-x),var(--footer-y)) scale(var(--footer-scale));transform-origin:center bottom;touch-action:none}
+.signature-footer{position:absolute;left:50%;right:auto;bottom:3mm;width:max-content;height:auto;display:flex;align-items:center;justify-content:center;gap:1.2mm;background:rgba(255,255,255,.96);color:#171717;padding:.8mm 1.6mm;border:0;box-shadow:none;border-radius:999px;z-index:2;transform:translateX(-50%) translate(var(--footer-x),var(--footer-y)) scale(var(--footer-scale));transform-origin:center bottom;touch-action:none}
 .signature-footer:before,.signature-footer:after{display:none}
-.signature-footer span{font-size:calc(var(--detail-size) * .85);font-weight:700;letter-spacing:.11em;text-transform:uppercase;white-space:nowrap}
-.signature-footer img{width:24mm;height:6mm;object-fit:contain}
+.signature-footer span{font-size:3mm;line-height:1;font-weight:700;letter-spacing:0;white-space:nowrap;flex:none}
+.signature-footer img{width:auto;height:5mm;max-width:none;object-fit:contain;flex:none}
 .qr-preview .logo-resize-handle{display:none}
 .qr-preview [data-layer]{cursor:move;touch-action:none;user-select:none}
 .qr-preview .signature-art{pointer-events:auto}
