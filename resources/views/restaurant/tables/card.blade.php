@@ -3,7 +3,7 @@
     $logoUrl = $logoPath ? (\Illuminate\Support\Str::startsWith($logoPath, ['http://', 'https://', 'uploads/']) ? (str_starts_with($logoPath, 'uploads/') ? asset($logoPath) : $logoPath) : asset('storage/'.$logoPath)) : null;
     $locationLabel = $locationLabel ?? (($table ?? null)?->displayLabel());
 @endphp
-<article class="signature-card" style="--card-bg:{{ $sticker['background_color'] }};--card-text:{{ $sticker['text_color'] }};--card-border:{{ $sticker['border_color'] }};--card-accent:{{ $sticker['accent_color'] }};--logo-size:{{ $sticker['logo_size'] }}mm;--logo-half-height:{{ ($sticker['logo_size'] ?? 24) / 2 }}mm;--logo-width:{{ $sticker['logo_width'] ?? 53 }}mm;--logo-half-width:{{ ($sticker['logo_width'] ?? 53) / 2 }}mm;--text-size:{{ $sticker['text_size'] }}pt;--qr-size:{{ $sticker['qr_size'] }}mm;--detail-size:{{ $sticker['detail_size'] }}pt;--art-opacity:{{ $sticker['art_opacity'] / 100 }};">
+<article class="signature-card" style="--card-bg:{{ $sticker['background_color'] }};--card-text:{{ $sticker['text_color'] }};--card-border:{{ $sticker['border_color'] }};--card-accent:{{ $sticker['accent_color'] }};--logo-size:{{ $sticker['logo_size'] }}mm;--logo-half-height:{{ ($sticker['logo_size'] ?? 24) / 2 }}mm;--logo-width:{{ $sticker['logo_width'] ?? 53 }}mm;--logo-half-width:{{ ($sticker['logo_width'] ?? 53) / 2 }}mm;--logo-x:{{ $sticker['logo_x'] ?? 37 }}mm;--logo-y:{{ $sticker['logo_y'] ?? 18 }}mm;--text-size:{{ $sticker['text_size'] }}pt;--qr-size:{{ $sticker['qr_size'] }}mm;--detail-size:{{ $sticker['detail_size'] }}pt;--art-opacity:{{ $sticker['art_opacity'] / 100 }};">
     <svg class="signature-art" viewBox="0 0 297 560" preserveAspectRatio="none" aria-hidden="true">
         <path d="M148 0H297V160C243 151 255 91 211 75S169 38 148 0Z" fill="var(--card-accent)"/>
         <path d="M198 -20C171 36 320 63 275 149M214 -20C187 36 336 63 291 149M230 -20C203 36 352 63 307 149M246 -20C219 36 368 63 323 149" fill="none" stroke="var(--card-bg)" stroke-width="1.5" opacity=".65"/>
@@ -23,11 +23,11 @@
     <div class="signature-heading">
         <p class="signature-kicker"><span class="signature-kicker-cross" aria-hidden="true">＋</span><span class="signature-kicker-line" aria-hidden="true"></span><span class="signature-kicker-text">AT YOUR SERVICE</span><span class="signature-kicker-line" aria-hidden="true"></span></p>
         <p class="signature-title">{{ $scanText }}</p>
+        @if(!empty($locationLabel ?? null))<p class="signature-location">{{ $locationLabel }}</p>@endif
     </div>
     <div class="signature-scan">
         <div class="signature-frame"><img src="{{ $qrImage }}" alt="Menu QR code" width="500" height="500" data-print-resource></div>
         <p class="signature-hint">Scan. Tap. Enjoy.</p>
-        @if(!empty($locationLabel ?? null))<p class="signature-location">{{ $locationLabel }}</p>@endif
     </div>
     <div class="signature-footer"><span>Powered by</span><img src="{{ asset('logo/zemtab-pantone-1795-c-icon-text-transparent.png') }}" alt="ZemTab" data-print-resource></div>
 </article>
