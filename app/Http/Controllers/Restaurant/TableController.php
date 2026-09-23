@@ -58,6 +58,10 @@ class TableController extends Controller
     public function setupPack(Request $request)
     {
         $restaurant = $this->restaurant($request);
+        if ($request->has('page')) {
+            return $this->setupPackBatch($request);
+        }
+
         $sticker = array_merge($this->defaultStickerSettings($restaurant), $restaurant->settings['qr_sticker'] ?? []);
         $tableCount = $restaurant->tables()->where('is_active', true)->count();
 
@@ -69,7 +73,7 @@ class TableController extends Controller
         ]);
     }
 
-    public function setupPackBatch(Request $request)
+    private function setupPackBatch(Request $request)
     {
         $restaurant = $this->restaurant($request);
         $page = max(0, (int) $request->input('page', 0));
@@ -140,10 +144,6 @@ class TableController extends Controller
         if (is_file($absolutePath)) {
             $svg = @file_get_contents($absolutePath);
             if ($svg !== false) {
-                if ($table->qr_code_path !== $relativePath) {
-                    $table->forceFill(['qr_code_path' => $relativePath])->saveQuietly();
-                }
-
                 return $svg;
             }
         }
@@ -154,7 +154,6 @@ class TableController extends Controller
             @mkdir($directory, 0755, true);
         }
         if (is_dir($directory) && @file_put_contents($absolutePath, $svg, LOCK_EX) !== false) {
-            $table->forceFill(['qr_code_path' => $relativePath])->saveQuietly();
         }
 
         return $svg;

@@ -70,7 +70,6 @@ Route::middleware(['auth', 'role:restaurant_owner,staff', 'locale'])->prefix('re
         Route::resource('/categories', Restaurant\CategoryController::class)->only(['index', 'store', 'update', 'destroy']);
         Route::get('/tables/{table}/qr', [Restaurant\TableController::class, 'qr'])->name('tables.qr');
         Route::get('/tables/qr/setup-pack', [Restaurant\TableController::class, 'setupPack'])->name('tables.setup-pack');
-        Route::get('/tables/qr/setup-pack/batch', [Restaurant\TableController::class, 'setupPackBatch'])->name('tables.setup-pack.batch');
         // Accept a native POST so multipart logo uploads are parsed reliably;
         // PATCH remains supported for older clients/bookmarked forms.
         Route::match(['post', 'patch'], '/tables/qr/design', [Restaurant\TableController::class, 'saveDesign'])->name('tables.design');

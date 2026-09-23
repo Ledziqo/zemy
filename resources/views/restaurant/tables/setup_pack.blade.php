@@ -18,7 +18,7 @@ body{margin:0;padding:24px;background:#e9e9e7;color:#171717;font-family:Arial,He
 <header class="pack-toolbar no-print"><div><h1>{{ $restaurant->name }} · Signature QR pack</h1><p>12 cards · 4 across × 3 down. Print A3 portrait, 100% scale, no margins, background graphics enabled. Borderless printing is needed for edge-to-edge artwork.</p><p id="pack-status" aria-live="polite">Preparing your QR pages…</p></div><button type="button" onclick="printSetupPack()" id="print-pack-button" disabled>Preparing pack…</button></header>
 <main class="pack-scroll" id="qr-pack" aria-busy="true"></main>
 <script>
-const setupPackBatchUrl=@json(route('restaurant.tables.setup-pack.batch'));
+const setupPackBatchUrl=@json(url('/restaurant/tables/qr/setup-pack'));
 const setupPackPageCount=Math.ceil({{ $tableCount }}/{{ $batchSize }});
 const pack=document.getElementById('qr-pack');
 const packStatus=document.getElementById('pack-status');
