@@ -58,28 +58,42 @@ class TableController extends Controller
     public function setupPack(Request $request)
     {
         $restaurant = $this->restaurant($request);
-        $tables = $restaurant->tables()->where('is_active', true)->orderByRaw('CAST(table_number AS UNSIGNED)')->get();
         $sticker = array_merge($this->defaultStickerSettings($restaurant), $restaurant->settings['qr_sticker'] ?? []);
-
-        // Reuse the page's database connection; separate authenticated QR
-        // requests consume the host's hourly connection allowance per image.
-        $qrImages = $tables->mapWithKeys(fn (RestaurantTable $table) => [
-            $table->id => 'data:image/svg+xml;base64,'.base64_encode($this->buildQr($restaurant, $table)->getString()),
-        ]);
-        $tables->each(fn (RestaurantTable $table) => $table->setRelation('restaurant', $restaurant));
+        $tableCount = $restaurant->tables()->where('is_active', true)->count();
 
         return view('restaurant.tables.setup_pack', [
             'restaurant' => $restaurant,
-            'tables' => $tables,
-            'qrImages' => $qrImages,
             'sticker' => $sticker,
+            'tableCount' => $tableCount,
+            'batchSize' => 12,
         ]);
+    }
+
+    public function setupPackBatch(Request $request)
+    {
+        $restaurant = $this->restaurant($request);
+        $page = max(0, (int) $request->integer('page', 0));
+        $batchSize = 12;
+        $tables = $restaurant->tables()
+            ->where('is_active', true)
+            ->orderByRaw('CAST(table_number AS UNSIGNED)')
+            ->skip($page * $batchSize)
+            ->take($batchSize)
+            ->get();
+        $sticker = array_merge($this->defaultStickerSettings($restaurant), $restaurant->settings['qr_sticker'] ?? []);
+        $qrImages = $tables->mapWithKeys(fn (RestaurantTable $table) => [
+            $table->id => 'data:image/svg+xml;base64,'.base64_encode($this->cachedQrSvg($restaurant, $table)),
+        ]);
+        $tables->each(fn (RestaurantTable $table) => $table->setRelation('restaurant', $restaurant));
+
+        return view('restaurant.tables.setup_pack_batch', compact('tables', 'qrImages', 'sticker'));
     }
 
     public function store(Request $request)
     {
         $restaurant = $this->restaurant($request);
         $table = $restaurant->tables()->create($this->validated($request));
+        $this->cachedQrSvg($restaurant, $table);
         PublicMenuCache::bump($restaurant);
         return back()->with('success', $table->locationTypeLabel().' added.');
     }
@@ -89,6 +103,7 @@ class TableController extends Controller
         $restaurant = $this->restaurant($request);
         abort_unless($table->restaurant_id === $restaurant->id, 403);
         $table->update($this->validated($request));
+        $this->cachedQrSvg($restaurant, $table);
         PublicMenuCache::bump($restaurant);
         return back()->with('success', $table->locationTypeLabel().' updated.');
     }
@@ -107,12 +122,42 @@ class TableController extends Controller
         $restaurant = $this->restaurant($request);
         abort_unless($table->restaurant_id === $restaurant->id, 403);
 
-        $result = $this->buildQr($restaurant, $table);
+        $result = $this->cachedQrSvg($restaurant, $table);
 
-        return response($result->getString(), 200, [
-            'Content-Type' => $result->getMimeType(),
+        return response($result, 200, [
+            'Content-Type' => 'image/svg+xml',
             'Content-Disposition' => 'inline; filename="zemtab-'.$restaurant->slug.'-'.strtolower($table->locationTypeLabel()).'-'.$table->table_number.'.svg"',
         ]);
+    }
+
+    private function cachedQrSvg($restaurant, RestaurantTable $table): string
+    {
+        $sticker = array_merge($this->defaultStickerSettings($restaurant), $restaurant->settings['qr_sticker'] ?? []);
+        $signature = sha1(route('menu.show', [$restaurant->slug, $table->table_number]).'|'.$sticker['qr_color'].'|'.$sticker['qr_background_color']);
+        $relativePath = 'uploads/qr-codes/'.$restaurant->id.'/'.$table->id.'-'.$signature.'.svg';
+        $absolutePath = public_path($relativePath);
+
+        if (is_file($absolutePath)) {
+            $svg = @file_get_contents($absolutePath);
+            if ($svg !== false) {
+                if ($table->qr_code_path !== $relativePath) {
+                    $table->forceFill(['qr_code_path' => $relativePath])->saveQuietly();
+                }
+
+                return $svg;
+            }
+        }
+
+        $svg = $this->buildQr($restaurant, $table)->getString();
+        $directory = dirname($absolutePath);
+        if (! is_dir($directory)) {
+            @mkdir($directory, 0755, true);
+        }
+        if (is_dir($directory) && @file_put_contents($absolutePath, $svg, LOCK_EX) !== false) {
+            $table->forceFill(['qr_code_path' => $relativePath])->saveQuietly();
+        }
+
+        return $svg;
     }
 
     private function buildQr($restaurant, RestaurantTable $table)

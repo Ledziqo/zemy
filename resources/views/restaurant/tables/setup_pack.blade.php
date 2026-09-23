@@ -15,24 +15,36 @@ body{margin:0;padding:24px;background:#e9e9e7;color:#171717;font-family:Arial,He
 </style>
 </head>
 <body>
-<header class="pack-toolbar no-print"><div><h1>{{ $restaurant->name }} · Signature QR pack</h1><p>12 cards · 4 across × 3 down. Print A3 portrait, 100% scale, no margins, background graphics enabled. Borderless printing is needed for edge-to-edge artwork.</p></div><button type="button" onclick="printSetupPack()">Print setup pack</button></header>
-<main class="pack-scroll">
-@forelse($tables->chunk(12) as $pageTables)
-<section class="qr-page">
-@foreach($pageTables as $table)
-@include('restaurant.tables.card', ['qrImage'=>$qrImages[$table->id], 'scanText'=>$table->isRoomServicePoint() ? $sticker['room_scan_text'] : $sticker['table_scan_text']])
-@endforeach
-</section>
-@empty
-<p>No active tables or rooms are available for this setup pack.</p>
-@endforelse
-</main>
+<header class="pack-toolbar no-print"><div><h1>{{ $restaurant->name }} · Signature QR pack</h1><p>12 cards · 4 across × 3 down. Print A3 portrait, 100% scale, no margins, background graphics enabled. Borderless printing is needed for edge-to-edge artwork.</p><p id="pack-status" aria-live="polite">Preparing your QR pages…</p></div><button type="button" onclick="printSetupPack()" id="print-pack-button" disabled>Preparing pack…</button></header>
+<main class="pack-scroll" id="qr-pack" aria-busy="true"></main>
 <script>
+const setupPackBatchUrl=@json(route('restaurant.tables.setup-pack.batch'));
+const setupPackPageCount=Math.ceil({{ $tableCount }}/{{ $batchSize }});
+const pack=document.getElementById('qr-pack');
+const packStatus=document.getElementById('pack-status');
+const printButton=document.getElementById('print-pack-button');
+
+async function loadSetupPack(){
+ if(setupPackPageCount===0){pack.innerHTML='<p>No active tables or rooms are available for this setup pack.</p>';packStatus.textContent='No active tables or rooms found.';printButton.disabled=true;return;}
+ for(let page=0;page<setupPackPageCount;page++){
+  packStatus.textContent=`Preparing A3 page ${page+1} of ${setupPackPageCount}…`;
+  const response=await fetch(`${setupPackBatchUrl}?page=${page}`,{credentials:'same-origin',headers:{'X-Requested-With':'XMLHttpRequest'}});
+  if(!response.ok)throw new Error(`Batch ${page+1} failed (${response.status})`);
+  pack.insertAdjacentHTML('beforeend',await response.text());
+ }
+ pack.setAttribute('aria-busy','false');
+ packStatus.textContent=`${setupPackPageCount} A3 page${setupPackPageCount===1?'':'s'} ready. Your computer will print them together.`;
+ printButton.disabled=false;
+ printButton.textContent='Print setup pack';
+}
+
 async function printSetupPack(){
+ const resources=Array.from(document.querySelectorAll('[data-print-resource]'));
  const resources=Array.from(document.querySelectorAll('[data-print-resource]'));
  await Promise.all(resources.map(resource=>resource.complete ? Promise.resolve() : new Promise(resolve=>{resource.addEventListener('load',resolve,{once:true});resource.addEventListener('error',resolve,{once:true});})));
  if(resources.some(resource=>resource.naturalWidth===0)){alert('A logo or QR image could not load. Reload before printing.');return;}
  window.fitSignatureTitles();window.print();
 }
+loadSetupPack().catch(error=>{console.error(error);packStatus.textContent='The QR pack could not finish loading. Reload and try again.';printButton.textContent='Retry setup pack';printButton.disabled=false;printButton.onclick=()=>window.location.reload();});
 </script>
 </body></html>
