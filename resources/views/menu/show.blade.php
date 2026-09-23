@@ -249,8 +249,8 @@
                             <div class="aspect-square bg-neutral-200">
                                 @if($imageUrl)
                                     <picture>
-                                        @if($webpImageUrl)<source srcset="{{ $webpImageUrl }}" type="image/webp">@endif
-                                        <img src="{{ $imageUrl }}" alt="{{ $item->name }}" width="640" height="640" class="h-full w-full object-cover" loading="lazy" decoding="async">
+                                        @if($webpImageUrl)<source srcset="{{ $webpImageUrl }}" type="image/webp" sizes="(max-width: 640px) 46vw, (max-width: 1024px) 31vw, 240px">@endif
+                                        <img src="{{ $imageUrl }}" alt="{{ $item->name }}" width="480" height="480" sizes="(max-width: 640px) 46vw, (max-width: 1024px) 31vw, 240px" class="h-full w-full object-cover" loading="lazy" decoding="async">
                                     </picture>
                                 @else
                                     <div class="grid h-full place-items-center text-5xl font-extrabold text-white" style="background: linear-gradient(135deg, #111, var(--zem-accent));">{{ strtoupper(substr($item->name, 0, 1)) }}</div>

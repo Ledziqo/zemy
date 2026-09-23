@@ -7,7 +7,7 @@ use Illuminate\Support\Str;
 
 class ImageOptimizer
 {
-    public static function createMenuDerivatives(string $sourcePath, string $filename, int $maxDimension = 640, int $quality = 78): bool
+    public static function createMenuDerivatives(string $sourcePath, string $filename, int $maxDimension = 480, int $quality = 65): bool
     {
         if (! is_file($sourcePath) || ! function_exists('imagecreatefromstring')) {
             return false;
