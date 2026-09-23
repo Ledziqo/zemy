@@ -73,6 +73,7 @@ Route::middleware(['auth', 'role:restaurant_owner,staff', 'locale'])->prefix('re
         // Accept a native POST so multipart logo uploads are parsed reliably;
         // PATCH remains supported for older clients/bookmarked forms.
         Route::match(['post', 'patch'], '/tables/qr/design', [Restaurant\TableController::class, 'saveDesign'])->name('tables.design');
+        Route::get('/tables/qr/design', fn () => redirect()->route('restaurant.tables.index'))->name('tables.design.open');
         Route::resource('/tables', Restaurant\TableController::class)->only(['index', 'store', 'update', 'destroy']);
         Route::get('/service-requests', [Restaurant\ServiceRequestController::class, 'index'])->name('service-requests.index');
         Route::patch('/service-requests/{serviceRequest}', [Restaurant\ServiceRequestController::class, 'update'])->name('service-requests.update');

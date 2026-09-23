@@ -59,7 +59,7 @@ class TableController extends Controller
         // Keep the QR itself high contrast regardless of the decorative palette.
         $settings['qr_sticker'] = array_merge($settings['qr_sticker'] ?? [], $data, ['qr_color' => '#111111', 'qr_background_color' => '#FFFFFF']);
         $restaurant->update(['settings' => $settings]);
-        return back()->with('success', 'QR design saved. Open the setup pack to print your updated cards.');
+        return redirect()->route('restaurant.tables.index', [], 303)->with('success', 'QR design saved. Open the setup pack to print your updated cards.');
     }
 
     public function setupPack(Request $request)
