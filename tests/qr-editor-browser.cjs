@@ -8,6 +8,9 @@ const fs=require('fs'),{execFileSync}=require('child_process'),assert=require('a
  let html=execFileSync('php',['tests/qr-editor-fixture.php'],{encoding:'utf8'});
  html=html.replace(/<script src="[^"]*qr-editor.js[^"]*"><\/script>/,'<script>'+js+'</script>').replace('<details class="qr-studio">','<details class="qr-studio" open>');
  await page.setContent(html);
+ const kicker=await page.locator('.signature-kicker-text').boundingBox();
+ const headline=await page.locator('.signature-title').boundingBox();
+ assert(Math.abs(kicker.x+kicker.width/2-headline.x-headline.width/2)<1,'kicker centered over headline');
  const keys=await page.locator('#qr-layer option').evaluateAll(es=>es.map(e=>e.value));
  for(const key of keys){
    await page.selectOption('#qr-layer',key);

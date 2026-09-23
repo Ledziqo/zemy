@@ -14,8 +14,9 @@
 .qr-preview .logo-resize-handle[data-resize="height"]{left:var(--logo-x);top:calc(var(--logo-y) + var(--logo-half-height));bottom:auto;transform:translate(-50%,-50%);cursor:ns-resize}
 .qr-preview .logo-resize-handle[data-resize="both"]{left:calc(var(--logo-x) + var(--logo-half-width));top:calc(var(--logo-y) + var(--logo-half-height));right:auto;bottom:auto;transform:translate(-50%,-50%);cursor:nwse-resize}
 .signature-heading{height:24mm;width:100%;display:flex;flex-direction:column;justify-content:center;align-items:center;flex-shrink:0;position:relative;z-index:1;transform:translate(var(--heading-x),var(--heading-y));touch-action:none}
-.signature-kicker{width:100%;font-size:max(4pt,calc(var(--text-size) * .34));font-weight:700;letter-spacing:.16em;margin:0 0 2mm;display:flex;align-items:center;justify-content:center;gap:1.5mm;line-height:1;transform:translate(var(--kicker-x),var(--kicker-y));touch-action:none}
-.signature-kicker-cross{font-size:2.6em;font-weight:400;letter-spacing:0;line-height:.68;color:var(--card-accent);flex:0 0 auto;transform:translateY(-.02em)}
+.signature-kicker{width:100%;position:relative;font-size:max(4pt,calc(var(--text-size) * .34));font-weight:700;letter-spacing:.16em;margin:0 0 2mm;display:grid;grid-template-columns:minmax(0,1fr) auto minmax(0,1fr);align-items:center;gap:1.5mm;line-height:1;transform:translate(var(--kicker-x),var(--kicker-y));touch-action:none}
+.signature-kicker-cross{position:absolute;left:0;top:50%;font-size:2.6em;font-weight:400;letter-spacing:0;line-height:.68;color:var(--card-accent);transform:translateY(-50%)}
+.signature-kicker-line[data-layer="line_left"]{margin-left:2.6em}
 .signature-kicker-line{height:.35mm;background:var(--card-accent);opacity:.9;flex:1 1 auto;min-width:2mm}
 .signature-kicker-text{white-space:nowrap;flex:0 1 auto}
 .signature-title{font-size:var(--text-size);font-weight:900;letter-spacing:-.045em;line-height:.98;margin:0;width:100%;overflow-wrap:anywhere;text-wrap:balance;transform:translate(var(--title-x),var(--title-y));touch-action:none}
