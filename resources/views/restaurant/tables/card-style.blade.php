@@ -2,6 +2,7 @@
 .signature-card{box-sizing:border-box;width:74.25mm;height:140mm;padding:6mm;position:relative;isolation:isolate;overflow:hidden;display:flex;flex-direction:column;align-items:center;justify-content:space-between;gap:1mm;background:var(--card-bg);color:var(--card-text);border:.2mm solid var(--card-border);font-family:Arial,Helvetica,sans-serif;text-align:center;print-color-adjust:exact;-webkit-print-color-adjust:exact;flex-shrink:0}
 .signature-card *{box-sizing:border-box}
 .signature-card .signature-art{position:absolute;inset:0;width:100%;height:100%;z-index:-1;opacity:var(--art-opacity);pointer-events:none}
+.signature-logo-slot{width:100%;height:24mm;flex:0 0 24mm;pointer-events:none}
 .signature-logo-wrap{position:absolute;inset:0;width:auto;height:auto;pointer-events:none;overflow:visible;z-index:3}
 .signature-logo{position:absolute;left:var(--logo-x);top:var(--logo-y);width:var(--logo-width);height:var(--logo-size);max-width:none;max-height:none;transform:translate(-50%,-50%);object-fit:contain;background:transparent;border-radius:0;padding:0;filter:drop-shadow(0 .35mm .45mm rgba(255,255,255,.7));z-index:1;pointer-events:auto;touch-action:none}
 .logo-resize-handle{display:none}

@@ -14,6 +14,7 @@
         <circle cx="282" cy="244" r="3" fill="var(--card-accent)"/>
         <path d="M12 268v100M285 286v80" stroke="var(--card-border)" stroke-width=".6" opacity=".2"/>
     </svg>
+    <div class="signature-logo-slot" aria-hidden="true"></div>
     <div class="signature-logo-wrap">
         @if($logoUrl)<img src="{{ $logoUrl }}" alt="{{ $restaurant->name }} logo" class="signature-logo" data-print-resource>@endif
         <span class="logo-resize-handle no-print" data-resize="width" title="Drag to resize logo width" aria-label="Drag to resize logo width"></span>
