@@ -21,9 +21,9 @@
 .signature-frame{padding:2mm;background:#fff;border-radius:3mm;position:relative;box-shadow:0 0 0 .45mm var(--card-accent),1.5mm 1.5mm 0 var(--card-accent)}
 .signature-frame img{display:block;width:var(--qr-size);height:var(--qr-size)}
 .signature-hint{font-size:var(--detail-size);margin:1mm 0 0;letter-spacing:.015em;line-height:1.2}
-.signature-location{max-width:100%;margin:1mm 0 0;padding:.8mm 2.5mm;color:var(--card-accent);font-size:calc(var(--detail-size) * 1.05);font-weight:900;letter-spacing:.1em;line-height:1.05;text-transform:uppercase;overflow-wrap:anywhere}
-.signature-footer{position:absolute;left:6mm;right:6mm;bottom:6mm;width:auto;height:8mm;display:flex;align-items:center;justify-content:center;gap:2mm;background:rgba(255,255,255,.96);color:#171717;padding:1mm 2.5mm;border:0;box-shadow:none;border-radius:1.5mm;z-index:2}
-.signature-footer:before,.signature-footer:after{content:'';height:.3mm;flex:1;background:var(--card-accent);opacity:.55}
+.signature-location{display:block;max-width:100%;margin:1mm 0 0;padding:.8mm 2.5mm;color:var(--card-accent);font-size:calc(var(--detail-size) * 1.05);font-weight:900;letter-spacing:.1em;line-height:1.05;text-transform:uppercase;overflow-wrap:anywhere}
+.signature-footer{position:absolute;left:6mm;right:6mm;bottom:3mm;width:auto;height:8mm;display:flex;align-items:center;justify-content:center;gap:2mm;background:rgba(255,255,255,.96);color:#171717;padding:1mm 2.5mm;border:0;box-shadow:none;border-radius:1.5mm;z-index:2}
+.signature-footer:before,.signature-footer:after{display:none}
 .signature-footer span{font-size:calc(var(--detail-size) * .85);font-weight:700;letter-spacing:.11em;text-transform:uppercase;white-space:nowrap}
 .signature-footer img{width:24mm;height:6mm;object-fit:contain}
 @media print{.signature-card{break-inside:avoid;page-break-inside:avoid}}
