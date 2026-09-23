@@ -40,7 +40,6 @@ async function loadSetupPack(){
 
 async function printSetupPack(){
  const resources=Array.from(document.querySelectorAll('[data-print-resource]'));
- const resources=Array.from(document.querySelectorAll('[data-print-resource]'));
  await Promise.all(resources.map(resource=>resource.complete ? Promise.resolve() : new Promise(resolve=>{resource.addEventListener('load',resolve,{once:true});resource.addEventListener('error',resolve,{once:true});})));
  if(resources.some(resource=>resource.naturalWidth===0)){alert('A logo or QR image could not load. Reload before printing.');return;}
  window.fitSignatureTitles();window.print();
