@@ -31,7 +31,7 @@ class TableController extends Controller
         foreach (['background_color', 'border_color', 'text_color', 'accent_color'] as $key) {
             $rules[$key] = ['required', 'regex:/^#[0-9a-fA-F]{6}$/'];
         }
-        foreach (['logo_size' => [1, 200], 'logo_width' => [1, 200], 'logo_x' => [-200, 300], 'logo_y' => [-200, 400], 'heading_x' => [-300, 300], 'heading_y' => [-300, 400], 'scan_x' => [-300, 300], 'scan_y' => [-300, 400], 'footer_x' => [-300, 300], 'footer_y' => [-300, 400], 'text_size' => [14, 22], 'qr_size' => [38, 50], 'detail_size' => [6, 9], 'footer_size' => [50, 200], 'art_opacity' => [10, 100]] as $key => [$min, $max]) {
+        foreach (['logo_size' => [1, 200], 'logo_width' => [1, 200], 'logo_x' => [-200, 300], 'logo_y' => [-200, 400], 'heading_x' => [-300, 300], 'heading_y' => [-300, 400], 'kicker_x' => [-300, 300], 'kicker_y' => [-300, 400], 'title_x' => [-300, 300], 'title_y' => [-300, 400], 'location_x' => [-300, 300], 'location_y' => [-300, 400], 'scan_x' => [-300, 300], 'scan_y' => [-300, 400], 'frame_x' => [-300, 300], 'frame_y' => [-300, 400], 'hint_x' => [-300, 300], 'hint_y' => [-300, 400], 'footer_x' => [-300, 300], 'footer_y' => [-300, 400], 'text_size' => [14, 22], 'qr_size' => [38, 50], 'detail_size' => [6, 9], 'footer_size' => [50, 200], 'art_opacity' => [10, 100]] as $key => [$min, $max]) {
             $rules[$key] = ['required', 'integer', "between:$min,$max"];
         }
         $rules['table_scan_text'] = ['required', 'string', 'max:40'];
@@ -204,8 +204,18 @@ class TableController extends Controller
             'logo_y' => 18,
             'heading_x' => 0,
             'heading_y' => 0,
+            'kicker_x' => 0,
+            'kicker_y' => 0,
+            'title_x' => 0,
+            'title_y' => 0,
+            'location_x' => 0,
+            'location_y' => 0,
             'scan_x' => 0,
             'scan_y' => -3,
+            'frame_x' => 0,
+            'frame_y' => 0,
+            'hint_x' => 0,
+            'hint_y' => 0,
             'footer_x' => 0,
             'footer_y' => 0,
             'text_size' => 18,

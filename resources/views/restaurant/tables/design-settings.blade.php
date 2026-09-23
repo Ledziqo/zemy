@@ -38,7 +38,7 @@
 <label class="mt-3 flex items-center gap-2 text-sm"><input type="checkbox" name="remove_qr_logo" value="1"> Remove the custom QR logo and use the restaurant logo again</label>
 <p class="qr-notice">The uploaded logo replaces the current logo on printed QR cards only. It does not change the restaurant’s main logo. PNG, JPG, WEBP, or SVG up to 4 MB.</p>
 </fieldset>
-@foreach(['logo_x'=>37,'logo_y'=>18,'heading_x'=>0,'heading_y'=>0,'scan_x'=>0,'scan_y'=>-3,'footer_x'=>0,'footer_y'=>0] as $key=>$default)
+@foreach(['logo_x'=>37,'logo_y'=>18,'heading_x'=>0,'heading_y'=>0,'kicker_x'=>0,'kicker_y'=>0,'title_x'=>0,'title_y'=>0,'location_x'=>0,'location_y'=>0,'scan_x'=>0,'scan_y'=>-3,'frame_x'=>0,'frame_y'=>0,'hint_x'=>0,'hint_y'=>0,'footer_x'=>0,'footer_y'=>0] as $key=>$default)
 <input type="hidden" name="{{ $key }}" value="{{ old($key,$sticker[$key] ?? $default) }}">
 @endforeach
 <p class="qr-notice">Drag the logo, headline, QR block, or powered-by footer anywhere on the preview. Resize the logo, QR, text, and powered-by block with the controls. Dragged elements can overlap without moving anything else. Save before opening the print pack.</p>
@@ -60,6 +60,11 @@
  const form=document.getElementById('qr-design-form'),card=form.querySelector('.signature-card'),type=document.getElementById('qr-preview-type'),status=document.getElementById('qr-design-status'),logoInput=form.elements.namedItem('qr_logo'),logoWrap=card?.querySelector('.signature-logo-wrap'),resizeHandles=card?.querySelectorAll('.logo-resize-handle'),logoSizeInput=form.elements.namedItem('logo_size'),logoWidthInput=form.elements.namedItem('logo_width'),logoXInput=form.elements.namedItem('logo_x'),logoYInput=form.elements.namedItem('logo_y');
  let logo=card?.querySelector('.signature-logo');
  const draggableElements=[
+  {element:card?.querySelector('.signature-kicker'),x:form.elements.namedItem('kicker_x'),y:form.elements.namedItem('kicker_y'),label:'kicker'},
+  {element:card?.querySelector('.signature-title'),x:form.elements.namedItem('title_x'),y:form.elements.namedItem('title_y'),label:'headline text'},
+  {element:card?.querySelector('.signature-location'),x:form.elements.namedItem('location_x'),y:form.elements.namedItem('location_y'),label:'table or room label'},
+  {element:card?.querySelector('.signature-frame'),x:form.elements.namedItem('frame_x'),y:form.elements.namedItem('frame_y'),label:'QR code'},
+  {element:card?.querySelector('.signature-hint'),x:form.elements.namedItem('hint_x'),y:form.elements.namedItem('hint_y'),label:'scan hint'},
   {element:card?.querySelector('.signature-heading'),x:form.elements.namedItem('heading_x'),y:form.elements.namedItem('heading_y'),label:'headline'},
   {element:card?.querySelector('.signature-scan'),x:form.elements.namedItem('scan_x'),y:form.elements.namedItem('scan_y'),label:'QR block'},
   {element:card?.querySelector('.signature-footer'),x:form.elements.namedItem('footer_x'),y:form.elements.namedItem('footer_y'),label:'powered-by footer'},
@@ -67,7 +72,7 @@
  const palettes={signature:['#FFFFFF','#171717','#D22630','#D6D0CA'],forest:['#FBF8F0','#173F35','#38715C','#B7C3B5'],midnight:['#15232D','#FFF7E7','#B99151','#57636A'],brand:['#FFFFFF','#171717',@json($restaurant->primary_color ?: '#D22630'),'#D6D0CA']};
  const keys=['background_color','text_color','accent_color','border_color'];
  function update(dirty=true){
-  const properties={background_color:'--card-bg',text_color:'--card-text',accent_color:'--card-accent',border_color:'--card-border',logo_size:'--logo-size',logo_width:'--logo-width',logo_x:'--logo-x',logo_y:'--logo-y',heading_x:'--heading-x',heading_y:'--heading-y',scan_x:'--scan-x',scan_y:'--scan-y',footer_x:'--footer-x',footer_y:'--footer-y',text_size:'--text-size',qr_size:'--qr-size',detail_size:'--detail-size',footer_size:'--footer-scale',art_opacity:'--art-opacity'};
+  const properties={background_color:'--card-bg',text_color:'--card-text',accent_color:'--card-accent',border_color:'--card-border',logo_size:'--logo-size',logo_width:'--logo-width',logo_x:'--logo-x',logo_y:'--logo-y',heading_x:'--heading-x',heading_y:'--heading-y',kicker_x:'--kicker-x',kicker_y:'--kicker-y',title_x:'--title-x',title_y:'--title-y',location_x:'--location-x',location_y:'--location-y',scan_x:'--scan-x',scan_y:'--scan-y',frame_x:'--frame-x',frame_y:'--frame-y',hint_x:'--hint-x',hint_y:'--hint-y',footer_x:'--footer-x',footer_y:'--footer-y',text_size:'--text-size',qr_size:'--qr-size',detail_size:'--detail-size',footer_size:'--footer-scale',art_opacity:'--art-opacity'};
   Object.entries(properties).forEach(([key,property])=>{const input=form.elements.namedItem(key),unit=input.dataset.unit||'',value=['art_opacity','footer_size'].includes(key)?Number(input.value)/100:input.value+unit;if(card)card.style.setProperty(property,value);const output=form.querySelector('[data-value="'+key+'"]');if(output)output.textContent=input.value+unit;});
   if(card){card.style.setProperty('--logo-half-width',(Number(logoWidthInput.value)/2)+'mm');card.style.setProperty('--logo-half-height',(Number(logoSizeInput.value)/2)+'mm');}
   if(card){card.querySelector('.signature-title').textContent=form.elements.namedItem(type.value+'_scan_text').value;window.fitSignatureTitles(form);}
@@ -132,7 +137,7 @@
  logo?.addEventListener('pointercancel',()=>{if(resizeState?.axis==='move')resizeState=null;});
  logoInput?.addEventListener('change',()=>{const file=logoInput.files?.[0];if(!file||!card)return;const reader=new FileReader();reader.onload=event=>{if(!logo){logo=document.createElement('img');logo.className='signature-logo';logo.alt='QR logo';card.querySelector('.signature-logo-wrap').appendChild(logo);}logo.src=event.target.result;status.textContent='Logo preview updated — drag it to position it, then save your design.';};reader.readAsDataURL(file);});
  form.querySelectorAll('[data-palette]').forEach(button=>button.addEventListener('click',()=>{keys.forEach((key,index)=>form.elements.namedItem(key).value=palettes[button.dataset.palette][index]);update();}));
- document.getElementById('qr-design-reset').addEventListener('click',()=>{keys.forEach((key,index)=>form.elements.namedItem(key).value=palettes.signature[index]);Object.entries({logo_size:24,logo_width:53,logo_x:37,logo_y:18,heading_x:0,heading_y:0,scan_x:0,scan_y:-3,footer_x:0,footer_y:0,text_size:18,qr_size:46,detail_size:7,footer_size:100,art_opacity:100,table_scan_text:'SCAN TO ORDER',room_scan_text:'SCAN FOR ROOM SERVICE'}).forEach(([key,value])=>form.elements.namedItem(key).value=value);logoWrap?.classList.remove('is-selected');update();});
+ document.getElementById('qr-design-reset').addEventListener('click',()=>{keys.forEach((key,index)=>form.elements.namedItem(key).value=palettes.signature[index]);Object.entries({logo_size:24,logo_width:53,logo_x:37,logo_y:18,heading_x:0,heading_y:0,kicker_x:0,kicker_y:0,title_x:0,title_y:0,location_x:0,location_y:0,scan_x:0,scan_y:-3,frame_x:0,frame_y:0,hint_x:0,hint_y:0,footer_x:0,footer_y:0,text_size:18,qr_size:46,detail_size:7,footer_size:100,art_opacity:100,table_scan_text:'SCAN TO ORDER',room_scan_text:'SCAN FOR ROOM SERVICE'}).forEach(([key,value])=>form.elements.namedItem(key).value=value);logoWrap?.classList.remove('is-selected');update();});
  update(false);
 })();
 </script>
