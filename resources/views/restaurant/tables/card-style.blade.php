@@ -28,7 +28,19 @@
 .signature-footer:before,.signature-footer:after{display:none}
 .signature-footer span{font-size:calc(var(--detail-size) * .85);font-weight:700;letter-spacing:.11em;text-transform:uppercase;white-space:nowrap}
 .signature-footer img{width:24mm;height:6mm;object-fit:contain}
-@media print{.signature-card{break-inside:avoid;page-break-inside:avoid}}
+.qr-preview .logo-resize-handle{display:none}
+.qr-preview [data-layer]{cursor:move;touch-action:none;user-select:none}
+.qr-preview .signature-art{pointer-events:auto}
+.signature-kicker-text{display:inline-block}
+.qr-selection{position:absolute;border:1px dashed #1688ff;z-index:100;cursor:move;touch-action:none}
+.qr-selection[hidden]{display:none}
+.qr-selection button{position:absolute;width:12px;height:12px;padding:0;background:#1688ff;border:2px solid white;border-radius:2px;touch-action:none}
+.qr-selection [data-axis=x]{right:-6px;top:50%;cursor:ew-resize}
+.qr-selection [data-axis=y]{bottom:-6px;left:50%;cursor:ns-resize}
+.qr-selection [data-axis=xy]{right:-6px;bottom:-6px;cursor:nwse-resize}
+.qr-editor-controls{width:100%;font-size:12px}
+.qr-editor-controls select,.qr-editor-controls input{width:100%;color:#171717;background:white;border:1px solid #888;padding:6px}
+@media print{.signature-card{break-inside:avoid;page-break-inside:avoid}.qr-selection{display:none!important}}
 </style>
 <script>
 window.fitSignatureTitles = function(root = document) {
