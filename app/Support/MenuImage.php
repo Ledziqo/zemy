@@ -18,10 +18,10 @@ final class MenuImage
 
         $optimizedFallback = self::optimizedPath($path, 'jpg');
         if ($optimizedFallback) {
-            return asset($optimizedFallback);
+            return self::assetUrl($optimizedFallback);
         }
 
-        return asset(Str::startsWith($path, 'uploads/') ? $path : 'storage/'.$path);
+        return self::assetUrl(Str::startsWith($path, 'uploads/') ? $path : 'storage/'.$path);
     }
 
     public static function webpUrl(?string $path): ?string
@@ -36,12 +36,19 @@ final class MenuImage
 
         $optimizedWebp = self::optimizedPath($path, 'webp');
         if ($optimizedWebp) {
-            return asset($optimizedWebp);
+            return self::assetUrl($optimizedWebp);
         }
 
         return Str::endsWith(strtolower($path), '.webp')
-            ? asset(Str::startsWith($path, 'uploads/') ? $path : 'storage/'.$path)
+            ? self::assetUrl(Str::startsWith($path, 'uploads/') ? $path : 'storage/'.$path)
             : null;
+    }
+
+    private static function assetUrl(string $path): string
+    {
+        $version = is_file(public_path($path)) ? (string) filemtime(public_path($path)) : null;
+
+        return asset($path).($version ? '?v='.$version : '');
     }
 
     private static function optimizedPath(string $path, string $extension): ?string
