@@ -115,6 +115,7 @@ Route::middleware(['auth', 'role:restaurant_owner,staff', 'locale'])->prefix('re
 Route::middleware(['auth', 'role:admin', 'locale'])->prefix('admin')->name('admin.')->group(function () {
     Route::get('/dashboard', [Admin\DashboardController::class, 'index'])->name('dashboard');
     Route::get('/database', [Admin\DashboardController::class, 'database'])->name('database');
+    Route::post('/database/full-scan', [Admin\ReleaseScanController::class, 'run'])->middleware('throttle:1,5')->name('database.full-scan');
     Route::post('/setup-run', [SetupController::class, 'run'])->name('setup.run');
     Route::post('/database/menu-refresh', [SetupController::class, 'refreshTulipMenu'])->name('database.menu-refresh');
     Route::post('/menu-import', [Admin\MenuImportController::class, 'store'])->name('menu-import.store');

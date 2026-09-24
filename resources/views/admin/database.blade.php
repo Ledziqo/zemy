@@ -57,6 +57,16 @@
     });
 </script>
 
+<div class="mt-6 max-w-3xl rounded-md border border-zem-gold/40 bg-zem-card p-5">
+    <h2 class="font-display text-xl font-bold">Full release scan</h2>
+    <p class="mt-1 text-sm text-zem-muted">Run a bounded, read-only scan of the live app: database health and available counters, routes and role guards, every Blade view, required assets, storage, PHP limits, and recent error totals. It does not change menus, orders, settings, uploads, or test tenants.</p>
+    <p class="mt-2 text-sm text-amber-200">This does not generate load or click through mutating workflows. Those are reported as not run and require a separate synthetic-data test.</p>
+    <form method="post" action="{{ route('admin.database.full-scan') }}" class="mt-4">
+        @csrf
+        <button class="rounded-md bg-zem-gold px-5 py-3 font-bold text-white">Run full release scan</button>
+    </form>
+</div>
+
 <div class="mt-6 max-w-3xl rounded-md border border-emerald-400/40 bg-zem-card p-5">
     <h2 class="font-display text-xl font-bold">Replace menu from import package</h2>
     <p class="mt-1 text-sm text-zem-muted">Upload the ZemTab ZIP package supplied for a restaurant. It replaces that restaurant's categories, descriptions, prices, availability, and photos in one transaction. Existing orders, tables, and users are preserved.</p>

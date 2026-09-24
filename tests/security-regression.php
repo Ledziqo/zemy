@@ -91,6 +91,9 @@ foreach (['setup.show', 'setup.run', 'admin.setup.run'] as $name) {
     $middleware = $router->getRoutes()->getByName($name)->gatherMiddleware();
     check(in_array('auth', $middleware) && in_array('role:admin', $middleware), "$name requires admin");
 }
+$scanMiddleware = $router->getRoutes()->getByName('admin.database.full-scan')->gatherMiddleware();
+check(in_array('auth', $scanMiddleware) && in_array('role:admin', $scanMiddleware), 'full release scan requires an authenticated admin');
+check(in_array('throttle:1,5', $scanMiddleware), 'full release scan is rate-limited');
 check(in_array('throttle:10,1', $router->getRoutes()->getByName('restaurant.profile-login')->gatherMiddleware()), 'profile login is throttled');
 
 $restaurant = new class {
