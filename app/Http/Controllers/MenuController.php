@@ -3,7 +3,6 @@
 namespace App\Http\Controllers;
 
 use App\Models\Restaurant;
-use App\Support\GuestVisitManager;
 use App\Support\PublicMenuCache;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
@@ -12,40 +11,23 @@ class MenuController extends Controller
 {
     private const PUBLIC_MENU_CACHE_SECONDS = 43200;
 
-    public function show(Request $request, GuestVisitManager $visits, string $restaurant_slug, string $table_number)
+    public function show(Request $request, string $restaurant_slug, string $table_number)
     {
         [$restaurant, $restaurantTable] = $this->publicMenuPayload($restaurant_slug, $table_number);
-
-        $visit = $visits->current($request, $restaurant, $restaurantTable);
-
-        if ($visit) {
-            $visits->touch($visit);
-            $visit->load([
-                'orders.items',
-                'serviceRequests' => fn ($query) => $query->latest(),
-                'payments' => fn ($query) => $query->latest(),
-            ]);
-        }
 
         return response()->view('menu.show', [
             'restaurant' => $restaurant,
             'table' => $restaurantTable,
             'categories' => $restaurant->categories->where('is_active', true),
-            'visit' => $visit,
         ])->header('Cache-Control', 'private, no-cache, must-revalidate')
             ->header('Vary', 'Cookie, Accept-Encoding');
     }
 
-    public function confirmation(Request $request, GuestVisitManager $visits, string $restaurant_slug, string $table_number)
+    public function confirmation(Request $request, string $restaurant_slug, string $table_number)
     {
         [$restaurant, $restaurantTable] = $this->publicMenuPayload($restaurant_slug, $table_number);
-        $visit = $visits->current($request, $restaurant, $restaurantTable);
-        if ($visit) {
-            $visits->touch($visit);
-            $visit->load('orders.items');
-        }
         $table = $table_number;
-        return response()->view('menu.confirmation', compact('restaurant', 'table', 'visit'))
+        return response()->view('menu.confirmation', compact('restaurant', 'table'))
             ->header('Cache-Control', 'no-store');
     }
 

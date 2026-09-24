@@ -42,7 +42,14 @@
                 <article class="rounded-md border-l-4 border border-zem-border bg-zem-card p-4 {{ in_array($order->status, ['completed', 'cancelled'], true) ? 'border-l-gray-400 opacity-60' : ($needsConfirmation ? 'border-l-yellow-400' : 'border-l-zem-gold') }}" data-order-id="{{ $order->id }}" data-status="{{ $order->status }}" data-payment-status="{{ $order->payment_status }}" data-payment-method="{{ $order->payment_method }}" data-confirmed="{{ $order->confirmed_at ? '1' : '0' }}" data-needs-confirmation="{{ $needsConfirmation ? '1' : '0' }}">
                     <div class="flex flex-wrap items-start justify-between gap-3">
                         <div><h2 class="font-display text-xl font-bold">{{ __('Order') }} #{{ $order->id }}</h2><p class="text-sm text-zem-muted">{{ $order->table?->displayLabel() ?: $order->table_number }}@if(($order->order_type ?? 'dine_in') === 'delivery') <span class="ml-1 rounded-full bg-purple-100 px-2 py-0.5 text-xs font-bold text-purple-700">Driver pickup</span>@endif @if($needsConfirmation)<span class="ml-1 rounded-full bg-yellow-100 px-2 py-0.5 text-xs font-bold text-yellow-700">{{ __('Needs cashier confirm') }}</span>@endif - <span data-created-at="{{ $order->created_at->toIso8601String() }}">{{ $order->created_at->diffForHumans() }}</span></p></div>
-                        <span data-status-badge><x-status :status="$order->status" /></span>
+                        <div class="flex shrink-0 items-center gap-2">
+                            <span data-status-badge><x-status :status="$order->status" /></span>
+                            <span data-cancel-slot>
+                                @if(in_array($staffRole, ['owner_manager', 'cashier'], true) && !in_array($order->status, ['completed', 'cancelled', 'paid'], true) && $order->payment_status !== 'paid')
+                                    <button type="button" data-cancel-order @click="cancelOrder({{ $order->id }})" class="rounded border border-red-400/40 px-2 py-1 text-[11px] font-bold leading-tight text-red-300 hover:bg-red-400/10">{{ __('Cancel') }}</button>
+                                @endif
+                            </span>
+                        </div>
                     </div>
                     <div class="mt-4 space-y-2">
                         @foreach($order->items as $item)<p class="flex justify-between gap-3 rounded-md border border-zem-border bg-zem-bg px-3 py-2 text-sm text-zem-cream"><span>{{ $item->quantity }} x {{ $item->item_name }} @if($item->note)<em class="text-zem-muted">({{ $item->note }})</em>@endif</span><strong class="shrink-0 text-zem-cream">{{ number_format($item->total_price) }} ETB</strong></p>@endforeach
@@ -87,9 +94,6 @@
                                     <button type="button" @click="markCompleted({{ $order->id }})" class="rounded-md bg-zem-green px-6 py-3 text-base font-bold text-white transition hover:opacity-90 min-h-[56px]">{{ __('Mark as completed') }}</button>
                                 </div>
                             @endif
-                        @endif
-                        @if(in_array($staffRole, ['owner_manager', 'cashier'], true) && !in_array($order->status, ['completed', 'cancelled', 'paid'], true) && $order->payment_status !== 'paid')
-                            <button type="button" @click="cancelOrder({{ $order->id }})" class="rounded-md border border-red-400/50 px-4 py-3 text-sm font-bold text-red-300 hover:bg-red-400/10">{{ __('Cancel order') }}</button>
                         @endif
                     </div>
                 </article>
@@ -639,7 +643,7 @@ function workBoard() {
             const orderTags = (order.order_type === 'delivery' ? ' <span class="ml-1 rounded-full bg-purple-100 px-2 py-0.5 text-xs font-bold text-purple-700">Driver pickup</span>' : '') + (isCreditDue ? ' <span class="ml-1 rounded-full bg-yellow-100 px-2 py-0.5 text-xs font-bold text-yellow-700">Credit · unpaid</span>' : '') + (order.needs_confirmation ? ' <span class="ml-1 rounded-full bg-yellow-100 px-2 py-0.5 text-xs font-bold text-yellow-700">' + this.escapeHtml(this.labels.needsConfirm) + '</span>' : '');
 
             article.innerHTML =
-                '<div class="flex flex-wrap items-start justify-between gap-3"><div><h2 class="font-display text-xl font-bold">' + this.escapeHtml(this.labels.order) + ' #' + order.id + '</h2><p class="text-sm text-zem-muted">' + this.escapeHtml(order.table_label || order.table_number) + orderTags + ' - <span data-created-at="' + this.escapeHtml(order.created_at) + '">' + this.relativeTime(order.created_at) + '</span></p></div><span data-status-badge>' + statusBadge + '</span></div>' +
+                '<div class="flex flex-wrap items-start justify-between gap-3"><div><h2 class="font-display text-xl font-bold">' + this.escapeHtml(this.labels.order) + ' #' + order.id + '</h2><p class="text-sm text-zem-muted">' + this.escapeHtml(order.table_label || order.table_number) + orderTags + ' - <span data-created-at="' + this.escapeHtml(order.created_at) + '">' + this.relativeTime(order.created_at) + '</span></p></div><div class="flex shrink-0 items-center gap-2"><span data-status-badge>' + statusBadge + '</span><span data-cancel-slot></span></div></div>' +
                 '<div class="mt-4 space-y-2">' + itemsHtml + '</div>' +
                 (order.note ? '<p class="mt-3 text-sm text-zem-muted">' + this.escapeHtml(this.labels.note) + ': ' + this.escapeHtml(order.note) + '</p>' : '') +
                 '<div class="mt-4 flex flex-wrap items-center justify-between gap-3" data-order-actions><strong>' + new Intl.NumberFormat('en-US').format(order.total) + ' ETB</strong></div>';
@@ -660,7 +664,7 @@ function workBoard() {
             const canCancel = ['owner_manager', 'cashier'].includes(this.staffRole)
                 && !['completed', 'cancelled', 'paid'].includes(status) && paymentStatus !== 'paid';
             const cancelControl = canCancel
-                ? '<button type="button" data-cancel-order class="rounded-md border border-red-400/50 px-4 py-3 text-sm font-bold text-red-300 hover:bg-red-400/10">' + this.escapeHtml(@js(__('Cancel order'))) + '</button>'
+                ? '<button type="button" data-cancel-order class="rounded border border-red-400/40 px-2 py-1 text-[11px] font-bold leading-tight text-red-300 hover:bg-red-400/10">' + this.escapeHtml(@js(__('Cancel'))) + '</button>'
                 : '';
             if (status === 'completed' && ['credit', 'room_credit'].includes(paymentMethod) && paymentStatus !== 'paid' && ['owner_manager', 'cashier'].includes(this.staffRole)) {
                 control = '<span class="rounded-md border border-zem-gold/40 bg-zem-gold/10 px-4 py-3 text-sm font-bold text-zem-gold">Credit · unpaid</span><button type="button" data-mark-credit-paid class="rounded-md bg-emerald-600 px-6 py-3 text-base font-bold text-white transition hover:opacity-90 min-h-[56px]">Mark credit paid</button>';
@@ -685,7 +689,9 @@ function workBoard() {
                     control = this.completionPaymentControl(orderId);
                 }
             }
-            actions.innerHTML = total + control + cancelControl;
+            actions.innerHTML = total + control;
+            const cancelSlot = article.querySelector('[data-cancel-slot]');
+            if (cancelSlot) cancelSlot.innerHTML = cancelControl;
             actions.querySelector('[data-confirm-order]')?.addEventListener('click', () => this.confirmOrder(orderId));
             actions.querySelector('[data-mark-paid]')?.addEventListener('click', () => this.markPaid(orderId));
             actions.querySelector('[data-mark-payment]')?.addEventListener('click', () => this.markPayment(orderId));
@@ -693,7 +699,7 @@ function workBoard() {
             actions.querySelector('[data-mark-completed]')?.addEventListener('click', () => this.markCompleted(orderId));
             actions.querySelector('[data-start-preparing]')?.addEventListener('click', () => this.updateStatus(orderId, 'preparing'));
             actions.querySelector('[data-mark-served]')?.addEventListener('click', () => this.updateStatus(orderId, 'served'));
-            actions.querySelector('[data-cancel-order]')?.addEventListener('click', () => this.cancelOrder(orderId));
+            article.querySelector('[data-cancel-order]')?.addEventListener('click', () => this.cancelOrder(orderId));
         },
 
         completionPaymentControl(orderId) {

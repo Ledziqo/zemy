@@ -81,11 +81,11 @@
 
 <div class="mt-6 max-w-3xl rounded-md border border-zem-gold/40 bg-zem-card p-5">
     <h2 class="font-display text-xl font-bold">Full release scan</h2>
-    <p class="mt-1 text-sm text-zem-muted">Run a bounded, read-only scan of the live app: database health and available counters, routes and role guards, every Blade view, required assets, storage, PHP limits, and recent error totals. It does not change menus, orders, settings, uploads, or test tenants.</p>
-    <p class="mt-2 text-sm text-amber-200">This does not generate load or click through mutating workflows. Those are reported as not run and require a separate synthetic-data test.</p>
-    <form method="post" action="{{ url('/admin/database/full-scan') }}" class="mt-4">
+    <p class="mt-1 text-sm text-zem-muted">Check database health, routes, templates, assets and logs, then exercise payment methods, credits, order confirmation, kitchen transitions, cancellation, tenant isolation and QR labels using private temporary records. Test records are rolled back and cleanup is checked.</p>
+    <p class="mt-2 text-sm text-amber-200">Includes operation timings, rollback tests, and a staged 1–80 hotel capacity model for the 500 connections/hour limit. It does not generate live traffic or pretend that a request count equals a connection count.</p>
+    <form method="post" action="{{ url('/admin/database/full-scan') }}" class="mt-4" onsubmit="this.querySelector('button').disabled=true; this.querySelector('button').textContent='Testing workflows and preparing report…';">
         @csrf
-        <button class="rounded-md bg-zem-gold px-5 py-3 font-bold text-white">Run full release scan</button>
+        <button class="rounded-md bg-zem-gold px-5 py-3 font-bold text-white">Run release scan + workflow tests</button>
     </form>
 </div>
 

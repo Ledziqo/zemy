@@ -15,8 +15,22 @@ class CashierReportController extends Controller
         $restaurant = $request->user()->restaurant;
         abort_unless($restaurant, 403);
 
-        $dateFrom = $request->input('date_from', now()->startOfMonth()->toDateString());
-        $dateTo = $request->input('date_to', now()->toDateString());
+        $filters = $request->validate([
+            'date_from' => ['nullable', 'date_format:Y-m-d'],
+            'date_to' => ['nullable', 'date_format:Y-m-d'],
+        ]);
+        $dateFrom = $filters['date_from'] ?? now()->startOfMonth()->toDateString();
+        $dateTo = $filters['date_to'] ?? now()->toDateString();
+        abort_if($dateTo < $dateFrom, 422, 'End date must be on or after start date.');
+
+        // One aggregate query, regardless of how many staff profiles handled orders.
+        $totals = $restaurant->orders()
+            ->whereIn('status', ['paid', 'completed'])
+            ->where('created_at', '>=', $dateFrom.' 00:00:00')
+            ->where('created_at', '<', \Carbon\Carbon::parse($dateTo)->addDay()->toDateString().' 00:00:00')
+            ->selectRaw('handled_by_profile_id, payment_method, COUNT(*) AS order_count, SUM(total) AS revenue')
+            ->groupBy('handled_by_profile_id', 'payment_method')
+            ->get();
         $paymentMethods = $restaurant->settings['payment_methods'] ?? Order::PAYMENT_METHODS;
         if (! in_array('credit', $paymentMethods, true)) {
             $paymentMethods[] = 'credit';
@@ -24,37 +38,31 @@ class CashierReportController extends Controller
         if ($restaurant->isHotel() && ! in_array('room_credit', $paymentMethods, true)) {
             $paymentMethods[] = 'room_credit';
         }
+        $paymentMethods = array_values(array_unique(array_merge($paymentMethods,
+            $totals->map(fn ($row) => $row->payment_method ?: 'unspecified')->all())));
         $paymentMethodTotals = array_fill_keys($paymentMethods, 0);
 
         $cashiers = $restaurant->staffProfiles()
-            ->where('role', 'cashier')
             ->orderBy('name')
-            ->get()
-            ->map(function ($cashier) use ($restaurant, $dateFrom, $dateTo, $paymentMethods, &$paymentMethodTotals) {
-                $orders = $restaurant->orders()
-                    ->where('handled_by_profile_id', $cashier->id)
-                    ->whereIn('status', ['paid', 'completed'])
-                    ->whereBetween('created_at', [$dateFrom.' 00:00:00', $dateTo.' 23:59:59'])
-                    ->get();
-
-                $methodBreakdown = array_fill_keys($paymentMethods, 0);
-                foreach ($orders as $order) {
-                    $method = $order->payment_method;
-                    if (! $method || ! array_key_exists($method, $methodBreakdown)) {
-                        continue;
-                    }
-
-                    $methodBreakdown[$method] += (float) $order->total;
-                    $paymentMethodTotals[$method] += (float) $order->total;
-                }
-
-                return [
-                    'cashier' => $cashier,
-                    'order_count' => $orders->count(),
-                    'total_revenue' => $orders->sum('total'),
-                    'method_breakdown' => $methodBreakdown,
-                ];
-            });
+            ->get();
+        $profiles = $cashiers->keyBy('id');
+        $rows = [];
+        foreach ($cashiers as $profile) {
+            if (in_array($profile->role, ['cashier', 'owner_manager'], true)) {
+                $rows[$profile->id] = ['cashier' => $profile, 'order_count' => 0, 'total_revenue' => 0, 'method_breakdown' => array_fill_keys($paymentMethods, 0)];
+            }
+        }
+        foreach ($totals as $total) {
+            $profile = $profiles->get($total->handled_by_profile_id);
+            $key = $profile?->id ?? 'unassigned';
+            $rows[$key] ??= ['cashier' => $profile, 'order_count' => 0, 'total_revenue' => 0, 'method_breakdown' => array_fill_keys($paymentMethods, 0)];
+            $method = $total->payment_method ?: 'unspecified';
+            $rows[$key]['order_count'] += (int) $total->order_count;
+            $rows[$key]['total_revenue'] += (float) $total->revenue;
+            $rows[$key]['method_breakdown'][$method] += (float) $total->revenue;
+            $paymentMethodTotals[$method] += (float) $total->revenue;
+        }
+        $cashiers = collect(array_values($rows));
 
         return view('restaurant.cashier-reports.index', [
             'date_from' => $dateFrom,

@@ -9,7 +9,7 @@ use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Schema;
 use Throwable;
 
-/** Runs bounded, read-only release diagnostics; never creates app data or load. */
+/** Bounded diagnostics and rollback-only workflow integration tests. */
 class ReleaseReadinessScanner
 {
     public function run(): array
@@ -31,7 +31,13 @@ class ReleaseReadinessScanner
         $this->scanViews($checks, $inventory);
         $this->scanAssetsAndStorage($checks, $inventory);
         $this->scanRecentLogs($checks);
-        $this->add($checks, 'Coverage', 'Mutating end-to-end workflows', 'NOT RUN', 'This read-only scan does not create orders, upload files, change settings, replace menus, delete records, or exercise browser clicks. Those require a separate synthetic-data test.');
+        $checks = array_merge($checks, app(ReleaseWorkflowTest::class)->run());
+        $inventory['capacity_simulation'] = app(ReleaseCapacitySimulation::class)->run();
+        $this->add($checks, 'Capacity model', 'Staged busy-hotel simulation', 'INFO', 'Calculated cache/file and database-backed activity for 1, 5, 10, 20, 30, 40 and 80 busy hotels without generating production traffic. The full model is in the report.');
+        foreach (['Guest checkout and duplicate submission', 'Menu imports, photos and uploads', 'Staff login, session expiry and role middleware', 'QR editor drag/resize/save and printed visual layout', 'Service requests and background-tab audio alerts', 'Admin settings, billing and workboard reset', 'Mobile, slow network and browser button interactions'] as $workflow) {
+            $this->add($checks, 'Coverage gaps', $workflow, 'NOT RUN', 'Requires an isolated end-to-end browser test environment. Source checks and controller simulations do not certify this workflow.');
+        }
+        $inventory['routes'] = array_map(fn ($row) => array_merge($row, ['http_test_status' => 'NOT RUN']), $inventory['routes'] ?? []);
         $this->add($checks, 'Capacity', 'Concurrent hotel load test', 'NOT RUN', 'This button does not generate production traffic. Run the corrected external load-test harness separately with staged, disposable tenants.');
         $this->add($checks, 'Hosting limits', 'Exact per-account hourly MySQL connection quota', 'NOT AVAILABLE', 'Shared hosting may not expose this quota. Any global MySQL counters are server-wide, not ZemTab-only.');
 
@@ -41,15 +47,25 @@ class ReleaseReadinessScanner
             : (count(array_intersect($statuses, ['WARN', 'NOT RUN', 'NOT AVAILABLE'])) > 0 ? 'REVIEW REQUIRED' : 'PASS');
 
         return [
-            'report' => 'ZemTab read-only release scan',
+            'report' => 'ZemTab release diagnostics and isolated workflow tests',
             'generated_at' => now()->toIso8601String(),
             'application' => ['environment' => app()->environment(), 'laravel' => app()->version(), 'php' => PHP_VERSION],
             'overall' => $overall,
             'duration_ms' => round((hrtime(true) - $started) / 1_000_000, 1),
             'database_work' => ['diagnostic_queries' => $sqlQueries, 'query_time_ms' => round($sqlMilliseconds, 1)],
+            'connection_budget' => [
+                'hosting_limit_per_hour' => 500,
+                'planning_budget_per_hour' => 350,
+                'reserve_per_hour' => 150,
+                'actual_account_connections_this_hour' => null,
+                'measured_hotel_capacity' => null,
+                'warning' => 'Queries are not connections. This in-process suite reuses the default connection; it does not measure connection creation across PHP workers or concurrent hotel traffic. No capacity certification is implied.',
+                'scenarios' => array_map(fn ($hotels) => ['busy_hotels' => $hotels, 'available_connections_per_hotel_hour' => round(350 / $hotels, 2)], [10, 30, 40, 80]),
+                'uncached_polling_example' => ['seconds' => 30, 'connections_per_screen_hour_if_each_poll_opens_one' => 120],
+            ],
             'inventory' => $inventory,
             'checks' => $checks,
-            'important' => 'A PASS means only the listed read-only checks passed. This is not complete functional or capacity certification.',
+            'important' => 'PASS applies only to each listed assertion. Controller tests bypass HTTP middleware and browser interaction. Untested workflows prevent full release certification. Timing is for this small synthetic dataset, not concurrent production capacity.',
         ];
     }
 
@@ -160,7 +176,16 @@ class ReleaseReadinessScanner
                     $guardIssues[] = $name;
                 }
 
-                $routeRows[] = ['name' => $name ?: '(unnamed)', 'method' => implode('|', $route->methods()), 'uri' => $route->uri()];
+                $methods = $route->methods();
+                $routeRows[] = [
+                    'name' => $name ?: '(unnamed)',
+                    'method' => implode('|', $methods),
+                    'uri' => $route->uri(),
+                    // The result page may safely smoke-test parameterless GET
+                    // routes in the already-authenticated admin browser.
+                    'browser_url' => in_array('GET', $methods, true) && ! str_contains($route->uri(), '{')
+                        ? url($route->uri()) : null,
+                ];
             }
             $inventory['routes'] = $routeRows;
             $this->add($checks, 'Routes', 'Registered route actions', $brokenActions === [] ? 'PASS' : 'FAIL', count($routeRows).' routes inventoried; unresolved actions='.count($brokenActions).($brokenActions === [] ? '.' : ': '.implode(', ', $brokenActions)));

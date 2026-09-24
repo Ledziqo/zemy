@@ -1,7 +1,8 @@
-@extends('layouts.dashboard', ['heading' => 'Cashier Reports', 'eyebrow' => 'Revenue per cashier & payment breakdown'])
+@extends('layouts.dashboard', ['heading' => 'Cashier Reports', 'eyebrow' => 'Cashier & manager sales and payment breakdown'])
 
 @section('content')
 <div class="mx-auto max-w-4xl">
+    <p class="mb-4 text-sm text-zem-muted">Includes cashier and Owner/Manager orders marked paid or completed, filtered by order creation date. Accepted/open and cancelled orders are excluded. Revenue includes completed credit sales, which may not yet be collected. Unassigned means the original staff profile is missing.</p>
     <div class="mb-6 flex flex-wrap items-end gap-3">
         <form method="get" class="flex flex-wrap gap-3">
             <label class="grid gap-1 text-sm">
@@ -46,11 +47,11 @@
                 <div class="flex items-center justify-between">
                     <div class="flex items-center gap-3">
                         <div class="flex h-10 w-10 items-center justify-center rounded-full bg-blue-600 text-sm font-bold text-white">
-                            {{ strtoupper(substr($row['cashier']->name, 0, 1)) }}
+                            {{ strtoupper(substr($row['cashier']?->name ?? 'Unassigned', 0, 1)) }}
                         </div>
                         <div>
-                            <p class="font-bold">{{ $row['cashier']->name }}</p>
-                            <p class="text-xs text-zem-muted">{{ $row['order_count'] }} orders</p>
+                            <p class="font-bold">{{ $row['cashier']?->name ?? 'Unassigned / deleted profile' }}</p>
+                            <p class="text-xs text-zem-muted">{{ $row['cashier']?->roleLabel() ?? 'Historical orders' }} · {{ $row['order_count'] }} orders</p>
                         </div>
                     </div>
                     <p class="text-xl font-extrabold">{{ number_format($row['total_revenue']) }} ETB</p>

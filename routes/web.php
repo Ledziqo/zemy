@@ -21,12 +21,25 @@ Route::get('/sitemap.xml', [PublicController::class, 'sitemap'])->name('sitemap'
 
 // Readiness complements /up by checking whether the database can answer a query.
 Route::get('/ready', function () {
+    $readinessCache = \Illuminate\Support\Facades\Cache::store('file');
+    $readinessKey = 'zemtab:readiness:database';
+    $cached = $readinessCache->get($readinessKey);
+    if (is_array($cached) && isset($cached['status'], $cached['checked_at'])) {
+        return response()->json($cached)->header('Cache-Control', 'no-store')->header('X-Readiness-Cache', 'hit');
+    }
+
     try {
         \Illuminate\Support\Facades\DB::select('SELECT 1');
-        return response()->json(['status' => 'ok'])->header('Cache-Control', 'no-store');
+        $result = ['status' => 'ok', 'checked_at' => now()->toIso8601String()];
+        $readinessCache->put($readinessKey, $result, now()->addSeconds(15));
+        return response()->json($result)->header('Cache-Control', 'no-store')->header('X-Readiness-Cache', 'miss');
     } catch (\Throwable $exception) {
         report($exception);
-        return response()->json(['status' => 'unavailable'], 503)->header('Cache-Control', 'no-store');
+        $result = ['status' => 'unavailable', 'checked_at' => now()->toIso8601String()];
+        // Cache failures briefly so an outage monitor cannot open a new
+        // database connection on every retry while MySQL is unavailable.
+        $readinessCache->put($readinessKey, $result, now()->addSeconds(5));
+        return response()->json($result, 503)->header('Cache-Control', 'no-store')->header('X-Readiness-Cache', 'miss');
     }
 })->middleware('throttle:60,1')->name('ready');
 

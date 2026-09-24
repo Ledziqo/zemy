@@ -17,11 +17,6 @@
     $enabledPaymentMethods = $settings['payment_methods'] ?? ['cash', 'telebirr', 'cbe'];
     $logoUrl = $restaurant->logo_path ? (\Illuminate\Support\Str::startsWith($restaurant->logo_path, ['http://', 'https://', 'uploads/']) ? (str_starts_with($restaurant->logo_path, 'uploads/') ? asset($restaurant->logo_path) : $restaurant->logo_path) : asset('storage/'.$restaurant->logo_path)) : null;
     $placeTitle = $restaurant->locationLabelTitle();
-    $visitOrders = $visit?->orders?->sortByDesc('created_at') ?? collect();
-    $visitRequests = $visit?->serviceRequests ?? collect();
-    
-    $visitTotal = $visitOrders->whereNotIn('status', ['cancelled'])->sum(fn ($order) => (float) $order->total);
-
     $allPaymentMethods = [
         'cash' => ['label' => 'Cash', 'logo' => null, 'account_field' => null, 'qr_field' => null],
         'telebirr' => ['label' => 'Telebirr', 'logo' => asset('bank-logos/telebirr.png'), 'account_field' => 'telebirr_number', 'qr_field' => 'telebirr_qr_path'],
@@ -88,65 +83,6 @@
         </div>
     </section>
 
-    @if($visitOrders->isNotEmpty())
-        <section class="mx-auto max-w-5xl px-4 pb-4">
-            <div class="rounded-2xl border border-black/10 bg-white p-4 shadow-sm">
-                <div class="flex flex-wrap items-center justify-between gap-3">
-                    <div>
-                        <p class="text-xs font-extrabold uppercase tracking-widest text-zem-gold">{{ __('Your visit') }}</p>
-                        <h2 class="font-display text-2xl font-extrabold">{{ number_format($visitTotal) }} ETB</h2>
-                    </div>
-                    @if($visit->hasUnsettledWork())
-                        <p class="rounded-full bg-neutral-100 px-3 py-2 text-xs font-bold text-neutral-600">{{ __('Table session stays open until paid / finished') }}</p>
-                    @else
-                        <p class="rounded-full bg-neutral-100 px-3 py-2 text-xs font-bold text-neutral-600">Active until {{ $visit->expires_at->format('H:i') }}</p>
-                    @endif
-                </div>
-
-                <div class="mt-4 grid gap-3 md:grid-cols-2">
-                    <div class="rounded-xl bg-neutral-50 p-3">
-                        <h3 class="font-extrabold">{{ __('Orders') }}</h3>
-                        <div class="mt-2 space-y-2">
-                            @foreach($visitOrders->take(4) as $order)
-                                @php($cancelDeadline = $order->created_at->copy()->addMinutes(2))
-                                <div class="rounded-lg border border-black/10 bg-white p-3 text-sm" @if($order->status === 'new' && $cancelDeadline->isFuture()) x-data="cancelTimer(@js($cancelDeadline->toIso8601String()))" x-init="start()" @endif>
-                                    <div class="flex items-center justify-between gap-3"><strong>#{{ $order->id }} - {{ ucfirst($order->status) }}</strong><strong>{{ number_format($order->total) }} ETB</strong></div>
-                                    <p class="mt-1 text-neutral-500">{{ $order->created_at->format('H:i') }}</p>
-                                    <ul class="mt-2 space-y-1 text-neutral-700">
-                                        @foreach($order->items as $item)
-                                            <li>{{ $item->quantity }} &times; {{ $item->item_name }}</li>
-                                        @endforeach
-                                    </ul>
-                                    @if($order->status === 'new' && $cancelDeadline->isFuture())
-                                        <form method="post" action="{{ route('orders.cancel', [$restaurant->slug, $table->table_number, $order]) }}" class="mt-3" x-show="remaining > 0" onsubmit="return confirm('Cancel this order?')">
-                                            @csrf @method('PATCH')
-                                            <button class="w-full rounded-lg border border-red-300 bg-red-50 px-3 py-2 font-bold text-red-700">Cancel order &middot; <span x-text="clock"></span></button>
-                                        </form>
-                                        <p x-show="remaining <= 0" x-cloak class="mt-3 text-xs font-bold text-neutral-500">Cancellation window ended</p>
-                                    @elseif($order->status === 'new')
-                                        <p class="mt-3 text-xs font-bold text-neutral-500">Cancellation window ended</p>
-                                    @endif
-                                </div>
-                            @endforeach
-                        </div>
-                    </div>
-                    <div class="rounded-xl bg-neutral-50 p-3">
-                        <h3 class="font-extrabold">{{ __('Requests & payment') }}</h3>
-                        <div class="mt-2 space-y-2 text-sm">
-                            @forelse($visitRequests->take(3) as $requestRow)
-                                <p class="rounded-lg border border-black/10 bg-white p-3">{{ $restaurant->requestTypeLabel($requestRow->type) }} - {{ ucfirst($requestRow->status) }}</p>
-                            @empty
-                                <p class="rounded-lg border border-black/10 bg-white p-3 text-neutral-500">{{ __('No service requests yet.') }}</p>
-                            @endforelse
-                            
-                        </div>
-                    </div>
-                </div>
-
-            </div>
-        </section>
-    @endif
-
     {{-- Payment Methods Modal --}}
     @if($activePaymentMethods->isNotEmpty())
     <div x-show="paymentOpen" x-cloak class="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm" @click.self="paymentOpen=false">
@@ -179,9 +115,6 @@
                             </button>
                         @endforeach
                     </div>
-                    @if($visitTotal > 0)
-                        <p class="mt-4 rounded-xl bg-zem-gold/10 px-4 py-3 text-sm font-bold text-zem-gold">{{ __('Current total:') }} {{ number_format($visitTotal) }} ETB</p>
-                    @endif
                 </div>
 
                 {{-- Step 2: Show account details + QR for selected method --}}
@@ -393,21 +326,5 @@ function menuCart(config) {
     }
 }
 
-function cancelTimer(deadline) {
-    return {
-        remaining: Math.max(0, Math.ceil((new Date(deadline).getTime() - Date.now()) / 1000)),
-        timer: null,
-        get clock() {
-            const minutes = Math.floor(this.remaining / 60);
-            return minutes + ':' + String(this.remaining % 60).padStart(2, '0');
-        },
-        start() {
-            this.timer = setInterval(() => {
-                this.remaining = Math.max(0, Math.ceil((new Date(deadline).getTime() - Date.now()) / 1000));
-                if (this.remaining <= 0) clearInterval(this.timer);
-            }, 250);
-        }
-    };
-}
 </script>
 @endsection
