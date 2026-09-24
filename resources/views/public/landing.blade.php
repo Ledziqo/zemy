@@ -1,6 +1,6 @@
 @extends('layouts.app', [
     'title' => 'ZemTab - QR Menu, Table & Room Ordering for Restaurants and Hotels in Ethiopia',
-    'description' => 'ZemTab is a German-made, Ethiopia-based QR menu, table ordering, and hotel room ordering system. Guests scan, order, request service, and pay from their phone. No app download needed.',
+    'description' => 'Try ZemTab QR ordering for restaurants and hotels in Ethiopia. Guests scan, order, and request service—no app needed. Start with a 14-day free trial and zero setup fees.',
     'keywords' => 'QR menu Ethiopia, restaurant ordering Addis Ababa, hotel room ordering, digital menu, table ordering, room service QR, staff call, bill request, restaurant POS, hotel service system, ZemTab',
     'canonical' => url('/'),
     'ogType' => 'website',
@@ -136,6 +136,10 @@
                     <span>{{ __('No app download needed') }}</span>
                     <span class="hidden h-4 w-px bg-zem-border sm:block"></span>
                     <span class="hidden sm:inline">{{ __('No commission on orders') }}</span>
+                    <span class="h-4 w-px bg-zem-border"></span>
+                    <span class="font-bold text-zem-gold">{{ __('14-day free trial') }}</span>
+                    <span class="h-4 w-px bg-zem-border"></span>
+                    <span class="font-bold text-zem-gold">{{ __('0 setup fees') }}</span>
                 </div>
                 <div class="relative -mx-5 mt-6 h-[29rem] overflow-hidden bg-white sm:mx-0 sm:h-[34rem] lg:hidden" aria-label="ZemTab QR menu and table ordering shown clearly on a phone held in a guest's right hand in a cafe">
                     <img
@@ -229,6 +233,10 @@
                 <p class="text-sm font-extrabold uppercase tracking-[.22em] text-zem-gold">{{ __('Built around your operation') }}</p>
                 <h3 class="mt-3 font-display text-4xl font-extrabold text-zem-cream">{{ __('We price after the demo') }}</h3>
                 <p class="mt-3 max-w-2xl text-zem-muted">{{ __('Share your venue details and we will recommend the right setup for ZemTab for Restaurants or ZemTab for Hotels. No public fixed package, no commission on orders.') }}</p>
+                <div class="mt-5 flex flex-wrap gap-3">
+                    <span class="rounded-full border border-zem-green/30 bg-zem-green/10 px-4 py-2 text-sm font-extrabold text-zem-green">{{ __('14-day free trial') }}</span>
+                    <span class="rounded-full border border-zem-gold/30 bg-zem-gold/10 px-4 py-2 text-sm font-extrabold text-zem-gold">{{ __('0 setup fees') }}</span>
+                </div>
                 <div class="mt-6 grid gap-3 text-sm font-semibold text-zem-cream sm:grid-cols-2">
                     @foreach(['Venue type and service style','Table or room count','Menu and request workflow','Live staff dashboard','Setup support needs','QR printout planning'] as $item)
                         <p class="flex items-center gap-2 rounded-lg border border-zem-border bg-white px-4 py-3">
@@ -255,6 +263,7 @@
                     ],
                     'Payments & pricing' => [
                         ['What payment methods are supported?','Guests can pay at the end with cash, Telebirr, CBE, bank transfer, or other manual methods. Restaurants and hotels can show payment QR codes and account numbers, then guests upload or show proof to staff.'],
+                        ['Is there a free trial or setup fee?','Every venue starts with a 14-day free trial, and there are zero setup fees.'],
                         ['How much does it cost?','ZemTab pricing is custom. We prepare a quote after learning your venue type, table or room count, setup needs, and operational scope. No commission on orders.'],
                     ],
                     'Locations' => [
@@ -511,6 +520,7 @@
         { "@type": "Question", "name": "Do guests need to download an app?", "acceptedAnswer": { "@type": "Answer", "text": "No. Guests simply scan the QR code on their table or in their room with their phone camera and the menu opens instantly in their browser. No app installs, no sign-ups." } },
         { "@type": "Question", "name": "How do I set up QR codes for tables or rooms?", "acceptedAnswer": { "@type": "Answer", "text": "ZemTab generates a unique QR code for each table or hotel room. You can download and print them directly from the dashboard, or we can help with setup." } },
         { "@type": "Question", "name": "What payment methods are supported?", "acceptedAnswer": { "@type": "Answer", "text": "Guests can pay at the end with cash, Telebirr, CBE, bank transfer, or other manual methods. Restaurants and hotels can show payment QR codes and account numbers, then guests upload or show proof to staff." } },
+        { "@type": "Question", "name": "Is there a free trial or setup fee?", "acceptedAnswer": { "@type": "Answer", "text": "Every venue starts with a 14-day free trial, and there are zero setup fees." } },
         { "@type": "Question", "name": "How much does it cost?", "acceptedAnswer": { "@type": "Answer", "text": "ZemTab pricing is custom. We prepare a quote after learning your venue type, table or room count, setup needs, and operational scope. No commission on orders." } },
         { "@type": "Question", "name": "Can I update menu prices in real-time?", "acceptedAnswer": { "@type": "Answer", "text": "Yes. Any change you make in the dashboard - prices, item names, descriptions, availability - reflects instantly on the QR menu guests see." } },
         { "@type": "Question", "name": "What if I have multiple locations?", "acceptedAnswer": { "@type": "Answer", "text": "Each location runs as its own ZemTab subscription with its own menus, tables or rooms, and staff. This keeps billing and setup simple per venue." } }
