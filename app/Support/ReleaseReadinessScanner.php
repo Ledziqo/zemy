@@ -154,8 +154,10 @@ class ReleaseReadinessScanner
                     $names[$name] = true;
                 }
                 $uses = $route->getAction('uses');
-                if ($uses instanceof \Closure) {
-                    // Valid closure route.
+                $actionName = (string) $route->getActionName();
+                if ($uses instanceof \Closure || $actionName === 'Closure' || str_contains($actionName, '{closure}')) {
+                    // Valid closure routes include Laravel's generated health,
+                    // readiness, storage and redirect endpoints.
                 } elseif (is_array($uses) && count($uses) === 2) {
                     if (! is_callable($uses)) {
                         $brokenActions[] = $name ?: $route->uri();
@@ -183,14 +185,19 @@ class ReleaseReadinessScanner
                 }
 
                 $methods = $route->methods();
+                $requiresQuery = $name === 'admin.database.workboard-reset.preview';
                 $routeRows[] = [
                     'name' => $name ?: '(unnamed)',
                     'method' => implode('|', $methods),
                     'uri' => $route->uri(),
                     // The result page may safely smoke-test parameterless GET
-                    // routes in the already-authenticated admin browser.
-                    'browser_url' => in_array('GET', $methods, true) && ! str_contains($route->uri(), '{')
+                    // routes in the already-authenticated admin browser. The
+                    // reset preview also needs a restaurant_id query value, so
+                    // leave it for its dedicated workflow instead of probing a
+                    // guaranteed validation/method error.
+                    'browser_url' => in_array('GET', $methods, true) && ! str_contains($route->uri(), '{') && ! $requiresQuery
                         ? url($route->uri()) : null,
+                    'browser_skip_reason' => $requiresQuery ? 'Requires restaurant_id query parameter.' : null,
                 ];
             }
             $inventory['routes'] = $routeRows;
