@@ -30,7 +30,7 @@ class Order extends Model
 
     protected static function booted(): void
     {
-        foreach (['created', 'updated', 'deleted', 'restored'] as $event) {
+        foreach (['created', 'updated', 'deleted'] as $event) {
             static::{$event}(fn (self $order) => WorkBoardRevision::bumpAfterCommit((int) $order->restaurant_id));
         }
     }
