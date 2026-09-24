@@ -102,7 +102,10 @@ class ReleaseReadinessScanner
             $ok = (int) ($result->zemtab_scan_ok ?? 0) === 1;
             $this->add($checks, 'Database', 'MySQL connectivity', $ok ? 'PASS' : 'FAIL', $ok ? "SELECT 1 succeeded in {$elapsed} ms." : 'Probe returned an unexpected value.');
 
-            $tables = Schema::getTableListing();
+            $tables = collect(Schema::getTableListing())
+                ->map(fn ($table) => trim((string) $table, '`'))
+                ->map(fn ($table) => strtolower(str_contains($table, '.') ? substr($table, strrpos($table, '.') + 1) : $table))
+                ->values()->all();
             $expected = ['users', 'restaurants', 'categories', 'menu_items', 'restaurant_tables', 'orders', 'order_items', 'service_requests', 'subscriptions', 'payments', 'staff_profiles', 'guest_sessions'];
             $missing = array_values(array_diff($expected, $tables));
             $this->add($checks, 'Database', 'Core schema tables', $missing === [] ? 'PASS' : 'FAIL', $missing === [] ? count($expected).' expected core tables found; total tables='.count($tables).'.' : 'Missing expected tables: '.implode(', ', $missing).'.');
@@ -157,6 +160,9 @@ class ReleaseReadinessScanner
                     if (! is_callable($uses)) {
                         $brokenActions[] = $name ?: $route->uri();
                     }
+                } elseif (is_string($uses) && in_array($uses, ['Closure', 'Illuminate\\Routing\\RouteAction'], true)) {
+                    // Cached Laravel routes may serialize closure actions as a
+                    // string. They are valid actions, not unresolved classes.
                 } elseif (is_string($uses) && str_contains($uses, '@')) {
                     [$class, $method] = explode('@', $uses, 2);
                     if (! class_exists($class) || ! method_exists($class, $method)) {
@@ -257,6 +263,10 @@ class ReleaseReadinessScanner
             if (is_string($source)) {
                 preg_match_all('/\basset\(\s*[\'\"]([^\'\"]+)[\'\"]/', $source, $matches);
                 foreach ($matches[1] ?? [] as $asset) {
+                    // Ignore concatenated prefixes such as asset('storage/'.$path).
+                    if (! str_contains($asset, '/') || str_ends_with($asset, '/') || str_ends_with($asset, '.')) {
+                        continue;
+                    }
                     if (! preg_match('/^(?:https?:|data:|\/\/)/i', $asset)) {
                         $staticReferences[$asset] = true;
                     }

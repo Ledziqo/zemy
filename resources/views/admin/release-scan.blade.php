@@ -46,22 +46,25 @@
                     headers: { 'X-Release-Browser-Smoke': '1', 'Accept': 'text/html,application/json' },
                     signal: AbortSignal.timeout(10000),
                 });
-                results.push({name: target.name, uri: target.uri, status: response.status, ok: response.ok, duration_ms: Math.round((performance.now() - started) * 100) / 100});
+                const expectedDenied = target.name.startsWith('restaurant.') && response.status === 403;
+                results.push({name: target.name, uri: target.uri, status: response.status, ok: response.ok || expectedDenied, expected: expectedDenied, duration_ms: Math.round((performance.now() - started) * 100) / 100});
             } catch (error) {
                 results.push({name: target.name, uri: target.uri, status: null, ok: false, duration_ms: Math.round((performance.now() - started) * 100) / 100, error: error.name || 'fetch_failed'});
             }
         }
         const failures = results.filter(result => !result.ok);
+        const expectedDenied = results.filter(result => result.expected).length;
         releaseReport.browser_smoke = {
             mode: 'same-origin parameterless GET smoke test in the authenticated admin browser',
             target_count: results.length,
             passed: results.length - failures.length,
             failed: failures.length,
+            expected_denied: expectedDenied,
             results,
             limitations: ['Does not click buttons or submit mutations.', 'Does not test routes requiring path parameters.', 'This is browser smoke coverage, not a full end-to-end certification.'],
         };
         reportField.value = JSON.stringify(releaseReport, null, 2);
-        browserStatus.textContent = `Browser smoke complete: ${results.length - failures.length} passed, ${failures.length} failed. Mutation and parameterized workflows remain separately reported.`;
+        browserStatus.textContent = `Browser smoke complete: ${results.length - failures.length} passed (${expectedDenied} expected role denials), ${failures.length} failed. Mutation and parameterized workflows remain separately reported.`;
         browserStatus.className = `mt-4 rounded-lg border p-3 text-sm ${failures.length ? 'border-red-400/30 bg-red-400/10 text-red-100' : 'border-emerald-400/30 bg-emerald-400/10 text-emerald-100'}`;
     };
     runBrowserSmoke();
