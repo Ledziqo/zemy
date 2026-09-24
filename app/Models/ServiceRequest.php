@@ -11,7 +11,7 @@ class ServiceRequest extends Model
 
     protected static function booted(): void
     {
-        foreach (['created', 'updated', 'deleted', 'restored'] as $event) {
+        foreach (['created', 'updated', 'deleted'] as $event) {
             static::{$event}(fn (self $request) => WorkBoardRevision::bumpAfterCommit((int) $request->restaurant_id));
         }
     }
