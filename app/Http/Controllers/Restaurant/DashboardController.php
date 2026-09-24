@@ -9,8 +9,10 @@ use App\Models\OrderItem;
 use App\Models\Restaurant;
 use App\Support\GuestVisitManager;
 use App\Support\WorkBoardRevision;
+use App\Support\WorkBoardSnapshotCache;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\URL;
 
 class DashboardController extends Controller
@@ -310,6 +312,17 @@ class DashboardController extends Controller
         }
 
         $restaurant = Restaurant::findOrFail($restaurantId);
+        $role = (string) $request->session()->get('staff_profile_role', 'owner_manager');
+        $filter = $this->orderFilter($request);
+        $page = max(1, (int) $request->query('page', 1));
+        $cacheKey = WorkBoardSnapshotCache::key($restaurantId, $revision, $role, $filter, $page);
+        $payload = Cache::store('file')->remember($cacheKey, now()->addSeconds(25), fn () => $this->pollPayload($request, $restaurant, $revision));
+
+        return response()->json($payload)->header('X-Board-Revision', (string) $revision)->header('Cache-Control', 'private, no-store');
+    }
+
+    private function pollPayload(Request $request, Restaurant $restaurant, string $revision): array
+    {
         $ordersQuery = $this->visibleOrders($request, $restaurant);
         $orders = $this->boardOrders($request, $restaurant);
         $requests = $request->session()->get('staff_profile_role') === 'kitchen'
@@ -321,11 +334,9 @@ class DashboardController extends Controller
         $latestOrderId = (clone $ordersQuery)->max('id') ?? 0;
         $latestRequestId = $restaurant->serviceRequests()->max('id') ?? 0;
 
-        // Return an authoritative snapshot: status/confirmation changes do not
-        // necessarily change the latest ID, and timestamp cursors can miss ties.
-        return response()->json([
+        return [
             'orders' => collect($orders instanceof \Illuminate\Pagination\LengthAwarePaginator ? $orders->items() : $orders->all())
-                ->map(fn ($order) => $this->serializeOrder($order)),
+                ->map(fn ($order) => $this->serializeOrder($order))->values()->all(),
             'requests' => $requests->map(fn ($row) => [
                 'id' => $row->id,
                 'table_number' => $row->table_number,
@@ -334,7 +345,7 @@ class DashboardController extends Controller
                 'status' => $row->status,
                 'note' => $row->note,
                 'created_at' => $row->created_at->toIso8601String(),
-            ]),
+            ])->values()->all(),
             'pagination' => $this->orderFilter($request) === 'active'
                 ? '' : $orders->withPath(route('restaurant.orders.index'))->links()->toHtml(),
             'latestOrderId' => $latestOrderId,
@@ -343,7 +354,7 @@ class DashboardController extends Controller
             'revision' => $revision,
             'activeRequests' => $restaurant->serviceRequests()->whereIn('status', ['pending', 'acknowledged'])->count(),
             ...$this->boardCounts($request, $restaurant),
-        ])->header('X-Board-Revision', (string) $revision)->header('Cache-Control', 'private, no-store');
+        ];
     }
 
     public function analytics(Request $request)

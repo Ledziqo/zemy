@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\RestaurantTable;
 use App\Support\ImageOptimizer;
 use App\Support\PublicMenuCache;
+use App\Support\PublicSitemapCache;
 use App\Support\QrSetupPackStore;
 use Endroid\QrCode\Color\Color;
 use Endroid\QrCode\Builder\Builder;
@@ -143,6 +144,7 @@ class TableController extends Controller
         $table = $restaurant->tables()->create($this->validated($request));
         $this->cachedQrSvg($restaurant, $table);
         PublicMenuCache::bump($restaurant);
+        PublicSitemapCache::forget();
         QrSetupPackStore::invalidate((int) $restaurant->id);
         return back()->with('success', $table->locationTypeLabel().' added.');
     }
@@ -154,6 +156,7 @@ class TableController extends Controller
         $table->update($this->validated($request));
         $this->cachedQrSvg($restaurant, $table);
         PublicMenuCache::bump($restaurant);
+        PublicSitemapCache::forget();
         QrSetupPackStore::invalidate((int) $restaurant->id);
         return back()->with('success', $table->locationTypeLabel().' updated.');
     }
@@ -164,6 +167,7 @@ class TableController extends Controller
         abort_unless($table->restaurant_id === $restaurant->id, 403);
         $table->delete();
         PublicMenuCache::bump($restaurant);
+        PublicSitemapCache::forget();
         QrSetupPackStore::invalidate((int) $restaurant->id);
         return back()->with('success', $restaurant->locationLabelTitle().' deleted.');
     }

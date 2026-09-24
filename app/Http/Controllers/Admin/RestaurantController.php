@@ -8,6 +8,7 @@ use App\Models\Subscription;
 use App\Models\User;
 use App\Support\EmailValidation;
 use App\Support\PublicMenuCache;
+use App\Support\PublicSitemapCache;
 use App\Support\QrSetupPackStore;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\DB;
@@ -66,6 +67,7 @@ class RestaurantController extends Controller
                 ]);
             }
         });
+        PublicSitemapCache::forget();
 
         return back()->with('success', $ownerPassword ? 'Restaurant and owner login created.' : 'Restaurant created.');
     }
@@ -97,6 +99,7 @@ class RestaurantController extends Controller
         $previousKitchenMode = $restaurant->kitchenScreenEnabled();
         $restaurant->update($data);
         PublicMenuCache::bump($restaurant);
+        PublicSitemapCache::forget();
         QrSetupPackStore::invalidate((int) $restaurant->id);
         if ($previousSlug !== $restaurant->slug) {
             \Illuminate\Support\Facades\Cache::store('file')->forget(PublicMenuCache::payloadKey($previousSlug));
@@ -190,6 +193,7 @@ class RestaurantController extends Controller
     public function destroy(Restaurant $restaurant)
     {
         \Illuminate\Support\Facades\Cache::store('file')->forget(PublicMenuCache::payloadKey($restaurant->slug));
+        PublicSitemapCache::forget();
         QrSetupPackStore::invalidate((int) $restaurant->id);
         $restaurant->delete();
         return back()->with('success', 'Restaurant deleted.');

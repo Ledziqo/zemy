@@ -341,6 +341,11 @@ function workBoard() {
         pollTimer: null,
         pollDelay: 30000,
         polling: false,
+        pollChannel: null,
+        pollTabId: null,
+        pollLeaderKey: null,
+        pollLeaderHeartbeat: null,
+        isPollLeader: true,
         pollUrl: @js($pollUrl),
         pollRevision: null,
         orderUpdateUrl: '{{ route("restaurant.orders.update", ["__ID__"]) }}',
@@ -371,8 +376,13 @@ function workBoard() {
             this.completedCount = {{ $completedCount }};
             this.dueCreditCount = {{ $dueCreditCount }};
             this.dueCreditTotal = {{ $dueCreditTotal }};
-            this.schedulePoll(30000);
+            this.setupPollSharing();
+            if (this.isPollLeader) this.schedulePoll(30000);
             this.visibilityHandler = () => {
+                if (!this.isPollLeader) {
+                    this.claimPollLeadership();
+                    return;
+                }
                 if (document.hidden) {
                     this.schedulePoll(60000);
                     return;
@@ -388,6 +398,7 @@ function workBoard() {
         },
 
         schedulePoll(delay = this.pollDelay) {
+            if (!this.isPollLeader) return;
             clearTimeout(this.pollTimer);
             this.nextPollAt = Date.now() + delay;
             this.updatePollCountdown();
@@ -407,8 +418,61 @@ function workBoard() {
         },
 
         nextPollLabel() {
+            if (!this.isPollLeader) return @js(__('Live updates shared with another tab'));
             if (this.polling) return @js(__('Checking now...'));
             return @js(__('Next update in')) + ' ' + this.nextPollSeconds + 's';
+        },
+
+        setupPollSharing() {
+            this.pollTabId = (window.crypto?.randomUUID?.() || (Date.now() + '-' + Math.random())).toString();
+            const pollScope = @js((string) $restaurant->id . '|' . $staffRole . '|' . $filter . '|' . max(1, (int) request('page', 1)));
+            this.pollLeaderKey = 'zemtab-workboard-leader:' + pollScope;
+            if (!window.BroadcastChannel || !window.localStorage) return;
+            try {
+                this.pollChannel = new BroadcastChannel('zemtab-workboard:' + pollScope);
+                this.pollChannel.onmessage = (event) => {
+                    const message = event.data || {};
+                    if (message.type !== 'snapshot' || message.sender === this.pollTabId || !message.payload) return;
+                    this.applyPollPayload(message.payload);
+                };
+                this.claimPollLeadership();
+                this.pollLeaderHeartbeat = setInterval(() => this.claimPollLeadership(), 5000);
+                window.addEventListener('beforeunload', () => this.releasePollLeadership(), { once: true });
+            } catch (error) {
+                this.pollChannel = null;
+                this.isPollLeader = true;
+            }
+        },
+
+        claimPollLeadership() {
+            if (!this.pollChannel) {
+                this.isPollLeader = true;
+                return;
+            }
+            const now = Date.now();
+            let lease = null;
+            try { lease = JSON.parse(window.localStorage.getItem(this.pollLeaderKey) || 'null'); } catch (error) {}
+            const canClaim = !lease || Number(lease.expiresAt || 0) <= now || lease.id === this.pollTabId;
+            if (canClaim) {
+                try { window.localStorage.setItem(this.pollLeaderKey, JSON.stringify({ id: this.pollTabId, expiresAt: now + 15000 })); } catch (error) {}
+                if (!this.isPollLeader) {
+                    this.isPollLeader = true;
+                    this.schedulePoll(0);
+                }
+                return;
+            }
+            if (this.isPollLeader) clearTimeout(this.pollTimer);
+            this.isPollLeader = false;
+            this.nextPollAt = null;
+            this.nextPollSeconds = 0;
+        },
+
+        releasePollLeadership() {
+            if (!this.pollLeaderKey) return;
+            try {
+                const lease = JSON.parse(window.localStorage.getItem(this.pollLeaderKey) || 'null');
+                if (lease?.id === this.pollTabId) window.localStorage.removeItem(this.pollLeaderKey);
+            } catch (error) {}
         },
 
         money(value) {
@@ -428,6 +492,9 @@ function workBoard() {
             clearTimeout(this._toastTimer);
             clearInterval(this.countdownTimer);
             clearInterval(this.relativeTimer);
+            clearInterval(this.pollLeaderHeartbeat);
+            this.releasePollLeadership();
+            this.pollChannel?.close();
             document.removeEventListener('visibilitychange', this.visibilityHandler);
         },
 
@@ -540,7 +607,59 @@ function workBoard() {
             .catch(() => this.showToast(this.labels.failedRequest, 'error'));
         },
 
+        applyPollPayload(payload) {
+            if (!payload) {
+                this.pollError = '';
+                this.pollDelay = 30000;
+                return;
+            }
+            this.pollRevision = payload.revision || String(payload.data?.revision || '');
+            const data = payload.data || payload;
+            if (!Array.isArray(data.orders) || !Array.isArray(data.requests)) throw new Error('Invalid update');
+            this.pollError = '';
+            const ids = new Set(data.orders.map(order => String(order.id)));
+            this.$refs.ordersList.querySelectorAll('[data-order-id]').forEach(el => {
+                if (!ids.has(el.dataset.orderId)) el.remove();
+            });
+            let hasNewOrder = false;
+            data.orders.forEach(order => {
+                let article = this.$refs.ordersList.querySelector('[data-order-id="' + order.id + '"]');
+                if (!article) {
+                    hasNewOrder = hasNewOrder || order.id > this.latestOrderId ||
+                        (this.staffRole === 'kitchen' && order.confirmed && order.created_at);
+                    this.prependOrder(order);
+                    article = this.$refs.ordersList.querySelector('[data-order-id="' + order.id + '"]');
+                }
+                this.$refs.ordersList.appendChild(article);
+            });
+            this.syncOrderStatuses(data.orders);
+            if (!data.orders.length) {
+                this.$refs.ordersList.innerHTML = '<p class="p-8 text-center text-zem-muted">' + this.escapeHtml(@js(__('No orders in this view.'))) + '</p>';
+            } else {
+                this.$refs.ordersList.querySelectorAll(':scope > p').forEach(el => el.remove());
+            }
+            if (this.$refs.pagination) this.$refs.pagination.innerHTML = data.pagination || '';
+            if (this.staffRole !== 'kitchen' && this.$refs.requestsList) {
+                this.$refs.requestsList.innerHTML = '';
+                [...data.requests].reverse().forEach(req => this.prependRequest(req));
+            }
+            this.activeCount = data.activeCount;
+            this.completedCount = data.completedCount;
+            this.activeRequests = data.activeRequests;
+            this.dueCreditCount = data.dueCreditCount;
+            this.dueCreditTotal = data.dueCreditTotal;
+            this.latestOrderId = Number(data.latestOrderId || 0);
+            this.latestConfirmedAt = data.latestConfirmedAt;
+            this.latestRequestId = Number(data.latestRequestId || 0);
+            if (hasNewOrder) this.playBeep();
+            this.pollDelay = document.hidden ? 60000 : 30000;
+        },
+
         poll() {
+            if (!this.isPollLeader) {
+                this.claimPollLeadership();
+                if (!this.isPollLeader) return Promise.resolve(null);
+            }
             if (this.polling) return this.pollPromise;
             this.polling = true;
             clearTimeout(this.pollTimer);
@@ -558,51 +677,10 @@ function workBoard() {
                 return { data: await r.json(), revision: r.headers.get('X-Board-Revision') };
             })
             .then(payload => {
-                if (!payload) {
-                    this.pollError = '';
-                    this.pollDelay = 30000;
-                    return;
+                if (payload && this.pollChannel) {
+                    this.pollChannel.postMessage({ type: 'snapshot', sender: this.pollTabId, payload });
                 }
-                this.pollRevision = payload.revision || String(payload.data.revision || '');
-                const data = payload.data;
-                if (!Array.isArray(data.orders) || !Array.isArray(data.requests)) throw new Error('Invalid update');
-                this.pollError = '';
-                const ids = new Set(data.orders.map(order => String(order.id)));
-                this.$refs.ordersList.querySelectorAll('[data-order-id]').forEach(el => {
-                    if (!ids.has(el.dataset.orderId)) el.remove();
-                });
-                let hasNewOrder = false;
-                data.orders.forEach(order => {
-                    let article = this.$refs.ordersList.querySelector('[data-order-id="' + order.id + '"]');
-                    if (!article) {
-                        hasNewOrder = hasNewOrder || order.id > this.latestOrderId ||
-                            (this.staffRole === 'kitchen' && order.confirmed && order.created_at);
-                        this.prependOrder(order);
-                        article = this.$refs.ordersList.querySelector('[data-order-id="' + order.id + '"]');
-                    }
-                    this.$refs.ordersList.appendChild(article);
-                });
-                this.syncOrderStatuses(data.orders);
-                if (!data.orders.length) {
-                    this.$refs.ordersList.innerHTML = '<p class="p-8 text-center text-zem-muted">' + this.escapeHtml(@js(__('No orders in this view.'))) + '</p>';
-                } else {
-                    this.$refs.ordersList.querySelectorAll(':scope > p').forEach(el => el.remove());
-                }
-                if (this.$refs.pagination) this.$refs.pagination.innerHTML = data.pagination || '';
-                if (this.staffRole !== 'kitchen' && this.$refs.requestsList) {
-                    this.$refs.requestsList.innerHTML = '';
-                    [...data.requests].reverse().forEach(req => this.prependRequest(req));
-                }
-                this.activeCount = data.activeCount;
-                this.completedCount = data.completedCount;
-                this.activeRequests = data.activeRequests;
-                this.dueCreditCount = data.dueCreditCount;
-                this.dueCreditTotal = data.dueCreditTotal;
-                this.latestOrderId = Number(data.latestOrderId || 0);
-                this.latestConfirmedAt = data.latestConfirmedAt;
-                this.latestRequestId = Number(data.latestRequestId || 0);
-                if (hasNewOrder) this.playBeep();
-                this.pollDelay = document.hidden ? 60000 : 30000;
+                this.applyPollPayload(payload);
             })
             .catch(() => {
                 this.pollError = @js(__('Update failed. Showing last known orders. Retry or refresh.'));
