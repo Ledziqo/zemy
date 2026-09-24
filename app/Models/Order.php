@@ -9,7 +9,7 @@ class Order extends Model
 {
     public const STATUSES = ['new', 'preparing', 'served', 'paid', 'completed', 'cancelled'];
     public const ORDER_TYPES = ['dine_in', 'delivery'];
-    public const PAYMENT_METHODS = ['cash', 'telebirr', 'cbe', 'awash', 'abyssinia', 'room_credit'];
+    public const PAYMENT_METHODS = ['cash', 'telebirr', 'cbe', 'awash', 'abyssinia', 'credit', 'room_credit'];
 
     protected $fillable = [
         'restaurant_id', 'table_id', 'guest_session_id', 'client_request_id', 'table_number', 'customer_name', 'customer_phone', 'note',

@@ -57,6 +57,28 @@
     });
 </script>
 
+@if(session('workboard_reset_result'))
+    @php($resetResult = session('workboard_reset_result'))
+    <div class="mt-6 max-w-3xl rounded-md border border-emerald-400/40 bg-zem-card p-5">
+        <h2 class="font-display text-xl font-bold text-emerald-200">Clean start completed: {{ $resetResult['restaurant'] }}</h2>
+        <p class="mt-1 text-sm text-zem-muted">Deleted {{ number_format($resetResult['deleted']['orders']) }} orders, {{ number_format($resetResult['deleted']['order_items']) }} items, {{ number_format($resetResult['deleted']['payments']) }} related payments, {{ number_format($resetResult['deleted']['service_requests']) }} requests, and {{ number_format($resetResult['deleted']['guest_sessions']) }} guest sessions.</p>
+    </div>
+@endif
+
+<div class="mt-6 max-w-3xl rounded-md border border-red-400/40 bg-zem-card p-5">
+    <h2 class="font-display text-xl font-bold">Clear a venue workboard</h2>
+    <p class="mt-1 text-sm text-zem-muted">Prepare a clean start for one venue. This removes its orders, order items, related payments, service requests, guest sessions, and derived cashier-report history. It preserves the menu, staff, rooms/tables, QR codes, QR design, subscriptions, and subscription payment history.</p>
+    <form method="get" action="{{ url('/admin/database/workboard-reset/preview') }}" class="mt-4 flex flex-wrap gap-3">
+        <select name="restaurant_id" required class="min-w-64 flex-1 rounded-md border border-zem-border bg-zem-bg px-3 py-3">
+            <option value="">Choose venue to review</option>
+            @foreach($restaurants as $restaurant)
+                <option value="{{ $restaurant->id }}">{{ $restaurant->name }} ({{ $restaurant->slug }})</option>
+            @endforeach
+        </select>
+        <button class="rounded-md bg-red-600 px-5 py-3 font-bold text-white">Review reset</button>
+    </form>
+</div>
+
 <div class="mt-6 max-w-3xl rounded-md border border-zem-gold/40 bg-zem-card p-5">
     <h2 class="font-display text-xl font-bold">Full release scan</h2>
     <p class="mt-1 text-sm text-zem-muted">Run a bounded, read-only scan of the live app: database health and available counters, routes and role guards, every Blade view, required assets, storage, PHP limits, and recent error totals. It does not change menus, orders, settings, uploads, or test tenants.</p>

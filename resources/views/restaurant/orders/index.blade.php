@@ -19,6 +19,7 @@
     @if($staffRole !== 'kitchen')<span>{{ __('Completed today') }}: <strong x-text="completedCount">{{ $completedCount }}</strong></span>@endif
     @if($staffRole !== 'kitchen')
         <span>{{ __('Active requests') }}: <strong x-text="activeRequests">{{ $activeRequests }}</strong></span>
+        <span class="rounded-full border border-amber-400/40 bg-amber-400/10 px-3 py-1 text-amber-200">{{ __('Due credits') }}: <strong x-text="dueCreditCount">{{ $dueCreditCount }}</strong> · <strong x-text="money(dueCreditTotal)">{{ number_format($dueCreditTotal, 2) }} ETB</strong></span>
     @endif
     <span class="text-zem-muted" x-text="pollError || nextPollLabel()"></span>
     <button type="button" @click="poll()" :disabled="polling" class="rounded-md border border-zem-border px-3 py-2 font-bold disabled:opacity-50">{{ __('Refresh') }}</button>
@@ -31,6 +32,7 @@
             <div class="flex gap-2">
                 <button @click="changeFilter('active')" :class="filter==='active'?'bg-zem-gold text-white':'border border-zem-border'" class="rounded-full px-4 py-2 text-sm font-bold">{{ __('Active') }}</button>
                 <button @click="changeFilter('completed')" :class="filter==='completed'?'bg-zem-gold text-white':'border border-zem-border'" class="rounded-full px-4 py-2 text-sm font-bold">{{ $staffRole === 'kitchen' ? __('Ready / done') : __('Completed') }}</button>
+                @if($staffRole !== 'kitchen')<button @click="changeFilter('credit')" :class="filter==='credit'?'bg-amber-500 text-white':'border border-amber-400/50 text-amber-200'" class="rounded-full px-4 py-2 text-sm font-bold">{{ __('Credit') }} <span x-text="'(' + dueCreditCount + ')'">({{ $dueCreditCount }})</span></button>@endif
                 <button @click="changeFilter('all')" :class="filter==='all'?'bg-zem-gold text-white':'border border-zem-border'" class="rounded-full px-4 py-2 text-sm font-bold">{{ __('All') }}</button>
             </div>
         </div>
@@ -48,27 +50,30 @@
                     @if($order->note)<p class="mt-3 text-sm text-zem-muted">{{ __('Note') }}: {{ $order->note }}</p>@endif
                     <div class="mt-4 flex flex-wrap items-center justify-between gap-3" data-order-actions>
                         <strong>{{ number_format($order->total, 2) }} ETB</strong>
-                        @if($order->status === 'completed' && $order->payment_method === 'room_credit' && $order->payment_status !== 'paid' && in_array($staffRole, ['owner_manager', 'cashier'], true))
-                            <span class="rounded-md border border-zem-gold/40 bg-zem-gold/10 px-4 py-3 text-sm font-bold text-zem-gold">Room credit · unpaid</span>
+                        @if($order->status === 'completed' && in_array($order->payment_method, ['credit', 'room_credit'], true) && $order->payment_status !== 'paid' && in_array($staffRole, ['owner_manager', 'cashier'], true))
+                            <span class="rounded-md border border-zem-gold/40 bg-zem-gold/10 px-4 py-3 text-sm font-bold text-zem-gold">{{ __('Credit · unpaid') }}</span>
                             <button type="button" @click="markCreditPaid({{ $order->id }})" class="rounded-md bg-emerald-600 px-6 py-3 text-base font-bold text-white transition hover:opacity-90 min-h-[56px]">Mark credit paid</button>
                         @elseif(!in_array($order->status, ['completed', 'cancelled'], true))
                             @if(in_array($staffRole, ['owner_manager', 'cashier'], true) && $needsConfirmation)
                                 <button type="button" @click="confirmOrder({{ $order->id }})" class="rounded-md bg-yellow-500 px-6 py-3 text-base font-bold text-white transition hover:opacity-90 min-h-[56px]">{{ __('Confirm order') }}</button>
-                            @elseif(! $kitchenScreenEnabled && in_array($staffRole, ['owner_manager', 'cashier'], true))
-                                <button type="button" @click="markCompleted({{ $order->id }})" class="rounded-md bg-zem-green px-6 py-3 text-base font-bold text-white transition hover:opacity-90 min-h-[56px]">{{ __('Mark as completed') }}</button>
+                            @elseif(! $kitchenScreenEnabled && $order->status !== 'paid' && in_array($staffRole, ['owner_manager', 'cashier'], true))
+                                <div class="flex flex-wrap gap-2">
+                                    <select id="payment-method-{{ $order->id }}" class="rounded-md border border-zem-border bg-white px-3 py-3 text-sm"><option value="">{{ __('Payment method...') }}</option>@foreach($paymentMethods as $method)<option value="{{ $method }}">{{ $method === 'room_credit' ? __('Room credit (pay later)') : ($method === 'credit' ? __('Credit (pay later)') : ucfirst($method)) }}</option>@endforeach</select>
+                                    <button type="button" @click="markCompleted({{ $order->id }})" class="rounded-md bg-zem-green px-6 py-3 text-base font-bold text-white transition hover:opacity-90 min-h-[56px]">{{ __('Mark as completed') }}</button>
+                                </div>
                             @elseif(in_array($staffRole, ['owner_manager', 'cashier'], true) && $order->status === 'served')
                                 <div class="flex gap-2">
                                     <select id="payment-method-{{ $order->id }}" class="rounded-md border border-zem-border bg-white px-3 py-3 text-sm">
                                         <option value="">Payment method...</option>
                                         @foreach($paymentMethods as $method)
-                                            <option value="{{ $method }}">{{ $method === 'room_credit' ? 'Room credit (pay later)' : ucfirst($method) }}</option>
+                                            <option value="{{ $method }}">{{ $method === 'room_credit' ? __('Room credit (pay later)') : ($method === 'credit' ? __('Credit (pay later)') : ucfirst($method)) }}</option>
                                         @endforeach
                                     </select>
                                     <button type="button" @click="markPayment({{ $order->id }})" class="rounded-md bg-emerald-600 px-6 py-3 text-base font-bold text-white transition hover:opacity-90 min-h-[56px]">Apply payment</button>
                                 </div>
                             @elseif($staffRole === 'cashier' && !in_array($order->status, ['paid']))
                                 <span class="rounded-md border border-zem-border bg-zem-soft px-4 py-3 text-sm font-bold text-zem-muted">{{ __('Waiting for kitchen') }}</span>
-                            @elseif($staffRole === 'cashier' && $order->status === 'paid')
+                            @elseif(in_array($staffRole, ['owner_manager', 'cashier'], true) && $order->status === 'paid')
                                 <button type="button" @click="markCompleted({{ $order->id }})" class="rounded-md bg-zem-green px-6 py-3 text-base font-bold text-white transition hover:opacity-90 min-h-[56px]">{{ __('Mark as completed') }}</button>
                             @elseif($staffRole === 'kitchen')
                                 @if($order->status === 'new')
@@ -77,8 +82,14 @@
                                     <button type="button" @click="updateStatus({{ $order->id }}, 'served')" class="rounded-md bg-green-600 px-6 py-3 text-base font-bold text-white transition hover:opacity-90 min-h-[56px]">Mark Served</button>
                                 @endif
                             @else
-                                <button type="button" @click="markCompleted({{ $order->id }})" class="rounded-md bg-zem-green px-6 py-3 text-base font-bold text-white transition hover:opacity-90 min-h-[56px]">{{ __('Mark as completed') }}</button>
+                                <div class="flex flex-wrap gap-2">
+                                    <select id="payment-method-{{ $order->id }}" class="rounded-md border border-zem-border bg-white px-3 py-3 text-sm"><option value="">{{ __('Payment method...') }}</option>@foreach($paymentMethods as $method)<option value="{{ $method }}">{{ $method === 'room_credit' ? __('Room credit (pay later)') : ($method === 'credit' ? __('Credit (pay later)') : ucfirst($method)) }}</option>@endforeach</select>
+                                    <button type="button" @click="markCompleted({{ $order->id }})" class="rounded-md bg-zem-green px-6 py-3 text-base font-bold text-white transition hover:opacity-90 min-h-[56px]">{{ __('Mark as completed') }}</button>
+                                </div>
                             @endif
+                        @endif
+                        @if(in_array($staffRole, ['owner_manager', 'cashier'], true) && !in_array($order->status, ['completed', 'cancelled', 'paid'], true) && $order->payment_status !== 'paid')
+                            <button type="button" @click="cancelOrder({{ $order->id }})" class="rounded-md border border-red-400/50 px-4 py-3 text-sm font-bold text-red-300 hover:bg-red-400/10">{{ __('Cancel order') }}</button>
                         @endif
                     </div>
                 </article>
@@ -312,6 +323,8 @@ function workBoard() {
         activeCount: 0,
         completedCount: 0,
         activeRequests: 0,
+        dueCreditCount: 0,
+        dueCreditTotal: 0,
         nextPollAt: null,
         nextPollSeconds: 30,
         countdownTimer: null,
@@ -352,6 +365,8 @@ function workBoard() {
             this.activeRequests = {{ $activeRequests }};
             this.activeCount = {{ $activeCount }};
             this.completedCount = {{ $completedCount }};
+            this.dueCreditCount = {{ $dueCreditCount }};
+            this.dueCreditTotal = {{ $dueCreditTotal }};
             this.schedulePoll(30000);
             this.visibilityHandler = () => {
                 if (document.hidden) {
@@ -392,6 +407,10 @@ function workBoard() {
             return @js(__('Next update in')) + ' ' + this.nextPollSeconds + 's';
         },
 
+        money(value) {
+            return new Intl.NumberFormat('en-US', { maximumFractionDigits: 2 }).format(Number(value || 0)) + ' ETB';
+        },
+
         showToast(message, type = 'success') {
             this.toastMessage = message;
             this.toastType = type;
@@ -415,7 +434,7 @@ function workBoard() {
             window.location.assign(url);
         },
 
-        async mutateOrder(orderId, status = null, paymentMethod = '') {
+        async mutateOrder(orderId, status = null, paymentMethod = '', successMessage = '') {
             if (this.pendingOrders.has(orderId)) return;
             this.pendingOrders.add(orderId);
             const formData = new FormData();
@@ -430,7 +449,7 @@ function workBoard() {
                 });
                 const data = await response.json();
                 if (!response.ok || !data.success) throw new Error(data.message || this.labels.failedOrder);
-                this.showToast('Order #' + orderId + ' updated');
+                this.showToast(successMessage || ('Order #' + orderId + ' updated'));
             } catch (error) {
                 this.showToast(error.message || this.labels.failedOrder, 'error');
             } finally {
@@ -443,7 +462,17 @@ function workBoard() {
 
         confirmOrder(orderId) { return this.mutateOrder(orderId); },
         updateStatus(orderId, status) { return this.mutateOrder(orderId, status); },
-        markCompleted(orderId) { return this.mutateOrder(orderId, 'completed'); },
+        cancelOrder(orderId) {
+            if (!window.confirm(@js(__('Cancel this order? This cannot be undone.')))) return;
+            return this.mutateOrder(orderId, 'cancelled', '', 'Order #' + orderId + ' cancelled');
+        },
+        markCompleted(orderId) {
+            const selected = document.getElementById('payment-method-' + orderId)?.value;
+            const existing = document.querySelector('[data-order-id="' + orderId + '"]')?.dataset.paymentMethod || '';
+            const method = selected || existing;
+            if (!method) { this.showToast('Select a payment method first', 'error'); return; }
+            return this.mutateOrder(orderId, 'completed', method);
+        },
         markPaid(orderId) {
             const method = document.getElementById('payment-method-' + orderId)?.value;
             if (!method) { this.showToast('Select a payment method first', 'error'); return; }
@@ -457,7 +486,7 @@ function workBoard() {
         markPayment(orderId) {
             const method = document.getElementById('payment-method-' + orderId)?.value;
             if (!method) { this.showToast('Select a payment method first', 'error'); return; }
-            return this.mutateOrder(orderId, method === 'room_credit' ? 'completed' : 'paid', method);
+            return this.mutateOrder(orderId, ['credit', 'room_credit'].includes(method) ? 'completed' : 'paid', method);
         },
         markCreditPaid(orderId) {
             if (this.pendingOrders.has(orderId)) return;
@@ -466,7 +495,7 @@ function workBoard() {
             formData.append('_token', '{{ csrf_token() }}');
             formData.append('_method', 'PATCH');
             fetch(this.creditPaidUrl.replace('__ID__', orderId), { method: 'POST', body: formData, headers: { 'X-Requested-With': 'XMLHttpRequest', 'Accept': 'application/json' } })
-                .then(async response => { const data = await response.json(); if (!response.ok || !data.success) throw new Error(data.message || this.labels.failedOrder); this.showToast('Room credit marked paid'); })
+                .then(async response => { const data = await response.json(); if (!response.ok || !data.success) throw new Error(data.message || this.labels.failedOrder); this.showToast('Credit marked paid'); })
                 .catch(error => this.showToast(error.message || this.labels.failedOrder, 'error'))
                 .finally(async () => { this.pendingOrders.delete(orderId); if (this.pollPromise) await this.pollPromise; await this.poll(); });
         },
@@ -563,6 +592,8 @@ function workBoard() {
                 this.activeCount = data.activeCount;
                 this.completedCount = data.completedCount;
                 this.activeRequests = data.activeRequests;
+                this.dueCreditCount = data.dueCreditCount;
+                this.dueCreditTotal = data.dueCreditTotal;
                 this.latestOrderId = Number(data.latestOrderId || 0);
                 this.latestConfirmedAt = data.latestConfirmedAt;
                 this.latestRequestId = Number(data.latestRequestId || 0);
@@ -604,7 +635,8 @@ function workBoard() {
             ).join('');
 
             const statusBadge = this.getStatusBadge(order.status);
-            const orderTags = (order.order_type === 'delivery' ? ' <span class="ml-1 rounded-full bg-purple-100 px-2 py-0.5 text-xs font-bold text-purple-700">Driver pickup</span>' : '') + (order.payment_method === 'room_credit' && order.payment_status !== 'paid' ? ' <span class="ml-1 rounded-full bg-yellow-100 px-2 py-0.5 text-xs font-bold text-yellow-700">Room credit · unpaid</span>' : '') + (order.needs_confirmation ? ' <span class="ml-1 rounded-full bg-yellow-100 px-2 py-0.5 text-xs font-bold text-yellow-700">' + this.escapeHtml(this.labels.needsConfirm) + '</span>' : '');
+            const isCreditDue = ['credit', 'room_credit'].includes(order.payment_method) && order.payment_status !== 'paid';
+            const orderTags = (order.order_type === 'delivery' ? ' <span class="ml-1 rounded-full bg-purple-100 px-2 py-0.5 text-xs font-bold text-purple-700">Driver pickup</span>' : '') + (isCreditDue ? ' <span class="ml-1 rounded-full bg-yellow-100 px-2 py-0.5 text-xs font-bold text-yellow-700">Credit · unpaid</span>' : '') + (order.needs_confirmation ? ' <span class="ml-1 rounded-full bg-yellow-100 px-2 py-0.5 text-xs font-bold text-yellow-700">' + this.escapeHtml(this.labels.needsConfirm) + '</span>' : '');
 
             article.innerHTML =
                 '<div class="flex flex-wrap items-start justify-between gap-3"><div><h2 class="font-display text-xl font-bold">' + this.escapeHtml(this.labels.order) + ' #' + order.id + '</h2><p class="text-sm text-zem-muted">' + this.escapeHtml(order.table_label || order.table_number) + orderTags + ' - <span data-created-at="' + this.escapeHtml(order.created_at) + '">' + this.relativeTime(order.created_at) + '</span></p></div><span data-status-badge>' + statusBadge + '</span></div>' +
@@ -625,28 +657,35 @@ function workBoard() {
             const needsConfirmation = article.dataset.needsConfirmation === '1';
             const paymentStatus = article.dataset.paymentStatus || '';
             const paymentMethod = article.dataset.paymentMethod || '';
-            if (status === 'completed' && paymentMethod === 'room_credit' && paymentStatus !== 'paid' && ['owner_manager', 'cashier'].includes(this.staffRole)) {
-                control = '<span class="rounded-md border border-zem-gold/40 bg-zem-gold/10 px-4 py-3 text-sm font-bold text-zem-gold">Room credit · unpaid</span><button type="button" data-mark-credit-paid class="rounded-md bg-emerald-600 px-6 py-3 text-base font-bold text-white transition hover:opacity-90 min-h-[56px]">Mark credit paid</button>';
+            const canCancel = ['owner_manager', 'cashier'].includes(this.staffRole)
+                && !['completed', 'cancelled', 'paid'].includes(status) && paymentStatus !== 'paid';
+            const cancelControl = canCancel
+                ? '<button type="button" data-cancel-order class="rounded-md border border-red-400/50 px-4 py-3 text-sm font-bold text-red-300 hover:bg-red-400/10">' + this.escapeHtml(@js(__('Cancel order'))) + '</button>'
+                : '';
+            if (status === 'completed' && ['credit', 'room_credit'].includes(paymentMethod) && paymentStatus !== 'paid' && ['owner_manager', 'cashier'].includes(this.staffRole)) {
+                control = '<span class="rounded-md border border-zem-gold/40 bg-zem-gold/10 px-4 py-3 text-sm font-bold text-zem-gold">Credit · unpaid</span><button type="button" data-mark-credit-paid class="rounded-md bg-emerald-600 px-6 py-3 text-base font-bold text-white transition hover:opacity-90 min-h-[56px]">Mark credit paid</button>';
             } else if (!['completed', 'cancelled'].includes(status)) {
                 if (['owner_manager', 'cashier'].includes(this.staffRole) && needsConfirmation) {
                     control = '<button type="button" data-confirm-order class="rounded-md bg-yellow-500 px-6 py-3 text-base font-bold text-white transition hover:opacity-90 min-h-[56px]">' + this.escapeHtml(this.labels.confirmOrder) + '</button>';
-                } else if (!this.kitchenScreenEnabled && ['owner_manager', 'cashier'].includes(this.staffRole)) {
-                    control = '<button type="button" data-mark-completed class="rounded-md bg-zem-green px-6 py-3 text-base font-bold text-white transition hover:opacity-90 min-h-[56px]">' + this.escapeHtml(this.labels.markCompleted) + '</button>';
+                } else if (!this.kitchenScreenEnabled && status !== 'paid' && ['owner_manager', 'cashier'].includes(this.staffRole)) {
+                    control = this.completionPaymentControl(orderId);
                 } else if (['owner_manager', 'cashier'].includes(this.staffRole) && status === 'served') {
-                    control = '<div class="flex gap-2"><select id="payment-method-' + orderId + '" class="rounded-md border border-zem-border bg-white px-3 py-3 text-sm"><option value="">Payment method...</option>' + this.paymentMethods.map(method => '<option value="' + this.escapeHtml(method) + '">' + this.escapeHtml(method === 'room_credit' ? 'Room credit (pay later)' : method.charAt(0).toUpperCase() + method.slice(1)) + '</option>').join('') + '</select><button type="button" data-mark-payment class="rounded-md bg-emerald-600 px-6 py-3 text-base font-bold text-white transition hover:opacity-90 min-h-[56px]">Apply payment</button></div>';
+                    control = '<div class="flex gap-2"><select id="payment-method-' + orderId + '" class="rounded-md border border-zem-border bg-white px-3 py-3 text-sm"><option value="">Payment method...</option>' + this.paymentMethods.map(method => '<option value="' + this.escapeHtml(method) + '">' + this.escapeHtml(method === 'room_credit' ? 'Room credit (pay later)' : (method === 'credit' ? 'Credit (pay later)' : method.charAt(0).toUpperCase() + method.slice(1))) + '</option>').join('') + '</select><button type="button" data-mark-payment class="rounded-md bg-emerald-600 px-6 py-3 text-base font-bold text-white transition hover:opacity-90 min-h-[56px]">Apply payment</button></div>';
                 } else if (this.staffRole === 'cashier' && status !== 'paid') {
                     control = '<span class="rounded-md border border-zem-border bg-zem-soft px-4 py-3 text-sm font-bold text-zem-muted">Waiting for kitchen</span>';
                 } else if (this.staffRole === 'cashier' && status === 'paid') {
+                    control = '<button type="button" data-mark-completed class="rounded-md bg-zem-green px-6 py-3 text-base font-bold text-white transition hover:opacity-90 min-h-[56px]">' + this.escapeHtml(this.labels.markCompleted) + '</button>';
+                } else if (this.staffRole === 'owner_manager' && status === 'paid') {
                     control = '<button type="button" data-mark-completed class="rounded-md bg-zem-green px-6 py-3 text-base font-bold text-white transition hover:opacity-90 min-h-[56px]">' + this.escapeHtml(this.labels.markCompleted) + '</button>';
                 } else if (this.staffRole === 'kitchen' && status === 'new') {
                     control = '<button type="button" data-start-preparing class="rounded-md bg-blue-600 px-6 py-3 text-base font-bold text-white transition hover:opacity-90 min-h-[56px]">Start Preparing</button>';
                 } else if (this.staffRole === 'kitchen' && status === 'preparing') {
                     control = '<button type="button" data-mark-served class="rounded-md bg-green-600 px-6 py-3 text-base font-bold text-white transition hover:opacity-90 min-h-[56px]">Mark Served</button>';
                 } else if (this.staffRole === 'owner_manager') {
-                    control = '<button type="button" data-mark-completed class="rounded-md bg-zem-green px-6 py-3 text-base font-bold text-white transition hover:opacity-90 min-h-[56px]">' + this.escapeHtml(this.labels.markCompleted) + '</button>';
+                    control = this.completionPaymentControl(orderId);
                 }
             }
-            actions.innerHTML = total + control;
+            actions.innerHTML = total + control + cancelControl;
             actions.querySelector('[data-confirm-order]')?.addEventListener('click', () => this.confirmOrder(orderId));
             actions.querySelector('[data-mark-paid]')?.addEventListener('click', () => this.markPaid(orderId));
             actions.querySelector('[data-mark-payment]')?.addEventListener('click', () => this.markPayment(orderId));
@@ -654,6 +693,15 @@ function workBoard() {
             actions.querySelector('[data-mark-completed]')?.addEventListener('click', () => this.markCompleted(orderId));
             actions.querySelector('[data-start-preparing]')?.addEventListener('click', () => this.updateStatus(orderId, 'preparing'));
             actions.querySelector('[data-mark-served]')?.addEventListener('click', () => this.updateStatus(orderId, 'served'));
+            actions.querySelector('[data-cancel-order]')?.addEventListener('click', () => this.cancelOrder(orderId));
+        },
+
+        completionPaymentControl(orderId) {
+            const options = this.paymentMethods.map(method => {
+                const label = method === 'room_credit' ? 'Room credit (pay later)' : (method === 'credit' ? 'Credit (pay later)' : method.charAt(0).toUpperCase() + method.slice(1));
+                return '<option value="' + this.escapeHtml(method) + '">' + this.escapeHtml(label) + '</option>';
+            }).join('');
+            return '<div class="flex flex-wrap gap-2"><select id="payment-method-' + orderId + '" class="rounded-md border border-zem-border bg-white px-3 py-3 text-sm"><option value="">Payment method...</option>' + options + '</select><button type="button" data-mark-completed class="rounded-md bg-zem-green px-6 py-3 text-base font-bold text-white transition hover:opacity-90 min-h-[56px]">' + this.escapeHtml(this.labels.markCompleted) + '</button></div>';
         },
 
         prependRequest(req) {
@@ -693,7 +741,8 @@ function workBoard() {
             this.$refs.ordersList.querySelectorAll('[data-order-id]').forEach(el => {
                 const completed = this.staffRole === 'kitchen' ? ['served', 'paid', 'completed'].includes(el.dataset.status) : el.dataset.status === 'completed';
                 const active = this.staffRole === 'kitchen' ? ['new', 'preparing'].includes(el.dataset.status) : !['completed', 'cancelled'].includes(el.dataset.status);
-                el.style.display = this.filter === 'all' || (this.filter === 'completed' && completed) || (this.filter === 'active' && active) ? '' : 'none';
+                const creditDue = el.dataset.status === 'completed' && ['credit', 'room_credit'].includes(el.dataset.paymentMethod) && el.dataset.paymentStatus !== 'paid';
+                el.style.display = this.filter === 'all' || (this.filter === 'completed' && completed) || (this.filter === 'active' && active) || (this.filter === 'credit' && creditDue) ? '' : 'none';
             });
             if (!this.$refs.requestsList) return;
             this.$refs.requestsList.querySelectorAll('[data-request-id]').forEach(el => {

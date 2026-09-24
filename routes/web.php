@@ -116,6 +116,8 @@ Route::middleware(['auth', 'role:admin', 'locale'])->prefix('admin')->name('admi
     Route::get('/dashboard', [Admin\DashboardController::class, 'index'])->name('dashboard');
     Route::get('/database', [Admin\DashboardController::class, 'database'])->name('database');
     Route::post('/database/full-scan', [Admin\ReleaseScanController::class, 'run'])->middleware('throttle:1,5')->name('database.full-scan');
+    Route::get('/database/workboard-reset/preview', [Admin\WorkboardResetController::class, 'preview'])->middleware('throttle:10,1')->name('database.workboard-reset.preview');
+    Route::post('/database/workboard-reset', [Admin\WorkboardResetController::class, 'reset'])->middleware('throttle:1,5')->name('database.workboard-reset');
     Route::post('/setup-run', [SetupController::class, 'run'])->name('setup.run');
     Route::post('/database/menu-refresh', [SetupController::class, 'refreshTulipMenu'])->name('database.menu-refresh');
     Route::post('/menu-import', [Admin\MenuImportController::class, 'store'])->name('menu-import.store');

@@ -94,7 +94,13 @@ foreach (['setup.show', 'setup.run', 'admin.setup.run'] as $name) {
 $scanMiddleware = $router->getRoutes()->getByName('admin.database.full-scan')->gatherMiddleware();
 check(in_array('auth', $scanMiddleware) && in_array('role:admin', $scanMiddleware), 'full release scan requires an authenticated admin');
 check(in_array('throttle:1,5', $scanMiddleware), 'full release scan is rate-limited');
+$resetPreviewMiddleware = $router->getRoutes()->getByName('admin.database.workboard-reset.preview')->gatherMiddleware();
+$resetMiddleware = $router->getRoutes()->getByName('admin.database.workboard-reset')->gatherMiddleware();
+check(in_array('auth', $resetMiddleware) && in_array('role:admin', $resetMiddleware), 'workboard reset requires an authenticated admin');
+check(in_array('throttle:1,5', $resetMiddleware) && in_array('auth', $resetPreviewMiddleware), 'workboard reset and preview are rate limited/admin protected');
 check(in_array('throttle:10,1', $router->getRoutes()->getByName('restaurant.profile-login')->gatherMiddleware()), 'profile login is throttled');
+$creditPaidMiddleware = $router->getRoutes()->getByName('restaurant.orders.credit-paid')->gatherMiddleware();
+check(in_array('auth', $creditPaidMiddleware) && in_array('role:restaurant_owner,staff', $creditPaidMiddleware), 'credit settlement requires an authenticated restaurant owner or staff profile');
 
 $restaurant = new class {
     public int $id = 7;

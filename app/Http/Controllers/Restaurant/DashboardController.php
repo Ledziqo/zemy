@@ -34,7 +34,7 @@ class DashboardController extends Controller
 
     protected function orderFilter(Request $request): string
     {
-        return in_array($request->query('filter'), ['active', 'completed', 'all'], true)
+        return in_array($request->query('filter'), ['active', 'completed', 'credit', 'all'], true)
             ? $request->query('filter') : 'active';
     }
 
@@ -50,6 +50,15 @@ class DashboardController extends Controller
         if ($filter === 'completed') {
             $query->whereIn('status', $kitchen ? ['served', 'paid', 'completed'] : ['completed']);
         }
+        if ($filter === 'credit') {
+            if ($kitchen) {
+                $query->whereRaw('1 = 0');
+            } else {
+                $query->where('status', 'completed')
+                    ->where('payment_status', '!=', 'paid')
+                    ->whereIn('payment_method', ['credit', 'room_credit']);
+            }
+        }
         return $query->orderByDesc('id')->paginate(30, ['*'], 'page', max(1, (int) $request->query('page', 1)))
             ->appends(['filter' => $filter]);
     }
@@ -57,11 +66,23 @@ class DashboardController extends Controller
     protected function boardCounts(Request $request, $restaurant): array
     {
         $query = $this->visibleOrders($request, $restaurant);
+        $kitchen = $request->session()->get('staff_profile_role') === 'kitchen';
+        $activeCondition = $kitchen
+            ? "status IN ('new', 'preparing')"
+            : "status NOT IN ('completed', 'cancelled')";
+        $counts = (clone $query)->selectRaw(
+            "SUM(CASE WHEN {$activeCondition} THEN 1 ELSE 0 END) AS active_count,
+             SUM(CASE WHEN status = 'completed' AND DATE(created_at) = ? THEN 1 ELSE 0 END) AS completed_count,
+             SUM(CASE WHEN status = 'completed' AND payment_status != 'paid' AND payment_method IN ('credit', 'room_credit') THEN 1 ELSE 0 END) AS due_credit_count,
+             COALESCE(SUM(CASE WHEN status = 'completed' AND payment_status != 'paid' AND payment_method IN ('credit', 'room_credit') THEN total ELSE 0 END), 0) AS due_credit_total",
+            [today()->toDateString()]
+        )->first();
+
         return [
-            'activeCount' => $request->session()->get('staff_profile_role') === 'kitchen'
-                ? (clone $query)->whereIn('status', ['new', 'preparing'])->count()
-                : (clone $query)->whereNotIn('status', ['completed', 'cancelled'])->count(),
-            'completedCount' => (clone $query)->where('status', 'completed')->whereDate('created_at', today())->count(),
+            'activeCount' => (int) ($counts->active_count ?? 0),
+            'completedCount' => (int) ($counts->completed_count ?? 0),
+            'dueCreditCount' => (int) ($counts->due_credit_count ?? 0),
+            'dueCreditTotal' => (float) ($counts->due_credit_total ?? 0),
         ];
     }
 
@@ -395,33 +416,45 @@ class DashboardController extends Controller
             abort_if($this->needsConfirmation($current) && $data['status'] !== 'cancelled', 422, 'Confirm this order before sending it forward.');
             abort_if(in_array($current->status, ['completed', 'cancelled'], true), 422, 'This order is already closed.');
 
+            if ($data['status'] === 'cancelled') {
+                abort_unless(in_array($profileRole, ['owner_manager', 'cashier'], true), 403);
+                abort_if($current->status === 'paid' || $current->payment_status === 'paid', 422, 'Paid orders cannot be cancelled here. Process a refund first.');
+            }
+
             if ($profileRole === 'kitchen') {
                 abort_unless($restaurant->kitchenScreenEnabled() && $current->confirmed_at, 403);
                 $allowed = ['new' => ['preparing'], 'preparing' => ['served']];
                 abort_unless(in_array($data['status'], $allowed[$current->status] ?? [], true), 422, 'Kitchen can only start preparation or mark a preparing order served.');
             } elseif ($profileRole === 'cashier') {
-                $allowed = $restaurant->kitchenScreenEnabled()
-                    ? ['served' => ['paid', 'completed'], 'paid' => ['completed']]
-                    : ['new' => ['completed'], 'preparing' => ['completed'], 'served' => ['completed'], 'paid' => ['completed']];
+                $allowed = $data['status'] === 'cancelled'
+                    ? ['new' => ['cancelled'], 'preparing' => ['cancelled'], 'served' => ['cancelled']]
+                    : ($restaurant->kitchenScreenEnabled()
+                        ? ['served' => ['paid', 'completed'], 'paid' => ['completed']]
+                        : ['new' => ['completed'], 'preparing' => ['completed'], 'served' => ['completed'], 'paid' => ['completed']]);
                 abort_unless(in_array($data['status'], $allowed[$current->status] ?? [], true), 422, 'This transition is not available to this staff profile.');
             }
 
             if ($data['status'] === 'paid') {
                 abort_if(empty($data['payment_method']), 422, 'Select a payment method.');
             }
-            $isRoomCredit = ($data['payment_method'] ?? null) === 'room_credit';
-            abort_if($isRoomCredit && ! $restaurant->isHotel(), 422, 'Room credit is available for hotel accounts only.');
-            abort_if($isRoomCredit && $data['status'] !== 'completed', 422, 'Room credit orders must be completed and settled later.');
+            $paymentMethod = $data['payment_method'] ?? $current->payment_method;
+            $isDeferredCredit = in_array($paymentMethod, ['credit', 'room_credit'], true);
+            $isRoomCredit = $paymentMethod === 'room_credit';
+            $settling = in_array($data['status'], ['paid', 'completed'], true);
+            abort_if($data['status'] === 'completed' && empty($paymentMethod), 422, 'Select a payment method before completing this order.');
+            abort_if($settling && $isDeferredCredit && $data['status'] !== 'completed', 422, 'Credit orders must be completed and settled later.');
+            abort_if($settling && $isRoomCredit && ! $restaurant->isHotel(), 422, 'Room credit is available for hotel accounts only.');
+            abort_if($settling && $isRoomCredit && $data['status'] !== 'completed', 422, 'Room credit orders must be completed and settled later.');
             $updateData = [
                 'status' => $data['status'],
-                'payment_status' => $isRoomCredit ? 'unpaid' : (in_array($data['status'], ['paid', 'completed'], true) ? 'paid' : $current->payment_status),
+                'payment_status' => $isDeferredCredit && $data['status'] === 'completed' ? 'unpaid' : (in_array($data['status'], ['paid', 'completed'], true) ? 'paid' : $current->payment_status),
             ];
             if (in_array($data['status'], ['paid', 'completed'], true)) {
                 if (in_array($profileRole, ['owner_manager', 'cashier'], true) && $profileId) {
                     $updateData['handled_by_profile_id'] = $profileId;
                 }
-                if (! empty($data['payment_method'])) {
-                    $updateData['payment_method'] = $data['payment_method'];
+                if (! empty($paymentMethod)) {
+                    $updateData['payment_method'] = $paymentMethod;
                 }
             }
             $current->update($updateData);
@@ -439,19 +472,23 @@ class DashboardController extends Controller
     public function markCreditPaid(Request $request, Order $order, GuestVisitManager $visits)
     {
         $restaurant = $this->restaurant($request);
-        abort_unless($order->restaurant_id === $restaurant->id && $restaurant->isHotel(), 403);
+        abort_unless($order->restaurant_id === $restaurant->id, 403);
         abort_unless(in_array($request->session()->get('staff_profile_role'), ['owner_manager', 'cashier'], true), 403);
 
-        $current = $restaurant->orders()->whereKey($order->id)->lockForUpdate()->firstOrFail();
-        abort_unless($current->payment_method === 'room_credit' && $current->payment_status !== 'paid', 422, 'This order is not an unpaid room credit order.');
-        $current->update(['payment_status' => 'paid']);
+        $current = DB::transaction(function () use ($restaurant, $order) {
+            $current = $restaurant->orders()->whereKey($order->id)->lockForUpdate()->firstOrFail();
+            $eligibleCredit = $current->payment_method === 'credit' || ($current->payment_method === 'room_credit' && $restaurant->isHotel());
+            abort_unless($eligibleCredit && $current->status === 'completed' && $current->payment_status !== 'paid', 422, 'This order is not an unpaid credit order.');
+            $current->update(['payment_status' => 'paid']);
+            return $current;
+        });
         $visits->closeIfSettled($current->guest_session_id);
 
         if ($request->wantsJson() || $request->header('X-Requested-With') === 'XMLHttpRequest') {
             return response()->json(['success' => true, 'payment_status' => 'paid']);
         }
 
-        return back()->with('success', 'Room credit for order #'.$order->id.' marked paid.');
+        return back()->with('success', 'Credit for order #'.$order->id.' marked paid.');
     }
 
     public function confirmOrder(Request $request, Order $order)

@@ -31,7 +31,7 @@ class GuestSession extends Model
             ->where(function ($query) {
                 $query->whereNotIn('status', ['completed', 'cancelled'])
                     ->orWhere(function ($roomCredit) {
-                        $roomCredit->where('payment_method', 'room_credit')
+                        $roomCredit->whereIn('payment_method', ['credit', 'room_credit'])
                             ->where('payment_status', '!=', 'paid');
                     });
             })
