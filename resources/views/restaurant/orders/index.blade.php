@@ -346,6 +346,7 @@ function workBoard() {
         pollLeaderKey: null,
         pollLeaderHeartbeat: null,
         isPollLeader: true,
+        pollFailures: 0,
         pollUrl: @js($pollUrl),
         pollRevision: null,
         orderUpdateUrl: '{{ route("restaurant.orders.update", ["__ID__"]) }}',
@@ -608,6 +609,7 @@ function workBoard() {
         },
 
         applyPollPayload(payload) {
+            this.pollFailures = 0;
             if (!payload) {
                 this.pollError = '';
                 this.pollDelay = 30000;
@@ -673,6 +675,11 @@ function workBoard() {
             .then(async r => {
                 if (r.status === 403) { window.location.reload(); return null; }
                 if (r.status === 304) return null;
+                if (r.status === 429 || r.status === 503) {
+                    const error = new Error('Server is busy; retrying shortly.');
+                    error.retryAfter = Number(r.headers.get('Retry-After') || 0);
+                    throw error;
+                }
                 if (!r.ok) throw new Error('Server returned ' + r.status);
                 return { data: await r.json(), revision: r.headers.get('X-Board-Revision') };
             })
@@ -682,9 +689,15 @@ function workBoard() {
                 }
                 this.applyPollPayload(payload);
             })
-            .catch(() => {
+            .catch((error) => {
                 this.pollError = @js(__('Update failed. Showing last known orders. Retry or refresh.'));
-                this.pollDelay = document.hidden ? 60000 : (this.slowConnection() ? 60000 : 30000);
+                this.pollFailures = Math.min(4, this.pollFailures + 1);
+                const retryAfter = Number(error?.retryAfter || 0) * 1000;
+                const exponentialDelay = Math.min(120000, 30000 * (2 ** Math.max(0, this.pollFailures - 1)));
+                this.pollDelay = Math.max(
+                    retryAfter,
+                    document.hidden ? 60000 : (this.slowConnection() ? 60000 : exponentialDelay)
+                );
             })
             .finally(() => {
                 this.polling = false;
