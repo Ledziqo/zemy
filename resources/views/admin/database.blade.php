@@ -61,7 +61,7 @@
     <h2 class="font-display text-xl font-bold">Full release scan</h2>
     <p class="mt-1 text-sm text-zem-muted">Run a bounded, read-only scan of the live app: database health and available counters, routes and role guards, every Blade view, required assets, storage, PHP limits, and recent error totals. It does not change menus, orders, settings, uploads, or test tenants.</p>
     <p class="mt-2 text-sm text-amber-200">This does not generate load or click through mutating workflows. Those are reported as not run and require a separate synthetic-data test.</p>
-    <form method="post" action="{{ route('admin.database.full-scan') }}" class="mt-4">
+    <form method="post" action="{{ url('/admin/database/full-scan') }}" class="mt-4">
         @csrf
         <button class="rounded-md bg-zem-gold px-5 py-3 font-bold text-white">Run full release scan</button>
     </form>
