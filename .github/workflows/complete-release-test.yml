@@ -8,18 +8,29 @@ permissions:
   contents: read
 
 jobs:
-  runner-connection-check:
+  complete-release-test:
     runs-on: ubuntu-latest
-    timeout-minutes: 10
+    timeout-minutes: 45
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
           node-version: 20
-      - name: Report runner connection
+      - name: Install browser test runtime
+        run: |
+          npm install --no-save playwright
+          npx playwright install --with-deps chromium
+      - name: Run complete staged release test
         env:
           RUN_ID: ${{ github.event.client_payload.run_id }}
           CALLBACK_URL: ${{ github.event.client_payload.callback_url }}
           CALLBACK_SECRET: ${{ secrets.ZEMTAB_CALLBACK_SECRET }}
           BASE_URL: ${{ github.event.client_payload.base_url }}
+          ADMIN_EMAIL: ${{ secrets.ZEMTAB_STAGING_ADMIN_EMAIL }}
+          ADMIN_PASSWORD: ${{ secrets.ZEMTAB_STAGING_ADMIN_PASSWORD }}
+          RELEASE_TEST_SEED_BATCHES: 10
+          ZEMTAB_STAGES: 10,20,40,60,80,100
+          ZEMTAB_STAGE_SECONDS: 120
+          ZEMTAB_STAFF_SCREENS: 2
+          ZEMTAB_POLL_INTERVAL_MS: 30000
         run: node tools/github-release-runner.cjs

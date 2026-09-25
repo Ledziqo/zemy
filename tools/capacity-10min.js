@@ -11,6 +11,7 @@
  */
 
 const baseUrl = (process.env.ZEMTAB_BASE_URL || '').replace(/\/$/, '');
+const fs = require('node:fs');
 const stages = (process.env.ZEMTAB_STAGES || '10,20,40,60,80,100').split(',').map(Number);
 const stageSeconds = Number(process.env.ZEMTAB_STAGE_SECONDS || 120);
 const staffScreensPerVenue = Number(process.env.ZEMTAB_STAFF_SCREENS || 2);
@@ -333,6 +334,19 @@ async function main() {
 
   const passed = results.filter(result => result.passed);
   const highest = passed.length ? passed[passed.length - 1].activeVenues : 0;
+  const report = {
+    target: baseUrl,
+    stages,
+    stageSeconds,
+    staffScreensPerVenue,
+    pollIntervalMs,
+    results,
+    highestPassedActiveVenues: highest,
+    recommendedActiveVenuesWith40PercentHeadroom: Math.floor(highest * 0.6),
+  };
+  if (process.env.ZEMTAB_REPORT_PATH) {
+    fs.writeFileSync(process.env.ZEMTAB_REPORT_PATH, JSON.stringify(report, null, 2));
+  }
   console.log('\nFinal quick signal');
   console.log(`Highest passed active venues: ${highest}`);
   console.log(`Recommended launch estimate with 40% headroom: ${Math.floor(highest * 0.6)}`);
