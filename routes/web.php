@@ -43,10 +43,14 @@ Route::get('/ready', function () {
     }
 })->middleware('throttle:60,1')->name('ready');
 
-Route::middleware(['auth', 'role:admin'])->group(function () {
-    Route::get('/setup', [SetupController::class, 'show'])->name('setup.show');
-    Route::post('/setup/run', [SetupController::class, 'run'])->name('setup.run');
-});
+// SetupController enforces admin access for normal/prod operation, while
+// allowing one-time bootstrap only for an empty staging database.
+Route::get('/setup', [SetupController::class, 'show'])
+    ->middleware('throttle:20,1')
+    ->name('setup.show');
+Route::post('/setup/run', [SetupController::class, 'run'])
+    ->middleware('throttle:5,1')
+    ->name('setup.run');
 
 Route::get('/login', [AuthController::class, 'showLogin'])->name('login');
 Route::post('/login', [AuthController::class, 'login'])->middleware('throttle:10,1')->name('login.store');
