@@ -56,7 +56,7 @@ jobs:
           npx playwright install --with-deps chromium
       - name: Pick up a queued staging run
         env:
-          STAGING_BASE_URL: ${{ secrets.ZEMTAB_STAGING_BASE_URL }}
+          STAGING_BASE_URL: ${{ secrets.ZEMTAB_STAGING_BASE_URL || 'https://lavenderblush-jellyfish-274510.hostingersite.com' }}
           CALLBACK_SECRET: ${{ secrets.ZEMTAB_CALLBACK_SECRET }}
           ADMIN_EMAIL: ${{ secrets.ZEMTAB_STAGING_ADMIN_EMAIL }}
           ADMIN_PASSWORD: ${{ secrets.ZEMTAB_STAGING_ADMIN_PASSWORD }}
