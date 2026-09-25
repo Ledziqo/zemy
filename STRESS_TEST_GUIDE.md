@@ -10,9 +10,11 @@
 5. **Access middleware cache 5min** (`EnsureRestaurantDashboardAccess`) — subscription check cached
 
 ### Stress test infrastructure
-6. **StressTestSeeder** — creates 300 test restaurants with accounts, menu items, tables
+6. **StressTestSeeder** — creates disposable test restaurants with accounts, menu items, tables
 7. **Setup page buttons** — seed/cleanup stress data via `/setup` (no SSH needed)
-8. **Upgraded stress test** (`tools/stress-test.js`) — staged 100/200/300, live progress, clear verdict
+8. **Capacity runner** (`tools/capacity-10min.js`) — staged 10/20/40/60/80/100 venue testing against an isolated clone
+
+The capacity runner must not target the live production URL. A temporary subdomain with its own database is required. The runner now refuses to start without an explicit `ZEMTAB_BASE_URL`.
 
 ### Post-launch monitoring
 9. **SlowRequestMiddleware** — logs requests >500ms and queries >100ms to `storage/logs/slow.log`
@@ -33,37 +35,38 @@ git push origin main
 - Click **"Run setup / updates now"** (applies migrations + clears cache)
 - Confirm `CACHE_STORE=file` and `DB_PERSISTENT=true` in your `.env`
 
-### 3. Seed stress test data
-- On the `/setup` page, click **"Seed stress test data (300 restaurants)"**
-- Wait for it to complete (may take 1-2 minutes)
-- You'll see "Stress test data seeded successfully"
+### 3. Create the temporary test site
+- Create a temporary subdomain and separate database on the same hosting account/server.
+- Deploy the same commit to that subdomain and configure its `.env` for the disposable database.
+- Confirm `APP_ENV=staging` (or another non-production value), `DB_HOST=localhost`, and `STRESS_TEST_ALLOW_PRODUCTION=false`.
+- Run the normal setup/migrations on the temporary site.
 
-### 4. Run the stress test
+### 4. Seed stress test data
+- On the temporary site’s `/setup` page, enable the stress controls if required.
+- Seed batches until the required test venues exist (the default runner tests up to 100).
+- Never seed stress data in the live production database.
+
+### 5. Run the stress test
 From your local machine:
 ```bash
-ZEMTAB_BASE_URL=https://zemtab.com node tools/stress-test.js
+$env:ZEMTAB_BASE_URL="https://staging.example.com"; node tools/capacity-10min.js
 ```
 
-The test runs in stages:
-- **Stage 1**: 100 restaurants, 5 minutes
-- **Stage 2**: 200 restaurants, 5 minutes  
-- **Stage 3**: 300 restaurants, 5 minutes
+The test ramps through 10, 20, 40, 60, 80, and 100 active venues. Each stage runs for two minutes by default and stops on server errors, timeouts, failed recovery, or excessive poll latency. Set `ZEMTAB_STAGE_SECONDS` to change the stage duration.
 
-Each stage shows live progress and a clear pass/fail verdict.
+The runner signs into each seeded staff account, obtains the current signed Work Board polling URL, exercises guest menu/order/service-request flows, and prints latency and error summaries per stage.
 
-### 5. Read the results
+### 6. Read the results
 At the end, the test prints:
 ```
-═══════════════════════════════════════
-  GUARANTEED SAFE: 200 restaurants
-  RECOMMENDED LAUNCH: 150 restaurants (25% safety margin)
-═══════════════════════════════════════
+Highest passed active venues: 80
+Recommended launch estimate with 40% headroom: 48
 ```
 
-### 6. Clean up
-- On the `/setup` page, click **"Clean up stress test data"**
+### 7. Clean up
+- On the temporary site’s `/setup` page, click **"Clean up stress test data"**.
 - All test restaurants, users, orders, and related data are removed
-- Production is clean for real launch
+- The production database is never touched by this test.
 
 ## Post-launch monitoring
 

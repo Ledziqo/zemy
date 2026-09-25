@@ -1,20 +1,20 @@
 #!/usr/bin/env node
 
 /**
- * ZemTab 10-minute throttle-free capacity signal test.
+ * ZemTab staged capacity signal test for an isolated temporary deployment.
  *
  * Required seeded accounts:
  *   zt-stress-001@zemtab.test ... zt-stress-200@zemtab.test / password
  *
  * Usage:
- *   $env:ZEMTAB_BASE_URL="https://www.zemtab.com"; node tools/capacity-10min.js
+ *   $env:ZEMTAB_BASE_URL="https://staging.example.com"; node tools/capacity-10min.js
  */
 
-const baseUrl = (process.env.ZEMTAB_BASE_URL || 'https://www.zemtab.com').replace(/\/$/, '');
-const stages = (process.env.ZEMTAB_STAGES || '50,70,100,150,200').split(',').map(Number);
+const baseUrl = (process.env.ZEMTAB_BASE_URL || '').replace(/\/$/, '');
+const stages = (process.env.ZEMTAB_STAGES || '10,20,40,60,80,100').split(',').map(Number);
 const stageSeconds = Number(process.env.ZEMTAB_STAGE_SECONDS || 120);
 const staffScreensPerVenue = Number(process.env.ZEMTAB_STAFF_SCREENS || 2);
-const pollIntervalMs = Number(process.env.ZEMTAB_POLL_INTERVAL_MS || 15000);
+const pollIntervalMs = Number(process.env.ZEMTAB_POLL_INTERVAL_MS || 30000);
 const loginConcurrency = Number(process.env.ZEMTAB_LOGIN_CONCURRENCY || 12);
 const timeoutMs = Number(process.env.ZEMTAB_TIMEOUT_MS || 15000);
 
@@ -38,6 +38,13 @@ const firstProfileId = html => html.match(/name="profile_id"[^>]*value="(\d+)"/)
 const slugFor = index => 'zt-stress-' + String(index + 1).padStart(3, '0');
 const emailFor = index => `${slugFor(index)}@zemtab.test`;
 const tableFor = index => String((index % 10) + 1);
+
+function extractPollUrl(html) {
+  const match = html.match(/pollUrl:\s*("(?:\\.|[^"\\])*"|'(?:\\.|[^'\\])*')\s*,/s);
+  if (!match) return null;
+  if (match[1].startsWith('"')) return JSON.parse(match[1]);
+  return match[1].slice(1, -1).replace(/\\'/g, "'").replace(/\\\\/g, '\\');
+}
 
 async function mapLimit(items, limit, worker) {
   const results = [];
@@ -124,25 +131,40 @@ async function loginStaffSession(venueIndex, metrics) {
   }, jar, metrics, 'profile-login');
   if (![200, 302, 303].includes(profile.status)) throw new Error(`profile login ${profile.status}`);
 
-  return jar;
+  const ordersPage = await request(`${baseUrl}/restaurant/orders`, {}, jar, metrics, 'orders-page');
+  const ordersHtml = await ordersPage.text();
+  if (!ordersPage.ok) throw new Error(`orders page ${ordersPage.status}`);
+  const pollUrl = extractPollUrl(ordersHtml);
+  if (!pollUrl) throw new Error('missing signed workboard poll URL');
+
+  return { jar, pollUrl };
 }
 
-async function pollLoop(jar, stopAt, metrics, venueIndex, screenIndex, state) {
+async function pollLoop(session, stopAt, metrics, venueIndex, screenIndex, state) {
   await sleep(Math.random() * pollIntervalMs);
   let orderSince = 0;
   let requestSince = 0;
+  let pollRevision = null;
 
   while (Date.now() < stopAt && !state.failed) {
     try {
+      const headers = { accept: 'application/json', 'x-requested-with': 'XMLHttpRequest' };
+      if (pollRevision) headers['x-board-revision'] = pollRevision;
       const response = await request(
-        `${baseUrl}/restaurant/orders/poll?order_since=${orderSince}&request_since=${requestSince}`,
-        { headers: { accept: 'application/json', 'x-requested-with': 'XMLHttpRequest' }, followRedirects: false },
-        jar,
+        session.pollUrl,
+        { headers, followRedirects: false },
+        session.jar,
         metrics,
         'poll'
       );
+      if (response.status === 304) {
+        pollRevision = response.headers.get('x-board-revision') || pollRevision;
+        await sleep(pollIntervalMs);
+        continue;
+      }
       if (!response.ok) throw new Error(`poll ${response.status}`);
       const data = await response.json();
+      pollRevision = response.headers.get('x-board-revision') || data.revision || pollRevision;
       orderSince = Math.max(orderSince, Number(data.latestOrderId || 0));
       requestSince = Math.max(requestSince, Number(data.latestRequestId || 0));
     } catch (error) {
@@ -250,8 +272,8 @@ async function runStage(activeVenues) {
   console.log(`\nStage ${activeVenues} active venues: logging in ${activeVenues * staffScreensPerVenue} staff screens...`);
   const staffSessions = [];
   await mapLimit(venueIndexes.flatMap(venueIndex => Array.from({ length: staffScreensPerVenue }, (_, screenIndex) => ({ venueIndex, screenIndex }))), loginConcurrency, async ({ venueIndex, screenIndex }) => {
-    const jar = await loginStaffSession(venueIndex, metrics);
-    staffSessions.push({ venueIndex, screenIndex, jar });
+    const session = await loginStaffSession(venueIndex, metrics);
+    staffSessions.push({ venueIndex, screenIndex, ...session });
   });
 
   console.log(`Stage ${activeVenues}: running ${stageSeconds}s...`);
@@ -280,6 +302,9 @@ async function runStage(activeVenues) {
 }
 
 async function main() {
+  if (!baseUrl) {
+    throw new Error('Set ZEMTAB_BASE_URL to the isolated temporary site; production is intentionally not the default.');
+  }
   console.log(`Target: ${baseUrl}`);
   console.log(`Stages: ${stages.join(', ')} active venues`);
   console.log(`Stage duration: ${stageSeconds}s | staff screens per venue: ${staffScreensPerVenue}`);
