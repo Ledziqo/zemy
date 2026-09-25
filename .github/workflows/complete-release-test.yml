@@ -5,12 +5,16 @@ on:
     types: [zemtab-complete-release-test]
   schedule:
     - cron: '*/5 * * * *'
+  workflow_dispatch:
+  push:
+    branches: [main]
 
 permissions:
   contents: read
 
 jobs:
   complete-release-test:
+    if: github.event_name == 'repository_dispatch'
     runs-on: ubuntu-latest
     timeout-minutes: 45
     steps:
@@ -38,7 +42,7 @@ jobs:
         run: node tools/github-release-runner.cjs
 
   scheduled-fallback:
-    if: github.event_name == 'schedule'
+    if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch' || github.event_name == 'push'
     runs-on: ubuntu-latest
     timeout-minutes: 45
     steps:
