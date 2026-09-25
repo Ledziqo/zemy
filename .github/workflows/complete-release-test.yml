@@ -1,4 +1,5 @@
 name: ZemTab complete release test
+# Push/manual fallback also wakes a queued staging run when cron delivery is delayed.
 
 on:
   repository_dispatch:
