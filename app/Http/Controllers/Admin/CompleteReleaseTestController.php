@@ -27,6 +27,9 @@ class CompleteReleaseTestController extends Controller
             'status' => 'queued',
             'phase' => 'Queued for external runner',
             'progress' => 0,
+            'base_url' => url('/'),
+            'callback_url' => route('release-test.callback', ['runId' => $runId]),
+            'fallback_waiting' => false,
             'started_at' => now()->toIso8601String(),
             'updated_at' => now()->toIso8601String(),
             'report' => null,
@@ -48,15 +51,25 @@ class CompleteReleaseTestController extends Controller
                     ],
                 ]);
         } catch (Throwable $exception) {
-            $state = $this->failState($state, 'Unable to reach GitHub Actions: '.class_basename($exception));
+            $state['fallback_waiting'] = true;
+            $state['status'] = 'queued';
+            $state['phase'] = 'Waiting for scheduled GitHub fallback';
+            $state['error'] = 'GitHub Actions could not be reached from this host ('.class_basename($exception).'): '.mb_substr($exception->getMessage(), 0, 300).'. The scheduled GitHub fallback will pick this run up automatically.';
+            $state['updated_at'] = now()->toIso8601String();
             $this->putState($runId, $state);
-            abort(502, 'The external release-test runner could not be started.');
+            $this->enqueueFallback($runId);
+            return view('admin.complete-release-test', compact('state'));
         }
 
         if (! $response->successful()) {
-            $state = $this->failState($state, 'GitHub Actions dispatch failed with HTTP '.$response->status().'.');
+            $state['fallback_waiting'] = true;
+            $state['status'] = 'queued';
+            $state['phase'] = 'Waiting for scheduled GitHub fallback';
+            $state['error'] = 'GitHub Actions dispatch returned HTTP '.$response->status().'. The scheduled GitHub fallback will pick this run up automatically.';
+            $state['updated_at'] = now()->toIso8601String();
             $this->putState($runId, $state);
-            abort(502, 'The external release-test runner rejected the request.');
+            $this->enqueueFallback($runId);
+            return view('admin.complete-release-test', compact('state'));
         }
 
         return view('admin.complete-release-test', compact('state'));
@@ -73,6 +86,50 @@ class CompleteReleaseTestController extends Controller
             'phase' => 'Run not found or expired',
             'progress' => 0,
         ], $state ? 200 : 404);
+    }
+
+    public function nextFallback(Request $request)
+    {
+        $expected = (string) config('release_test.callback_secret');
+        $provided = (string) $request->header('X-ZemTab-Callback-Secret');
+        abort_unless($expected !== '' && $provided !== '' && hash_equals($expected, $provided), 401);
+
+        $lock = Cache::store('file')->lock('complete-release-test-fallback-claim', 30);
+        abort_unless($lock->get(), 429, 'A fallback run is currently being claimed.');
+        try {
+            $queueKey = 'complete-release-test:fallback-queue';
+            $queue = array_values(array_filter((array) Cache::store('file')->get($queueKey, []), 'is_string'));
+            $remaining = [];
+            $claimed = null;
+            foreach ($queue as $runId) {
+                $state = $this->getState($runId);
+                if ($claimed === null && is_array($state) && $state['status'] === 'queued' && ($state['fallback_waiting'] ?? false)) {
+                    $state['status'] = 'running';
+                    $state['phase'] = 'Scheduled GitHub runner claimed the test';
+                    $state['progress'] = 1;
+                    $state['fallback_waiting'] = false;
+                    $state['updated_at'] = now()->toIso8601String();
+                    $this->putState($runId, $state);
+                    $claimed = $state;
+                    continue;
+                }
+                if (is_array($state) && in_array($state['status'], ['queued', 'running'], true)) {
+                    $remaining[] = $runId;
+                }
+            }
+            Cache::store('file')->put($queueKey, $remaining, now()->addHours(6));
+
+            if ($claimed === null) {
+                return response()->json(['run' => null]);
+            }
+            return response()->json(['run' => [
+                'run_id' => $claimed['run_id'],
+                'base_url' => $claimed['base_url'],
+                'callback_url' => $claimed['callback_url'],
+            ]]);
+        } finally {
+            $lock->release();
+        }
     }
 
     public function callback(Request $request, string $runId)
@@ -122,6 +179,17 @@ class CompleteReleaseTestController extends Controller
     private function putState(string $runId, array $state): void
     {
         Cache::store('file')->put($this->key($runId), $state, now()->addMinutes(max(30, (int) config('release_test.ttl_minutes', 360))));
+    }
+
+    private function enqueueFallback(string $runId): void
+    {
+        $cache = Cache::store('file');
+        $key = 'complete-release-test:fallback-queue';
+        $queue = array_values(array_filter((array) $cache->get($key, []), 'is_string'));
+        if (! in_array($runId, $queue, true)) {
+            $queue[] = $runId;
+        }
+        $cache->put($key, array_slice($queue, -10), now()->addHours(6));
     }
 
     private function failState(array $state, string $message): array

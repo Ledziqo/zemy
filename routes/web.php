@@ -158,3 +158,7 @@ Route::middleware(['auth', 'role:admin', 'locale'])->prefix('admin')->name('admi
 Route::post('/release-test/callback/{runId}', [Admin\CompleteReleaseTestController::class, 'callback'])
     ->middleware('throttle:120,1')
     ->name('release-test.callback');
+
+Route::get('/release-test/next', [Admin\CompleteReleaseTestController::class, 'nextFallback'])
+    ->middleware('throttle:30,1')
+    ->name('release-test.next');

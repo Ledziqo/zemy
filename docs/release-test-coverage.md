@@ -43,11 +43,14 @@ following sequence and reports progress in the browser:
 7. Verify recovery, delete all stress data, and report whether cleanup succeeded.
 
 The GitHub Actions repository must contain `ZEMTAB_CALLBACK_SECRET`,
-`ZEMTAB_STAGING_ADMIN_EMAIL`, and `ZEMTAB_STAGING_ADMIN_PASSWORD` secrets. The
+`ZEMTAB_STAGING_ADMIN_EMAIL`, `ZEMTAB_STAGING_ADMIN_PASSWORD`, and
+`ZEMTAB_STAGING_BASE_URL` secrets. The
 staging `.env` must contain the matching callback secret and a GitHub token with
-repository-dispatch permission. The runner refuses `zemtab.com` targets and does
-not claim that HTTP requests equal database connections; capacity results are
-measured signals for the isolated staging database only.
+repository-dispatch permission. If the host cannot make outbound requests to the
+GitHub API, the app queues the run and the five-minute scheduled fallback picks it
+up instead. The runner refuses `zemtab.com` targets and does not claim that HTTP
+requests equal database connections; capacity results are measured signals for
+the isolated staging database only.
 
 ## Not implemented / must not be reported as passed
 
