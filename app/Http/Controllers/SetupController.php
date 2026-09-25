@@ -17,15 +17,17 @@ class SetupController extends Controller
 {
     public function show(Request $request)
     {
-        abort_unless($request->user()?->role === 'admin', 403);
+        $stagingBootstrap = $this->stagingBootstrapAllowed();
+        abort_unless($stagingBootstrap || $request->user()?->role === 'admin', 403);
 
-        return view('setup.show');
+        return view('setup.show', compact('stagingBootstrap'));
     }
 
     public function run(Request $request)
     {
         // Guard before configuration changes or commands, including with stale route caches.
-        abort_unless($request->user()?->role === 'admin', 403);
+        $stagingBootstrap = $this->stagingBootstrapAllowed();
+        abort_unless($stagingBootstrap || $request->user()?->role === 'admin', 403);
 
         if (app()->environment('production')) {
             abort_if($request->boolean('seed_demo_data'),
@@ -55,7 +57,9 @@ class SetupController extends Controller
             } elseif ($request->boolean('cleanup_stress_data')) {
                 $this->cleanupStressData($output);
             } else {
-                $this->runSetupCommands($output, $request->boolean('seed_demo_data'));
+                // A brand-new staging database has no admin account yet, so seed
+                // the admin/demo records automatically during the one-time bootstrap.
+                $this->runSetupCommands($output, $stagingBootstrap || $request->boolean('seed_demo_data'));
                 if ($request->boolean('cleanup_stress_orders')) {
                     $this->cleanupStressOrders($output);
                 }
@@ -67,6 +71,7 @@ class SetupController extends Controller
             return view('setup.show', [
                 'success' => true,
                 'output' => trim(implode("\n", $output)),
+                'stagingBootstrap' => false,
             ]);
         } catch (Throwable $exception) {
             if ($request->is('admin/*')) {
@@ -76,8 +81,16 @@ class SetupController extends Controller
                 'success' => false,
                 'output' => $this->friendlyError($exception),
                 'db' => $this->currentDatabaseConfig(),
+                'stagingBootstrap' => $stagingBootstrap,
             ]);
         }
+    }
+
+    private function stagingBootstrapAllowed(): bool
+    {
+        return app()->environment('staging')
+            && (bool) config('app.debug')
+            && ! Schema::hasTable('users');
     }
 
     private function runSetupCommands(array &$output, bool $seedDemoData = false): void

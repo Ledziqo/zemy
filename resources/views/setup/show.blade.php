@@ -13,6 +13,12 @@
         <h1 class="text-2xl font-extrabold">ZemTab database setup & updates</h1>
         <p class="mt-3 text-sm text-neutral-400">Use this when you cannot run server commands. It applies database updates and clears cached files.</p>
 
+        @if($stagingBootstrap ?? false)
+            <div class="mt-4 rounded-lg border border-amber-500/40 bg-amber-950/30 p-4 text-sm text-amber-100">
+                This is the one-time staging bootstrap. It will create the database tables and seed the staging admin account automatically. This page locks again as soon as the <code>users</code> table exists.
+            </div>
+        @endif
+
         <form method="post" action="/setup/run" class="mt-6">
             @csrf
             @php($db = $db ?? ['host' => 'srv2081.hstgr.io', 'database' => 'u409029281_zemtab', 'username' => 'u409029281_zemtab'])
@@ -35,8 +41,8 @@
                 </label>
             </div>
             <label class="mb-5 flex items-start gap-2 text-sm text-neutral-500">
-                <input type="checkbox" name="seed_demo_data" value="1" class="mt-1">
-                <span>Also refresh demo/admin seed data (normally leave this unchecked in production).</span>
+                <input type="checkbox" name="seed_demo_data" value="1" class="mt-1" @checked($stagingBootstrap ?? false)>
+                <span>Also refresh demo/admin seed data (required automatically for a new staging database).</span>
             </label>
             <button class="rounded-lg bg-[#D22630] px-5 py-3 font-extrabold text-white">Run setup / updates now</button>
             <a href="/login" class="ml-3 text-sm font-bold text-neutral-300">Back to login</a>
@@ -44,15 +50,15 @@
 
         <div class="mt-8 border-t border-[#D8E0E7] pt-6">
             <h2 class="text-lg font-extrabold">Stress test tools</h2>
-            <p class="mt-2 text-sm text-neutral-400">Click each batch button below to create 50 restaurants at a time. Click all 6 batches to get 300 total. Wait for each one to finish before clicking the next.</p>
+            <p class="mt-2 text-sm text-neutral-400">Click each batch button below to create 10 disposable restaurants at a time. Click batches 1–10 to get 100 total. Wait for each one to finish before clicking the next.</p>
 
             <div class="mt-4 flex flex-wrap gap-3">
-                @for ($b = 1; $b <= 6; $b++)
+                @for ($b = 1; $b <= 10; $b++)
                     <form method="post" action="/setup/run" class="inline">
                         @csrf
                         <input type="hidden" name="seed_stress_data" value="1">
                         <input type="hidden" name="stress_batch" value="{{ $b }}">
-                        <button class="rounded-lg bg-[#D22630] px-4 py-3 text-sm font-extrabold text-white">Batch {{ $b }} ({{ ($b - 1) * 50 + 1 }}-{{ $b * 50 }})</button>
+                        <button class="rounded-lg bg-[#D22630] px-4 py-3 text-sm font-extrabold text-white">Batch {{ $b }} ({{ ($b - 1) * 10 + 1 }}-{{ $b * 10 }})</button>
                     </form>
                 @endfor
             </div>
