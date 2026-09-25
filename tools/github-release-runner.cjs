@@ -11,11 +11,33 @@ const adminEmail = process.env.ADMIN_EMAIL || '';
 const adminPassword = process.env.ADMIN_PASSWORD || '';
 const requestTimeoutMs = Number(process.env.RELEASE_TEST_REQUEST_TIMEOUT_MS || 120000);
 
-if (!runId || !callbackUrl || !callbackSecret || !baseUrl || !adminEmail || !adminPassword) {
-  throw new Error('RUN_ID, CALLBACK_URL, CALLBACK_SECRET, BASE_URL, ADMIN_EMAIL, and ADMIN_PASSWORD are required.');
+const missingEnvironment = [
+  ['RUN_ID', runId],
+  ['CALLBACK_URL', callbackUrl],
+  ['CALLBACK_SECRET', callbackSecret],
+  ['BASE_URL', baseUrl],
+  ['ADMIN_EMAIL', adminEmail],
+  ['ADMIN_PASSWORD', adminPassword],
+].filter(([, value]) => !value).map(([name]) => name);
+
+async function reportConfigurationFailure() {
+  if (!runId || !callbackUrl || !callbackSecret) return;
+  try {
+    await fetch(callbackUrl, {
+      method: 'POST',
+      headers: { 'content-type': 'application/json', 'x-zemtab-callback-secret': callbackSecret },
+      body: JSON.stringify({
+        run_id: runId,
+        status: 'failed',
+        phase: 'External runner configuration is incomplete',
+        progress: 0,
+        error: `Missing GitHub Actions environment values: ${missingEnvironment.join(', ')}`,
+      }),
+    });
+  } catch (_) {}
 }
 
-const targetHost = new URL(baseUrl).hostname.toLowerCase();
+const targetHost = baseUrl ? new URL(baseUrl).hostname.toLowerCase() : '';
 if (targetHost === 'zemtab.com' || targetHost === 'www.zemtab.com' || targetHost.endsWith('.zemtab.com')) {
   throw new Error('The complete release test is locked to a temporary/staging host and cannot target production.');
 }
@@ -248,8 +270,15 @@ async function main() {
   if (!passed) process.exitCode = 1;
 }
 
-main().catch(async error => {
-  console.error(error.stack || error.message);
-  try { await callback({ status: 'failed', phase: 'External runner failed', progress: 0, error: error.message }); } catch (_) {}
-  process.exitCode = 1;
-});
+if (missingEnvironment.length) {
+  reportConfigurationFailure().finally(() => {
+    console.error(`Missing GitHub Actions environment values: ${missingEnvironment.join(', ')}`);
+    process.exitCode = 1;
+  });
+} else {
+  main().catch(async error => {
+    console.error(error.stack || error.message);
+    try { await callback({ status: 'failed', phase: 'External runner failed', progress: 0, error: error.message }); } catch (_) {}
+    process.exitCode = 1;
+  });
+}
