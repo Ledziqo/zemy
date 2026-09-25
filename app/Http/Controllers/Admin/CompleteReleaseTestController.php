@@ -5,7 +5,6 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
-use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Str;
 use Throwable;
 
@@ -38,18 +37,14 @@ class CompleteReleaseTestController extends Controller
         $this->putState($runId, $state);
 
         try {
-            $response = Http::withToken($githubToken)
-                ->acceptJson()
-                ->asJson()
-                ->timeout(15)
-                ->post('https://api.github.com/repos/'.$repository.'/dispatches', [
-                    'event_type' => (string) config('release_test.event'),
-                    'client_payload' => [
-                        'run_id' => $runId,
-                        'base_url' => url('/'),
-                        'callback_url' => route('release-test.callback', ['runId' => $runId]),
-                    ],
-                ]);
+            $response = $this->dispatchGithubRepositoryEvent($githubToken, $repository, [
+                'event_type' => (string) config('release_test.event'),
+                'client_payload' => [
+                    'run_id' => $runId,
+                    'base_url' => url('/'),
+                    'callback_url' => route('release-test.callback', ['runId' => $runId]),
+                ],
+            ]);
         } catch (Throwable $exception) {
             $state['fallback_waiting'] = true;
             $state['status'] = 'queued';
@@ -61,11 +56,11 @@ class CompleteReleaseTestController extends Controller
             return view('admin.complete-release-test', compact('state'));
         }
 
-        if (! $response->successful()) {
+        if ($response['status'] < 200 || $response['status'] >= 300) {
             $state['fallback_waiting'] = true;
             $state['status'] = 'queued';
             $state['phase'] = 'Waiting for scheduled GitHub fallback';
-            $state['error'] = 'GitHub Actions dispatch returned HTTP '.$response->status().'. The scheduled GitHub fallback will pick this run up automatically.';
+            $state['error'] = 'GitHub Actions dispatch returned HTTP '.$response['status'].'. The scheduled GitHub fallback will pick this run up automatically.';
             $state['updated_at'] = now()->toIso8601String();
             $this->putState($runId, $state);
             $this->enqueueFallback($runId);
@@ -73,6 +68,38 @@ class CompleteReleaseTestController extends Controller
         }
 
         return view('admin.complete-release-test', compact('state'));
+    }
+
+    private function dispatchGithubRepositoryEvent(string $token, string $repository, array $payload): array
+    {
+        abort_unless(function_exists('curl_init'), 503, 'The server PHP cURL extension is unavailable.');
+
+        $handle = curl_init('https://api.github.com/repos/'.$repository.'/dispatches');
+        curl_setopt_array($handle, [
+            CURLOPT_POST => true,
+            CURLOPT_POSTFIELDS => json_encode($payload, JSON_UNESCAPED_SLASHES),
+            CURLOPT_RETURNTRANSFER => true,
+            CURLOPT_CONNECTTIMEOUT => 10,
+            CURLOPT_TIMEOUT => 20,
+            CURLOPT_HTTPHEADER => [
+                'Accept: application/vnd.github+json',
+                'Authorization: Bearer '.$token,
+                'Content-Type: application/json',
+                'User-Agent: ZemTab-release-test-runner',
+                'X-GitHub-Api-Version: 2022-11-28',
+            ],
+        ]);
+
+        $body = curl_exec($handle);
+        $error = curl_error($handle);
+        $status = (int) curl_getinfo($handle, CURLINFO_RESPONSE_CODE);
+        curl_close($handle);
+
+        if ($body === false) {
+            throw new \RuntimeException($error !== '' ? $error : 'The native cURL request failed.');
+        }
+
+        return ['status' => $status, 'body' => $body];
     }
 
     public function status(Request $request, string $runId)
