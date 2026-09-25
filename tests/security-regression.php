@@ -87,9 +87,13 @@ if ($qrPrintRoute) {
     check(in_array('signed', $qrMiddleware) && ! in_array('auth', $qrMiddleware), 'prepared QR print links must expire by signature and avoid DB auth');
 }
 
-foreach (['setup.show', 'setup.run', 'admin.setup.run'] as $name) {
+foreach (['admin.setup.run'] as $name) {
     $middleware = $router->getRoutes()->getByName($name)->gatherMiddleware();
     check(in_array('auth', $middleware) && in_array('role:admin', $middleware), "$name requires admin");
+}
+foreach (['setup.show', 'setup.run'] as $name) {
+    $middleware = $router->getRoutes()->getByName($name)->gatherMiddleware();
+    check(! in_array('auth', $middleware) && in_array($name === 'setup.show' ? 'throttle:20,1' : 'throttle:5,1', $middleware), "$name is limited for staging bootstrap");
 }
 $scanMiddleware = $router->getRoutes()->getByName('admin.database.full-scan')->gatherMiddleware();
 check(in_array('auth', $scanMiddleware) && in_array('role:admin', $scanMiddleware), 'full release scan requires an authenticated admin');

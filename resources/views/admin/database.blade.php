@@ -80,6 +80,17 @@
 </div>
 
 <div class="mt-6 max-w-3xl rounded-md border border-zem-gold/40 bg-zem-card p-5">
+    @if(app()->environment('staging'))
+        <h2 class="font-display text-xl font-bold">Complete release test</h2>
+        <p class="mt-1 text-sm text-zem-muted">One-button staging orchestration. The connected external runner will seed test batches, run the full test phases, run stress last, clean up, and report progress here.</p>
+        <form method="post" action="{{ route('admin.database.complete-test.start') }}" class="mt-4" onsubmit="return confirm('Start the complete staging release test? It will create disposable test data and run the final load test.');">
+            @csrf
+            <button class="rounded-md bg-zem-gold px-5 py-3 font-bold text-white">Start complete release test</button>
+        </form>
+    @endif
+</div>
+
+<div class="mt-6 max-w-3xl rounded-md border border-zem-gold/40 bg-zem-card p-5">
     <h2 class="font-display text-xl font-bold">Full release scan</h2>
     <p class="mt-1 text-sm text-zem-muted">Check database health, routes, templates, assets and logs, then exercise payment methods, credits, order confirmation, kitchen transitions, cancellation, tenant isolation and QR labels using private temporary records. Test records are rolled back and cleanup is checked.</p>
     <p class="mt-2 text-sm text-amber-200">Includes operation timings, rollback tests, and a staged 1–80 hotel capacity model for the 500 connections/hour limit. It does not generate live traffic or pretend that a request count equals a connection count.</p>

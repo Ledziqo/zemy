@@ -1,0 +1,25 @@
+name: ZemTab complete release test
+
+on:
+  repository_dispatch:
+    types: [zemtab-complete-release-test]
+
+permissions:
+  contents: read
+
+jobs:
+  runner-connection-check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - name: Report runner connection
+        env:
+          RUN_ID: ${{ github.event.client_payload.run_id }}
+          CALLBACK_URL: ${{ github.event.client_payload.callback_url }}
+          CALLBACK_SECRET: ${{ secrets.ZEMTAB_CALLBACK_SECRET }}
+          BASE_URL: ${{ github.event.client_payload.base_url }}
+        run: node tools/github-release-runner.cjs

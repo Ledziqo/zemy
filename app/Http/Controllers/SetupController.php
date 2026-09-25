@@ -88,7 +88,11 @@ class SetupController extends Controller
 
     private function stagingBootstrapAllowed(): bool
     {
-        return app()->environment('staging')
+        if (! app()->bound('config')) {
+            return false;
+        }
+
+        return (string) config('app.env') === 'staging'
             && (bool) config('app.debug')
             && ! Schema::hasTable('users');
     }

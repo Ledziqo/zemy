@@ -132,6 +132,8 @@ Route::middleware(['auth', 'role:restaurant_owner,staff', 'locale'])->prefix('re
 Route::middleware(['auth', 'role:admin', 'locale'])->prefix('admin')->name('admin.')->group(function () {
     Route::get('/dashboard', [Admin\DashboardController::class, 'index'])->name('dashboard');
     Route::get('/database', [Admin\DashboardController::class, 'database'])->name('database');
+    Route::post('/database/complete-test', [Admin\CompleteReleaseTestController::class, 'start'])->middleware('throttle:1,5')->name('database.complete-test.start');
+    Route::get('/database/complete-test/{runId}', [Admin\CompleteReleaseTestController::class, 'status'])->middleware('throttle:60,1')->name('database.complete-test.status');
     Route::post('/database/full-scan', [Admin\ReleaseScanController::class, 'run'])->middleware('throttle:1,5')->name('database.full-scan');
     Route::get('/database/workboard-reset/preview', [Admin\WorkboardResetController::class, 'preview'])->middleware('throttle:10,1')->name('database.workboard-reset.preview');
     Route::post('/database/workboard-reset', [Admin\WorkboardResetController::class, 'reset'])->middleware('throttle:1,5')->name('database.workboard-reset');
@@ -152,3 +154,7 @@ Route::middleware(['auth', 'role:admin', 'locale'])->prefix('admin')->name('admi
     Route::get('/payment-settings', [Admin\PaymentController::class, 'settings'])->name('payment-settings.index');
     Route::post('/payment-settings', [Admin\PaymentController::class, 'saveSettings'])->name('payment-settings.save');
 });
+
+Route::post('/release-test/callback/{runId}', [Admin\CompleteReleaseTestController::class, 'callback'])
+    ->middleware('throttle:120,1')
+    ->name('release-test.callback');
