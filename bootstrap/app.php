@@ -16,6 +16,11 @@ return Application::configure(basePath: dirname(__DIR__))
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware): void {
+        // GitHub Actions calls this server-to-server endpoint with the shared
+        // callback secret, not with a browser session/CSRF token.
+        $middleware->validateCsrfTokens(except: [
+            'release-test/callback/*',
+        ]);
         $middleware->alias([
             'restaurant.access' => EnsureRestaurantDashboardAccess::class,
             'role' => RoleMiddleware::class,
