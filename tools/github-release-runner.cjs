@@ -129,6 +129,25 @@ async function setupRun(admin, fields) {
   return text;
 }
 
+async function runServerScanWithThrottleRetry(admin) {
+  const maxAttempts = 2;
+  for (let attempt = 1; attempt <= maxAttempts; attempt++) {
+    const response = await request(`${baseUrl}/admin/database/full-scan`, {
+      method: 'POST',
+      headers: { 'content-type': 'application/x-www-form-urlencoded' },
+      body: new URLSearchParams({ _token: admin.token }),
+      followRedirects: false,
+      timeoutMs: 180000,
+    }, admin.jar);
+    if (response.status !== 429 || attempt === maxAttempts) return response;
+
+    const retryAfterSeconds = Number(response.headers.get('retry-after') || 300);
+    await response.text();
+    await callback({ status: 'running', phase: `Release scan is rate-limited; retrying in ${retryAfterSeconds} seconds`, progress: 30 });
+    await sleep(Math.min(360, Math.max(5, retryAfterSeconds)) * 1000);
+  }
+}
+
 async function seedBatches(admin) {
   const batches = Number(process.env.RELEASE_TEST_SEED_BATCHES || 10);
   for (let batch = 1; batch <= batches; batch++) {
@@ -217,7 +236,7 @@ async function main() {
       report.phases.push({ name: 'seed', ok: true, batches: Number(process.env.RELEASE_TEST_SEED_BATCHES || 10) });
     });
     await phase('Running server-side release scan and rollback checks', 30, async () => {
-      const response = await request(`${baseUrl}/admin/database/full-scan`, { method: 'POST', headers: { 'content-type': 'application/x-www-form-urlencoded' }, body: new URLSearchParams({ _token: admin.token }), followRedirects: false, timeoutMs: 180000 }, admin.jar);
+      const response = await runServerScanWithThrottleRetry(admin);
       const text = await response.text();
       if (!response.ok) throw new Error(`server-side release scan returned HTTP ${response.status}: ${text.slice(0, 400)}`);
       report.phases.push({ name: 'server-scan', ok: true, status: response.status, reportVisible: text.toLowerCase().includes('release') });
