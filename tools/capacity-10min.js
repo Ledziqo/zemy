@@ -44,7 +44,10 @@ function extractPollUrl(html) {
   const match = html.match(/pollUrl:\s*("(?:\\.|[^"\\])*"|'(?:\\.|[^'\\])*')\s*,/s);
   if (!match) return null;
   if (match[1].startsWith('"')) return JSON.parse(match[1]);
-  return match[1].slice(1, -1).replace(/\\'/g, "'").replace(/\\\\/g, '\\');
+  return match[1].slice(1, -1)
+    .replace(/\\\//g, '/')
+    .replace(/\\'/g, "'")
+    .replace(/\\\\/g, '\\');
 }
 
 async function mapLimit(items, limit, worker) {
