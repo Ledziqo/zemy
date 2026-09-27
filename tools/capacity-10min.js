@@ -16,8 +16,9 @@ const stages = (process.env.ZEMTAB_STAGES || '10,20,40,60,80,100').split(',').ma
 const stageSeconds = Number(process.env.ZEMTAB_STAGE_SECONDS || 120);
 const staffScreensPerVenue = Number(process.env.ZEMTAB_STAFF_SCREENS || 2);
 const pollIntervalMs = Number(process.env.ZEMTAB_POLL_INTERVAL_MS || 30000);
-const loginConcurrency = Number(process.env.ZEMTAB_LOGIN_CONCURRENCY || 12);
+const loginConcurrency = Number(process.env.ZEMTAB_LOGIN_CONCURRENCY || 4);
 const timeoutMs = Number(process.env.ZEMTAB_TIMEOUT_MS || 15000);
+const rateLimitRetries = Number(process.env.ZEMTAB_RATE_LIMIT_RETRIES || 3);
 
 class Jar {
   constructor() { this.cookies = new Map(); }
@@ -93,9 +94,22 @@ async function request(url, options = {}, jar = new Jar(), metrics, label = 'req
   }
 }
 
+async function requestWithRateLimitRetry(url, options, jar, metrics, label) {
+  for (let attempt = 0; ; attempt++) {
+    const response = await request(url, options, jar, metrics, label);
+    if (response.status !== 429 || attempt >= rateLimitRetries) return response;
+
+    const retryAfter = Number(response.headers.get('retry-after') || 0);
+    const waitMs = Math.min(120000, Math.max(1000, retryAfter * 1000 || 5000 * (attempt + 1)));
+    console.log(`\n  ${label} was rate-limited; retrying in ${Math.ceil(waitMs / 1000)}s (attempt ${attempt + 2}/${rateLimitRetries + 1})`);
+    await response.text();
+    await sleep(waitMs);
+  }
+}
+
 async function loginStaffSession(venueIndex, metrics) {
   const jar = new Jar();
-  const loginPage = await request(`${baseUrl}/login`, {}, jar, metrics, 'login-page');
+  const loginPage = await requestWithRateLimitRetry(`${baseUrl}/login`, {}, jar, metrics, 'login-page');
   const loginHtml = await loginPage.text();
   if (!loginPage.ok) throw new Error(`login page ${loginPage.status}`);
   const loginToken = csrf(loginHtml);
@@ -106,7 +120,7 @@ async function loginStaffSession(venueIndex, metrics) {
   loginBody.set('email', emailFor(venueIndex));
   loginBody.set('password', 'password');
 
-  const login = await request(`${baseUrl}/login`, {
+  const login = await requestWithRateLimitRetry(`${baseUrl}/login`, {
     method: 'POST',
     headers: { 'content-type': 'application/x-www-form-urlencoded' },
     body: loginBody,
@@ -115,7 +129,7 @@ async function loginStaffSession(venueIndex, metrics) {
   await login.text();
   if (![200, 302, 303].includes(login.status)) throw new Error(`login ${login.status}`);
 
-  const profilePage = await request(`${baseUrl}/restaurant/profile-select`, {}, jar, metrics, 'profile-page');
+  const profilePage = await requestWithRateLimitRetry(`${baseUrl}/restaurant/profile-select`, {}, jar, metrics, 'profile-page');
   const profileHtml = await profilePage.text();
   if (!profilePage.ok) throw new Error(`profile page ${profilePage.status}`);
 
@@ -128,7 +142,7 @@ async function loginStaffSession(venueIndex, metrics) {
   profileBody.set('profile_id', profileId);
   profileBody.set('password', 'password');
 
-  const profile = await request(`${baseUrl}/restaurant/profile-login`, {
+  const profile = await requestWithRateLimitRetry(`${baseUrl}/restaurant/profile-login`, {
     method: 'POST',
     headers: { 'content-type': 'application/x-www-form-urlencoded' },
     body: profileBody,
@@ -136,7 +150,7 @@ async function loginStaffSession(venueIndex, metrics) {
   }, jar, metrics, 'profile-login');
   if (![200, 302, 303].includes(profile.status)) throw new Error(`profile login ${profile.status}`);
 
-  const ordersPage = await request(`${baseUrl}/restaurant/orders`, {}, jar, metrics, 'orders-page');
+  const ordersPage = await requestWithRateLimitRetry(`${baseUrl}/restaurant/orders`, {}, jar, metrics, 'orders-page');
   const ordersHtml = await ordersPage.text();
   if (!ordersPage.ok) throw new Error(`orders page ${ordersPage.status}`);
   const pollUrl = extractPollUrl(ordersHtml);
