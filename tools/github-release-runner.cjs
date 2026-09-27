@@ -66,6 +66,7 @@ const extractPollUrl = html => {
   if (!match) return null;
   if (match[1].startsWith('"')) return JSON.parse(match[1]);
   return match[1].slice(1, -1)
+    .replace(/\\u([0-9a-fA-F]{4})/g, (_, hex) => String.fromCharCode(parseInt(hex, 16)))
     .replace(/\\\//g, '/')
     .replace(/\\'/g, "'")
     .replace(/\\\\/g, '\\');
