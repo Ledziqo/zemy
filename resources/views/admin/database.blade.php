@@ -79,15 +79,14 @@
     </form>
 </div>
 
+@if(app()->environment('staging'))
 <div class="mt-6 max-w-3xl rounded-md border border-zem-gold/40 bg-zem-card p-5">
-    @if(app()->environment('staging'))
         <h2 class="font-display text-xl font-bold">Complete release test</h2>
         <p class="mt-1 text-sm text-zem-muted">One-button staging orchestration. The connected external runner will seed test batches, run the full test phases, run stress last, clean up, and report progress here.</p>
         <form method="post" action="{{ route('admin.database.complete-test.start') }}" class="mt-4" onsubmit="return confirm('Start the complete staging release test? It will create disposable test data and run the final load test.');">
             @csrf
             <button class="rounded-md bg-zem-gold px-5 py-3 font-bold text-white">Start complete release test</button>
         </form>
-    @endif
 </div>
 
 <div class="mt-6 max-w-3xl rounded-md border border-zem-gold/40 bg-zem-card p-5">
@@ -132,7 +131,7 @@
 <div class="mt-6 max-w-3xl rounded-md border border-zem-border bg-zem-card p-5">
     <div class="flex flex-wrap items-start justify-between gap-3">
         <div>
-            <h2 class="font-display text-xl font-bold">Production stress test</h2>
+            <h2 class="font-display text-xl font-bold">Staging stress-test tools</h2>
             <p class="mt-1 text-sm text-zem-muted">Add disposable restaurants in small batches, run the staged browser simulation, then remove only the stress data.</p>
         </div>
         <span class="rounded-full border border-amber-400/40 bg-amber-400/10 px-3 py-1 text-xs font-bold text-amber-200">Temporary data only</span>
@@ -169,4 +168,5 @@
         </form>
     @endif
 </div>
+@endif
 @endsection

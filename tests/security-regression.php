@@ -98,6 +98,8 @@ foreach (['setup.show', 'setup.run'] as $name) {
 $scanMiddleware = $router->getRoutes()->getByName('admin.database.full-scan')->gatherMiddleware();
 check(in_array('auth', $scanMiddleware) && in_array('role:admin', $scanMiddleware), 'full release scan requires an authenticated admin');
 check(in_array('throttle:1,5', $scanMiddleware), 'full release scan is rate-limited');
+$scanControllerSource = file_get_contents(__DIR__.'/../app/Http/Controllers/Admin/ReleaseScanController.php');
+check(str_contains($scanControllerSource, "config('app.env') === 'staging'"), 'full release scan is restricted to staging');
 $resetPreviewMiddleware = $router->getRoutes()->getByName('admin.database.workboard-reset.preview')->gatherMiddleware();
 $resetMiddleware = $router->getRoutes()->getByName('admin.database.workboard-reset')->gatherMiddleware();
 check(in_array('auth', $resetMiddleware) && in_array('role:admin', $resetMiddleware), 'workboard reset requires an authenticated admin');
