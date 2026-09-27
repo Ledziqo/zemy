@@ -126,7 +126,9 @@ class StressTestSeeder extends Seeder
 
     public static function cleanup(): void
     {
-        $count = (int) env('STRESS_SEED_COUNT', config('stress.max_restaurants', 150));
+        // Cleanup must cover every supported synthetic tenant even if the
+        // deployment still has an older cached stress.max_restaurants value.
+        $count = max(500, (int) env('STRESS_SEED_COUNT', config('stress.max_restaurants', 500)));
         $slugs = collect(range(1, $count))
             ->map(fn ($i) => 'zt-stress-' . str_pad((string) $i, 3, '0', STR_PAD_LEFT));
 

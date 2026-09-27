@@ -21,7 +21,7 @@ jobs:
   complete-release-test:
     if: github.event_name == 'repository_dispatch'
     runs-on: ubuntu-latest
-    timeout-minutes: 45
+    timeout-minutes: 210
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -39,17 +39,18 @@ jobs:
           BASE_URL: ${{ github.event.client_payload.base_url }}
           ADMIN_EMAIL: ${{ secrets.ZEMTAB_STAGING_ADMIN_EMAIL }}
           ADMIN_PASSWORD: ${{ secrets.ZEMTAB_STAGING_ADMIN_PASSWORD }}
-          RELEASE_TEST_SEED_BATCHES: 10
-          ZEMTAB_STAGES: 10,20,40,60,80,100
-          ZEMTAB_STAGE_SECONDS: 120
+          RELEASE_TEST_SEED_BATCHES: 50
+          ZEMTAB_STAGES: 10,20,40,60,80,100,150,200,300,400,500
+          ZEMTAB_STAGE_SECONDS: 90
           ZEMTAB_STAFF_SCREENS: 2
           ZEMTAB_POLL_INTERVAL_MS: 30000
+          ZEMTAB_LOGIN_SPACING_MS: 12000
         run: node tools/github-release-runner.cjs
 
   scheduled-fallback:
     if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch' || github.event_name == 'push'
     runs-on: ubuntu-latest
-    timeout-minutes: 45
+    timeout-minutes: 210
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -65,9 +66,10 @@ jobs:
           CALLBACK_SECRET: ${{ secrets.ZEMTAB_CALLBACK_SECRET }}
           ADMIN_EMAIL: ${{ secrets.ZEMTAB_STAGING_ADMIN_EMAIL }}
           ADMIN_PASSWORD: ${{ secrets.ZEMTAB_STAGING_ADMIN_PASSWORD }}
-          RELEASE_TEST_SEED_BATCHES: 10
-          ZEMTAB_STAGES: 10,20,40,60,80,100
-          ZEMTAB_STAGE_SECONDS: 120
+          RELEASE_TEST_SEED_BATCHES: 50
+          ZEMTAB_STAGES: 10,20,40,60,80,100,150,200,300,400,500
+          ZEMTAB_STAGE_SECONDS: 90
           ZEMTAB_STAFF_SCREENS: 2
           ZEMTAB_POLL_INTERVAL_MS: 30000
+          ZEMTAB_LOGIN_SPACING_MS: 12000
         run: node tools/github-release-poller.cjs

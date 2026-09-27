@@ -19,6 +19,13 @@ const assert = require('node:assert/strict');
   assert.equal(calls, 3);
   assert.deepEqual(waits, [4000, 4000]);
   const capacity = fs.readFileSync('tools/capacity-10min.js', 'utf8');
+  assert.match(capacity, /'10,20,40,60,80,100,150,200,300,400,500'/);
+  assert.match(capacity, /one persistent cookie\/session per active venue/);
+  assert.match(capacity, /orderAndConfirmation: 15/);
+  assert.match(fs.readFileSync('config/stress.php', 'utf8'), /'max_restaurants'\s*=>\s*500/);
+  const workflow = fs.readFileSync('.github/workflows/complete-release-test.yml', 'utf8');
+  assert.equal((workflow.match(/RELEASE_TEST_SEED_BATCHES: 50/g) || []).length, 2);
+  assert.equal((workflow.match(/ZEMTAB_STAGES: 10,20,40,60,80,100,150,200,300,400,500/g) || []).length, 2);
   const stage = capacity.slice(capacity.indexOf('async function runStage('), capacity.indexOf('async function main('));
   const pollCalls = [];
   const fixture = {

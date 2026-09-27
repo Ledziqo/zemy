@@ -121,7 +121,9 @@ class SetupController extends Controller
     private function seedStressData(array &$output, int $batch): void
     {
         $batchSize = (int) config('stress.batch_size', 10);
-        $maxRestaurants = (int) config('stress.max_restaurants', 150);
+        // Keep the authorized synthetic-data ceiling resilient to a stale
+        // config cache during a code-only staging deploy.
+        $maxRestaurants = max(500, (int) config('stress.max_restaurants', 500));
         abort_unless($batch >= 1 && (($batch - 1) * $batchSize) < $maxRestaurants, 422, 'That stress-test batch is outside the allowed range.');
         $start = ($batch - 1) * $batchSize + 1;
         $end = min($batch * $batchSize, $maxRestaurants);

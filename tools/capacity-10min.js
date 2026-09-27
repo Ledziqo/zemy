@@ -4,7 +4,7 @@
  * ZemTab staged capacity signal test for an isolated temporary deployment.
  *
  * Required seeded accounts:
- *   zt-stress-001@zemtab.test ... zt-stress-200@zemtab.test / password
+ *   zt-stress-001@zemtab.test ... zt-stress-500@zemtab.test / password
  *
  * Usage:
  *   $env:ZEMTAB_BASE_URL="https://staging.example.com"; node tools/capacity-10min.js
@@ -12,12 +12,12 @@
 
 const baseUrl = (process.env.ZEMTAB_BASE_URL || '').replace(/\/$/, '');
 const fs = require('node:fs');
-const stages = (process.env.ZEMTAB_STAGES || '10,20,40,60,80,100').split(',').map(Number);
+const stages = (process.env.ZEMTAB_STAGES || '10,20,40,60,80,100,150,200,300,400,500').split(',').map(Number);
 const stageSeconds = Number(process.env.ZEMTAB_STAGE_SECONDS || 120);
 const staffScreensPerVenue = Number(process.env.ZEMTAB_STAFF_SCREENS || 2);
 const pollIntervalMs = Number(process.env.ZEMTAB_POLL_INTERVAL_MS || 30000);
 const loginConcurrency = Number(process.env.ZEMTAB_LOGIN_CONCURRENCY || 1);
-const loginSpacingMs = Number(process.env.ZEMTAB_LOGIN_SPACING_MS || 7500);
+const loginSpacingMs = Number(process.env.ZEMTAB_LOGIN_SPACING_MS || 12000);
 const timeoutMs = Number(process.env.ZEMTAB_TIMEOUT_MS || 15000);
 const rateLimitRetries = Number(process.env.ZEMTAB_RATE_LIMIT_RETRIES || 3);
 const staffSessionCache = new Map();
@@ -197,14 +197,14 @@ async function pollLoop(session, stopAt, metrics, venueIndex, screenIndex, state
 }
 
 async function guestLoop(venueIndex, stopAt, metrics, state) {
-  await sleep(Math.random() * 5000);
+  await sleep(Math.random() * 30000);
   let cycle = 0;
   const slug = slugFor(venueIndex);
   const table = tableFor(venueIndex);
   const menuUrl = `${baseUrl}/r/${slug}/table/${table}`;
+  const jar = new Jar();
 
   while (Date.now() < stopAt && !state.failed) {
-    const jar = new Jar();
     try {
       const menu = await request(menuUrl, {}, jar, metrics, 'menu');
       const html = await menu.text();
@@ -213,13 +213,17 @@ async function guestLoop(venueIndex, stopAt, metrics, state) {
       const itemId = firstItemId(html);
       if (!token || !itemId) throw new Error('missing menu csrf or item id');
 
-      if (cycle % 4 === 0) {
+      // Keep one guest cookie/session across visits. Most visits browse, with
+      // occasional orders/service calls and a small share of repeat refreshes.
+      const behavior = Math.random();
+      if (behavior >= 0.70 && behavior < 0.85) {
         const body = new URLSearchParams();
         body.set('_token', token);
         body.set('items[0][id]', itemId);
         body.set('items[0][quantity]', '1');
         body.set('items[0][note]', '');
-        body.set('note', 'capacity test order');
+        body.set('note', 'automated capacity-test order');
+        body.set('client_request_id', `capacity-${slug}-${cycle}-${Date.now()}`);
         const order = await request(`${menuUrl}/orders`, {
           method: 'POST',
           headers: { 'content-type': 'application/x-www-form-urlencoded' },
@@ -227,7 +231,10 @@ async function guestLoop(venueIndex, stopAt, metrics, state) {
           followRedirects: false,
         }, jar, metrics, 'order');
         if (![200, 302, 303].includes(order.status)) throw new Error(`order ${order.status}`);
-      } else if (cycle % 4 === 1) {
+        const confirmation = await request(`${menuUrl}/confirmation`, {}, jar, metrics, 'confirmation');
+        await confirmation.text();
+        if (!confirmation.ok) throw new Error(`confirmation ${confirmation.status}`);
+      } else if (behavior >= 0.85 && behavior < 0.90) {
         const body = new URLSearchParams();
         body.set('_token', token);
         body.set('type', 'call_waiter');
@@ -239,13 +246,18 @@ async function guestLoop(venueIndex, stopAt, metrics, state) {
           followRedirects: false,
         }, jar, metrics, 'service-request');
         if (![200, 302, 303].includes(service.status)) throw new Error(`service ${service.status}`);
+      } else if (behavior >= 0.90) {
+        await sleep(1000 + Math.random() * 4000);
+        const refresh = await request(menuUrl, {}, jar, metrics, 'menu-refresh');
+        await refresh.text();
+        if (!refresh.ok) throw new Error(`menu refresh ${refresh.status}`);
       }
     } catch (error) {
       state.errors.push(`guest v${venueIndex + 1}: ${error.message}`);
       if (/500|502|503|timeout|Abort/i.test(error.message)) state.failed = true;
     }
     cycle++;
-    await sleep(15000 + Math.random() * 10000);
+    await sleep(20000 + Math.random() * 40000);
   }
 }
 
@@ -333,6 +345,9 @@ async function main() {
   if (!baseUrl) {
     throw new Error('Set ZEMTAB_BASE_URL to the isolated temporary site; production is intentionally not the default.');
   }
+  if (!stages.length || stages.some((stage, index) => !Number.isInteger(stage) || stage < 1 || stage > 500 || (index > 0 && stage <= stages[index - 1]))) {
+    throw new Error('ZEMTAB_STAGES must be strictly increasing positive integers no greater than 500.');
+  }
   console.log(`Target: ${baseUrl}`);
   console.log(`Stages: ${stages.join(', ')} active venues`);
   console.log(`Stage duration: ${stageSeconds}s | staff screens per venue: ${staffScreensPerVenue}`);
@@ -365,8 +380,16 @@ async function main() {
     target: baseUrl,
     stages,
     stageSeconds,
+    loginSpacingMs,
     staffScreensPerVenue,
     pollIntervalMs,
+    trafficModel: {
+      guestSessions: 'one persistent cookie/session per active venue',
+      guestMix: { browseOnly: 70, orderAndConfirmation: 15, serviceRequest: 5, repeatMenuRefresh: 10 },
+      guestThinkTimeSeconds: { min: 20, max: 60 },
+      staffScreensPerVenue,
+      staffPollIntervalSeconds: pollIntervalMs / 1000,
+    },
     results,
     highestPassedActiveVenues: highest,
     recommendedActiveVenuesWith40PercentHeadroom: Math.floor(highest * 0.6),

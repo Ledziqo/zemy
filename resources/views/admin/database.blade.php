@@ -93,7 +93,7 @@
 <div class="mt-6 max-w-3xl rounded-md border border-zem-gold/40 bg-zem-card p-5">
     <h2 class="font-display text-xl font-bold">Full release scan</h2>
     <p class="mt-1 text-sm text-zem-muted">Check database health, routes, templates, assets and logs, then exercise payment methods, credits, order confirmation, kitchen transitions, cancellation, tenant isolation and QR labels using private temporary records. Test records are rolled back and cleanup is checked.</p>
-    <p class="mt-2 text-sm text-amber-200">Includes operation timings, rollback tests, and a staged 1–80 hotel capacity model for the 500 connections/hour limit. It does not generate live traffic or pretend that a request count equals a connection count.</p>
+    <p class="mt-2 text-sm text-amber-200">The one-button run checks app health and rollback-safe workflows, then runs desktop/mobile browser smoke tests and a staged virtual-user ramp from 10 to 500 hotels. It spaces staff sign-ins to respect rate limits, records latency/errors, and removes seeded test data at the end. This is a staging load signal—not proof of 500 live hotels or an exact MySQL connection count.</p>
     <form method="post" action="{{ url('/admin/database/full-scan') }}" class="mt-4" onsubmit="this.querySelector('button').disabled=true; this.querySelector('button').textContent='Testing workflows and preparing report…';">
         @csrf
         <button class="rounded-md bg-zem-gold px-5 py-3 font-bold text-white">Run release scan + workflow tests</button>
