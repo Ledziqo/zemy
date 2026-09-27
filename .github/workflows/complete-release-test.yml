@@ -13,6 +13,10 @@ on:
 permissions:
   contents: read
 
+concurrency:
+  group: zemtab-staging-release-test
+  cancel-in-progress: false
+
 jobs:
   complete-release-test:
     if: github.event_name == 'repository_dispatch'

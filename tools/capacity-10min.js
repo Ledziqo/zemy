@@ -84,7 +84,7 @@ async function request(url, options = {}, jar = new Jar(), metrics, label = 'req
     });
     jar.store(response.headers);
     const ms = Date.now() - started;
-    metrics.push({ label, ms, status: response.status, ok: response.ok || [302, 303].includes(response.status) });
+    metrics.push({ label, ms, status: response.status, ok: response.ok || [302, 303, 304].includes(response.status) });
     return response;
   } catch (error) {
     const ms = Date.now() - started;
@@ -305,7 +305,7 @@ async function runStage(activeVenues) {
   console.log(`Stage ${activeVenues}: running ${stageSeconds}s...`);
   const stopAt = Date.now() + stageSeconds * 1000;
   const workers = [
-    ...staffSessions.map(session => pollLoop(session.jar, stopAt, metrics, session.venueIndex, session.screenIndex, state)),
+    ...staffSessions.map(session => pollLoop(session, stopAt, metrics, session.venueIndex, session.screenIndex, state)),
     ...venueIndexes.map(venueIndex => guestLoop(venueIndex, stopAt, metrics, state)),
   ];
 
@@ -322,7 +322,7 @@ async function runStage(activeVenues) {
   const summary = summarize(metrics, stageSeconds);
   const pollP95 = summary.byLabel.poll?.p95 || 0;
   const realErrors = summary.errors.filter(row => [0, 500, 502, 503].includes(row.status));
-  const passed = !state.failed && realErrors.length === 0 && pollP95 < 3000 && recovery.ok;
+  const passed = !state.failed && state.errors.length === 0 && realErrors.length === 0 && (summary.byLabel.poll?.count || 0) > 0 && pollP95 < 3000 && recovery.ok;
 
   return { activeVenues, staffScreens: activeVenues * staffScreensPerVenue, passed, pollP95, realErrors, recovery, summary, errors: state.errors.slice(0, 10) };
 }

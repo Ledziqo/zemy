@@ -74,6 +74,20 @@ const extractPollUrl = html => {
 const sleep = ms => new Promise(resolve => setTimeout(resolve, ms));
 
 async function request(url, options = {}, jar = new Jar()) {
+  for (let attempt = 0; attempt < 4; attempt++) {
+    const response = await requestOnce(url, options, jar);
+    if (response.status !== 429 || attempt === 3) return response;
+    const raw = response.headers.get('retry-after');
+    const seconds = raw && /^\d+$/.test(raw) ? Number(raw) : raw ? (Date.parse(raw) - Date.now()) / 1000 : 60;
+    const waitSeconds = Math.max(1, Number.isFinite(seconds) ? seconds : 60) + 2;
+    if (waitSeconds > 602) return response;
+    await response.text();
+    console.log(`Rate limited on ${new URL(url).pathname}; waiting ${Math.ceil(waitSeconds)} seconds before retry ${attempt + 2}/4`);
+    await sleep(waitSeconds * 1000);
+  }
+}
+
+async function requestOnce(url, options = {}, jar = new Jar()) {
   const headers = { ...(options.headers || {}) };
   const cookie = jar.header();
   if (cookie) headers.cookie = cookie;
@@ -142,11 +156,7 @@ async function runServerScanWithThrottleRetry(admin) {
     followRedirects: false,
     timeoutMs: 180000,
   }, admin.jar);
-  if (response.status !== 429) return { response };
-
-  const retryAfterSeconds = Number(response.headers.get('retry-after') || 300);
-  await response.text();
-  return { rateLimited: true, retryAfterSeconds };
+  return { response };
 }
 
 async function seedBatches(admin) {
@@ -238,13 +248,6 @@ async function main() {
     });
     await phase('Running server-side release scan and rollback checks', 30, async () => {
       const scan = await runServerScanWithThrottleRetry(admin);
-      if (scan.rateLimited) {
-        const warning = `Server scan skipped because this endpoint is limited to one run every five minutes; retry-after is ${scan.retryAfterSeconds}s. The rest of the release test will continue, and the dashboard will show whether a previous scan result is available.`;
-        report.warnings = [...(report.warnings || []), warning];
-        report.phases.push({ name: 'server-scan', ok: true, executed: false, warning });
-        await callback({ status: 'running', phase: 'Server scan recently rate-limited; continuing with the remaining tests', progress: 30 });
-        return;
-      }
       const response = scan.response;
       const text = await response.text();
       if (!response.ok) throw new Error(`server-side release scan returned HTTP ${response.status}: ${text.slice(0, 400)}`);

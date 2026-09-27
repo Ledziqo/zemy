@@ -22,6 +22,7 @@ return Application::configure(basePath: dirname(__DIR__))
             'release-test/callback/*',
         ]);
         $middleware->alias([
+            'throttle' => \App\Http\Middleware\RouteThrottleRequests::class,
             'restaurant.access' => EnsureRestaurantDashboardAccess::class,
             'role' => RoleMiddleware::class,
             'locale' => SetLocale::class,
