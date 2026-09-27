@@ -227,8 +227,7 @@ async function main() {
       report.phases.push({ name: 'seed', ok: true, batches: Number(process.env.RELEASE_TEST_SEED_BATCHES || 10) });
     });
     await phase('Running server-side release scan and rollback checks', 30, async () => {
-      const scan = await runServerScanWithThrottleRetry(admin);
-      const response = scan.response;
+      const response = await runServerScanWithThrottleRetry(admin);
       const text = await response.text();
       if (!response.ok) throw new Error(`server-side release scan returned HTTP ${response.status}: ${text.slice(0, 400)}`);
       report.phases.push({ name: 'server-scan', ok: true, status: response.status, reportVisible: text.toLowerCase().includes('release') });
