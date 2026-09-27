@@ -148,6 +148,22 @@ async function setupRun(admin, fields) {
   return text;
 }
 
+async function cleanupStressData(admin) {
+  const fields = { cleanup_stress_data: '1' };
+  try {
+    await setupRun(admin, fields);
+    return { admin, reauthenticated: false };
+  } catch (error) {
+    // A full capacity run can outlast the Laravel session lifetime. Refresh
+    // the admin cookie and CSRF token once so cleanup still runs afterward.
+    if (!/setup operation returned HTTP 419\b/.test(error.message)) throw error;
+    await callback({ status: 'running', phase: 'Admin session expired; signing in again to finish cleanup', progress: 96 });
+    const refreshedAdmin = await adminLogin();
+    await setupRun(refreshedAdmin, fields);
+    return { admin: refreshedAdmin, reauthenticated: true };
+  }
+}
+
 async function runServerScanWithThrottleRetry(admin) {
   for (let attempt = 1; attempt <= 3; attempt++) {
     const response = await request(`${baseUrl}/admin/database/full-scan`, {
@@ -263,8 +279,9 @@ async function main() {
     if (admin) {
       try {
         await callback({ status: 'running', phase: 'Cleaning up disposable test data', progress: 92 });
-        await setupRun(admin, { cleanup_stress_data: '1' });
-        report.cleanup = { ok: true };
+        const cleanup = await cleanupStressData(admin);
+        admin = cleanup.admin;
+        report.cleanup = { ok: true, reauthenticated: cleanup.reauthenticated };
       } catch (error) {
         cleanupError = error;
         report.cleanup = { ok: false, error: error.message };

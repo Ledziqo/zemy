@@ -6,6 +6,7 @@ const assert = require('node:assert/strict');
   const runner = fs.readFileSync('tools/github-release-runner.cjs', 'utf8');
   assert.match(runner, /const response = await runServerScanWithThrottleRetry\(admin\);\s*const text = await response\.text\(\);/);
   assert.doesNotMatch(runner, /const response = scan\.response;/);
+  assert.match(runner, /async function cleanupStressData\(admin\)[\s\S]*setup operation returned HTTP 419[\s\S]*const refreshedAdmin = await adminLogin\(\)[\s\S]*await setupRun\(refreshedAdmin, fields\)/);
   const retry = runner.slice(runner.indexOf('async function request('), runner.indexOf('async function requestOnce('));
   let calls = 0;
   const waits = [];
