@@ -16,7 +16,8 @@ const stages = (process.env.ZEMTAB_STAGES || '10,20,40,60,80,100').split(',').ma
 const stageSeconds = Number(process.env.ZEMTAB_STAGE_SECONDS || 120);
 const staffScreensPerVenue = Number(process.env.ZEMTAB_STAFF_SCREENS || 2);
 const pollIntervalMs = Number(process.env.ZEMTAB_POLL_INTERVAL_MS || 30000);
-const loginConcurrency = Number(process.env.ZEMTAB_LOGIN_CONCURRENCY || 4);
+const loginConcurrency = Number(process.env.ZEMTAB_LOGIN_CONCURRENCY || 1);
+const loginSpacingMs = Number(process.env.ZEMTAB_LOGIN_SPACING_MS || 7500);
 const timeoutMs = Number(process.env.ZEMTAB_TIMEOUT_MS || 15000);
 const rateLimitRetries = Number(process.env.ZEMTAB_RATE_LIMIT_RETRIES || 3);
 const staffSessionCache = new Map();
@@ -292,6 +293,7 @@ async function runStage(activeVenues) {
   console.log(`\nStage ${activeVenues} active venues: logging in ${activeVenues * staffScreensPerVenue} staff screens...`);
   const missingVenueIndexes = venueIndexes.filter(venueIndex => !staffSessionCache.has(venueIndex));
   await mapLimit(missingVenueIndexes, loginConcurrency, async venueIndex => {
+    if (venueIndex > 0) await sleep(loginSpacingMs);
     staffSessionCache.set(venueIndex, await loginStaffSession(venueIndex, metrics));
   });
   const staffSessions = venueIndexes.flatMap(venueIndex =>

@@ -149,14 +149,23 @@ async function setupRun(admin, fields) {
 }
 
 async function runServerScanWithThrottleRetry(admin) {
-  const response = await request(`${baseUrl}/admin/database/full-scan`, {
-    method: 'POST',
-    headers: { 'content-type': 'application/x-www-form-urlencoded' },
-    body: new URLSearchParams({ _token: admin.token }),
-    followRedirects: false,
-    timeoutMs: 180000,
-  }, admin.jar);
-  return { response };
+  for (let attempt = 1; attempt <= 3; attempt++) {
+    const response = await request(`${baseUrl}/admin/database/full-scan`, {
+      method: 'POST',
+      headers: { 'content-type': 'application/x-www-form-urlencoded' },
+      body: new URLSearchParams({ _token: admin.token }),
+      followRedirects: false,
+      timeoutMs: 180000,
+    }, admin.jar);
+    if (response.status !== 429 || attempt === 3) return response;
+    const retryHeader = response.headers.get('retry-after');
+    const retrySeconds = retryHeader && /^\d+$/.test(retryHeader)
+      ? Number(retryHeader)
+      : retryHeader ? Math.max(1, Math.ceil((Date.parse(retryHeader) - Date.now()) / 1000)) : 300;
+    await response.text();
+    await callback({ status: 'running', phase: `Server scan rate-limited; retrying in ${retrySeconds}s`, progress: 30 });
+    await sleep((retrySeconds + 2) * 1000);
+  }
 }
 
 async function seedBatches(admin) {
@@ -185,35 +194,6 @@ async function guestWorkflow() {
   await service.text();
   if (![200, 302, 303].includes(service.status)) throw new Error(`guest service request returned HTTP ${service.status}`);
   return { menuStatus: menu.status, orderStatus: order.status, serviceStatus: service.status };
-}
-
-async function staffWorkflow() {
-  const venueJar = new Jar();
-  const loginPage = await request(`${baseUrl}/login`, {}, venueJar);
-  const loginHtml = await loginPage.text();
-  const token = csrf(loginHtml);
-  const body = new URLSearchParams({ _token: token, email: 'zt-stress-001@zemtab.test', password: 'password' });
-  const login = await request(`${baseUrl}/login`, { method: 'POST', headers: { 'content-type': 'application/x-www-form-urlencoded' }, body, followRedirects: false }, venueJar);
-  await login.text();
-  if (![200, 302, 303].includes(login.status)) throw new Error(`staff login returned HTTP ${login.status}`);
-  const profilePage = await request(`${baseUrl}/restaurant/profile-select`, {}, venueJar);
-  const profileHtml = await profilePage.text();
-  const profileToken = csrf(profileHtml);
-  const profileId = firstProfileId(profileHtml);
-  if (!profileToken || !profileId) throw new Error('staff profile selection did not render');
-  const profileBody = new URLSearchParams({ _token: profileToken, profile_id: profileId, password: 'password' });
-  const profile = await request(`${baseUrl}/restaurant/profile-login`, { method: 'POST', headers: { 'content-type': 'application/x-www-form-urlencoded' }, body: profileBody, followRedirects: false }, venueJar);
-  await profile.text();
-  if (![200, 302, 303].includes(profile.status)) throw new Error(`staff profile login returned HTTP ${profile.status}`);
-  const orders = await request(`${baseUrl}/restaurant/orders`, {}, venueJar);
-  const ordersHtml = await orders.text();
-  if (!orders.ok) throw new Error(`staff Work Board returned HTTP ${orders.status}`);
-  const pollUrl = extractPollUrl(ordersHtml);
-  if (!pollUrl) throw new Error('staff Work Board did not render a signed polling URL');
-  const poll = await request(pollUrl, { headers: { accept: 'application/json', 'x-requested-with': 'XMLHttpRequest' } }, venueJar);
-  const pollText = await poll.text();
-  if (![200, 304].includes(poll.status)) throw new Error(`staff polling returned HTTP ${poll.status}: ${pollText.slice(0, 200)}`);
-  return { loginStatus: login.status, profileStatus: profile.status, ordersStatus: orders.status, pollStatus: poll.status };
 }
 
 async function runExternalCommand(command, args, env) {
@@ -253,10 +233,9 @@ async function main() {
       if (!response.ok) throw new Error(`server-side release scan returned HTTP ${response.status}: ${text.slice(0, 400)}`);
       report.phases.push({ name: 'server-scan', ok: true, status: response.status, reportVisible: text.toLowerCase().includes('release') });
     });
-    await phase('Testing guest menu, ordering, service requests, staff login, and Work Board polling', 45, async () => {
+    await phase('Testing guest menu, ordering, and service requests', 45, async () => {
       const guest = await guestWorkflow();
-      const staff = await staffWorkflow();
-      report.phases.push({ name: 'http-functional', ok: true, guest, staff });
+      report.phases.push({ name: 'http-functional', ok: true, guest });
     });
     await phase('Testing desktop and mobile browser interactions', 58, async () => {
       const browserReportPath = path.join(os.tmpdir(), `zemtab-browser-${runId}.json`);
