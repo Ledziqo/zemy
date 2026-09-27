@@ -19,6 +19,7 @@ const pollIntervalMs = Number(process.env.ZEMTAB_POLL_INTERVAL_MS || 30000);
 const loginConcurrency = Number(process.env.ZEMTAB_LOGIN_CONCURRENCY || 4);
 const timeoutMs = Number(process.env.ZEMTAB_TIMEOUT_MS || 15000);
 const rateLimitRetries = Number(process.env.ZEMTAB_RATE_LIMIT_RETRIES || 3);
+const staffSessionCache = new Map();
 
 class Jar {
   constructor() { this.cookies = new Map(); }
@@ -289,11 +290,17 @@ async function runStage(activeVenues) {
   const venueIndexes = Array.from({ length: activeVenues }, (_, index) => index);
 
   console.log(`\nStage ${activeVenues} active venues: logging in ${activeVenues * staffScreensPerVenue} staff screens...`);
-  const staffSessions = [];
-  await mapLimit(venueIndexes.flatMap(venueIndex => Array.from({ length: staffScreensPerVenue }, (_, screenIndex) => ({ venueIndex, screenIndex }))), loginConcurrency, async ({ venueIndex, screenIndex }) => {
-    const session = await loginStaffSession(venueIndex, metrics);
-    staffSessions.push({ venueIndex, screenIndex, ...session });
+  const missingVenueIndexes = venueIndexes.filter(venueIndex => !staffSessionCache.has(venueIndex));
+  await mapLimit(missingVenueIndexes, loginConcurrency, async venueIndex => {
+    staffSessionCache.set(venueIndex, await loginStaffSession(venueIndex, metrics));
   });
+  const staffSessions = venueIndexes.flatMap(venueIndex =>
+    Array.from({ length: staffScreensPerVenue }, (_, screenIndex) => ({
+      venueIndex,
+      screenIndex,
+      ...staffSessionCache.get(venueIndex),
+    }))
+  );
 
   console.log(`Stage ${activeVenues}: running ${stageSeconds}s...`);
   const stopAt = Date.now() + stageSeconds * 1000;
