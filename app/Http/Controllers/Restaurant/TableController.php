@@ -54,7 +54,7 @@ class TableController extends Controller
         $restaurant = $this->restaurant($request);
         $settings = $restaurant->settings ?? [];
         if ($request->hasFile('qr_logo')) {
-            $data['qr_logo_path'] = ImageOptimizer::storeUpload($request->file('qr_logo'), 'restaurants/qr-logos', 800);
+            $data['qr_logo_path'] = ImageOptimizer::storeUpload($request->file('qr_logo'), 'restaurants/qr-logos', 2000, 95);
         } elseif ($request->boolean('remove_qr_logo')) {
             $data['qr_logo_path'] = null;
         }
@@ -84,7 +84,7 @@ class TableController extends Controller
             'restaurant' => $restaurant,
             'sticker' => $sticker,
             'tableCount' => $tableCount,
-            'batchSize' => 12,
+            'batchSize' => 8,
             'buildToken' => $buildToken,
         ]);
     }
@@ -93,7 +93,7 @@ class TableController extends Controller
     {
         $restaurant = $this->restaurant($request);
         $page = max(0, (int) $request->input('page', 0));
-        $batchSize = 12;
+        $batchSize = 8;
         $tables = $restaurant->tables()
             ->where('is_active', true)
             ->orderByRaw('CAST(table_number AS UNSIGNED)')

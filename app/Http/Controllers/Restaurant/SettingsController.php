@@ -69,9 +69,9 @@ class SettingsController extends Controller
             'room_scan_text' => $data['sticker_room_scan_text'],
         ];
         if ($request->filled('cropped_logo')) {
-            $data['logo_path'] = ImageOptimizer::storeDataUrl((string) $request->input('cropped_logo'), 'restaurants', 600);
+            $data['logo_path'] = ImageOptimizer::storeDataUrl((string) $request->input('cropped_logo'), 'restaurants', 2000, 95);
         } elseif ($request->hasFile('logo')) {
-            $data['logo_path'] = ImageOptimizer::storeUpload($request->file('logo'), 'restaurants', 600);
+            $data['logo_path'] = ImageOptimizer::storeUpload($request->file('logo'), 'restaurants', 2000, 95);
         }
 
         if ($request->hasFile('telebirr_qr')) {

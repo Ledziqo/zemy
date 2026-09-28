@@ -9,7 +9,8 @@ use Illuminate\Support\Str;
 
 class QrSetupPackStore
 {
-    private const BATCH_SIZE = 12;
+    private const BATCH_SIZE = 8;
+    private const PRINT_LAYOUT_VERSION = 2;
     private const MAX_PAGES = 1000;
     private const MAX_PACK_BYTES = 30_000_000;
 
@@ -81,7 +82,10 @@ class QrSetupPackStore
         $temporaryPath = $readyDirectory.'/'.$fileName.'.tmp';
         File::put($temporaryPath, $shell);
         File::move($temporaryPath, $readyDirectory.'/'.$fileName);
-        File::put($currentPath, json_encode(['token' => $token], JSON_THROW_ON_ERROR), true);
+        File::put($currentPath, json_encode([
+            'token' => $token,
+            'layout_version' => self::PRINT_LAYOUT_VERSION,
+        ], JSON_THROW_ON_ERROR), true);
 
         if (is_array($old) && self::validToken((string) ($old['token'] ?? '')) && $old['token'] !== $token) {
             File::delete($readyDirectory.'/'.$old['token'].'.html');
@@ -99,7 +103,13 @@ class QrSetupPackStore
             return null;
         }
 
-        $token = json_decode((string) File::get($manifest), true)['token'] ?? null;
+        $current = json_decode((string) File::get($manifest), true);
+        if (! is_array($current) || ($current['layout_version'] ?? null) !== self::PRINT_LAYOUT_VERSION) {
+            self::invalidate($restaurantId);
+            return null;
+        }
+
+        $token = $current['token'] ?? null;
         if (! is_string($token) || ! self::validToken($token) || ! is_file($directory.'/'.$token.'.html')) {
             return null;
         }
@@ -132,7 +142,12 @@ class QrSetupPackStore
             return null;
         }
 
-        $currentToken = json_decode((string) File::get($manifestPath), true)['token'] ?? null;
+        $current = json_decode((string) File::get($manifestPath), true);
+        if (! is_array($current) || ($current['layout_version'] ?? null) !== self::PRINT_LAYOUT_VERSION) {
+            return null;
+        }
+
+        $currentToken = $current['token'] ?? null;
         $path = $directory.'/'.$token.'.html';
         return $currentToken === $token && is_file($path) ? File::get($path) : null;
     }

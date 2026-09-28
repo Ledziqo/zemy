@@ -46,7 +46,7 @@
     <fieldset class="rounded-md border border-zem-border bg-zem-bg p-4 md:col-span-2 xl:col-span-3">
         <legend class="px-2 text-sm font-bold text-zem-gold">ZemTab signature QR palette</legend>
         <p class="text-sm font-semibold">One signature design for every venue. Customize the colors below, save, then open the setup pack to preview.</p>
-        <p class="text-xs text-zem-muted">Customize the 12-up portrait A3 stickers. Pick a preset or set every color yourself. Keep the QR color dark enough to scan against its background.</p>
+        <p class="text-xs text-zem-muted">Customize the 8-up QR cards (75 × 140 mm) on 330 × 350 mm paper. Pick a preset or set every color yourself. Keep the QR color dark enough to scan against its background.</p>
         <div class="mt-3 flex flex-wrap items-center gap-2" data-qr-presets>
             <span class="mr-1 text-xs font-bold text-zem-muted">Quick themes:</span>
             <button type="button" class="rounded-md border border-zem-border bg-zem-card px-3 py-2 text-xs font-bold text-zem-cream" data-qr-preset="clean">Clean</button>
@@ -242,8 +242,8 @@
         modal.querySelector('[data-logo-crop-apply]').addEventListener('click', () => {
             if (! cropper) return;
             hidden.value = cropper.getCroppedCanvas({
-                width: 900,
-                height: 900,
+                width: 1800,
+                height: 1800,
                 imageSmoothingEnabled: true,
                 imageSmoothingQuality: 'high',
             }).toDataURL('image/png');
