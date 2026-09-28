@@ -26,7 +26,7 @@
     ];
     $activePaymentMethods = collect($allPaymentMethods)->filter(fn ($m, $key) => in_array($key, $enabledPaymentMethods, true));
 @endphp
-<main x-data="{ ...menuCart({ cartKey: @js('zemtab-cart:'.$restaurant->id.':'.$table->table_number), paymentDetails: {}, serviceChargePercentage: {{ (float) ($settings['service_charge_percentage'] ?? 0) }}, vatPercentage: {{ (float) ($settings['vat_percentage'] ?? 0) }} }), paymentOpen: false, selectedPayment: null }" class="min-h-screen bg-neutral-100 pb-28 text-zem-ink">
+<main x-data="{ ...menuCart({ cartKey: @js('zemtab-cart:'.$restaurant->id.':'.$table->table_number), paymentDetails: {}, serviceChargePercentage: {{ (float) ($settings['service_charge_percentage'] ?? 0) }}, vatPercentage: {{ (float) ($settings['vat_percentage'] ?? 0) }} }), paymentOpen: false, selectedPayment: null, selectedItem: null, selectedQuantity: 1 }" @keydown.escape.window="selectedItem = null" class="min-h-screen bg-neutral-100 pb-28 text-zem-ink">
     <header class="sticky top-0 z-30 border-b border-black/10 bg-white/95 px-4 py-3 shadow-sm backdrop-blur">
         <div class="mx-auto max-w-5xl">
             <div class="flex items-center justify-between gap-3">
@@ -179,7 +179,7 @@
                         @php($imageUrl = \App\Support\MenuImage::url($item->image_path))
                         @php($webpImageUrl = \App\Support\MenuImage::webpUrl($item->image_path))
                         <article x-show="itemVisible({{ $category->id }}, @js($item->name), @js($item->description ?? ''))" class="overflow-hidden rounded-2xl border border-black/10 bg-white shadow-sm" itemscope itemtype="https://schema.org/MenuItem">
-                            <div class="aspect-square bg-neutral-200">
+                            <button type="button" @click="selectedItem = { id: {{ $item->id }}, name: @js($item->name), description: @js($item->description ?? ''), price: {{ (float) $item->price }}, image: @js($imageUrl), available: {{ $item->is_available ? 'true' : 'false' }} }; selectedQuantity = 1" class="block aspect-square w-full bg-neutral-200 text-left" aria-label="View {{ $item->name }} details">
                                 @if($imageUrl)
                                     <picture>
                                         @if($webpImageUrl)<source srcset="{{ $webpImageUrl }}" type="image/webp" sizes="(max-width: 640px) 46vw, (max-width: 1024px) 31vw, 240px">@endif
@@ -188,10 +188,10 @@
                                 @else
                                     <div class="grid h-full place-items-center text-5xl font-extrabold text-white" style="background: linear-gradient(135deg, #111, var(--zem-accent));">{{ strtoupper(substr($item->name, 0, 1)) }}</div>
                                 @endif
-                            </div>
+                            </button>
                             <div class="p-3">
                                 <div class="min-h-20">
-                                    <h3 class="line-clamp-2 font-extrabold leading-tight" itemprop="name">{{ $item->name }}</h3>
+                                    <button type="button" @click="selectedItem = { id: {{ $item->id }}, name: @js($item->name), description: @js($item->description ?? ''), price: {{ (float) $item->price }}, image: @js($imageUrl), available: {{ $item->is_available ? 'true' : 'false' }} }; selectedQuantity = 1" class="text-left font-extrabold leading-tight hover:text-zem-gold" itemprop="name">{{ $item->name }}</button>
                                     <p class="mt-1 line-clamp-2 text-xs text-neutral-500" itemprop="description">{{ $item->description }}</p>
                                 </div>
                                 <p class="mt-2 font-extrabold text-zem-gold" itemprop="offers" itemscope itemtype="https://schema.org/Offer">
@@ -199,7 +199,7 @@
                                     <span itemprop="priceCurrency" content="ETB">ETB</span>
                                 </p>
                                 @if($item->is_available)
-                                    <button type="button" @click="add({ id: {{ $item->id }}, name: @js($item->name), price: {{ $item->price }} })" class="js-only mt-3 w-full rounded-xl bg-black px-3 py-3 text-sm font-extrabold text-white">Add</button>
+                                    <button type="button" @click="selectedItem = { id: {{ $item->id }}, name: @js($item->name), description: @js($item->description ?? ''), price: {{ (float) $item->price }}, image: @js($imageUrl), available: true }; selectedQuantity = 1" class="js-only mt-3 w-full rounded-xl bg-black px-3 py-3 text-sm font-extrabold text-white">View details &amp; order</button>
                                 @else
                                     <span class="mt-3 block rounded-xl bg-red-100 px-3 py-3 text-center text-sm font-extrabold text-red-700">Unavailable</span>
                                 @endif
@@ -212,6 +212,38 @@
         @endforeach
         <p x-show="!hasVisibleItems()" x-cloak class="rounded-xl border border-dashed border-black/10 bg-white p-6 text-center font-bold text-neutral-500">No menu items match your search.</p>
     </section>
+
+    <div x-show="selectedItem" x-cloak class="fixed inset-0 z-50 grid place-items-end bg-black/70 p-0 backdrop-blur-sm sm:place-items-center sm:p-4" @click.self="selectedItem = null" role="dialog" aria-modal="true" aria-label="Menu item details">
+        <section class="max-h-[94vh] w-full max-w-xl overflow-y-auto rounded-t-3xl bg-white text-zem-ink shadow-2xl sm:rounded-3xl" @click.stop>
+            <template x-if="selectedItem">
+                <div>
+                    <div class="relative aspect-[4/3] bg-neutral-200">
+                        <template x-if="selectedItem.image"><img :src="selectedItem.image" :alt="selectedItem.name" class="h-full w-full object-cover"></template>
+                        <template x-if="!selectedItem.image"><div class="grid h-full place-items-center bg-black text-7xl font-extrabold text-white" x-text="selectedItem.name.slice(0, 1).toUpperCase()"></div></template>
+                        <button type="button" @click="selectedItem = null" class="absolute right-3 top-3 rounded-full bg-black/75 px-4 py-2 font-bold text-white">Close</button>
+                    </div>
+                    <div class="p-5 sm:p-6">
+                        <div class="flex items-start justify-between gap-4">
+                            <h2 class="font-display text-2xl font-extrabold" x-text="selectedItem.name"></h2>
+                            <p class="shrink-0 font-extrabold text-zem-gold" x-text="money(selectedItem.price)"></p>
+                        </div>
+                        <p class="mt-3 whitespace-pre-line text-sm leading-6 text-neutral-600" x-text="selectedItem.description || 'No description provided.'"></p>
+                        <template x-if="selectedItem.available">
+                            <div class="mt-6 flex items-center justify-between gap-4">
+                                <div class="flex items-center gap-3 rounded-xl border border-black/10 p-1">
+                                    <button type="button" @click="selectedQuantity = Math.max(1, selectedQuantity - 1)" class="h-11 w-11 rounded-lg border border-black/10 text-xl font-bold" aria-label="Decrease quantity">−</button>
+                                    <span class="w-8 text-center font-extrabold" x-text="selectedQuantity"></span>
+                                    <button type="button" @click="selectedQuantity = Math.min(99, selectedQuantity + 1)" class="h-11 w-11 rounded-lg border border-black/10 text-xl font-bold" aria-label="Increase quantity">+</button>
+                                </div>
+                                <button type="button" @click="add(selectedItem, selectedQuantity); selectedItem = null" class="flex-1 rounded-xl bg-black px-4 py-4 font-extrabold text-white">Add to order · <span x-text="money(selectedItem.price * selectedQuantity)"></span></button>
+                            </div>
+                        </template>
+                        <p x-show="!selectedItem.available" class="mt-5 rounded-xl bg-red-100 px-4 py-3 text-center font-extrabold text-red-700">Currently unavailable</p>
+                    </div>
+                </div>
+            </template>
+        </section>
+    </div>
 
     <button type="button" @click="open = true" x-show="count() > 0" class="js-only fixed bottom-4 left-1/2 z-40 flex w-[calc(100%-2rem)] max-w-3xl -translate-x-1/2 items-center justify-between rounded-2xl bg-black px-5 py-4 font-extrabold text-white shadow-2xl shadow-black/40">
         <span x-text="count() + ' item(s)'"></span><span class="text-zem-gold" x-text="money(total())"></span>
@@ -288,7 +320,7 @@ function menuCart(config) {
         persistCart() {
             try { localStorage.setItem(this.cartKey, JSON.stringify({ items: this.items, clientRequestId: this.clientRequestId })); } catch (_) {}
         },
-        add(item) { const existing = this.items.find(i => i.id === item.id); existing ? existing.quantity++ : this.items.push({...item, quantity: 1, note: ''}); this.persistCart(); },
+        add(item, quantity = 1) { const existing = this.items.find(i => i.id === item.id); existing ? existing.quantity += quantity : this.items.push({...item, quantity, note: ''}); this.persistCart(); },
         dec(id) { const item = this.items.find(i => i.id === id); if (!item) return; item.quantity--; if (item.quantity <= 0) this.items = this.items.filter(i => i.id !== id); this.persistCart(); },
         count() { return this.items.reduce((sum, item) => sum + item.quantity, 0); },
         total() { return this.items.reduce((sum, item) => sum + item.quantity * item.price, 0); },

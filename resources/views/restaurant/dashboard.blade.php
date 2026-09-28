@@ -19,7 +19,7 @@
             @forelse($recentOrders as $order)
                 <details class="group px-5 py-4">
                     <summary class="flex cursor-pointer list-none flex-wrap items-center justify-between gap-3">
-                        <div class="min-w-0"><p class="text-sm font-semibold">#{{ $order->id }} <span class="mx-1 text-zem-muted">·</span> {{ $order->table?->displayLabel() ?: $order->table_number }}</p><p class="mt-1 text-xs text-zem-muted">{{ $order->items->sum('quantity') }} {{ __('items') }} · {{ $order->created_at->diffForHumans() }} <span class="ml-2 group-open:hidden">{{ __('Details') }} ↓</span></p></div>
+                        <div class="min-w-0"><p class="text-sm font-semibold">#{{ $order->id }} <span class="mx-1 text-zem-muted">·</span> {{ $order->table?->displayLabel() ?: $order->table_number }}</p><p class="mt-1 text-xs text-zem-muted">{{ $order->items->sum('quantity') }} {{ __('items') }} · <time data-order-elapsed data-created-at="{{ $order->created_at->toIso8601String() }}">{{ $order->created_at->diffForHumans() }}</time> <span class="ml-2 group-open:hidden">{{ __('Details') }} ↓</span></p></div>
                         <div class="flex items-center gap-3"><span class="text-sm font-semibold">{{ number_format($order->total, 2) }} ETB</span><x-status :status="$order->status" /></div>
                     </summary>
                     <div class="mt-4 space-y-2 border-t border-zem-border pt-3">
@@ -43,4 +43,16 @@
         @endif
     </div>
 </div>
+<script>
+(() => {
+    const secondAgo = @js(__('second ago'));
+    const secondsAgo = @js(__('seconds ago'));
+    const updateOrderElapsed = () => document.querySelectorAll('[data-order-elapsed][data-created-at]').forEach((element) => {
+        const elapsed = Math.max(1, Math.floor((Date.now() - new Date(element.dataset.createdAt).getTime()) / 1000) + 1);
+        element.textContent = elapsed + ' ' + (elapsed === 1 ? secondAgo : secondsAgo);
+    });
+    updateOrderElapsed();
+    window.setInterval(updateOrderElapsed, 1000);
+})();
+</script>
 @endsection

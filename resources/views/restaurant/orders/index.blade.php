@@ -485,7 +485,7 @@ function workBoard() {
             this.toastType = type;
             this.toast = true;
             clearTimeout(this._toastTimer);
-            this._toastTimer = setTimeout(() => this.toast = false, 3000);
+            this._toastTimer = setTimeout(() => this.toast = false, 10000);
         },
 
         destroy() {
@@ -887,7 +887,7 @@ function workBoard() {
         },
 
         relativeTime(timestamp) {
-            const elapsed = Math.max(0, Math.floor((Date.now() - new Date(timestamp).getTime()) / 1000));
+            const elapsed = Math.max(1, Math.floor((Date.now() - new Date(timestamp).getTime()) / 1000) + 1);
             if (elapsed < 60) return elapsed + ' ' + (elapsed === 1 ? @js(__('second ago')) : @js(__('seconds ago')));
             const minutes = Math.floor(elapsed / 60);
             if (minutes < 60) return minutes + ' ' + (minutes === 1 ? @js(__('minute ago')) : @js(__('minutes ago')));

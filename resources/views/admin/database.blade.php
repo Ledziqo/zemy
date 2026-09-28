@@ -137,6 +137,17 @@
         <span class="rounded-full border border-amber-400/40 bg-amber-400/10 px-3 py-1 text-xs font-bold text-amber-200">Temporary data only</span>
     </div>
 
+    <div class="mt-4 rounded-md border border-red-400/40 bg-red-400/5 p-4">
+        <h3 class="font-bold text-red-200">Remove the stress-test restaurants</h3>
+        <p class="mt-1 text-sm text-zem-muted">Deletes all synthetic stress-test venues (including the 500 seeded restaurants) and their associated test orders, accounts, menus, tables, subscriptions, payments, and guest sessions. Regular restaurants are not included.</p>
+        <form method="post" action="{{ route('admin.setup.run') }}" class="mt-3" onsubmit="return confirm('Delete all synthetic stress-test restaurants and their related test data? Regular restaurant records will not be touched. This cannot be undone.');">
+            @csrf
+            <input type="hidden" name="cleanup_stress_data" value="1">
+            <input type="hidden" name="stress_mode" value="disable">
+            <button class="rounded-md border border-red-400/60 bg-red-500 px-4 py-2 text-sm font-bold text-white hover:bg-red-600">Clear all stress-test restaurants and data</button>
+        </form>
+    </div>
+
     @if(! $stressTestEnabled)
         <div class="mt-4 rounded-md border border-amber-400/40 bg-amber-400/10 p-4 text-sm text-amber-100">
             Production stress controls are locked until you enable temporary stress mode.
@@ -160,12 +171,6 @@
                 </form>
             @endfor
         </div>
-        <form method="post" action="{{ route('admin.setup.run') }}" class="mt-4" onsubmit="return confirm('Delete all stress-test tenants and restore normal production mode?');">
-            @csrf
-            <input type="hidden" name="cleanup_stress_data" value="1">
-            <input type="hidden" name="stress_mode" value="disable">
-            <button class="rounded-md border border-red-400/50 px-4 py-2 text-sm font-bold text-red-200 hover:bg-red-400/10">Restore normal mode &amp; delete test data</button>
-        </form>
     @endif
 </div>
 @endif
