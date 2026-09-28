@@ -10,7 +10,7 @@ use Illuminate\Support\Str;
 class QrSetupPackStore
 {
     private const BATCH_SIZE = 8;
-    private const PRINT_LAYOUT_VERSION = 2;
+    private const PRINT_LAYOUT_VERSION = 3;
     private const MAX_PAGES = 1000;
     private const MAX_PACK_BYTES = 30_000_000;
 

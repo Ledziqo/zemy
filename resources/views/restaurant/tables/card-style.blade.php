@@ -41,7 +41,8 @@
 .qr-selection [data-axis=xy]{right:-6px;bottom:-6px;cursor:nwse-resize}
 .qr-editor-controls{width:100%;font-size:12px}
 .qr-editor-controls select,.qr-editor-controls input{width:100%;color:#171717;background:white;border:1px solid #888;padding:6px}
-@media print{.signature-card{break-inside:avoid;page-break-inside:avoid}.qr-selection{display:none!important}}
+/* CSS image filters flatten even SVG logos when browsers export a PDF. */
+@media print{.signature-card{break-inside:avoid;page-break-inside:avoid}.signature-logo{filter:none!important}.qr-selection{display:none!important}}
 </style>
 <script>
 window.fitSignatureTitles = function(root = document) {
