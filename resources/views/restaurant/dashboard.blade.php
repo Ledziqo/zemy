@@ -47,9 +47,26 @@
 (() => {
     const secondAgo = @js(__('second ago'));
     const secondsAgo = @js(__('seconds ago'));
+    const minuteAgo = @js(__('minute ago'));
+    const minutesAgo = @js(__('minutes ago'));
+    const hourAgo = @js(__('hour ago'));
+    const hoursAgo = @js(__('hours ago'));
+    const dayAgo = @js(__('day ago'));
+    const daysAgo = @js(__('days ago'));
     const updateOrderElapsed = () => document.querySelectorAll('[data-order-elapsed][data-created-at]').forEach((element) => {
         const elapsed = Math.max(1, Math.floor((Date.now() - new Date(element.dataset.createdAt).getTime()) / 1000) + 1);
-        element.textContent = elapsed + ' ' + (elapsed === 1 ? secondAgo : secondsAgo);
+        if (elapsed < 60) {
+            element.textContent = elapsed + ' ' + (elapsed === 1 ? secondAgo : secondsAgo);
+        } else if (elapsed < 60 * 60) {
+            const minutes = Math.floor(elapsed / 60);
+            element.textContent = minutes + ' ' + (minutes === 1 ? minuteAgo : minutesAgo);
+        } else if (elapsed < 24 * 60 * 60) {
+            const hours = Math.floor(elapsed / (60 * 60));
+            element.textContent = hours + ' ' + (hours === 1 ? hourAgo : hoursAgo);
+        } else {
+            const days = Math.floor(elapsed / (24 * 60 * 60));
+            element.textContent = days + ' ' + (days === 1 ? dayAgo : daysAgo);
+        }
     });
     updateOrderElapsed();
     window.setInterval(updateOrderElapsed, 1000);
