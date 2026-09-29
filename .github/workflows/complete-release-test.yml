@@ -1,14 +1,6 @@
 name: ZemTab complete release test
-# Push/manual fallback also wakes a queued staging run when cron delivery is delayed.
-
-on:
-  repository_dispatch:
-    types: [zemtab-complete-release-test]
-  schedule:
-    - cron: '*/5 * * * *'
-  workflow_dispatch:
-  push:
-    branches: [main]
+# Retired automatic runner: keep available only for an intentional manual run.
+on: workflow_dispatch
 
 permissions:
   contents: read
