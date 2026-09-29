@@ -12,8 +12,12 @@ const fs=require('fs'),{execFileSync}=require('child_process'),assert=require('a
  const headline=await page.locator('.signature-title').boundingBox();
  assert(Math.abs(kicker.x+kicker.width/2-headline.x-headline.width/2)<1,'kicker centered over headline');
  const orientation=page.locator('input[name="orientation"]');
+ const title=page.locator('[data-layer="title"]');
+ const titleTranslate=()=>title.evaluate(el=>el.style.translate);
  assert.equal(await orientation.first().isChecked(),true,'portrait remains the default');
+ assert.equal(await titleTranslate(),'0mm','table portrait position starts independently');
  await page.locator('input[name="orientation"][value="landscape"]').check();
+ assert.equal(await titleTranslate(),'10mm','switching to landscape applies its own layer position');
  const landscape=await page.locator('.signature-card').boundingBox();
  assert(Math.abs(landscape.width/landscape.height-140/75)<.03,'landscape preview uses the 140 × 75 mm ratio');
  assert.equal(await page.locator('.qr-preview').evaluate(el=>el.classList.contains('is-landscape')),true,'landscape preview can scroll within the editor');
@@ -23,6 +27,7 @@ const fs=require('fs'),{execFileSync}=require('child_process'),assert=require('a
  assert.equal(overlaps(landscapeParts['.signature-heading'],landscapeParts['.signature-frame']),false,'landscape copy clears the QR frame');
  assert.equal(overlaps(landscapeParts['.signature-frame'],landscapeParts['.signature-footer']),false,'landscape QR clears the footer');
  await page.locator('input[name="orientation"][value="portrait"]').check();
+ assert.equal(await titleTranslate(),'0mm','switching back restores table portrait layer position');
  const portrait=await page.locator('.signature-card').boundingBox();
  assert(Math.abs(portrait.width/portrait.height-75/140)<.03,'portrait preview remains 75 × 140 mm');
  await page.locator('#qr-design-reset').click();
@@ -34,6 +39,7 @@ const fs=require('fs'),{execFileSync}=require('child_process'),assert=require('a
  await page.locator('input[name="orientation"][value="portrait"]').check();
  assert.equal(await page.locator('input[name="accent_color"]').inputValue(),'#123456','portrait values restore after editing landscape');
  await page.selectOption('#qr-preview-type','room');
+ assert.equal(await titleTranslate(),'20mm','room portrait layers do not inherit table portrait positions');
  assert.equal(await page.locator('input[name="orientation"][value="portrait"]').isChecked(),true,'switching card type preserves the current orientation');
  assert.equal(await page.locator('input[name="accent_color"]').inputValue(),'#d22630','room portrait is independent from table portrait');
  await page.locator('input[name="accent_color"]').fill('#004400');
@@ -42,13 +48,17 @@ const fs=require('fs'),{execFileSync}=require('child_process'),assert=require('a
  await page.selectOption('#qr-preview-type','room');
  assert.equal(await page.locator('input[name="accent_color"]').inputValue(),'#004400','room portrait draft restores independently');
  await page.locator('input[name="orientation"][value="landscape"]').check();
+ assert.equal(await titleTranslate(),'30mm','room landscape has its own layer positions');
  assert.equal(await page.locator('input[name="accent_color"]').inputValue(),'#d22630','room landscape has its own independent settings');
  await page.locator('input[name="accent_color"]').fill('#883344');
  await page.locator('input[name="orientation"][value="portrait"]').check();
+ assert.equal(await titleTranslate(),'20mm','room portrait position survives landscape edits');
  assert.equal(await page.locator('input[name="accent_color"]').inputValue(),'#004400','room portrait remains intact after landscape edit');
  await page.locator('input[name="orientation"][value="landscape"]').check();
+ assert.equal(await titleTranslate(),'30mm','room landscape position is restored on revisit');
  assert.equal(await page.locator('input[name="accent_color"]').inputValue(),'#883344','room landscape draft restores independently');
  await page.selectOption('#qr-preview-type','table');
+ assert.equal(await titleTranslate(),'10mm','table landscape position is restored after room edits');
  assert.equal(await page.locator('input[name="accent_color"]').inputValue(),'#556677','table landscape remains intact after room edits');
  assert.equal(await page.locator('input[name="orientation"][value="landscape"]').isChecked(),true,'switching between card types preserves landscape orientation');
  const packStyles=fs.readFileSync('resources/views/restaurant/tables/setup_pack.blade.php','utf8').match(/<style>[\s\S]*?<\/style>/)[0];
@@ -90,6 +100,6 @@ const fs=require('fs'),{execFileSync}=require('child_process'),assert=require('a
  await page.setContent(restored.replace(/<script src="[^"]*qr-editor.js[^"]*"><\/script>/,'<script>'+js+'</script>').replace('<details class="qr-studio">','<details class="qr-studio" open>'));
  assert.equal(await page.locator('[data-layer="title"]').evaluate(el=>el.style.scale),saved.title.sx+' '+saved.title.sy,'reload keeps size');
  assert.deepEqual(errors,[]);
- console.log('PASS: portrait/landscape preview, all '+keys.length+' layers drag, independently resize, and serialize; corner resize; no browser errors');
+ console.log('PASS: four independent card variants restore layer positions; portrait/landscape preview, all '+keys.length+' layers drag, independently resize, and serialize; corner resize; no browser errors');
  await browser.close();
 })().catch(e=>{console.error(e);process.exit(1)});

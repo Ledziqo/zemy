@@ -33,6 +33,11 @@ window.initQrEditor = function (form, card) {
         height.value = Math.round(state(key).sy*100);
         outline();
     }
+    form.refreshQrEditor = function() {
+        Object.keys(names).forEach(apply);
+        if (selected) choose(selected);
+        requestAnimationFrame(outline);
+    };
     function changed() {
         apply(selected); outline();
         status.textContent = 'Unsaved changes — click Save QR design.';

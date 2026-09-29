@@ -17,11 +17,15 @@ $qrCardDesigns = [];
 foreach (['table' => 'SCAN TO ORDER', 'room' => 'SCAN FOR ROOM SERVICE'] as $type => $scanText) {
     $orientations = [];
     foreach (['portrait', 'landscape'] as $orientation) {
+        $position = ['table' => ['portrait' => 0, 'landscape' => 10], 'room' => ['portrait' => 20, 'landscape' => 30]][$type][$orientation];
+        $elements = $sticker['elements'] ?? [];
+        $elements['title'] = array_merge($elements['title'] ?? [], ['x' => $position, 'y' => 0, 'sx' => $elements['title']['sx'] ?? 1, 'sy' => $elements['title']['sy'] ?? 1]);
         $orientations[$orientation] = array_merge($sticker, [
             'orientation' => $orientation,
             'scan_text' => $scanText,
             'logo_url' => $logoUrl,
             'restaurant_logo_url' => $logoUrl,
+            'elements' => $elements,
         ]);
     }
     $qrCardDesigns[$type] = ['preferred_orientation' => 'portrait', 'orientations' => $orientations];
