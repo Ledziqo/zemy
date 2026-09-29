@@ -1,6 +1,42 @@
 @extends('layouts.dashboard', ['heading' => 'Database', 'eyebrow' => 'Admin Maintenance'])
 
 @section('content')
+<section class="mb-6 max-w-3xl rounded-md border border-zem-border bg-zem-card p-5" aria-labelledby="database-health-heading">
+    <div class="flex flex-wrap items-start justify-between gap-3">
+        <div>
+            <h2 id="database-health-heading" class="font-display text-xl font-bold">Live database watch</h2>
+            <p class="mt-1 text-sm text-zem-muted">Hourly connections, current load, and estimated database size. Samples every 5 minutes while this page is open to keep monitoring overhead low.</p>
+        </div>
+        <span id="db-health-state" class="rounded-full border border-zem-border px-3 py-1 text-xs font-bold text-zem-muted">Checking…</span>
+    </div>
+
+    <div class="mt-4 grid gap-3 sm:grid-cols-2">
+        <article class="rounded-md border border-zem-border bg-zem-bg p-4">
+            <p class="text-xs font-bold uppercase tracking-wide text-zem-muted">Connections in the last hour</p>
+            <p id="db-health-hourly" class="mt-2 text-2xl font-bold">—</p>
+            <p id="db-health-hourly-detail" class="mt-1 text-xs text-zem-muted">Waiting for the first sample…</p>
+        </article>
+        <article class="rounded-md border border-zem-border bg-zem-bg p-4">
+            <p class="text-xs font-bold uppercase tracking-wide text-zem-muted">Database size</p>
+            <p id="db-health-size" class="mt-2 text-2xl font-bold">—</p>
+            <p id="db-health-size-detail" class="mt-1 text-xs text-zem-muted">Loading configured plan limit…</p>
+        </article>
+        <article class="rounded-md border border-zem-border bg-zem-bg p-4">
+            <p class="text-xs font-bold uppercase tracking-wide text-zem-muted">Connections open now</p>
+            <p id="db-health-current" class="mt-2 text-2xl font-bold">—</p>
+            <p id="db-health-current-detail" class="mt-1 text-xs text-zem-muted">Concurrent connections</p>
+        </article>
+        <article class="rounded-md border border-zem-border bg-zem-bg p-4">
+            <p class="text-xs font-bold uppercase tracking-wide text-zem-muted">Peak / server ceiling</p>
+            <p id="db-health-peak" class="mt-2 text-2xl font-bold">—</p>
+            <p id="db-health-peak-detail" class="mt-1 text-xs text-zem-muted">Since MySQL started</p>
+        </article>
+    </div>
+    <p id="db-health-tables" class="mt-3 text-xs text-zem-muted">Table and row estimates unavailable.</p>
+    <div id="db-health-alerts" class="mt-3 rounded-md border border-zem-border bg-zem-bg p-3 text-sm text-zem-muted" role="status" aria-live="polite">Loading database health…</div>
+    <p id="db-health-scope" class="mt-2 text-xs text-zem-muted"></p>
+</section>
+
 <div class="max-w-3xl rounded-md border border-zem-border bg-zem-card p-5">
     <h2 class="font-display text-xl font-bold">Database maintenance</h2>
     <p class="mt-1 text-sm text-zem-muted">Apply pending migrations and rebuild the production config, route, and view caches after deploying code updates. Database credentials are only needed when they have changed.</p>
@@ -46,6 +82,91 @@
 </div>
 
 <script>
+(() => {
+    const endpoint = @json(route('admin.database.health'));
+    const el = id => document.getElementById(id);
+    const number = value => value == null ? 'Not exposed' : new Intl.NumberFormat().format(value);
+    const bytes = value => value == null ? 'Not exposed' : (value / 1_000_000_000).toFixed(2) + ' GB';
+    const duration = seconds => {
+        const minutes = Math.max(0, Math.floor(seconds / 60));
+        return minutes >= 60 ? `${Math.floor(minutes / 60)}h ${minutes % 60}m` : `${minutes}m`;
+    };
+    const setState = (text, level = 'normal') => {
+        const badge = el('db-health-state');
+        badge.textContent = text;
+        badge.className = 'rounded-full border px-3 py-1 text-xs font-bold ' + (level === 'critical'
+            ? 'border-red-400/50 bg-red-500/10 text-red-200'
+            : level === 'warning'
+                ? 'border-amber-400/50 bg-amber-500/10 text-amber-100'
+                : 'border-zem-border text-zem-muted');
+    };
+    const render = data => {
+        if (!data.available) {
+            setState('Unavailable', 'warning');
+            el('db-health-alerts').textContent = data.message || 'Database health counters are not available.';
+            return;
+        }
+        const accountScope = data.scope === 'database_account';
+        const age = duration(data.connection_window_seconds || 0);
+        if (data.connection_count == null) {
+            el('db-health-hourly').textContent = 'Collecting baseline…';
+            el('db-health-hourly-detail').textContent = 'Leave this page open; samples are collected every 5 minutes.';
+            setState('Warming up');
+        } else if (data.connection_window_full_hour) {
+            el('db-health-hourly').textContent = accountScope && data.connection_limit
+                ? `${number(data.connection_count)} / ${number(data.connection_limit)}`
+                : number(data.connection_count);
+            el('db-health-hourly-detail').textContent = `${accountScope ? 'This database account' : 'Whole MySQL server'} · rolling 60-minute sample${data.connection_percent == null ? '' : ` · ${data.connection_percent}% of limit`}`;
+            setState(accountScope ? 'Monitoring' : 'Server-wide only', accountScope ? 'normal' : 'warning');
+        } else {
+            el('db-health-hourly').textContent = number(data.connection_count);
+            el('db-health-hourly-detail').textContent = `${accountScope ? 'This database account' : 'Whole MySQL server'} · observed over ${age}; building a full-hour baseline`;
+            setState('Warming up');
+        }
+
+        el('db-health-size').textContent = bytes(data.database_bytes);
+        el('db-health-size-detail').textContent = data.database_size_limit_bytes
+            ? `${data.database_size_percent ?? '—'}% of configured ${bytes(data.database_size_limit_bytes)} plan limit (estimate)`
+            : 'Plan-size limit is not configured';
+        el('db-health-current').textContent = number(data.current_connections);
+        el('db-health-current-detail').textContent = accountScope ? 'This database account' : 'Whole MySQL server';
+        el('db-health-peak').textContent = `${number(data.max_used_connections)} / ${number(data.max_connections)}`;
+        el('db-health-peak-detail').textContent = `Server-wide peak · aborted connects: ${number(data.aborted_connects)}`;
+        el('db-health-tables').textContent = `Tables: ${number(data.table_count)} · Estimated rows: ${number(data.estimated_rows)} · Last updated: ${new Date(data.sampled_at).toLocaleTimeString()}`;
+
+        const alerts = data.alerts || [];
+        const box = el('db-health-alerts');
+        if (alerts.length) {
+            const critical = alerts.some(alert => alert.level === 'critical');
+            setState(critical ? 'Action needed' : 'Watch', critical ? 'critical' : 'warning');
+            box.className = 'mt-3 rounded-md border p-3 text-sm ' + (critical
+                ? 'border-red-400/50 bg-red-500/10 text-red-100'
+                : 'border-amber-400/50 bg-amber-500/10 text-amber-100');
+            box.textContent = alerts.map(alert => alert.text).join(' ');
+        } else {
+            box.className = 'mt-3 rounded-md border border-zem-border bg-zem-bg p-3 text-sm text-zem-muted';
+            box.textContent = !data.connection_window_full_hour
+                ? 'No thresholds crossed in the available sample; hourly connection monitoring is still warming up.'
+                : 'No configured warning thresholds crossed in this sample.';
+        }
+        el('db-health-scope').textContent = `${data.notice || ''} MySQL connection counters may reset when the host restarts the database.`;
+    };
+    const refresh = async () => {
+        if (document.visibilityState !== 'visible') return;
+        try {
+            const response = await fetch(endpoint, {headers: {'Accept': 'application/json'}, credentials: 'same-origin', cache: 'no-store'});
+            if (!response.ok) throw new Error(`HTTP ${response.status}`);
+            render(await response.json());
+        } catch (error) {
+            setState('Refresh failed', 'warning');
+            el('db-health-alerts').textContent = 'Could not refresh database health. The rest of the admin page is unaffected.';
+        }
+    };
+    refresh();
+    window.setInterval(refresh, 300_000);
+    document.addEventListener('visibilitychange', refresh);
+})();
+
     document.querySelector('[data-maintenance-form]')?.addEventListener('submit', () => {
         const button = document.querySelector('[data-maintenance-button]');
         const status = document.querySelector('[data-maintenance-status]');

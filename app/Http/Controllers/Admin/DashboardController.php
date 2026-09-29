@@ -7,7 +7,9 @@ use App\Models\DemoRequest;
 use App\Models\Order;
 use App\Models\Restaurant;
 use App\Models\Subscription;
+use App\Support\DatabaseHealthMonitor;
 use Illuminate\Support\Facades\Schema;
+use Illuminate\Http\JsonResponse;
 
 class DashboardController extends Controller
 {
@@ -97,5 +99,10 @@ class DashboardController extends Controller
             'stressBatchSize' => (int) config('stress.batch_size', 10),
             'stressMaxRestaurants' => (int) config('stress.max_restaurants', 150),
         ]);
+    }
+
+    public function databaseHealth(DatabaseHealthMonitor $monitor): JsonResponse
+    {
+        return response()->json($monitor->snapshot())->header('Cache-Control', 'private, no-store');
     }
 }

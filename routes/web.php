@@ -141,6 +141,7 @@ Route::middleware(['auth', 'role:restaurant_owner,staff', 'locale'])->prefix('re
 Route::middleware(['auth', 'role:admin', 'locale'])->prefix('admin')->name('admin.')->group(function () {
     Route::get('/dashboard', [Admin\DashboardController::class, 'index'])->name('dashboard');
     Route::get('/database', [Admin\DashboardController::class, 'database'])->name('database');
+    Route::get('/database/health', [Admin\DashboardController::class, 'databaseHealth'])->middleware('throttle:10,1')->name('database.health');
     Route::post('/database/complete-test', [Admin\CompleteReleaseTestController::class, 'start'])->middleware('throttle:1,5')->name('database.complete-test.start');
     Route::get('/database/complete-test/{runId}', [Admin\CompleteReleaseTestController::class, 'status'])->middleware('throttle:60,1')->name('database.complete-test.status');
     Route::post('/database/full-scan', [Admin\ReleaseScanController::class, 'run'])->middleware('throttle:1,5')->name('database.full-scan');

@@ -91,6 +91,11 @@ if ($qrBatchRoute) {
     $qrBatchMiddleware = $qrBatchRoute->gatherMiddleware();
     check(in_array('signed', $qrBatchMiddleware) && ! in_array('auth', $qrBatchMiddleware), 'QR build pages use signed snapshot links instead of database-backed auth');
 }
+$databaseHealthRoute = $router->getRoutes()->getByName('admin.database.health');
+if ($databaseHealthRoute) {
+    $healthMiddleware = $databaseHealthRoute->gatherMiddleware();
+    check(in_array('auth', $healthMiddleware) && in_array('role:admin', $healthMiddleware) && in_array('throttle:10,1', $healthMiddleware), 'database health metrics are admin-only and rate-limited');
+}
 
 foreach (['admin.setup.run'] as $name) {
     $middleware = $router->getRoutes()->getByName($name)->gatherMiddleware();
