@@ -1,6 +1,13 @@
 <style>
 .signature-card{box-sizing:border-box;width:75mm;height:140mm;padding:6mm;position:relative;isolation:isolate;overflow:hidden;display:flex;flex-direction:column;align-items:center;justify-content:space-between;gap:1mm;background:var(--card-bg);color:var(--card-text);border:.2mm solid var(--card-border);font-family:Arial,Helvetica,sans-serif;text-align:center;print-color-adjust:exact;-webkit-print-color-adjust:exact;flex-shrink:0}
 .signature-card *{box-sizing:border-box}
+.signature-card.is-landscape{width:140mm;height:75mm;padding:5mm;display:grid;grid-template-columns:75mm 50mm;grid-template-rows:1fr;column-gap:5mm;align-items:center}
+.signature-card.is-landscape .signature-logo-slot{position:absolute;width:1px;height:1px;flex:none}
+.signature-card.is-landscape .signature-heading{grid-column:1;grid-row:1;width:75mm;height:auto;min-height:24mm;align-self:end;margin-bottom:9mm;padding:0 2mm 4mm}
+.signature-card.is-landscape .signature-scan{grid-column:2;grid-row:1;width:50mm;align-self:center;gap:1mm}
+.signature-card.is-landscape .signature-frame{max-width:50mm;padding:1.5mm}
+.signature-card.is-landscape .signature-frame img{max-width:47mm;max-height:47mm}
+.signature-card.is-landscape .signature-footer{left:42.5mm;bottom:2mm}
 .signature-card .signature-art{position:absolute;inset:0;width:100%;height:100%;z-index:-1;opacity:var(--art-opacity);pointer-events:none}
 .signature-logo-slot{width:100%;height:24mm;flex:0 0 24mm;pointer-events:none}
 .signature-logo-wrap{position:absolute;inset:0;width:auto;height:auto;pointer-events:none;overflow:visible;z-index:3}

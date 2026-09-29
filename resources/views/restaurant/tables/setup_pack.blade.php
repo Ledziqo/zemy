@@ -9,13 +9,13 @@ body{margin:0;padding:24px;background:#e9e9e7;color:#171717;font-family:Arial,He
 .pack-toolbar{max-width:330mm;margin:0 auto 24px;display:flex;align-items:center;justify-content:space-between;gap:20px;flex-wrap:wrap}
 .pack-toolbar h1{font-size:24px;margin:0 0 8px}.pack-toolbar p{font-size:14px;margin:0;max-width:720px}
 .pack-toolbar button{background:#171717;color:white;padding:14px 20px;border:0;border-radius:8px;cursor:pointer}
-.pack-scroll{overflow:auto}.qr-page{box-sizing:border-box;display:grid;grid-template-columns:repeat(4,75mm);grid-template-rows:repeat(2,140mm);justify-content:center;align-content:center;gap:0;width:330mm;height:350mm;margin:0 auto 24px;background:white;box-shadow:0 8px 40px #0002}
+.pack-scroll{overflow:auto}.qr-page{box-sizing:border-box;display:grid;grid-template-columns:repeat(4,75mm);grid-template-rows:repeat(2,140mm);justify-content:center;align-content:center;gap:0;width:330mm;height:350mm;margin:0 auto 24px;background:white;box-shadow:0 8px 40px #0002}.qr-page.is-landscape{grid-template-columns:repeat(2,140mm);grid-template-rows:repeat(4,75mm)}
 @page{size:330mm 350mm;margin:0}
 @media print{html,body{width:330mm;height:350mm;margin:0!important;padding:0!important;background:white}.no-print{display:none!important}.pack-scroll{overflow:visible}.qr-page{margin:0;box-shadow:none;break-after:page;page-break-after:always}.qr-page:last-child{break-after:auto;page-break-after:auto}}
 </style>
 </head>
 <body>
-<header class="pack-toolbar no-print"><div><h1>{{ $restaurant->name }} · Signature QR pack</h1><p>8 cards · 4 across × 2 down · each card 75 × 140 mm. Save as PDF using custom 330 × 350 mm paper, 100% scale, no margins, and background graphics enabled.</p><p>The PDF keeps QR codes, text, and artwork as vectors instead of flattening the page to a screenshot. Logo images are embedded directly; use the original high-resolution logo (SVG where available) for the sharpest print.</p><p id="pack-status" aria-live="polite">Preparing your QR pages…</p></div><button type="button" onclick="printSetupPack()" id="print-pack-button" disabled>Preparing pack…</button></header>
+<header class="pack-toolbar no-print"><div><h1>{{ $restaurant->name }} · Signature QR pack</h1><p>8 cards · @if(($sticker['orientation'] ?? 'portrait') === 'landscape')2 across × 4 down · each card 140 × 75 mm.@else 4 across × 2 down · each card 75 × 140 mm.@endif Save as PDF using custom 330 × 350 mm paper, 100% scale, no margins, and background graphics enabled.</p><p>The PDF keeps QR codes, text, and artwork as vectors instead of flattening the page to a screenshot. Logo images are embedded directly; use the original high-resolution logo (SVG where available) for the sharpest print.</p><p id="pack-status" aria-live="polite">Preparing your QR pages…</p></div><button type="button" onclick="printSetupPack()" id="print-pack-button" disabled>Preparing pack…</button></header>
 <main class="pack-scroll" id="qr-pack" aria-busy="true"></main>
 <script>
 const setupPackBatchUrl=@json(url('/restaurant/tables/qr/setup-pack'));

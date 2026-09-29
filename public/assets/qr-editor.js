@@ -76,7 +76,8 @@ window.initQrEditor = function (form, card) {
             ? state('footer') : {sx:1,sy:1};
         const footerScale=el.closest('.signature-footer') && el!==card.querySelector('.signature-footer')
             ? Number(form.elements.namedItem('footer_size').value)/100 : 1;
-        drag={axis:handle?.dataset.axis, startX:event.clientX,startY:event.clientY,state:state(selected),w:r.width,h:r.height,px:c.width/74.25,parentX:parentScale.sx*footerScale,parentY:parentScale.sy*footerScale};
+        const cardWidthMm=card.classList.contains('is-landscape')?139.25:74.25;
+        drag={axis:handle?.dataset.axis, startX:event.clientX,startY:event.clientY,state:state(selected),w:r.width,h:r.height,px:c.width/cardWidthMm,parentX:parentScale.sx*footerScale,parentY:parentScale.sy*footerScale};
     });
     card.addEventListener('pointermove',event=>{
         if (!drag) return;

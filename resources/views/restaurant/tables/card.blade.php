@@ -7,8 +7,15 @@
     };
     $locationLabel = $locationLabel ?? (($table ?? null)?->displayLabel());
 @endphp
-<article class="signature-card" style="--card-bg:{{ $sticker['background_color'] }};--card-text:{{ $sticker['text_color'] }};--card-border:{{ $sticker['border_color'] }};--card-accent:{{ $sticker['accent_color'] }};--logo-size:{{ $sticker['logo_size'] }}mm;--logo-half-height:{{ ($sticker['logo_size'] ?? 24) / 2 }}mm;--logo-width:{{ $sticker['logo_width'] ?? 53 }}mm;--logo-half-width:{{ ($sticker['logo_width'] ?? 53) / 2 }}mm;--logo-x:{{ $sticker['logo_x'] ?? 37 }}mm;--logo-y:{{ $sticker['logo_y'] ?? 18 }}mm;--heading-x:{{ $sticker['heading_x'] ?? 0 }}mm;--heading-y:{{ $sticker['heading_y'] ?? 0 }}mm;--kicker-x:{{ $sticker['kicker_x'] ?? 0 }}mm;--kicker-y:{{ $sticker['kicker_y'] ?? 0 }}mm;--title-x:{{ $sticker['title_x'] ?? 0 }}mm;--title-y:{{ $sticker['title_y'] ?? 0 }}mm;--location-x:{{ $sticker['location_x'] ?? 0 }}mm;--location-y:{{ $sticker['location_y'] ?? 0 }}mm;--scan-x:{{ $sticker['scan_x'] ?? 0 }}mm;--scan-y:{{ $sticker['scan_y'] ?? -3 }}mm;--frame-x:{{ $sticker['frame_x'] ?? 0 }}mm;--frame-y:{{ $sticker['frame_y'] ?? 0 }}mm;--hint-x:{{ $sticker['hint_x'] ?? 0 }}mm;--hint-y:{{ $sticker['hint_y'] ?? 0 }}mm;--footer-x:{{ $sticker['footer_x'] ?? 0 }}mm;--footer-y:{{ $sticker['footer_y'] ?? 0 }}mm;--footer-scale:{{ ($sticker['footer_size'] ?? 100) / 100 }};--text-size:{{ $sticker['text_size'] }}pt;--qr-size:{{ $sticker['qr_size'] }}mm;--detail-size:{{ $sticker['detail_size'] }}pt;--art-opacity:{{ $sticker['art_opacity'] / 100 }};">
-    <svg class="signature-art" data-layer="art" style="{{ $elementStyle('art') }}" viewBox="0 0 297 560" preserveAspectRatio="none" aria-hidden="true">
+<article class="signature-card{{ ($sticker['orientation'] ?? 'portrait') === 'landscape' ? ' is-landscape' : '' }}" style="--card-bg:{{ $sticker['background_color'] }};--card-text:{{ $sticker['text_color'] }};--card-border:{{ $sticker['border_color'] }};--card-accent:{{ $sticker['accent_color'] }};--logo-size:{{ $sticker['logo_size'] }}mm;--logo-half-height:{{ ($sticker['logo_size'] ?? 24) / 2 }}mm;--logo-width:{{ $sticker['logo_width'] ?? 53 }}mm;--logo-half-width:{{ ($sticker['logo_width'] ?? 53) / 2 }}mm;--logo-x:{{ $sticker['logo_x'] ?? 37 }}mm;--logo-y:{{ $sticker['logo_y'] ?? 18 }}mm;--heading-x:{{ $sticker['heading_x'] ?? 0 }}mm;--heading-y:{{ $sticker['heading_y'] ?? 0 }}mm;--kicker-x:{{ $sticker['kicker_x'] ?? 0 }}mm;--kicker-y:{{ $sticker['kicker_y'] ?? 0 }}mm;--title-x:{{ $sticker['title_x'] ?? 0 }}mm;--title-y:{{ $sticker['title_y'] ?? 0 }}mm;--location-x:{{ $sticker['location_x'] ?? 0 }}mm;--location-y:{{ $sticker['location_y'] ?? 0 }}mm;--scan-x:{{ $sticker['scan_x'] ?? 0 }}mm;--scan-y:{{ $sticker['scan_y'] ?? -3 }}mm;--frame-x:{{ $sticker['frame_x'] ?? 0 }}mm;--frame-y:{{ $sticker['frame_y'] ?? 0 }}mm;--hint-x:{{ $sticker['hint_x'] ?? 0 }}mm;--hint-y:{{ $sticker['hint_y'] ?? 0 }}mm;--footer-x:{{ $sticker['footer_x'] ?? 0 }}mm;--footer-y:{{ $sticker['footer_y'] ?? 0 }}mm;--footer-scale:{{ ($sticker['footer_size'] ?? 100) / 100 }};--text-size:{{ $sticker['text_size'] }}pt;--qr-size:{{ $sticker['qr_size'] }}mm;--detail-size:{{ $sticker['detail_size'] }}pt;--art-opacity:{{ $sticker['art_opacity'] / 100 }};">
+    <svg class="signature-art" data-layer="art" style="{{ $elementStyle('art') }}" viewBox="{{ ($sticker['orientation'] ?? 'portrait') === 'landscape' ? '0 0 560 297' : '0 0 297 560' }}" preserveAspectRatio="none" aria-hidden="true">
+        @if(($sticker['orientation'] ?? 'portrait') === 'landscape')
+        <path d="M0 0H560V297H0Z" fill="var(--card-bg)"/>
+        <path d="M0 0H560V9C402 19 202 -4 0 17Z" fill="var(--card-accent)" opacity=".15"/>
+        <path d="M0 278C108 246 201 306 326 274S469 262 560 280V297H0Z" fill="var(--card-accent)" opacity=".16"/>
+        <path d="M0 284C108 252 201 312 326 280S469 268 560 286M0 290C108 258 201 318 326 286S469 274 560 292" fill="none" stroke="var(--card-accent)" stroke-width="1" opacity=".45"/>
+        <path d="M18 25H542V272H18Z" fill="none" stroke="var(--card-border)" stroke-width=".65" opacity=".35"/>
+        @else
         <path d="M148 0H297V160C243 151 255 91 211 75S169 38 148 0Z" fill="var(--card-accent)"/>
         <path d="M198 -20C171 36 320 63 275 149M214 -20C187 36 336 63 291 149M230 -20C203 36 352 63 307 149M246 -20C219 36 368 63 323 149" fill="none" stroke="var(--card-bg)" stroke-width="1.5" opacity=".65"/>
         <path d="M0 0H58L0 58Z" fill="var(--card-accent)" opacity=".12"/>
@@ -17,6 +24,7 @@
         <path d="M0 411C66 446 40 490 124 503" fill="none" stroke="var(--card-border)" stroke-width=".8" opacity=".3"/>
         <circle cx="282" cy="244" r="3" fill="var(--card-accent)"/>
         <path d="M12 268v100M285 286v80" stroke="var(--card-border)" stroke-width=".6" opacity=".2"/>
+        @endif
     </svg>
     <div class="signature-logo-slot" aria-hidden="true"></div>
     <div class="signature-logo-wrap">

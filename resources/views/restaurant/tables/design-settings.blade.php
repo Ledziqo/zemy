@@ -2,12 +2,13 @@
 <style>
 .qr-studio{margin-bottom:28px;border:1px solid #8884;border-radius:16px;overflow:hidden}.qr-studio summary{list-style:none;cursor:pointer}.qr-studio summary::-webkit-details-marker{display:none}.qr-studio summary:after{content:'＋';float:right;font-size:24px;font-weight:400;line-height:1}.qr-studio[open] summary:after{content:'−'}
 .qr-studio-head{padding:22px;border-bottom:1px solid #8884}.qr-studio-head h2{font-size:22px;font-weight:800;margin:0}.qr-studio-head p{margin:6px 0 0;opacity:.75;font-size:14px}
-.qr-studio-body{display:grid;grid-template-columns:minmax(0,1fr) 330px;gap:28px;padding:24px}
+.qr-studio-body{display:grid;grid-template-columns:minmax(0,1fr) minmax(330px,550px);gap:28px;padding:24px}
 .qr-studio fieldset{margin:0 0 22px;padding:0;border:0}.qr-studio legend{font-size:12px;font-weight:800;letter-spacing:.12em;text-transform:uppercase;margin-bottom:12px}
 .qr-controls{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px}.qr-studio label{display:block;font-size:13px}.qr-studio input[type=color]{width:100%;height:38px;cursor:pointer;margin-top:6px;border:1px solid #8885;border-radius:6px;background:transparent}
 .qr-studio input[type=range]{width:100%;margin-top:10px;accent-color:#d22630}.qr-studio input[type=text]{display:block;width:100%;margin-top:6px;padding:10px;border:1px solid #8886;border-radius:6px;background:transparent;color:inherit}
 .qr-presets{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px}.qr-presets button,.qr-preview select,.qr-reset{padding:8px 12px;border:1px solid #8886;border-radius:7px;background:transparent;color:inherit;cursor:pointer}
-.qr-preview{background:#d9d9d6;border-radius:12px;padding:20px 12px;color:#171717;align-self:start;display:flex;flex-direction:column;align-items:center;gap:14px}.qr-preview select{background:white}.qr-preview > p{font-size:12px;text-align:center;margin:0}.qr-preview-location{max-width:290px;padding:8px 12px;border:1px solid #17171733;border-radius:7px;background:#fff8;font-weight:600}.qr-save{background:#d22630;color:#fff;border:0;border-radius:8px;padding:12px 18px;font-weight:700;cursor:pointer}.qr-notice{font-size:12px;opacity:.75;margin:12px 0}
+.qr-orientation{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}.qr-orientation label{display:flex;align-items:center;gap:10px;padding:12px;border:1px solid #8886;border-radius:9px;cursor:pointer}.qr-orientation input{width:auto;accent-color:#d22630}.qr-orientation span{display:grid;gap:3px}.qr-orientation small{font-size:11px;opacity:.7}
+.qr-preview{background:#d9d9d6;border-radius:12px;padding:20px 12px;color:#171717;align-self:start;display:flex;flex-direction:column;align-items:center;gap:14px;max-width:100%;overflow-x:auto}.qr-preview.is-landscape{align-items:flex-start}.qr-preview select{background:white}.qr-preview > p{font-size:12px;text-align:center;margin:0}.qr-preview-location{max-width:290px;padding:8px 12px;border:1px solid #17171733;border-radius:7px;background:#fff8;font-weight:600}.qr-save{background:#d22630;color:#fff;border:0;border-radius:8px;padding:12px 18px;font-weight:700;cursor:pointer}.qr-notice{font-size:12px;opacity:.75;margin:12px 0}
 @media(max-width:1000px){.qr-studio-body{grid-template-columns:1fr}.qr-preview{width:100%}}@media(max-width:480px){.qr-studio-body{padding:12px}.qr-controls{grid-template-columns:1fr}.qr-preview{padding:12px 0;overflow:auto}}
 </style>
 <details class="qr-studio">
@@ -17,6 +18,11 @@
 @csrf @method('PATCH')
 <div>
 @if($errors->any())<p role="alert" class="mb-4 text-red-500">{{ $errors->first() }}</p>@endif
+<fieldset><legend>00 / Card orientation</legend>
+<div class="qr-orientation" role="radiogroup" aria-label="Card orientation">
+<label><input type="radio" name="orientation" value="portrait" @checked(old('orientation',$sticker['orientation'] ?? 'portrait') === 'portrait')><span><strong>Portrait</strong><small>75 × 140 mm · 4 across × 2 down</small></span></label>
+<label><input type="radio" name="orientation" value="landscape" @checked(old('orientation',$sticker['orientation'] ?? 'portrait') === 'landscape')><span><strong>Landscape</strong><small>140 × 75 mm · 2 across × 4 down</small></span></label>
+</div><p class="qr-notice">This setting changes the editor preview and printed setup pack. Existing cards stay portrait until you save a different orientation.</p></fieldset>
 <fieldset><legend>01 / Brand palette</legend>
 <div class="qr-presets"><button type="button" data-palette="signature">Signature red</button><button type="button" data-palette="forest">Forest & cream</button><button type="button" data-palette="midnight">Midnight & gold</button><button type="button" data-palette="brand">Venue brand</button></div>
 <div class="qr-controls">
@@ -69,10 +75,10 @@
 @endif
 </aside>
 </form></details>
-<script src="{{ asset('assets/qr-editor.js') }}?v=2"></script>
+<script src="{{ asset('assets/qr-editor.js') }}?v=3"></script>
 <script>
 (() => {
- const form=document.getElementById('qr-design-form'),card=form.querySelector('.signature-card'),type=document.getElementById('qr-preview-type'),status=document.getElementById('qr-design-status'),logoInput=form.elements.namedItem('qr_logo'),logoWrap=card?.querySelector('.signature-logo-wrap'),resizeHandles=card?.querySelectorAll('.logo-resize-handle'),logoSizeInput=form.elements.namedItem('logo_size'),logoWidthInput=form.elements.namedItem('logo_width'),logoXInput=form.elements.namedItem('logo_x'),logoYInput=form.elements.namedItem('logo_y');
+ const form=document.getElementById('qr-design-form'),card=form.querySelector('.signature-card'),preview=form.querySelector('.qr-preview'),type=document.getElementById('qr-preview-type'),status=document.getElementById('qr-design-status'),logoInput=form.elements.namedItem('qr_logo'),logoWrap=card?.querySelector('.signature-logo-wrap'),resizeHandles=card?.querySelectorAll('.logo-resize-handle'),logoSizeInput=form.elements.namedItem('logo_size'),logoWidthInput=form.elements.namedItem('logo_width'),logoXInput=form.elements.namedItem('logo_x'),logoYInput=form.elements.namedItem('logo_y');
  let logo=card?.querySelector('.signature-logo');
  const draggableElements=[
   {element:card?.querySelector('.signature-kicker'),x:form.elements.namedItem('kicker_x'),y:form.elements.namedItem('kicker_y'),label:'kicker'},
@@ -90,13 +96,16 @@
   const properties={background_color:'--card-bg',text_color:'--card-text',accent_color:'--card-accent',border_color:'--card-border',logo_size:'--logo-size',logo_width:'--logo-width',logo_x:'--logo-x',logo_y:'--logo-y',heading_x:'--heading-x',heading_y:'--heading-y',kicker_x:'--kicker-x',kicker_y:'--kicker-y',title_x:'--title-x',title_y:'--title-y',location_x:'--location-x',location_y:'--location-y',scan_x:'--scan-x',scan_y:'--scan-y',frame_x:'--frame-x',frame_y:'--frame-y',hint_x:'--hint-x',hint_y:'--hint-y',footer_x:'--footer-x',footer_y:'--footer-y',text_size:'--text-size',qr_size:'--qr-size',detail_size:'--detail-size',footer_size:'--footer-scale',art_opacity:'--art-opacity'};
   Object.entries(properties).forEach(([key,property])=>{const input=form.elements.namedItem(key),unit=input.dataset.unit||(/_[xy]$/.test(key)?'mm':''),value=['art_opacity','footer_size'].includes(key)?Number(input.value)/100:input.value+unit;if(card)card.style.setProperty(property,value);const output=form.querySelector('[data-value="'+key+'"]');if(output)output.textContent=input.value+unit;});
   if(card){card.style.setProperty('--logo-half-width',(Number(logoWidthInput.value)/2)+'mm');card.style.setProperty('--logo-half-height',(Number(logoSizeInput.value)/2)+'mm');}
+  const orientation=form.elements.namedItem('orientation').value;
+  card?.classList.toggle('is-landscape',orientation==='landscape');
+  preview?.classList.toggle('is-landscape',orientation==='landscape');
   if(card){card.querySelector('.signature-title').textContent=form.elements.namedItem(type.value+'_scan_text').value;window.fitSignatureTitles(form);}
   if(dirty)status.textContent='Unsaved preview — save your design to apply it to the print pack.';
  }
  form.addEventListener('input',()=>update());type.addEventListener('change',()=>update(false));
  logoInput?.addEventListener('change',()=>{const file=logoInput.files?.[0];if(!file||!card)return;const reader=new FileReader();reader.onload=event=>{if(!logo){logo=document.createElement('img');logo.className='signature-logo';logo.dataset.layer='logo';logo.alt='QR logo';card.querySelector('.signature-logo-wrap').appendChild(logo);}logo.src=event.target.result;status.textContent='Logo preview updated — drag it to position it, then save your design.';};reader.readAsDataURL(file);});
  form.querySelectorAll('[data-palette]').forEach(button=>button.addEventListener('click',()=>{keys.forEach((key,index)=>form.elements.namedItem(key).value=palettes[button.dataset.palette][index]);update();}));
- document.getElementById('qr-design-reset').addEventListener('click',()=>{keys.forEach((key,index)=>form.elements.namedItem(key).value=palettes.signature[index]);Object.entries({logo_size:24,logo_width:53,logo_x:37,logo_y:18,heading_x:0,heading_y:0,kicker_x:0,kicker_y:0,title_x:0,title_y:0,location_x:0,location_y:0,scan_x:0,scan_y:-3,frame_x:0,frame_y:0,hint_x:0,hint_y:0,footer_x:0,footer_y:0,text_size:18,qr_size:46,detail_size:7,footer_size:100,art_opacity:100,table_scan_text:'SCAN TO ORDER',room_scan_text:'SCAN FOR ROOM SERVICE'}).forEach(([key,value])=>form.elements.namedItem(key).value=value);logoWrap?.classList.remove('is-selected');update();});
+ document.getElementById('qr-design-reset').addEventListener('click',()=>{keys.forEach((key,index)=>form.elements.namedItem(key).value=palettes.signature[index]);Object.entries({orientation:'portrait',logo_size:24,logo_width:53,logo_x:37,logo_y:18,heading_x:0,heading_y:0,kicker_x:0,kicker_y:0,title_x:0,title_y:0,location_x:0,location_y:0,scan_x:0,scan_y:-3,frame_x:0,frame_y:0,hint_x:0,hint_y:0,footer_x:0,footer_y:0,text_size:18,qr_size:46,detail_size:7,footer_size:100,art_opacity:100,table_scan_text:'SCAN TO ORDER',room_scan_text:'SCAN FOR ROOM SERVICE'}).forEach(([key,value])=>form.elements.namedItem(key).value=value);logoWrap?.classList.remove('is-selected');update();});
  update(false);
  window.initQrEditor(form, card);
 })();

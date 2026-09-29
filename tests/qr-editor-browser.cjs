@@ -11,6 +11,28 @@ const fs=require('fs'),{execFileSync}=require('child_process'),assert=require('a
  const kicker=await page.locator('.signature-kicker-text').boundingBox();
  const headline=await page.locator('.signature-title').boundingBox();
  assert(Math.abs(kicker.x+kicker.width/2-headline.x-headline.width/2)<1,'kicker centered over headline');
+ const orientation=page.locator('input[name="orientation"]');
+ assert.equal(await orientation.first().isChecked(),true,'portrait remains the default');
+ await page.locator('input[name="orientation"][value="landscape"]').check();
+ const landscape=await page.locator('.signature-card').boundingBox();
+ assert(Math.abs(landscape.width/landscape.height-140/75)<.03,'landscape preview uses the 140 × 75 mm ratio');
+ assert.equal(await page.locator('.qr-preview').evaluate(el=>el.classList.contains('is-landscape')),true,'landscape preview can scroll within the editor');
+ const landscapeParts=await page.evaluate(()=>Object.fromEntries(['.signature-logo','.signature-heading','.signature-frame','.signature-footer'].map(selector=>{const r=document.querySelector(selector).getBoundingClientRect();return [selector,{left:r.left,top:r.top,right:r.right,bottom:r.bottom}]})));
+ const overlaps=(a,b)=>a.left<b.right&&a.right>b.left&&a.top<b.bottom&&a.bottom>b.top;
+ assert.equal(overlaps(landscapeParts['.signature-logo'],landscapeParts['.signature-heading']),false,'landscape logo clears the text block');
+ assert.equal(overlaps(landscapeParts['.signature-heading'],landscapeParts['.signature-frame']),false,'landscape copy clears the QR frame');
+ assert.equal(overlaps(landscapeParts['.signature-frame'],landscapeParts['.signature-footer']),false,'landscape QR clears the footer');
+ await page.locator('input[name="orientation"][value="portrait"]').check();
+ const portrait=await page.locator('.signature-card').boundingBox();
+ assert(Math.abs(portrait.width/portrait.height-75/140)<.03,'portrait preview remains 75 × 140 mm');
+ await page.locator('#qr-design-reset').click();
+ assert.equal(await orientation.first().isChecked(),true,'reset returns to the safe portrait default');
+ const packStyles=fs.readFileSync('resources/views/restaurant/tables/setup_pack.blade.php','utf8').match(/<style>[\s\S]*?<\/style>/)[0];
+ await page.setContent(packStyles+'<section class="qr-page is-landscape">'+Array.from({length:8},()=>'<article class="signature-card is-landscape"></article>').join('')+'</section>');
+ const landscapeGrid=await page.locator('.qr-page').evaluate(el=>{const css=getComputedStyle(el);return {columns:css.gridTemplateColumns.split(' ').length,rows:css.gridTemplateRows.split(' ').length,cardCount:el.children.length}});
+ assert.deepEqual(landscapeGrid,{columns:2,rows:4,cardCount:8},'landscape pack arranges eight 140 × 75 mm cards as 2 × 4');
+ html=execFileSync('php',['tests/qr-editor-fixture.php'],{encoding:'utf8'});
+ await page.setContent(html.replace(/<script src="[^"]*qr-editor.js[^"]*"><\/script>/,'<script>'+js+'</script>').replace('<details class="qr-studio">','<details class="qr-studio" open>'));
  const keys=await page.locator('#qr-layer option').evaluateAll(es=>es.map(e=>e.value));
  for(const key of keys){
    await page.selectOption('#qr-layer',key);
@@ -44,6 +66,6 @@ const fs=require('fs'),{execFileSync}=require('child_process'),assert=require('a
  await page.setContent(restored.replace(/<script src="[^"]*qr-editor.js[^"]*"><\/script>/,'<script>'+js+'</script>').replace('<details class="qr-studio">','<details class="qr-studio" open>'));
  assert.equal(await page.locator('[data-layer="title"]').evaluate(el=>el.style.scale),saved.title.sx+' '+saved.title.sy,'reload keeps size');
  assert.deepEqual(errors,[]);
- console.log('PASS: all '+keys.length+' layers drag, independently resize, and serialize; corner resize; no browser errors');
+ console.log('PASS: portrait/landscape preview, all '+keys.length+' layers drag, independently resize, and serialize; corner resize; no browser errors');
  await browser.close();
 })().catch(e=>{console.error(e);process.exit(1)});
