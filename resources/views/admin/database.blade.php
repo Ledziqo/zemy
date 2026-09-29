@@ -98,6 +98,7 @@
         <button class="rounded-md bg-zem-gold px-5 py-3 font-bold text-white">Run release scan + workflow tests</button>
     </form>
 </div>
+@endif
 
 <div class="mt-6 max-w-3xl rounded-md border border-emerald-400/40 bg-zem-card p-5">
     <h2 class="font-display text-xl font-bold">Replace menu from import package</h2>
@@ -128,6 +129,37 @@
     @endif
 </div>
 
+<div class="mt-6 max-w-3xl rounded-md border border-emerald-400/40 bg-zem-card p-5">
+    <h2 class="font-display text-xl font-bold">Import rooms and tables</h2>
+    <p class="mt-1 text-sm text-zem-muted">Upload a CSV to add or update a venue’s rooms, restaurant tables, and lobby tables in one go. Matching is by exact number within the selected venue. Existing QR codes and orders are preserved; omitted locations are not deleted.</p>
+    <p class="mt-2 text-sm text-zem-muted">Columns: <code>number,type,name,is_active</code>. Type is <code>room</code> or <code>table</code>. Keep numbers exactly as the venue uses them, including leading zeroes. <a class="text-emerald-300 underline" href="{{ route('admin.location-import.template') }}">Download example CSV</a>.</p>
+
+    <form method="post" action="{{ route('admin.location-import.store') }}" enctype="multipart/form-data" class="mt-5 grid gap-3 md:grid-cols-2" onsubmit="return confirm('Import these rooms and tables for the selected venue? Existing records matching the same number will be updated without deleting QR codes or orders.');">
+        @csrf
+        <label class="grid gap-1 text-sm">
+            <span class="font-bold text-zem-muted">Restaurant</span>
+            <select name="restaurant_id" required class="rounded-md border border-zem-border bg-zem-bg px-3 py-2">
+                <option value="">Choose restaurant</option>
+                @foreach($restaurants as $restaurant)
+                    <option value="{{ $restaurant->id }}">{{ $restaurant->name }} ({{ $restaurant->slug }})</option>
+                @endforeach
+            </select>
+        </label>
+        <label class="grid gap-1 text-sm">
+            <span class="font-bold text-zem-muted">Rooms/tables CSV</span>
+            <input name="locations_file" type="file" accept=".csv,text/csv" required class="rounded-md border border-zem-border bg-zem-bg px-3 py-2 text-sm">
+        </label>
+        <button class="rounded-md bg-emerald-500 px-5 py-3 font-bold text-black md:col-span-2">Import rooms and tables</button>
+    </form>
+
+    @if(session('location_import_output'))
+        <div class="mt-4 rounded-md border border-emerald-400/40 bg-emerald-400/10 p-4">
+            <pre class="whitespace-pre-wrap text-sm text-emerald-100">{{ session('location_import_output') }}</pre>
+        </div>
+    @endif
+</div>
+
+@if(app()->environment('staging'))
 <div class="mt-6 max-w-3xl rounded-md border border-zem-border bg-zem-card p-5">
     <div class="flex flex-wrap items-start justify-between gap-3">
         <div>
