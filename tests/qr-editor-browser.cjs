@@ -14,9 +14,12 @@ const fs=require('fs'),{execFileSync}=require('child_process'),assert=require('a
  const orientation=page.locator('input[name="orientation"]');
  const title=page.locator('[data-layer="title"]');
  const titleTranslate=()=>title.evaluate(el=>el.style.translate);
+ const artwork=()=>page.locator('.signature-art').getAttribute('viewBox');
  assert.equal(await orientation.first().isChecked(),true,'portrait remains the default');
+ assert.equal(await artwork(),'0 0 297 560','portrait uses the portrait artwork proportions');
  assert.equal(await titleTranslate(),'0mm','table portrait position starts independently');
  await page.locator('input[name="orientation"][value="landscape"]').check();
+ assert.equal(await artwork(),'0 0 560 297','landscape switches to its matching artwork proportions');
  assert.equal(await titleTranslate(),'10mm','switching to landscape applies its own layer position');
  const landscape=await page.locator('.signature-card').boundingBox();
  assert(Math.abs(landscape.width/landscape.height-140/75)<.03,'landscape preview uses the 140 × 75 mm ratio');
@@ -27,6 +30,7 @@ const fs=require('fs'),{execFileSync}=require('child_process'),assert=require('a
  assert.equal(overlaps(landscapeParts['.signature-heading'],landscapeParts['.signature-frame']),false,'landscape copy clears the QR frame');
  assert.equal(overlaps(landscapeParts['.signature-frame'],landscapeParts['.signature-footer']),false,'landscape QR clears the footer');
  await page.locator('input[name="orientation"][value="portrait"]').check();
+ assert.equal(await artwork(),'0 0 297 560','switching back restores portrait artwork proportions');
  assert.equal(await titleTranslate(),'0mm','switching back restores table portrait layer position');
  const portrait=await page.locator('.signature-card').boundingBox();
  assert(Math.abs(portrait.width/portrait.height-75/140)<.03,'portrait preview remains 75 × 140 mm');

@@ -120,6 +120,8 @@
   const orientation=field('orientation').value;
   card?.classList.toggle('is-landscape',orientation==='landscape');
   preview?.classList.toggle('is-landscape',orientation==='landscape');
+  const artwork=card?.querySelector('.signature-art');
+  if(artwork){artwork.setAttribute('viewBox',orientation==='landscape'?'0 0 560 297':'0 0 297 560');card.querySelector('.signature-artwork-landscape')?.style.setProperty('display',orientation==='landscape'?'':'none');card.querySelector('.signature-artwork-portrait')?.style.setProperty('display',orientation==='portrait'?'':'none');}
   if(card){card.querySelector('.signature-title').textContent=field('scan_text').value;card.querySelector('.signature-location').textContent=previewCards[type.value].label;card.querySelector('.signature-frame img').src=previewCards[type.value].qr;const label=document.getElementById('qr-preview-label');if(label)label.textContent=previewCards[type.value].label;const uploaded=fileDrafts[type.value][activeOrientation];setLogo(uploaded?URL.createObjectURL(uploaded):(field('remove_qr_logo').checked?activeDesign().restaurant_logo_url:activeDesign().logo_url));window.fitSignatureTitles(form);}
   if(markDirty){designs[type.value].orientations[activeOrientation]=capture();dirty.add(`${type.value}:${activeOrientation}`);status.textContent=`Unsaved ${activeOrientation} ${type.value} design — save to apply this exact layout to the print pack.`;}
  }
