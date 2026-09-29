@@ -11,10 +11,11 @@
     <svg class="signature-art" data-layer="art" style="{{ $elementStyle('art') }}" viewBox="{{ ($sticker['orientation'] ?? 'portrait') === 'landscape' ? '0 0 560 297' : '0 0 297 560' }}" preserveAspectRatio="none" aria-hidden="true">
         @if(($sticker['orientation'] ?? 'portrait') === 'landscape')
         <path d="M0 0H560V297H0Z" fill="var(--card-bg)"/>
-        <path d="M0 0H560V9C402 19 202 -4 0 17Z" fill="var(--card-accent)" opacity=".15"/>
-        <path d="M0 278C108 246 201 306 326 274S469 262 560 280V297H0Z" fill="var(--card-accent)" opacity=".16"/>
-        <path d="M0 284C108 252 201 312 326 280S469 268 560 286M0 290C108 258 201 318 326 286S469 274 560 292" fill="none" stroke="var(--card-accent)" stroke-width="1" opacity=".45"/>
-        <path d="M18 25H542V272H18Z" fill="none" stroke="var(--card-border)" stroke-width=".65" opacity=".35"/>
+        <path d="M346 0H560V91C505 80 475 64 445 43S386 8 346 0Z" fill="var(--card-text)"/>
+        <path d="M366 -10C408 22 474 33 566 55M382 -13C424 19 490 30 572 49M399 -16C441 16 507 27 578 43M417 -18C459 14 525 25 584 37" fill="none" stroke="var(--card-bg)" stroke-width="1.15" opacity=".72"/>
+        <path d="M0 228C95 245 134 267 232 270S414 245 560 268V297H0Z" fill="var(--card-text)"/>
+        <path d="M-8 251C95 268 137 287 238 288S422 267 568 286M-8 260C95 277 137 296 238 297S422 276 568 295M-8 242C95 259 137 278 238 279S422 258 568 277" fill="none" stroke="var(--card-bg)" stroke-width="1.1" opacity=".82"/>
+        <path d="M0 0H102L0 29Z" fill="var(--card-text)" opacity=".12"/>
         @else
         <path d="M148 0H297V160C243 151 255 91 211 75S169 38 148 0Z" fill="var(--card-accent)"/>
         <path d="M198 -20C171 36 320 63 275 149M214 -20C187 36 336 63 291 149M230 -20C203 36 352 63 307 149M246 -20C219 36 368 63 323 149" fill="none" stroke="var(--card-bg)" stroke-width="1.5" opacity=".65"/>

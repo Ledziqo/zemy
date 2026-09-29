@@ -27,6 +27,18 @@ const fs=require('fs'),{execFileSync}=require('child_process'),assert=require('a
  assert(Math.abs(portrait.width/portrait.height-75/140)<.03,'portrait preview remains 75 × 140 mm');
  await page.locator('#qr-design-reset').click();
  assert.equal(await orientation.first().isChecked(),true,'reset returns to the safe portrait default');
+ await page.locator('input[name="accent_color"]').fill('#123456');
+ await page.selectOption('#qr-preview-type','room');
+ assert.equal(await page.locator('input[name="accent_color"]').inputValue(),'#d22630','room palette remains independent from table edits');
+ assert.equal(await page.locator('input[name="orientation"][value="portrait"]').isChecked(),true,'room starts with its own portrait setting');
+ await page.locator('input[name="orientation"][value="landscape"]').check();
+ await page.locator('input[name="accent_color"]').fill('#004400');
+ await page.selectOption('#qr-preview-type','table');
+ assert.equal(await page.locator('input[name="accent_color"]').inputValue(),'#123456','table draft is restored when switching back');
+ assert.equal(await page.locator('input[name="orientation"][value="portrait"]').isChecked(),true,'table orientation is not overwritten by the room card');
+ await page.selectOption('#qr-preview-type','room');
+ assert.equal(await page.locator('input[name="accent_color"]').inputValue(),'#004400','room draft restores independently');
+ assert.equal(await page.locator('input[name="orientation"][value="landscape"]').isChecked(),true,'room keeps its separate landscape setting');
  const packStyles=fs.readFileSync('resources/views/restaurant/tables/setup_pack.blade.php','utf8').match(/<style>[\s\S]*?<\/style>/)[0];
  await page.setContent(packStyles+'<section class="qr-page is-landscape">'+Array.from({length:8},()=>'<article class="signature-card is-landscape"></article>').join('')+'</section>');
  const landscapeGrid=await page.locator('.qr-page').evaluate(el=>{const css=getComputedStyle(el);return {columns:css.gridTemplateColumns.split(' ').length,rows:css.gridTemplateRows.split(' ').length,cardCount:el.children.length}});

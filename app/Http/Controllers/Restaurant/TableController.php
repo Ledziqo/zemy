@@ -21,10 +21,20 @@ class TableController extends Controller
     {
         $restaurant = $this->restaurant($request);
         $tables = $restaurant->tables()->orderByRaw('CAST(table_number AS UNSIGNED)')->paginate(50);
-        $sticker = array_merge($this->defaultStickerSettings($restaurant), $restaurant->settings['qr_sticker'] ?? []);
-        $previewTable = $tables->first();
-        $previewQr = $previewTable ? 'data:image/svg+xml;base64,'.base64_encode($this->buildQr($restaurant, $previewTable)->getString()) : null;
-        return view('restaurant.tables.index', compact('restaurant', 'tables', 'sticker', 'previewTable', 'previewQr'));
+        $designs = $this->qrCardDesigns($restaurant);
+        $activeTables = $restaurant->tables()->where('is_active', true)->get();
+        $activeTables->each(fn (RestaurantTable $table) => $table->setRelation('restaurant', $restaurant));
+        $previewCards = [];
+        foreach (['table', 'room'] as $type) {
+            $previewTable = $activeTables->first(fn (RestaurantTable $table) => $type === 'room' ? $table->isRoomServicePoint() : ! $table->isRoomServicePoint());
+            $previewCards[$type] = [
+                'qr' => $previewTable ? 'data:image/svg+xml;base64,'.base64_encode($this->buildQr($restaurant, $previewTable)->getString()) : null,
+                'label' => $previewTable?->displayLabel() ?? ($type === 'room' ? 'Room 204' : 'Table 1'),
+            ];
+        }
+        $designType = in_array(old('design_type', 'table'), ['table', 'room'], true) ? old('design_type', 'table') : 'table';
+        $sticker = $designs[$designType] ?? $designs['table'];
+        return view('restaurant.tables.index', compact('restaurant', 'tables', 'sticker', 'previewCards', 'designs', 'designType'));
     }
 
     public function saveDesign(Request $request)
@@ -37,7 +47,8 @@ class TableController extends Controller
         foreach (['logo_size' => [1, 200], 'logo_width' => [1, 200], 'logo_x' => [-200, 300], 'logo_y' => [-200, 400], 'heading_x' => [-300, 300], 'heading_y' => [-300, 400], 'kicker_x' => [-300, 300], 'kicker_y' => [-300, 400], 'title_x' => [-300, 300], 'title_y' => [-300, 400], 'location_x' => [-300, 300], 'location_y' => [-300, 400], 'scan_x' => [-300, 300], 'scan_y' => [-300, 400], 'frame_x' => [-300, 300], 'frame_y' => [-300, 400], 'hint_x' => [-300, 300], 'hint_y' => [-300, 400], 'footer_x' => [-300, 300], 'footer_y' => [-300, 400], 'text_size' => [14, 22], 'qr_size' => [38, 50], 'detail_size' => [6, 9], 'footer_size' => [50, 200], 'art_opacity' => [10, 100]] as $key => [$min, $max]) {
             $rules[$key] = ['required', 'integer', "between:$min,$max"];
         }
-        $rules['table_scan_text'] = ['required', 'string', 'max:40'];
+        $rules['design_type'] = ['required', 'in:table,room'];
+        $rules['scan_text'] = ['required', 'string', 'max:40'];
         $rules['elements'] = ['sometimes', 'array'];
         foreach (['logo','cross','line_left','line_right','kicker_text','title','location','frame','hint','footer','credit','zemtab','art'] as $element) {
             $rules['elements.'.$element] = ['sometimes', 'array:x,y,sx,sy'];
@@ -45,7 +56,6 @@ class TableController extends Controller
                 $rules['elements.'.$element.'.'.$dimension] = ['sometimes', 'numeric', str_starts_with($dimension, 's') ? 'between:0.02,20' : 'between:-1000,1000'];
             }
         }
-        $rules['room_scan_text'] = ['required', 'string', 'max:40'];
         $rules['qr_logo'] = ['nullable', 'file', 'mimes:png,jpg,jpeg,webp,svg', 'max:4096'];
         $rules['remove_qr_logo'] = ['nullable', 'boolean'];
         $data = $request->validate($rules);
@@ -54,13 +64,25 @@ class TableController extends Controller
         unset($data['qr_logo'], $data['remove_qr_logo']);
         $restaurant = $this->restaurant($request);
         $settings = $restaurant->settings ?? [];
+        $type = $data['design_type'];
+        unset($data['design_type']);
+        $scanText = $data['scan_text'];
+        unset($data['scan_text']);
+        $qrSticker = $settings['qr_sticker'] ?? [];
+        $designs = $qrSticker['designs'] ?? [];
+        $current = array_merge($this->defaultStickerSettings($restaurant), $qrSticker, $designs[$type] ?? []);
+        unset($current['designs']);
+        $data[$type.'_scan_text'] = $scanText;
         if ($request->hasFile('qr_logo')) {
             $data['qr_logo_path'] = ImageOptimizer::storeUpload($request->file('qr_logo'), 'restaurants/qr-logos', 2000, 95);
         } elseif ($request->boolean('remove_qr_logo')) {
             $data['qr_logo_path'] = null;
         }
         // Keep the QR itself high contrast regardless of the decorative palette.
-        $settings['qr_sticker'] = array_merge($settings['qr_sticker'] ?? [], $data, ['qr_color' => '#111111', 'qr_background_color' => '#FFFFFF']);
+        $qrSticker['designs'][$type] = array_merge($current, $data);
+        $qrSticker['qr_color'] = '#111111';
+        $qrSticker['qr_background_color'] = '#FFFFFF';
+        $settings['qr_sticker'] = $qrSticker;
         $restaurant->update(['settings' => $settings]);
         QrSetupPackStore::invalidate((int) $restaurant->id);
         return redirect()->route('restaurant.tables.index', [], 303)->with('success', 'QR design saved. Open the setup pack to print your updated cards.');
@@ -77,14 +99,21 @@ class TableController extends Controller
             return redirect()->away($url);
         }
 
-        $sticker = array_merge($this->defaultStickerSettings($restaurant), $restaurant->settings['qr_sticker'] ?? []);
-        $tableCount = $restaurant->tables()->where('is_active', true)->count();
-        $buildToken = QrSetupPackStore::begin($restaurant, $tableCount);
+        $designs = $this->qrCardDesigns($restaurant);
+        $tables = $restaurant->tables()->where('is_active', true)->get();
+        $tables->each(fn (RestaurantTable $table) => $table->setRelation('restaurant', $restaurant));
+        $tableCount = $tables->count();
+        $roomCount = $tables->filter(fn (RestaurantTable $table) => $table->isRoomServicePoint())->count();
+        $pageCount = (int) ceil(($tableCount - $roomCount) / 8) + (int) ceil($roomCount / 8);
+        $buildToken = QrSetupPackStore::begin($restaurant, $pageCount * 8);
 
         return view('restaurant.tables.setup_pack', [
             'restaurant' => $restaurant,
-            'sticker' => $sticker,
+            'sticker' => $designs['table'],
             'tableCount' => $tableCount,
+            'pageCount' => $pageCount,
+            'roomCount' => $roomCount,
+            'tableOnlyCount' => $tableCount - $roomCount,
             'batchSize' => 8,
             'buildToken' => $buildToken,
         ]);
@@ -95,19 +124,23 @@ class TableController extends Controller
         $restaurant = $this->restaurant($request);
         $page = max(0, (int) $request->input('page', 0));
         $batchSize = 8;
-        $tables = $restaurant->tables()
+        $allTables = $restaurant->tables()
             ->where('is_active', true)
             ->orderByRaw('CAST(table_number AS UNSIGNED)')
-            ->skip($page * $batchSize)
-            ->take($batchSize)
             ->get();
-        $sticker = array_merge($this->defaultStickerSettings($restaurant), $restaurant->settings['qr_sticker'] ?? []);
+        $allTables->each(fn (RestaurantTable $table) => $table->setRelation('restaurant', $restaurant));
+        $tableCards = $allTables->filter(fn (RestaurantTable $table) => ! $table->isRoomServicePoint())->values();
+        $roomCards = $allTables->filter(fn (RestaurantTable $table) => $table->isRoomServicePoint())->values();
+        $tablePageCount = (int) ceil($tableCards->count() / $batchSize);
+        $type = $page < $tablePageCount ? 'table' : 'room';
+        $typePage = $type === 'table' ? $page : $page - $tablePageCount;
+        $tables = ($type === 'table' ? $tableCards : $roomCards)->slice($typePage * $batchSize, $batchSize)->values();
+        $designs = $this->qrCardDesigns($restaurant);
+        $sticker = $designs[$type];
         $qrImages = $tables->mapWithKeys(fn (RestaurantTable $table) => [
             $table->id => 'data:image/svg+xml;base64,'.base64_encode($this->cachedQrSvg($restaurant, $table)),
         ]);
-        $tables->each(fn (RestaurantTable $table) => $table->setRelation('restaurant', $restaurant));
-
-        $html = view('restaurant.tables.setup_pack_batch', compact('restaurant', 'tables', 'qrImages', 'sticker'))->render();
+        $html = view('restaurant.tables.setup_pack_batch', compact('restaurant', 'tables', 'qrImages', 'sticker', 'type'))->render();
         QrSetupPackStore::storePage($restaurant, (string) $request->query('build'), $page, $html);
 
         return response($html)->header('Cache-Control', 'private, no-store');
@@ -278,6 +311,35 @@ class TableController extends Controller
             'art_opacity' => 100,
             'qr_logo_path' => null,
         ];
+    }
+
+    private function qrCardDesigns($restaurant): array
+    {
+        $root = $restaurant->settings['qr_sticker'] ?? [];
+        $defaults = $this->defaultStickerSettings($restaurant);
+        $restaurantLogoPath = $restaurant->logo_path;
+        $restaurantLogoUrl = $restaurantLogoPath
+            ? (\Illuminate\Support\Str::startsWith($restaurantLogoPath, ['http://', 'https://', 'uploads/'])
+                ? (str_starts_with($restaurantLogoPath, 'uploads/') ? asset($restaurantLogoPath) : $restaurantLogoPath)
+                : asset('storage/'.$restaurantLogoPath))
+            : null;
+        $designs = [];
+        foreach (['table', 'room'] as $type) {
+            $designs[$type] = array_merge($defaults, $root, $root['designs'][$type] ?? []);
+            unset($designs[$type]['designs']);
+            $designs[$type]['table_scan_text'] = $designs[$type]['table_scan_text'] ?? $defaults['table_scan_text'];
+            $designs[$type]['room_scan_text'] = $designs[$type]['room_scan_text'] ?? $defaults['room_scan_text'];
+            $designs[$type]['scan_text'] = $designs[$type][$type.'_scan_text'];
+            $logoPath = $designs[$type]['qr_logo_path'] ?? $restaurant->logo_path;
+            $designs[$type]['logo_url'] = $logoPath
+                ? (\Illuminate\Support\Str::startsWith($logoPath, ['http://', 'https://', 'uploads/'])
+                    ? (str_starts_with($logoPath, 'uploads/') ? asset($logoPath) : $logoPath)
+                    : asset('storage/'.$logoPath))
+                : null;
+            $designs[$type]['restaurant_logo_url'] = $restaurantLogoUrl;
+        }
+
+        return $designs;
     }
 
     private function validated(Request $request): array

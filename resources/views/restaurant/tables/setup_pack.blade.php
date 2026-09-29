@@ -15,14 +15,14 @@ body{margin:0;padding:24px;background:#e9e9e7;color:#171717;font-family:Arial,He
 </style>
 </head>
 <body>
-<header class="pack-toolbar no-print"><div><h1>{{ $restaurant->name }} · Signature QR pack</h1><p>8 cards · @if(($sticker['orientation'] ?? 'portrait') === 'landscape')2 across × 4 down · each card 140 × 75 mm.@else 4 across × 2 down · each card 75 × 140 mm.@endif Save as PDF using custom 330 × 350 mm paper, 100% scale, no margins, and background graphics enabled.</p><p>The PDF keeps QR codes, text, and artwork as vectors instead of flattening the page to a screenshot. Logo images are embedded directly; use the original high-resolution logo (SVG where available) for the sharpest print.</p><p id="pack-status" aria-live="polite">Preparing your QR pages…</p></div><button type="button" onclick="printSetupPack()" id="print-pack-button" disabled>Preparing pack…</button></header>
+<header class="pack-toolbar no-print"><div><h1>{{ $restaurant->name }} · Signature QR pack</h1><p>{{ $tableOnlyCount }} table cards and {{ $roomCount }} room cards, grouped onto separate pages using each card type’s saved orientation. Every page holds up to 8 cards on 330 × 350 mm paper.</p><p>The PDF keeps QR codes, text, and artwork as vectors instead of flattening the page to a screenshot. Logo images are embedded directly; use the original high-resolution logo (SVG where available) for the sharpest print.</p><p id="pack-status" aria-live="polite">Preparing your QR pages…</p></div><button type="button" onclick="printSetupPack()" id="print-pack-button" disabled>Preparing pack…</button></header>
 <main class="pack-scroll" id="qr-pack" aria-busy="true"></main>
 <script>
 const setupPackBatchUrl=@json(url('/restaurant/tables/qr/setup-pack'));
 const setupPackPublishUrl=@json(route('restaurant.tables.setup-pack.publish'));
 const setupPackCsrf=@json(csrf_token());
 const setupPackBuildToken=@json($buildToken);
-const setupPackPageCount=Math.ceil({{ $tableCount }}/{{ $batchSize }});
+const setupPackPageCount={{ $pageCount }};
 const pack=document.getElementById('qr-pack');
 const packStatus=document.getElementById('pack-status');
 const printButton=document.getElementById('print-pack-button');
