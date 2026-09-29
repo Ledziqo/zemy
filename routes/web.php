@@ -72,6 +72,15 @@ Route::get('/qr-print/{restaurantId}/{token}', [Restaurant\TableController::clas
     ->where('token', '[A-Za-z0-9]{48}')
     ->name('qr.print');
 
+// Short-lived signed build links serve snapshot-backed QR pages without
+// repeating database-backed session authentication for each page.
+Route::get('/qr-setup-pack/{restaurantId}/{token}/{page}', [Restaurant\TableController::class, 'setupPackBatch'])
+    ->middleware('signed')
+    ->whereNumber('restaurantId')
+    ->where('token', '[A-Za-z0-9]{48}')
+    ->whereNumber('page')
+    ->name('qr.setup-pack.batch');
+
 Route::get('/r/{restaurant_slug}/table/{table_number}', [MenuController::class, 'show'])
     ->middleware(['locale', 'throttle:300,1'])
     ->name('menu.show');

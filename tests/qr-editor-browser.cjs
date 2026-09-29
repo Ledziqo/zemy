@@ -67,8 +67,9 @@ const fs=require('fs'),{execFileSync}=require('child_process'),assert=require('a
  assert.equal(await page.locator('input[name="orientation"][value="landscape"]').isChecked(),true,'switching between card types preserves landscape orientation');
  const packStyles=fs.readFileSync('resources/views/restaurant/tables/setup_pack.blade.php','utf8').match(/<style>[\s\S]*?<\/style>/)[0];
  await page.setContent(packStyles+'<section class="qr-page is-landscape">'+Array.from({length:8},()=>'<article class="signature-card is-landscape"></article>').join('')+'</section>');
- const landscapeGrid=await page.locator('.qr-page').evaluate(el=>{const css=getComputedStyle(el);return {columns:css.gridTemplateColumns.split(' ').length,rows:css.gridTemplateRows.split(' ').length,cardCount:el.children.length}});
- assert.deepEqual(landscapeGrid,{columns:2,rows:4,cardCount:8},'landscape pack arranges eight 140 × 75 mm cards as 2 × 4');
+ const landscapeGrid=await page.locator('.qr-page').evaluate(el=>{const css=getComputedStyle(el);return {columns:css.gridTemplateColumns.split(' ').length,rows:css.gridTemplateRows.split(' ').length,width:parseFloat(css.width),height:parseFloat(css.height),cardCount:el.children.length}});
+ assert.equal(landscapeGrid.columns,2,'landscape pack uses two columns');assert.equal(landscapeGrid.rows,4,'landscape pack uses four rows');assert.equal(landscapeGrid.cardCount,8,'landscape pack fits eight cards');
+ assert(Math.abs(landscapeGrid.width-350*96/25.4)<1&&Math.abs(landscapeGrid.height-330*96/25.4)<1,'landscape pack arranges eight 140 × 75 mm cards on a 350 × 330 mm landscape sheet');
  html=execFileSync('php',['tests/qr-editor-fixture.php'],{encoding:'utf8'});
  await page.setContent(html.replace(/<script src="[^"]*qr-editor.js[^"]*"><\/script>/,'<script>'+js+'</script>').replace('<details class="qr-studio">','<details class="qr-studio" open>'));
  const keys=await page.locator('#qr-layer option').evaluateAll(es=>es.map(e=>e.value));

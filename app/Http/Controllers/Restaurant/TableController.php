@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Restaurant;
 
 use App\Http\Controllers\Controller;
+use App\Models\Restaurant;
 use App\Models\RestaurantTable;
 use App\Support\ImageOptimizer;
 use App\Support\PublicMenuCache;
@@ -116,21 +117,26 @@ class TableController extends Controller
     public function setupPack(Request $request)
     {
         $restaurant = $this->restaurant($request);
-        if ($request->has('page')) {
-            return $this->setupPackBatch($request);
-        }
-
         if ($url = QrSetupPackStore::currentUrl((int) $restaurant->id)) {
             return redirect()->away($url);
         }
 
         $designs = $this->qrCardDesigns($restaurant);
-        $tables = $restaurant->tables()->where('is_active', true)->get();
-        $tables->each(fn (RestaurantTable $table) => $table->setRelation('restaurant', $restaurant));
+        $allTables = $restaurant->tables()->orderByRaw('CAST(table_number AS UNSIGNED)')->get();
+        $allTables->each(fn (RestaurantTable $table) => $table->setRelation('restaurant', $restaurant));
+        $tables = $allTables->filter(fn (RestaurantTable $table) => $table->is_active)->values();
         $tableCount = $tables->count();
         $roomCount = $tables->filter(fn (RestaurantTable $table) => $table->isRoomServicePoint())->count();
         $pageCount = (int) ceil(($tableCount - $roomCount) / 8) + (int) ceil($roomCount / 8);
-        $buildToken = QrSetupPackStore::begin($restaurant, $pageCount * 8);
+        $buildToken = QrSetupPackStore::begin($restaurant, $allTables, $pageCount);
+        $batchUrls = [];
+        for ($page = 0; $page < $pageCount; $page++) {
+            $batchUrls[] = \Illuminate\Support\Facades\URL::temporarySignedRoute(
+                'qr.setup-pack.batch',
+                now()->addHours(3),
+                ['restaurantId' => $restaurant->id, 'token' => $buildToken, 'page' => $page],
+            );
+        }
 
         return view('restaurant.tables.setup_pack', [
             'restaurant' => $restaurant,
@@ -141,32 +147,37 @@ class TableController extends Controller
             'tableOnlyCount' => $tableCount - $roomCount,
             'batchSize' => 8,
             'buildToken' => $buildToken,
+            'batchUrls' => $batchUrls,
         ]);
     }
 
-    public function setupPackBatch(Request $request)
+    public function setupPackBatch(int $restaurantId, string $token, int $page)
     {
-        $restaurant = $this->restaurant($request);
-        $page = max(0, (int) $request->input('page', 0));
-        $batchSize = 8;
-        $allTables = $restaurant->tables()
-            ->where('is_active', true)
-            ->orderByRaw('CAST(table_number AS UNSIGNED)')
-            ->get();
-        $allTables->each(fn (RestaurantTable $table) => $table->setRelation('restaurant', $restaurant));
-        $tableCards = $allTables->filter(fn (RestaurantTable $table) => ! $table->isRoomServicePoint())->values();
-        $roomCards = $allTables->filter(fn (RestaurantTable $table) => $table->isRoomServicePoint())->values();
-        $tablePageCount = (int) ceil($tableCards->count() / $batchSize);
-        $type = $page < $tablePageCount ? 'table' : 'room';
-        $typePage = $type === 'table' ? $page : $page - $tablePageCount;
-        $tables = ($type === 'table' ? $tableCards : $roomCards)->slice($typePage * $batchSize, $batchSize)->values();
-        $designs = $this->qrCardDesigns($restaurant);
-        $sticker = $designs[$type]['orientations'][$designs[$type]['preferred_orientation']];
-        $qrImages = $tables->mapWithKeys(fn (RestaurantTable $table) => [
-            $table->id => 'data:image/svg+xml;base64,'.base64_encode($this->cachedQrSvg($restaurant, $table)),
-        ]);
-        $html = view('restaurant.tables.setup_pack_batch', compact('restaurant', 'tables', 'qrImages', 'sticker', 'type'))->render();
-        QrSetupPackStore::storePage($restaurant, (string) $request->query('build'), $page, $html);
+        $html = QrSetupPackStore::renderPageOnce($restaurantId, $token, $page, function () use ($restaurantId, $token, $page) {
+            $snapshot = QrSetupPackStore::snapshot($restaurantId, $token);
+            abort_unless($snapshot !== null, 404);
+
+            $restaurant = (new Restaurant())->newFromBuilder($snapshot['restaurant']);
+            $allTables = collect(array_map(
+                fn (array $attributes) => (new RestaurantTable())->newFromBuilder($attributes),
+                $snapshot['tables'],
+            ));
+            $allTables->each(fn (RestaurantTable $table) => $table->setRelation('restaurant', $restaurant));
+            $tableCards = $allTables->filter(fn (RestaurantTable $table) => ! $table->isRoomServicePoint())->values();
+            $roomCards = $allTables->filter(fn (RestaurantTable $table) => $table->isRoomServicePoint())->values();
+            $tablePageCount = (int) ceil($tableCards->count() / 8);
+            $type = $page < $tablePageCount ? 'table' : 'room';
+            $typePage = $type === 'table' ? $page : $page - $tablePageCount;
+            $tables = ($type === 'table' ? $tableCards : $roomCards)->slice($typePage * 8, 8)->values();
+            $designs = $this->qrCardDesigns($restaurant);
+            $sticker = $designs[$type]['orientations'][$designs[$type]['preferred_orientation']];
+            $qrImages = $tables->mapWithKeys(fn (RestaurantTable $table) => [
+                $table->id => 'data:image/svg+xml;base64,'.base64_encode($this->cachedQrSvg($restaurant, $table)),
+            ]);
+
+            return view('restaurant.tables.setup_pack_batch', compact('restaurant', 'tables', 'qrImages', 'sticker', 'type'))->render();
+        });
+        abort_unless($html !== null, 404);
 
         return response($html)->header('Cache-Control', 'private, no-store');
     }

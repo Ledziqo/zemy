@@ -40,6 +40,18 @@ const {chromium} = require(process.env.QR_PLAYWRIGHT || 'playwright');
             new RegExp(`/Width\\s+${width}\\b`).test(dictionary) &&
             new RegExp(`/Height\\s+${height}\\b`).test(dictionary)),
             'Raster logos must retain their source pixel dimensions in the PDF');
+
+        await page.setContent(styles + '<main><section class="qr-page"><article class="signature-card"></article></section><section class="qr-page is-landscape"><article class="signature-card is-landscape"></article></section></main>');
+        const orientationPdf = (await page.pdf({preferCSSPageSize: true, printBackground: true})).toString('latin1');
+        const pageBoxes = [...orientationPdf.matchAll(/\/MediaBox\s*\[\s*([\d.]+)\s+([\d.]+)\s+([\d.]+)\s+([\d.]+)\s*\]/g)]
+            .map(([, , , right, top]) => [Number(right), Number(top)]);
+        assert(pageBoxes.length >= 2, 'PDF must contain portrait and landscape pages');
+        const pointsForMm = mm => mm * 72 / 25.4;
+        const closeTo = (actual, expected) => Math.abs(actual - expected) < 1;
+        assert(pageBoxes.some(([width, height]) => closeTo(width, pointsForMm(330)) && closeTo(height, pointsForMm(350))),
+            'portrait design must print on a 330 × 350 mm PDF page');
+        assert(pageBoxes.some(([width, height]) => closeTo(width, pointsForMm(350)) && closeTo(height, pointsForMm(330))),
+            'landscape design must print on a 350 × 330 mm PDF page');
         console.log(`PDF checks passed: SVG stays vector; transformed PNG retains ${width} × ${height} source pixels.`);
     } finally {
         await browser.close();

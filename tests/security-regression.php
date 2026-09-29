@@ -86,6 +86,11 @@ if ($qrPrintRoute) {
     $qrMiddleware = $qrPrintRoute->gatherMiddleware();
     check(in_array('signed', $qrMiddleware) && ! in_array('auth', $qrMiddleware), 'prepared QR print links must expire by signature and avoid DB auth');
 }
+$qrBatchRoute = $router->getRoutes()->getByName('qr.setup-pack.batch');
+if ($qrBatchRoute) {
+    $qrBatchMiddleware = $qrBatchRoute->gatherMiddleware();
+    check(in_array('signed', $qrBatchMiddleware) && ! in_array('auth', $qrBatchMiddleware), 'QR build pages use signed snapshot links instead of database-backed auth');
+}
 
 foreach (['admin.setup.run'] as $name) {
     $middleware = $router->getRoutes()->getByName($name)->gatherMiddleware();
