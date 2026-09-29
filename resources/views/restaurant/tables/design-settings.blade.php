@@ -4,10 +4,22 @@
     $fallbackLogoUrl = $fallbackLogoPath ? (\Illuminate\Support\Str::startsWith($fallbackLogoPath, ['http://', 'https://', 'uploads/']) ? (str_starts_with($fallbackLogoPath, 'uploads/') ? asset($fallbackLogoPath) : $fallbackLogoPath) : asset('storage/'.$fallbackLogoPath)) : null;
     $fallbackRestaurantLogoPath = $restaurant->logo_path;
     $fallbackRestaurantLogoUrl = $fallbackRestaurantLogoPath ? (\Illuminate\Support\Str::startsWith($fallbackRestaurantLogoPath, ['http://', 'https://', 'uploads/']) ? (str_starts_with($fallbackRestaurantLogoPath, 'uploads/') ? asset($fallbackRestaurantLogoPath) : $fallbackRestaurantLogoPath) : asset('storage/'.$fallbackRestaurantLogoPath)) : null;
-    $qrCardDesigns = $qrCardDesigns ?? ['table' => array_merge($sticker, ['scan_text' => $sticker['table_scan_text'] ?? 'SCAN TO ORDER', 'logo_url' => $fallbackLogoUrl, 'restaurant_logo_url' => $fallbackRestaurantLogoUrl]), 'room' => array_merge($sticker, ['scan_text' => $sticker['room_scan_text'] ?? 'SCAN FOR ROOM SERVICE', 'logo_url' => $fallbackLogoUrl, 'restaurant_logo_url' => $fallbackRestaurantLogoUrl])];
+    if (!isset($qrCardDesigns)) {
+        $qrCardDesigns = [];
+        foreach (['table' => 'SCAN TO ORDER', 'room' => 'SCAN FOR ROOM SERVICE'] as $type => $text) {
+            $variants = [];
+            foreach (['portrait', 'landscape'] as $orientation) {
+                $variants[$orientation] = array_merge($sticker, ['orientation' => $orientation, 'scan_text' => $sticker[$type.'_scan_text'] ?? $text, 'logo_url' => $fallbackLogoUrl, 'restaurant_logo_url' => $fallbackRestaurantLogoUrl]);
+            }
+            $qrCardDesigns[$type] = ['preferred_orientation' => $sticker['orientation'] ?? 'portrait', 'orientations' => $variants];
+        }
+    }
     $previewCards = $previewCards ?? ['table' => ['qr' => $previewQr ?? null, 'label' => $previewTable?->displayLabel() ?? 'Table 1'], 'room' => ['qr' => $previewQr ?? null, 'label' => 'Room 204']];
     $requestedDesignType = old('design_type', $designType ?? 'table');
     $designType = in_array($requestedDesignType, ['table', 'room'], true) ? $requestedDesignType : 'table';
+    $designOrientation = old('orientation', $designOrientation ?? $sticker['orientation'] ?? 'portrait');
+    $designOrientation = in_array($designOrientation, ['portrait', 'landscape'], true) ? $designOrientation : 'portrait';
+    $sticker = $qrCardDesigns[$designType]['orientations'][$designOrientation] ?? $sticker;
 @endphp
 <style>
 .qr-studio{margin-bottom:28px;border:1px solid #8884;border-radius:16px;overflow:hidden}.qr-studio summary{list-style:none;cursor:pointer}.qr-studio summary::-webkit-details-marker{display:none}.qr-studio summary:after{content:'＋';float:right;font-size:24px;font-weight:400;line-height:1}.qr-studio[open] summary:after{content:'−'}
@@ -31,9 +43,9 @@
 @if($errors->any())<p role="alert" class="mb-4 text-red-500">{{ $errors->first() }}</p>@endif
 <fieldset><legend>00 / Card orientation</legend>
 <div class="qr-orientation" role="radiogroup" aria-label="Card orientation">
-<label><input type="radio" name="orientation" value="portrait" @checked(old('orientation',$sticker['orientation'] ?? 'portrait') === 'portrait')><span><strong>Portrait</strong><small>75 × 140 mm · 4 across × 2 down</small></span></label>
-<label><input type="radio" name="orientation" value="landscape" @checked(old('orientation',$sticker['orientation'] ?? 'portrait') === 'landscape')><span><strong>Landscape</strong><small>140 × 75 mm · 2 across × 4 down</small></span></label>
-</div><p class="qr-notice">Room and table cards save independently. Each type keeps its own orientation, colors, logo, and layout; setup-pack pages are grouped by type.</p></fieldset>
+<label><input type="radio" name="orientation" value="portrait" @checked($designOrientation === 'portrait')><span><strong>Portrait</strong><small>75 × 140 mm · 4 across × 2 down</small></span></label>
+<label><input type="radio" name="orientation" value="landscape" @checked($designOrientation === 'landscape')><span><strong>Landscape</strong><small>140 × 75 mm · 2 across × 4 down</small></span></label>
+</div><p class="qr-notice">Each card type has separate portrait and landscape designs. Switching orientation loads that layout’s own settings; changing table designs won’t affect room cards.</p></fieldset>
 <fieldset><legend>01 / Brand palette</legend>
 <div class="qr-presets"><button type="button" data-palette="signature">Signature red</button><button type="button" data-palette="forest">Forest & cream</button><button type="button" data-palette="midnight">Midnight & gold</button><button type="button" data-palette="brand">Venue brand</button></div>
 <div class="qr-controls">
@@ -58,7 +70,7 @@
 <input type="hidden" name="{{ $key }}" value="{{ old($key,$sticker[$key] ?? $default) }}">
 @endforeach
 <p class="qr-notice">Drag the logo, headline, QR block, or powered-by footer anywhere on the preview. Resize the logo, QR, text, and powered-by block with the controls. Dragged elements can overlap without moving anything else. Save before opening the print pack.</p>
-<button class="qr-save" id="qr-design-save">Save table card design</button> <button type="button" class="qr-reset" id="qr-design-reset">Reset this card type</button>
+<button class="qr-save" id="qr-design-save">Save {{ $designOrientation }} {{ $designType }} card design</button> <button type="button" class="qr-reset" id="qr-design-reset">Reset this layout</button>
 <p id="qr-design-status" class="qr-notice" role="status">Preview of saved settings.</p>
 </div>
 <aside class="qr-preview">
@@ -89,15 +101,17 @@
 <script>
 (() => {
  const form=document.getElementById('qr-design-form'),card=form.querySelector('.signature-card'),preview=form.querySelector('.qr-preview'),type=document.getElementById('qr-preview-type'),typeValue=document.getElementById('qr-design-type-value'),status=document.getElementById('qr-design-status'),logoInput=form.elements.namedItem('qr_logo'),logoWrap=card?.querySelector('.signature-logo-wrap'),logoSizeInput=form.elements.namedItem('logo_size'),logoWidthInput=form.elements.namedItem('logo_width');
- const designs=@json($qrCardDesigns),previewCards=@json($previewCards),fileDrafts={table:null,room:null},dirty=new Set();
+ const designs=@json($qrCardDesigns),previewCards=@json($previewCards),fileDrafts={table:{portrait:null,landscape:null},room:{portrait:null,landscape:null}},dirty=new Set();
+ let activeOrientation=field('orientation').value;
  let logo=card?.querySelector('.signature-logo');
  const palettes={signature:['#FFFFFF','#171717','#D22630','#D6D0CA'],forest:['#FBF8F0','#173F35','#38715C','#B7C3B5'],midnight:['#15232D','#FFF7E7','#B99151','#57636A'],brand:['#FFFFFF','#171717',@json($restaurant->primary_color ?: '#D22630'),'#D6D0CA']};
  const keys=['background_color','text_color','accent_color','border_color'];
  const scalarKeys=['orientation',...keys,'logo_size','logo_width','logo_x','logo_y','heading_x','heading_y','kicker_x','kicker_y','title_x','title_y','location_x','location_y','scan_x','scan_y','frame_x','frame_y','hint_x','hint_y','footer_x','footer_y','text_size','qr_size','detail_size','footer_size','art_opacity','scan_text'];
  function field(name){return form.elements.namedItem(name)}
- function capture(){const state={};scalarKeys.forEach(key=>{if(key==='orientation')state[key]=field(key).value;else if(key==='scan_text')state[key]=field(key).value;else state[key]=field(key).value});state.elements={};['logo','cross','line_left','line_right','kicker_text','title','location','frame','hint','footer','credit','zemtab','art'].forEach(name=>{state.elements[name]={};['x','y','sx','sy'].forEach(d=>{const input=field(`elements[${name}][${d}]`);if(input)state.elements[name][d]=input.value})});state.qr_logo_path=designs[type.value].qr_logo_path;state.logo_url=designs[type.value].logo_url;state.remove_qr_logo=field('remove_qr_logo').checked;return state}
+ function activeDesign(){return designs[type.value].orientations[activeOrientation]}
+ function capture(){const state={};scalarKeys.forEach(key=>{if(key==='orientation')state[key]=activeOrientation;else state[key]=field(key).value});state.elements={};['logo','cross','line_left','line_right','kicker_text','title','location','frame','hint','footer','credit','zemtab','art'].forEach(name=>{state.elements[name]={};['x','y','sx','sy'].forEach(d=>{const input=field(`elements[${name}][${d}]`);if(input)state.elements[name][d]=input.value})});state.qr_logo_path=activeDesign().qr_logo_path;state.logo_url=activeDesign().logo_url;state.restaurant_logo_url=activeDesign().restaurant_logo_url;state.remove_qr_logo=field('remove_qr_logo').checked;return state}
  function restoreFileInput(value){if(!logoInput)return;const transfer=new DataTransfer();if(value)transfer.items.add(value);logoInput.files=transfer.files}
- function applyDesign(state){scalarKeys.forEach(key=>{const input=field(key);if(!input)return;if(key==='orientation')input.value=state[key];else input.value=state[key]??''});Object.entries(state.elements||{}).forEach(([name,dimensions])=>Object.entries(dimensions).forEach(([dimension,value])=>{const input=field(`elements[${name}][${dimension}]`);if(input)input.value=value}));field('remove_qr_logo').checked=!!state.remove_qr_logo;restoreFileInput(fileDrafts[type.value]);update(false)}
+ function applyDesign(state){scalarKeys.forEach(key=>{const input=field(key);if(!input)return;if(key==='orientation')input.value=state[key];else input.value=state[key]??''});Object.entries(state.elements||{}).forEach(([name,dimensions])=>Object.entries(dimensions).forEach(([dimension,value])=>{const input=field(`elements[${name}][${dimension}]`);if(input)input.value=value}));field('remove_qr_logo').checked=!!state.remove_qr_logo;restoreFileInput(fileDrafts[type.value][activeOrientation]);update(false)}
  function setLogo(src){if(!card)return;if(src){if(!logo){logo=document.createElement('img');logo.className='signature-logo';logo.dataset.layer='logo';logo.alt='QR logo';logo.setAttribute('data-print-resource','');logoWrap.appendChild(logo)}logo.src=src;logo.hidden=false}else if(logo){logo.remove();logo=null}}
  function update(markDirty=true){
   const properties={background_color:'--card-bg',text_color:'--card-text',accent_color:'--card-accent',border_color:'--card-border',logo_size:'--logo-size',logo_width:'--logo-width',logo_x:'--logo-x',logo_y:'--logo-y',heading_x:'--heading-x',heading_y:'--heading-y',kicker_x:'--kicker-x',kicker_y:'--kicker-y',title_x:'--title-x',title_y:'--title-y',location_x:'--location-x',location_y:'--location-y',scan_x:'--scan-x',scan_y:'--scan-y',frame_x:'--frame-x',frame_y:'--frame-y',hint_x:'--hint-x',hint_y:'--hint-y',footer_x:'--footer-x',footer_y:'--footer-y',text_size:'--text-size',qr_size:'--qr-size',detail_size:'--detail-size',footer_size:'--footer-scale',art_opacity:'--art-opacity'};
@@ -106,16 +120,17 @@
   const orientation=field('orientation').value;
   card?.classList.toggle('is-landscape',orientation==='landscape');
   preview?.classList.toggle('is-landscape',orientation==='landscape');
-  if(card){card.querySelector('.signature-title').textContent=field('scan_text').value;card.querySelector('.signature-location').textContent=previewCards[type.value].label;card.querySelector('.signature-frame img').src=previewCards[type.value].qr;const label=document.getElementById('qr-preview-label');if(label)label.textContent=previewCards[type.value].label;const uploaded=fileDrafts[type.value];setLogo(uploaded?URL.createObjectURL(uploaded):(field('remove_qr_logo').checked?designs[type.value].restaurant_logo_url:designs[type.value].logo_url));window.fitSignatureTitles(form);}
-  if(markDirty){designs[type.value]=capture();dirty.add(type.value);status.textContent=`Unsaved ${type.value} card design — save to apply it to that type’s print-pack pages.`;}
+  if(card){card.querySelector('.signature-title').textContent=field('scan_text').value;card.querySelector('.signature-location').textContent=previewCards[type.value].label;card.querySelector('.signature-frame img').src=previewCards[type.value].qr;const label=document.getElementById('qr-preview-label');if(label)label.textContent=previewCards[type.value].label;const uploaded=fileDrafts[type.value][activeOrientation];setLogo(uploaded?URL.createObjectURL(uploaded):(field('remove_qr_logo').checked?activeDesign().restaurant_logo_url:activeDesign().logo_url));window.fitSignatureTitles(form);}
+  if(markDirty){designs[type.value].orientations[activeOrientation]=capture();dirty.add(`${type.value}:${activeOrientation}`);status.textContent=`Unsaved ${activeOrientation} ${type.value} design — save to apply this exact layout to the print pack.`;}
  }
- type.addEventListener('change',()=>{const previous=typeValue.value;designs[previous]=capture();if(logoInput?.files?.[0])fileDrafts[previous]=logoInput.files[0];typeValue.value=type.value;applyDesign(designs[type.value]);document.getElementById('qr-design-save').textContent=`Save ${type.value} card design`;status.textContent=`Editing the independent ${type.value} card design.`});
- logoInput?.addEventListener('change',()=>{fileDrafts[type.value]=logoInput.files?.[0]||null;update();});
+ type.addEventListener('change',()=>{const previous=typeValue.value;designs[previous].orientations[activeOrientation]=capture();if(logoInput?.files?.[0])fileDrafts[previous][activeOrientation]=logoInput.files[0];typeValue.value=type.value;applyDesign(designs[type.value].orientations[activeOrientation]);document.getElementById('qr-design-save').textContent=`Save ${activeOrientation} ${type.value} card design`;status.textContent=`Editing ${activeOrientation} ${type.value} cards.`});
+ form.querySelectorAll('input[name="orientation"]').forEach(input=>input.addEventListener('change',()=>{const next=input.value;if(next===activeOrientation)return;designs[type.value].orientations[activeOrientation]=capture();if(logoInput?.files?.[0])fileDrafts[type.value][activeOrientation]=logoInput.files[0];activeOrientation=next;applyDesign(designs[type.value].orientations[activeOrientation]);document.getElementById('qr-design-save').textContent=`Save ${activeOrientation} ${type.value} card design`;status.textContent=`Editing the independent ${activeOrientation} ${type.value} layout.`}));
+ logoInput?.addEventListener('change',()=>{fileDrafts[type.value][activeOrientation]=logoInput.files?.[0]||null;update();});
  form.elements.namedItem('remove_qr_logo').addEventListener('change',()=>update());
- form.addEventListener('submit',event=>{const other=type.value==='table'?'room':'table';if(dirty.has(other)&&!confirm(`Only the ${type.value} design will be saved. Your unsaved ${other} design will be discarded. Continue?`)){event.preventDefault();return}dirty.delete(type.value)});
+ form.addEventListener('submit',event=>{const current=`${type.value}:${activeOrientation}`,others=[...dirty].filter(key=>key!==current);if(others.length&&!confirm(`Only the ${activeOrientation} ${type.value} layout will be saved. Other unsaved card layouts will be discarded. Continue?`)){event.preventDefault();return}dirty.delete(current)});
  form.querySelectorAll('[data-palette]').forEach(button=>button.addEventListener('click',()=>{keys.forEach((key,index)=>field(key).value=palettes[button.dataset.palette][index]);update()}));
- document.getElementById('qr-design-reset').addEventListener('click',()=>{keys.forEach((key,index)=>field(key).value=palettes.signature[index]);Object.entries({orientation:'portrait',logo_size:24,logo_width:53,logo_x:37,logo_y:18,heading_x:0,heading_y:0,kicker_x:0,kicker_y:0,title_x:0,title_y:0,location_x:0,location_y:0,scan_x:0,scan_y:-3,frame_x:0,frame_y:0,hint_x:0,hint_y:0,footer_x:0,footer_y:0,text_size:18,qr_size:46,detail_size:7,footer_size:100,art_opacity:100,scan_text:type.value==='table'?'SCAN TO ORDER':'SCAN FOR ROOM SERVICE'}).forEach(([key,value])=>field(key).value=value);fileDrafts[type.value]=null;restoreFileInput(null);field('remove_qr_logo').checked=false;logoWrap?.classList.remove('is-selected');update()});
- form.addEventListener('input',event=>{if(event.target!==type)update()});
+ document.getElementById('qr-design-reset').addEventListener('click',()=>{keys.forEach((key,index)=>field(key).value=palettes.signature[index]);Object.entries({orientation:activeOrientation,logo_size:24,logo_width:53,logo_x:37,logo_y:18,heading_x:0,heading_y:0,kicker_x:0,kicker_y:0,title_x:0,title_y:0,location_x:0,location_y:0,scan_x:0,scan_y:-3,frame_x:0,frame_y:0,hint_x:0,hint_y:0,footer_x:0,footer_y:0,text_size:18,qr_size:46,detail_size:7,footer_size:100,art_opacity:100,scan_text:type.value==='table'?'SCAN TO ORDER':'SCAN FOR ROOM SERVICE'}).forEach(([key,value])=>field(key).value=value);fileDrafts[type.value][activeOrientation]=null;restoreFileInput(null);field('remove_qr_logo').checked=false;logoWrap?.classList.remove('is-selected');update()});
+ form.addEventListener('input',event=>{if(event.target!==type&&event.target.name!=='orientation')update()});
  card?.addEventListener('pointerup',()=>update());
  update(false);
  window.initQrEditor(form, card);

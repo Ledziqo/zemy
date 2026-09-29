@@ -33,8 +33,18 @@ class TableController extends Controller
             ];
         }
         $designType = in_array(old('design_type', 'table'), ['table', 'room'], true) ? old('design_type', 'table') : 'table';
-        $sticker = $designs[$designType] ?? $designs['table'];
-        return view('restaurant.tables.index', compact('restaurant', 'tables', 'sticker', 'previewCards', 'designs', 'designType'));
+        $designOrientation = old('orientation', $designs[$designType]['preferred_orientation']);
+        $designOrientation = in_array($designOrientation, ['portrait', 'landscape'], true) ? $designOrientation : $designs[$designType]['preferred_orientation'];
+        $sticker = $designs[$designType]['orientations'][$designOrientation];
+        return view('restaurant.tables.index', [
+            'restaurant' => $restaurant,
+            'tables' => $tables,
+            'sticker' => $sticker,
+            'previewCards' => $previewCards,
+            'qrCardDesigns' => $designs,
+            'designType' => $designType,
+            'designOrientation' => $designOrientation,
+        ]);
     }
 
     public function saveDesign(Request $request)
@@ -66,12 +76,13 @@ class TableController extends Controller
         $settings = $restaurant->settings ?? [];
         $type = $data['design_type'];
         unset($data['design_type']);
+        $orientation = $data['orientation'];
         $scanText = $data['scan_text'];
         unset($data['scan_text']);
         $qrSticker = $settings['qr_sticker'] ?? [];
-        $designs = $qrSticker['designs'] ?? [];
-        $current = array_merge($this->defaultStickerSettings($restaurant), $qrSticker, $designs[$type] ?? []);
-        unset($current['designs']);
+        $designs = $this->qrCardDesigns($restaurant);
+        $current = $designs[$type]['orientations'][$orientation];
+        unset($current['scan_text'], $current['logo_url'], $current['restaurant_logo_url']);
         $data[$type.'_scan_text'] = $scanText;
         if ($request->hasFile('qr_logo')) {
             $data['qr_logo_path'] = ImageOptimizer::storeUpload($request->file('qr_logo'), 'restaurants/qr-logos', 2000, 95);
@@ -79,7 +90,21 @@ class TableController extends Controller
             $data['qr_logo_path'] = null;
         }
         // Keep the QR itself high contrast regardless of the decorative palette.
-        $qrSticker['designs'][$type] = array_merge($current, $data);
+        $typeDesign = $qrSticker['designs'][$type] ?? [];
+        $orientationDesigns = $typeDesign['orientations'] ?? [];
+        if (! array_key_exists('orientations', $typeDesign)) {
+            $legacyOrientation = in_array($typeDesign['orientation'] ?? null, ['portrait', 'landscape'], true)
+                ? $typeDesign['orientation']
+                : ($qrSticker['orientation'] ?? 'portrait');
+            if ($typeDesign !== []) {
+                $orientationDesigns[$legacyOrientation] = array_merge($current, $typeDesign);
+            }
+        }
+        $orientationDesigns[$orientation] = array_merge($current, $orientationDesigns[$orientation] ?? [], $data);
+        $qrSticker['designs'][$type] = [
+            'preferred_orientation' => $orientation,
+            'orientations' => $orientationDesigns,
+        ];
         $qrSticker['qr_color'] = '#111111';
         $qrSticker['qr_background_color'] = '#FFFFFF';
         $settings['qr_sticker'] = $qrSticker;
@@ -109,7 +134,7 @@ class TableController extends Controller
 
         return view('restaurant.tables.setup_pack', [
             'restaurant' => $restaurant,
-            'sticker' => $designs['table'],
+            'sticker' => $designs['table']['orientations'][$designs['table']['preferred_orientation']],
             'tableCount' => $tableCount,
             'pageCount' => $pageCount,
             'roomCount' => $roomCount,
@@ -136,7 +161,7 @@ class TableController extends Controller
         $typePage = $type === 'table' ? $page : $page - $tablePageCount;
         $tables = ($type === 'table' ? $tableCards : $roomCards)->slice($typePage * $batchSize, $batchSize)->values();
         $designs = $this->qrCardDesigns($restaurant);
-        $sticker = $designs[$type];
+        $sticker = $designs[$type]['orientations'][$designs[$type]['preferred_orientation']];
         $qrImages = $tables->mapWithKeys(fn (RestaurantTable $table) => [
             $table->id => 'data:image/svg+xml;base64,'.base64_encode($this->cachedQrSvg($restaurant, $table)),
         ]);
@@ -317,6 +342,9 @@ class TableController extends Controller
     {
         $root = $restaurant->settings['qr_sticker'] ?? [];
         $defaults = $this->defaultStickerSettings($restaurant);
+        $storedDesigns = $root['designs'] ?? [];
+        unset($root['designs']);
+        $base = array_merge($defaults, $root);
         $restaurantLogoPath = $restaurant->logo_path;
         $restaurantLogoUrl = $restaurantLogoPath
             ? (\Illuminate\Support\Str::startsWith($restaurantLogoPath, ['http://', 'https://', 'uploads/'])
@@ -325,18 +353,36 @@ class TableController extends Controller
             : null;
         $designs = [];
         foreach (['table', 'room'] as $type) {
-            $designs[$type] = array_merge($defaults, $root, $root['designs'][$type] ?? []);
-            unset($designs[$type]['designs']);
-            $designs[$type]['table_scan_text'] = $designs[$type]['table_scan_text'] ?? $defaults['table_scan_text'];
-            $designs[$type]['room_scan_text'] = $designs[$type]['room_scan_text'] ?? $defaults['room_scan_text'];
-            $designs[$type]['scan_text'] = $designs[$type][$type.'_scan_text'];
-            $logoPath = $designs[$type]['qr_logo_path'] ?? $restaurant->logo_path;
-            $designs[$type]['logo_url'] = $logoPath
-                ? (\Illuminate\Support\Str::startsWith($logoPath, ['http://', 'https://', 'uploads/'])
-                    ? (str_starts_with($logoPath, 'uploads/') ? asset($logoPath) : $logoPath)
-                    : asset('storage/'.$logoPath))
-                : null;
-            $designs[$type]['restaurant_logo_url'] = $restaurantLogoUrl;
+            $typeDesign = $storedDesigns[$type] ?? [];
+            $orientationDesigns = $typeDesign['orientations'] ?? [];
+            if (! array_key_exists('orientations', $typeDesign)) {
+                $legacyOrientation = in_array($typeDesign['orientation'] ?? null, ['portrait', 'landscape'], true)
+                    ? $typeDesign['orientation']
+                    : ($base['orientation'] ?? 'portrait');
+                if ($typeDesign !== []) {
+                    $orientationDesigns[$legacyOrientation] = $typeDesign;
+                }
+            }
+            $preferred = $typeDesign['preferred_orientation'] ?? ($typeDesign['orientation'] ?? $base['orientation'] ?? 'portrait');
+            if (! in_array($preferred, ['portrait', 'landscape'], true)) {
+                $preferred = 'portrait';
+            }
+            $designs[$type] = ['preferred_orientation' => $preferred, 'orientations' => []];
+            foreach (['portrait', 'landscape'] as $orientation) {
+                $design = array_merge($base, $orientationDesigns[$orientation] ?? []);
+                $design['orientation'] = $orientation;
+                $design['table_scan_text'] = $design['table_scan_text'] ?? $defaults['table_scan_text'];
+                $design['room_scan_text'] = $design['room_scan_text'] ?? $defaults['room_scan_text'];
+                $design['scan_text'] = $design[$type.'_scan_text'];
+                $logoPath = $design['qr_logo_path'] ?? $restaurant->logo_path;
+                $design['logo_url'] = $logoPath
+                    ? (\Illuminate\Support\Str::startsWith($logoPath, ['http://', 'https://', 'uploads/'])
+                        ? (str_starts_with($logoPath, 'uploads/') ? asset($logoPath) : $logoPath)
+                        : asset('storage/'.$logoPath))
+                    : null;
+                $design['restaurant_logo_url'] = $restaurantLogoUrl;
+                $designs[$type]['orientations'][$orientation] = $design;
+            }
         }
 
         return $designs;
