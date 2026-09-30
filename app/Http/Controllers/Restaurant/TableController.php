@@ -11,6 +11,7 @@ use App\Support\PublicSitemapCache;
 use App\Support\QrSetupPackStore;
 use Endroid\QrCode\Color\Color;
 use Endroid\QrCode\Builder\Builder;
+use Endroid\QrCode\ErrorCorrectionLevel;
 use Endroid\QrCode\Writer\SvgWriter;
 use Illuminate\Http\Request;
 
@@ -29,7 +30,7 @@ class TableController extends Controller
         foreach (['table', 'room'] as $type) {
             $previewTable = $activeTables->first(fn (RestaurantTable $table) => $type === 'room' ? $table->isRoomServicePoint() : ! $table->isRoomServicePoint());
             $previewCards[$type] = [
-                'qr' => $previewTable ? 'data:image/svg+xml;base64,'.base64_encode($this->buildQr($restaurant, $previewTable)->getString()) : null,
+                'qr' => $previewTable ? 'data:image/svg+xml;base64,'.base64_encode($this->buildQr($restaurant, $previewTable)) : null,
                 'label' => $previewTable?->displayLabel() ?? ($type === 'room' ? 'Room 204' : 'Table 1'),
             ];
         }
@@ -258,7 +259,7 @@ class TableController extends Controller
     private function cachedQrSvg($restaurant, RestaurantTable $table): string
     {
         $sticker = array_merge($this->defaultStickerSettings($restaurant), $restaurant->settings['qr_sticker'] ?? []);
-        $signature = sha1(route('menu.show', [$restaurant->slug, $table->table_number]).'|'.$sticker['qr_color'].'|'.$sticker['qr_background_color']);
+        $signature = sha1(route('menu.show', [$restaurant->slug, $table->table_number]).'|'.$sticker['qr_color'].'|'.$sticker['qr_background_color'].'|zemtab-center-mark-v1');
         $relativePath = 'uploads/qr-codes/'.$restaurant->id.'/'.$table->id.'-'.$signature.'.svg';
         $absolutePath = public_path($relativePath);
 
@@ -269,7 +270,7 @@ class TableController extends Controller
             }
         }
 
-        $svg = $this->buildQr($restaurant, $table)->getString();
+        $svg = $this->buildQr($restaurant, $table);
         $directory = dirname($absolutePath);
         if (! is_dir($directory)) {
             @mkdir($directory, 0755, true);
@@ -284,14 +285,49 @@ class TableController extends Controller
     {
         $sticker = array_merge($this->defaultStickerSettings($restaurant), $restaurant->settings['qr_sticker'] ?? []);
 
-        return (new Builder(
+        $result = (new Builder(
             writer: new SvgWriter(),
             data: route('menu.show', [$restaurant->slug, $table->table_number]),
+            errorCorrectionLevel: ErrorCorrectionLevel::High,
             size: 500,
             margin: 20,
             foregroundColor: $this->qrColor($sticker['qr_color']),
             backgroundColor: $this->qrColor($sticker['qr_background_color']),
         ))->build();
+
+        // Embed a small, white-backed ZemTab mark into the real QR artwork so
+        // it appears in downloads, editor previews, and printed setup packs.
+        // High error correction and the modest central knockout preserve scanability.
+        $svg = simplexml_load_string($result->getString());
+        abort_unless($svg instanceof \SimpleXMLElement, 500, 'Could not prepare branded QR code.');
+        $logoPath = public_path('logo/zemtab-pantone-1795-c-icon-transparent.png');
+        $logoBytes = @file_get_contents($logoPath);
+        abort_unless(is_string($logoBytes), 500, 'The ZemTab QR logo is unavailable.');
+
+        $size = (float) $result->getMatrix()->getOuterSize();
+        $logoHeight = 80.0;
+        $logoWidth = 348.0 / 453.0 * $logoHeight;
+        $backingWidth = $logoWidth + 22.0;
+        $backingHeight = $logoHeight + 22.0;
+        $center = $size / 2;
+
+        $backing = $svg->addChild('rect', null, 'http://www.w3.org/2000/svg');
+        $backing->addAttribute('x', (string) ($center - $backingWidth / 2));
+        $backing->addAttribute('y', (string) ($center - $backingHeight / 2));
+        $backing->addAttribute('width', (string) $backingWidth);
+        $backing->addAttribute('height', (string) $backingHeight);
+        $backing->addAttribute('rx', '8');
+        $backing->addAttribute('fill', '#FFFFFF');
+
+        $logo = $svg->addChild('image', null, 'http://www.w3.org/2000/svg');
+        $logo->addAttribute('x', (string) ($center - $logoWidth / 2));
+        $logo->addAttribute('y', (string) ($center - $logoHeight / 2));
+        $logo->addAttribute('width', (string) $logoWidth);
+        $logo->addAttribute('height', (string) $logoHeight);
+        $logo->addAttribute('preserveAspectRatio', 'xMidYMid meet');
+        $logo->addAttribute('href', 'data:image/png;base64,'.base64_encode($logoBytes));
+
+        return $svg->asXML();
     }
 
     private function qrColor(string $hex): Color

@@ -38,8 +38,8 @@
     <div class="signature-heading">
         <p class="signature-kicker"><span class="signature-kicker-cross" data-layer="cross" style="{{ $elementStyle('cross') }}" aria-hidden="true">＋</span><span class="signature-kicker-line" data-layer="line_left" style="{{ $elementStyle('line_left') }}" aria-hidden="true"></span><span class="signature-kicker-text" data-layer="kicker_text" style="{{ $elementStyle('kicker_text') }}">AT YOUR SERVICE</span><span class="signature-kicker-line" data-layer="line_right" style="{{ $elementStyle('line_right') }}" aria-hidden="true"></span></p>
         <p class="signature-title" data-layer="title" style="{{ $elementStyle('title') }}">{{ $scanText }}</p>
-        @if(!empty($locationLabel ?? null))<p class="signature-location" data-layer="location" style="{{ $elementStyle('location') }}">{{ $locationLabel }}</p>@endif
     </div>
+    @if(!empty($locationLabel ?? null))<p class="signature-location" data-layer="location" style="{{ $elementStyle('location') }}">{{ $locationLabel }}</p>@endif
     <div class="signature-scan">
         <div class="signature-frame" data-layer="frame" style="{{ $elementStyle('frame') }}"><img src="{{ $qrImage }}" alt="Menu QR code" width="500" height="500" data-print-resource></div>
         <p class="signature-hint" data-layer="hint" style="{{ $elementStyle('hint') }}">Scan. Tap. Enjoy.</p>

@@ -11,7 +11,8 @@ $sticker = $method->invoke($controller,$restaurant);
 if (isset($argv[1])) {
     $sticker['elements'] = json_decode($argv[1],true,512,JSON_THROW_ON_ERROR);
 }
-$previewQr = 'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" width="100" height="100"><rect width="100" height="100"/></svg>';
+$qrBuilder = new ReflectionMethod(new App\Http\Controllers\Restaurant\TableController(), 'buildQr');
+$previewQr = 'data:image/svg+xml;base64,'.base64_encode($qrBuilder->invoke(new App\Http\Controllers\Restaurant\TableController(), $restaurant, $table));
 $logoUrl = asset('storage/'.$restaurant->logo_path);
 $qrCardDesigns = [];
 foreach (['table' => 'SCAN TO ORDER', 'room' => 'SCAN FOR ROOM SERVICE'] as $type => $scanText) {
