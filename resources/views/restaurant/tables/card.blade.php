@@ -11,21 +11,24 @@
     <svg class="signature-art" data-layer="art" style="{{ $elementStyle('art') }}" viewBox="{{ ($sticker['orientation'] ?? 'portrait') === 'landscape' ? '0 0 560 297' : '0 0 297 560' }}" preserveAspectRatio="none" aria-hidden="true">
         <g class="signature-artwork-landscape" @if(($sticker['orientation'] ?? 'portrait') !== 'landscape') style="display:none" @endif>
         <path d="M0 0H560V297H0Z" fill="var(--card-bg)"/>
-        <path d="M346 0H560V91C505 80 475 64 445 43S386 8 346 0Z" fill="var(--card-text)"/>
-        <path d="M366 -10C408 22 474 33 566 55M382 -13C424 19 490 30 572 49M399 -16C441 16 507 27 578 43M417 -18C459 14 525 25 584 37" fill="none" stroke="var(--card-bg)" stroke-width="1.15" opacity=".72"/>
-        <path d="M0 228C95 245 134 267 232 270S414 245 560 268V297H0Z" fill="var(--card-text)"/>
-        <path d="M-8 251C95 268 137 287 238 288S422 267 568 286M-8 260C95 277 137 296 238 297S422 276 568 295M-8 242C95 259 137 278 238 279S422 258 568 277" fill="none" stroke="var(--card-bg)" stroke-width="1.1" opacity=".82"/>
-        <path d="M0 0H102L0 29Z" fill="var(--card-text)" opacity=".12"/>
+        <path d="M305 0H560V106C485 83 450 54 401 34S348 12 305 0Z" fill="var(--card-accent)" opacity=".13"/>
+        <path d="M335 0H560V91C499 76 465 53 425 33S365 7 335 0Z" fill="var(--card-accent)"/>
+        <path d="M372 -8C422 28 480 42 568 68M389 -11C439 25 497 39 585 65M406 -14C456 22 514 36 602 62" fill="none" stroke="var(--card-bg)" stroke-width=".95" opacity=".72"/>
+        <path d="M0 214C88 225 140 259 237 261S429 242 560 267V297H0Z" fill="var(--card-accent)" opacity=".13"/>
+        <path d="M0 230C97 242 144 274 240 274S429 253 560 277V297H0Z" fill="var(--card-accent)"/>
+        <path d="M-8 246C97 258 145 286 244 286S433 266 568 290M-8 253C97 265 145 293 244 293S433 273 568 297M-8 260C97 272 145 300 244 300S433 280 568 304" fill="none" stroke="var(--card-bg)" stroke-width=".85" opacity=".7"/>
+        <path d="M0 0H113L0 34Z" fill="var(--card-accent)" opacity=".12"/>
+        <path d="M0 23L76 0" fill="none" stroke="var(--card-accent)" stroke-width=".7" opacity=".35"/>
         </g>
         <g class="signature-artwork-portrait" @if(($sticker['orientation'] ?? 'portrait') === 'landscape') style="display:none" @endif>
-        <path d="M148 0H297V160C243 151 255 91 211 75S169 38 148 0Z" fill="var(--card-accent)"/>
-        <path d="M198 -20C171 36 320 63 275 149M214 -20C187 36 336 63 291 149M230 -20C203 36 352 63 307 149M246 -20C219 36 368 63 323 149" fill="none" stroke="var(--card-bg)" stroke-width="1.5" opacity=".65"/>
-        <path d="M0 0H58L0 58Z" fill="var(--card-accent)" opacity=".12"/>
-        <path d="M0 400C63 435 42 493 124 504S232 489 297 522V560H0Z" fill="var(--card-accent)"/>
-        <path d="M-35 435C70 439 29 532 147 527S257 522 320 550M-35 445C70 449 29 542 147 537S257 532 320 560M-35 455C70 459 29 552 147 547S257 542 320 570" fill="none" stroke="var(--card-bg)" stroke-width="1.5" opacity=".7"/>
-        <path d="M0 411C66 446 40 490 124 503" fill="none" stroke="var(--card-border)" stroke-width=".8" opacity=".3"/>
-        <circle cx="282" cy="244" r="3" fill="var(--card-accent)"/>
-        <path d="M12 268v100M285 286v80" stroke="var(--card-border)" stroke-width=".6" opacity=".2"/>
+        <path d="M155 0H297V173C241 155 264 95 217 73S174 26 155 0Z" fill="var(--card-accent)" opacity=".13"/>
+        <path d="M176 0H297V152C255 131 272 85 231 64S192 20 176 0Z" fill="var(--card-accent)"/>
+        <path d="M214 -16C191 35 320 59 285 145M228 -18C205 33 334 57 299 143M242 -20C219 31 348 55 313 141" fill="none" stroke="var(--card-bg)" stroke-width="1.1" opacity=".7"/>
+        <path d="M0 0H68L0 60Z" fill="var(--card-accent)" opacity=".12"/>
+        <path d="M0 42L47 0" fill="none" stroke="var(--card-accent)" stroke-width=".8" opacity=".35"/>
+        <path d="M0 426C67 449 58 492 135 503S242 490 297 518V560H0Z" fill="var(--card-accent)" opacity=".13"/>
+        <path d="M0 449C61 465 61 510 138 519S246 508 297 537V560H0Z" fill="var(--card-accent)"/>
+        <path d="M-12 472C56 485 65 533 143 536S250 526 310 554M-12 481C56 494 65 542 143 545S250 535 310 563M-12 490C56 503 65 551 143 554S250 544 310 572" fill="none" stroke="var(--card-bg)" stroke-width="1" opacity=".7"/>
         </g>
     </svg>
     <div class="signature-logo-slot" aria-hidden="true"></div>

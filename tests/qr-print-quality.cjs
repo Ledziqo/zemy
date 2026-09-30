@@ -18,6 +18,9 @@ const {chromium} = require(process.env.QR_PLAYWRIGHT || 'playwright');
         const page = await browser.newPage();
         await page.setContent(styles + '<main class="pack-scroll"><section class="qr-page">' + card + '</section></main>');
         await page.locator('.signature-footer img').evaluate(el => el.remove());
+        // The QR now intentionally embeds a raster brand icon. Isolate the venue
+        // logo when asserting that a vector logo is not rasterized by printing.
+        await page.locator('.signature-frame img').evaluate(el => el.remove());
         const logo = page.locator('.signature-logo');
         const setLogo = async source => {
             await logo.evaluate((el, src) => {el.src = src;}, source);

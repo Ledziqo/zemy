@@ -7,7 +7,7 @@
 .signature-card.is-landscape .signature-scan{grid-column:2;grid-row:1;width:50mm;align-self:center;gap:1mm}
 .signature-card.is-landscape .signature-frame{max-width:50mm;padding:1.5mm}
 .signature-card.is-landscape .signature-frame img{max-width:47mm;max-height:47mm}
-.signature-card.is-landscape .signature-location{position:absolute;right:-22mm;top:50%;width:50mm;max-width:none;margin:0;padding:.5mm 1mm;background:var(--card-bg);font-size:calc(var(--detail-size) * 1.05);letter-spacing:.035em;line-height:1;white-space:nowrap;transform:rotate(90deg)}
+.signature-card.is-landscape .signature-location{position:absolute;right:-21.5mm;top:calc(50% - 2mm);width:50mm;max-width:none;margin:0;padding:.6mm 1mm;background:var(--card-bg);font-size:var(--detail-size);letter-spacing:.1em;line-height:1;white-space:nowrap;transform:translate(var(--location-x),var(--location-y)) rotate(90deg)}
 .signature-card.is-landscape .signature-footer{left:42.5mm;bottom:2mm}
 .signature-card .signature-art{position:absolute;inset:0;width:100%;height:100%;z-index:-1;opacity:var(--art-opacity);pointer-events:none}
 .signature-logo-slot{width:100%;height:24mm;flex:0 0 24mm;pointer-events:none}
@@ -23,20 +23,21 @@
 .qr-preview .logo-resize-handle[data-resize="both"]{left:calc(var(--logo-x) + var(--logo-half-width));top:calc(var(--logo-y) + var(--logo-half-height));right:auto;bottom:auto;transform:translate(-50%,-50%);cursor:nwse-resize}
 .signature-heading{height:24mm;width:100%;display:flex;flex-direction:column;justify-content:center;align-items:center;flex-shrink:0;position:relative;z-index:1;transform:translate(var(--heading-x),var(--heading-y));touch-action:none}
 .signature-kicker{width:100%;position:relative;font-size:max(4pt,calc(var(--text-size) * .34));font-weight:700;letter-spacing:.16em;margin:0 0 2mm;display:grid;grid-template-columns:minmax(0,1fr) auto minmax(0,1fr);align-items:center;gap:1.5mm;line-height:1;transform:translate(var(--kicker-x),var(--kicker-y));touch-action:none}
-.signature-kicker-cross{position:absolute;left:0;top:50%;font-size:2.6em;font-weight:400;letter-spacing:0;line-height:.68;color:var(--card-accent);transform:translateY(-50%)}
+.signature-kicker-cross{position:absolute;left:0;top:50%;font-size:1.7em;font-weight:400;letter-spacing:0;line-height:.68;color:var(--card-accent);transform:translateY(-50%)}
 .signature-kicker-line[data-layer="line_left"]{margin-left:2.6em}
-.signature-kicker-line{height:.35mm;background:var(--card-accent);opacity:.9;flex:1 1 auto;min-width:2mm}
+.signature-kicker-line{height:.18mm;background:var(--card-accent);opacity:.55;flex:1 1 auto;min-width:2mm}
 .signature-kicker-text{white-space:nowrap;flex:0 1 auto}
-.signature-title{font-size:var(--text-size);font-weight:900;letter-spacing:-.045em;line-height:.98;margin:0;width:100%;overflow-wrap:anywhere;text-wrap:balance;transform:translate(var(--title-x),var(--title-y));touch-action:none}
+.signature-title{font-size:var(--text-size);font-weight:700;letter-spacing:.005em;line-height:1.12;margin:0;width:100%;overflow-wrap:anywhere;text-wrap:balance;transform:translate(var(--title-x),var(--title-y));touch-action:none}
 .signature-scan{display:flex;flex-direction:column;align-items:center;gap:2mm;flex-shrink:0;position:relative;z-index:1;transform:translate(var(--scan-x),var(--scan-y));touch-action:none}
-.signature-frame{padding:2mm;background:#fff;border-radius:3mm;position:relative;box-shadow:0 0 0 .45mm var(--card-accent),1.5mm 1.5mm 0 var(--card-accent);transform:translate(var(--frame-x),var(--frame-y));touch-action:none}
+.signature-frame{padding:2mm;background:#fff;border-radius:2.6mm;position:relative;box-shadow:0 0 0 .25mm var(--card-accent),.7mm .7mm 0 var(--card-accent);transform:translate(var(--frame-x),var(--frame-y));touch-action:none}
 .signature-frame img{display:block;width:var(--qr-size);height:var(--qr-size)}
-.signature-hint{font-size:var(--detail-size);margin:1mm 0 0;letter-spacing:.015em;line-height:1.2;transform:translate(var(--hint-x),var(--hint-y));touch-action:none}
-.signature-location{display:block;max-width:100%;margin:1.5mm 0 0;padding:.8mm 2.5mm;color:var(--card-accent);font-size:calc(var(--detail-size) * 1.15);font-weight:900;letter-spacing:.08em;line-height:1.05;text-transform:uppercase;overflow-wrap:anywhere;transform:translate(var(--location-x),var(--location-y));touch-action:none}
+.signature-hint{font-size:var(--detail-size);margin:1mm 0 0;padding:.5mm 1.5mm;border-radius:1mm;background:var(--card-bg);letter-spacing:.09em;line-height:1.3;transform:translate(var(--hint-x),var(--hint-y));touch-action:none}
+.signature-card:not(.is-landscape) .signature-location{border-top:.2mm solid var(--card-accent);border-bottom:.2mm solid var(--card-accent);padding:1.4mm 3mm}
+.signature-location{display:block;max-width:100%;margin:1.5mm 0 0;padding:.8mm 2.5mm;color:var(--card-text);font-size:calc(var(--detail-size) * 1.15);font-weight:600;letter-spacing:.12em;line-height:1.2;text-transform:uppercase;overflow-wrap:anywhere;transform:translate(var(--location-x),var(--location-y));touch-action:none}
 .signature-footer{position:absolute;left:50%;right:auto;bottom:3mm;width:max-content;height:auto;display:flex;align-items:center;justify-content:center;gap:1.2mm;background:rgba(255,255,255,.96);color:#171717;padding:.8mm 1.6mm;border:0;box-shadow:none;border-radius:999px;z-index:2;transform:translateX(-50%) translate(var(--footer-x),var(--footer-y)) scale(var(--footer-scale));transform-origin:center bottom;touch-action:none}
 .signature-footer:before,.signature-footer:after{display:none}
-.signature-footer span{font-size:3mm;line-height:1;font-weight:700;letter-spacing:0;white-space:nowrap;flex:none}
-.signature-footer img{width:auto;height:5mm;max-width:none;object-fit:contain;flex:none}
+.signature-footer span{font-size:2.5mm;line-height:1;font-weight:500;letter-spacing:.02em;white-space:nowrap;flex:none}
+.signature-footer img{width:auto;height:4.4mm;max-width:none;object-fit:contain;flex:none}
 .qr-preview .logo-resize-handle{display:none}
 .qr-preview [data-layer]{cursor:move;touch-action:none;user-select:none}
 .qr-preview .signature-art{pointer-events:auto}
