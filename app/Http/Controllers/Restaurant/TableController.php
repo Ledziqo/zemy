@@ -171,7 +171,11 @@ class TableController extends Controller
             $typePage = $type === 'table' ? $page : $page - $tablePageCount;
             $tables = ($type === 'table' ? $tableCards : $roomCards)->slice($typePage * 8, 8)->values();
             $designs = $this->qrCardDesigns($restaurant);
-            $sticker = $designs[$type]['orientations'][$designs[$type]['preferred_orientation']];
+            // Setup packs use a consistent print orientation by location type:
+            // tables/lobby in portrait, guest rooms in landscape. Keep each
+            // type's saved editor variants untouched.
+            $orientation = $type === 'room' ? 'landscape' : 'portrait';
+            $sticker = $designs[$type]['orientations'][$orientation];
             $qrImages = $tables->mapWithKeys(fn (RestaurantTable $table) => [
                 $table->id => 'data:image/svg+xml;base64,'.base64_encode($this->cachedQrSvg($restaurant, $table)),
             ]);
