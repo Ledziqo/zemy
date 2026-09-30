@@ -43,6 +43,11 @@ const fs=require('fs'),{execFileSync}=require('child_process'),assert=require('a
  assert(Math.abs(portrait.width/portrait.height-75/140)<.03,'portrait preview remains 75 × 140 mm');
  const portraitLocation=await page.locator('.signature-location').boundingBox();
  assert(portraitLocation.width>portraitLocation.height,'portrait room/table label keeps its original horizontal treatment');
+ const portraitQr=await page.locator('.signature-frame').boundingBox();
+ assert(portraitLocation.y+portraitLocation.height<portraitQr.y,'portrait location number has clear space above the QR');
+ for(const selector of ['.signature-hint','.signature-location']){
+  assert.equal(await page.locator(selector).evaluate(el=>getComputedStyle(el).backgroundColor),'rgba(0, 0, 0, 0)','card text has no background panel');
+ }
  await page.locator('#qr-design-reset').click();
  assert.equal(await orientation.first().isChecked(),true,'reset returns to the safe portrait default');
  await page.locator('input[name="accent_color"]').fill('#123456');

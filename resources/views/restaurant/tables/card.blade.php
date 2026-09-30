@@ -26,9 +26,9 @@
         <path d="M214 -16C191 35 320 59 285 145M228 -18C205 33 334 57 299 143M242 -20C219 31 348 55 313 141" fill="none" stroke="var(--card-bg)" stroke-width="1.1" opacity=".7"/>
         <path d="M0 0H68L0 60Z" fill="var(--card-accent)" opacity=".12"/>
         <path d="M0 42L47 0" fill="none" stroke="var(--card-accent)" stroke-width=".8" opacity=".35"/>
-        <path d="M0 426C67 449 58 492 135 503S242 490 297 518V560H0Z" fill="var(--card-accent)" opacity=".13"/>
-        <path d="M0 449C61 465 61 510 138 519S246 508 297 537V560H0Z" fill="var(--card-accent)"/>
-        <path d="M-12 472C56 485 65 533 143 536S250 526 310 554M-12 481C56 494 65 542 143 545S250 535 310 563M-12 490C56 503 65 551 143 554S250 544 310 572" fill="none" stroke="var(--card-bg)" stroke-width="1" opacity=".7"/>
+        <path d="M0 491C67 506 58 525 135 529S242 524 297 538V560H0Z" fill="var(--card-accent)" opacity=".13"/>
+        <path d="M0 511C61 521 61 537 138 541S246 534 297 549V560H0Z" fill="var(--card-accent)"/>
+        <path d="M-12 524C56 534 65 547 143 550S250 543 310 558M-12 532C56 542 65 555 143 558S250 551 310 566M-12 540C56 550 65 563 143 566S250 559 310 574" fill="none" stroke="var(--card-bg)" stroke-width="1" opacity=".7"/>
         </g>
     </svg>
     <div class="signature-logo-slot" aria-hidden="true"></div>

@@ -1,13 +1,15 @@
 <style>
 .signature-card{box-sizing:border-box;width:75mm;height:140mm;padding:6mm;position:relative;isolation:isolate;overflow:hidden;display:flex;flex-direction:column;align-items:center;justify-content:space-between;gap:1mm;background:var(--card-bg);color:var(--card-text);border:.2mm solid var(--card-border);font-family:Arial,Helvetica,sans-serif;text-align:center;print-color-adjust:exact;-webkit-print-color-adjust:exact;flex-shrink:0}
 .signature-card *{box-sizing:border-box}
+.signature-card:not(.is-landscape){display:grid;grid-template-rows:24mm 24mm 11mm 1fr;gap:2mm;justify-items:center;align-items:center}
+.signature-card{font-family:'Trebuchet MS','Segoe UI',sans-serif}
 .signature-card.is-landscape{width:140mm;height:75mm;padding:5mm;display:grid;grid-template-columns:75mm 50mm;grid-template-rows:1fr;column-gap:5mm;align-items:center}
 .signature-card.is-landscape .signature-logo-slot{position:absolute;width:1px;height:1px;flex:none}
 .signature-card.is-landscape .signature-heading{grid-column:1;grid-row:1;width:75mm;height:auto;min-height:24mm;align-self:end;margin-bottom:9mm;padding:0 2mm 4mm}
 .signature-card.is-landscape .signature-scan{grid-column:2;grid-row:1;width:50mm;align-self:center;gap:1mm}
 .signature-card.is-landscape .signature-frame{max-width:50mm;padding:1.5mm}
 .signature-card.is-landscape .signature-frame img{max-width:47mm;max-height:47mm}
-.signature-card.is-landscape .signature-location{position:absolute;right:-21.5mm;top:calc(50% - 2mm);width:50mm;max-width:none;margin:0;padding:.6mm 1mm;background:var(--card-bg);font-size:var(--detail-size);letter-spacing:.1em;line-height:1;white-space:nowrap;transform:translate(var(--location-x),var(--location-y)) rotate(90deg)}
+.signature-card.is-landscape .signature-location{position:absolute;right:-21.5mm;top:calc(50% - 2mm);width:50mm;max-width:none;margin:0;padding:.6mm 1mm;background:transparent;font-size:var(--detail-size);letter-spacing:.1em;line-height:1;white-space:nowrap;transform:translate(var(--location-x),var(--location-y)) rotate(90deg)}
 .signature-card.is-landscape .signature-footer{left:42.5mm;bottom:2mm}
 .signature-card .signature-art{position:absolute;inset:0;width:100%;height:100%;z-index:-1;opacity:var(--art-opacity);pointer-events:none}
 .signature-logo-slot{width:100%;height:24mm;flex:0 0 24mm;pointer-events:none}
@@ -27,13 +29,13 @@
 .signature-kicker-line[data-layer="line_left"]{margin-left:2.6em}
 .signature-kicker-line{height:.18mm;background:var(--card-accent);opacity:.55;flex:1 1 auto;min-width:2mm}
 .signature-kicker-text{white-space:nowrap;flex:0 1 auto}
-.signature-title{font-size:var(--text-size);font-weight:700;letter-spacing:.005em;line-height:1.12;margin:0;width:100%;overflow-wrap:anywhere;text-wrap:balance;transform:translate(var(--title-x),var(--title-y));touch-action:none}
+.signature-title{font-family:Georgia,'Palatino Linotype',serif;font-size:var(--text-size);font-weight:700;letter-spacing:-.025em;line-height:1.12;margin:0;width:100%;overflow-wrap:anywhere;text-wrap:balance;transform:translate(var(--title-x),var(--title-y));touch-action:none}
 .signature-scan{display:flex;flex-direction:column;align-items:center;gap:2mm;flex-shrink:0;position:relative;z-index:1;transform:translate(var(--scan-x),var(--scan-y));touch-action:none}
 .signature-frame{padding:2mm;background:#fff;border-radius:2.6mm;position:relative;box-shadow:0 0 0 .25mm var(--card-accent),.7mm .7mm 0 var(--card-accent);transform:translate(var(--frame-x),var(--frame-y));touch-action:none}
 .signature-frame img{display:block;width:var(--qr-size);height:var(--qr-size)}
-.signature-hint{font-size:var(--detail-size);margin:1mm 0 0;padding:.5mm 1.5mm;border-radius:1mm;background:var(--card-bg);letter-spacing:.09em;line-height:1.3;transform:translate(var(--hint-x),var(--hint-y));touch-action:none}
+.signature-hint{font-family:Georgia,'Palatino Linotype',serif;font-style:italic;font-size:calc(var(--detail-size) * 1.15);margin:1mm 0 0;padding:0;background:transparent;letter-spacing:.035em;line-height:1.3;transform:translate(var(--hint-x),var(--hint-y));touch-action:none}
 .signature-card:not(.is-landscape) .signature-location{border-top:.2mm solid var(--card-accent);border-bottom:.2mm solid var(--card-accent);padding:1.4mm 3mm}
-.signature-location{display:block;max-width:100%;margin:1.5mm 0 0;padding:.8mm 2.5mm;color:var(--card-text);font-size:calc(var(--detail-size) * 1.15);font-weight:600;letter-spacing:.12em;line-height:1.2;text-transform:uppercase;overflow-wrap:anywhere;transform:translate(var(--location-x),var(--location-y));touch-action:none}
+.signature-location{display:block;position:relative;z-index:2;flex-shrink:0;max-width:100%;margin:0;padding:.8mm 2.5mm;background:transparent;color:var(--card-text);font-size:calc(var(--detail-size) * 1.2);font-weight:700;letter-spacing:.1em;line-height:1.2;text-transform:uppercase;overflow-wrap:anywhere;transform:translate(var(--location-x),var(--location-y));touch-action:none}
 .signature-footer{position:absolute;left:50%;right:auto;bottom:3mm;width:max-content;height:auto;display:flex;align-items:center;justify-content:center;gap:1.2mm;background:rgba(255,255,255,.96);color:#171717;padding:.8mm 1.6mm;border:0;box-shadow:none;border-radius:999px;z-index:2;transform:translateX(-50%) translate(var(--footer-x),var(--footer-y)) scale(var(--footer-scale));transform-origin:center bottom;touch-action:none}
 .signature-footer:before,.signature-footer:after{display:none}
 .signature-footer span{font-size:2.5mm;line-height:1;font-weight:500;letter-spacing:.02em;white-space:nowrap;flex:none}
