@@ -57,7 +57,7 @@ class RestaurantTable extends Model
     public function displayLabel(): string
     {
         if ($this->table_name) {
-            return $this->table_name;
+            return preg_replace('/^Hotel\s+Room\b/i', 'Room', $this->table_name);
         }
 
         if ($this->isRoomServicePoint()) {
