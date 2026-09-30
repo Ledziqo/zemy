@@ -47,5 +47,5 @@
         <div class="signature-frame" data-layer="frame" style="{{ $elementStyle('frame') }}"><img src="{{ $qrImage }}" alt="Menu QR code" width="500" height="500" data-print-resource></div>
         <p class="signature-hint" data-layer="hint" style="{{ $elementStyle('hint') }}">Scan. Tap. Enjoy.</p>
     </div>
-    <div class="signature-footer" data-layer="footer" style="{{ $elementStyle('footer') }}"><span>Powered by</span><img src="{{ asset('logo/zemtab-pantone-1795-c-icon-text-transparent.png') }}" alt="ZemTab" data-print-resource></div>
+    <div class="signature-footer" data-layer="footer" style="{{ $elementStyle('footer') }}"><img src="{{ asset('logo/zemtab-pantone-1795-c-icon-text-transparent.png') }}" alt="ZemTab" data-print-resource></div>
 </article>
