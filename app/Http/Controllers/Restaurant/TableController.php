@@ -128,7 +128,9 @@ class TableController extends Controller
         $tables = $allTables->filter(fn (RestaurantTable $table) => $table->is_active)->values();
         $tableCount = $tables->count();
         $roomCount = $tables->filter(fn (RestaurantTable $table) => $table->isRoomServicePoint())->count();
-        $pageCount = (int) ceil(($tableCount - $roomCount) / 8) + (int) ceil($roomCount / 8);
+        $tablePageCount = (int) ceil(($tableCount - $roomCount) / 8);
+        $roomPageCount = (int) ceil($roomCount / 3);
+        $pageCount = $tablePageCount + $roomPageCount;
         $buildToken = QrSetupPackStore::begin($restaurant, $allTables, $pageCount);
         $batchUrls = [];
         for ($page = 0; $page < $pageCount; $page++) {
@@ -169,7 +171,8 @@ class TableController extends Controller
             $tablePageCount = (int) ceil($tableCards->count() / 8);
             $type = $page < $tablePageCount ? 'table' : 'room';
             $typePage = $type === 'table' ? $page : $page - $tablePageCount;
-            $tables = ($type === 'table' ? $tableCards : $roomCards)->slice($typePage * 8, 8)->values();
+            $cardsPerPage = $type === 'table' ? 8 : 3;
+            $tables = ($type === 'table' ? $tableCards : $roomCards)->slice($typePage * $cardsPerPage, $cardsPerPage)->values();
             $designs = $this->qrCardDesigns($restaurant);
             // Setup packs use a consistent print orientation by location type:
             // tables/lobby in portrait, guest rooms in landscape. Keep each
