@@ -50,6 +50,21 @@ window.initQrEditor = function (form, card) {
         select.add(option); apply(key);
     });
     select.addEventListener('change',()=>choose(select.value));
+    card.addEventListener('keydown',event=>{
+        if (!selected || !['ArrowLeft','ArrowRight','ArrowUp','ArrowDown'].includes(event.key)) return;
+        if (event.target.matches('input,textarea,select,button,[contenteditable="true"]')) return;
+        event.preventDefault();
+        const step=event.shiftKey?1:.25, s=state(selected);
+        if(event.key==='ArrowLeft')s.x-=step;
+        if(event.key==='ArrowRight')s.x+=step;
+        if(event.key==='ArrowUp')s.y-=step;
+        if(event.key==='ArrowDown')s.y+=step;
+        field(selected,'x').value=clamp(s.x,-1000,1000).toFixed(3);
+        field(selected,'y').value=clamp(s.y,-1000,1000).toFixed(3);
+        form.dispatchEvent(new CustomEvent('qr-editor-action-start'));
+        changed();
+        form.dispatchEvent(new CustomEvent('qr-editor-action-end'));
+    });
     [width,height].forEach((input,i)=>input.addEventListener('input',()=>{
         if (!Number.isFinite(input.valueAsNumber)) return;
         field(selected,i?'sy':'sx').value=clamp(input.valueAsNumber/100,.02,20);
