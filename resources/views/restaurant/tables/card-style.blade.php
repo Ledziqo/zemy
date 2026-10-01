@@ -36,8 +36,8 @@
 .signature-hint{font-family:Georgia,'Palatino Linotype',serif;font-style:italic;font-size:calc(var(--detail-size) * 1.15);margin:1mm 0 0;padding:0;background:transparent;letter-spacing:.035em;line-height:1.3;transform:translate(var(--hint-x),var(--hint-y));touch-action:none}
 .signature-card:not(.is-landscape) .signature-location{border-top:.2mm solid var(--card-accent);border-bottom:.2mm solid var(--card-accent);padding:1.4mm 3mm}
 .signature-location{display:block;position:relative;z-index:2;flex-shrink:0;max-width:100%;margin:0;padding:.8mm 2.5mm;background:transparent;color:var(--card-text);font-size:calc(var(--detail-size) * 1.2);font-weight:700;letter-spacing:.1em;line-height:1.2;text-transform:uppercase;overflow-wrap:anywhere;transform:translate(var(--location-x),var(--location-y));touch-action:none}
-.signature-footer{position:absolute;left:50%;right:auto;bottom:7mm;width:max-content;height:auto;display:flex;align-items:center;justify-content:center;background:transparent;color:var(--card-text);padding:0;border:0;box-shadow:none;border-radius:0;z-index:2;transform:translateX(-50%) translate(var(--footer-x),var(--footer-y)) scale(var(--footer-scale));transform-origin:center bottom;touch-action:none}
-.signature-footer img{width:auto;height:3.8mm;max-width:none;object-fit:contain;flex:none}
+.signature-footer{position:absolute;left:50%;right:auto;bottom:7mm;width:max-content;height:auto;display:flex;align-items:center;justify-content:center;background:rgba(252,247,236,.96);color:var(--card-text);padding:1.2mm 2.8mm;border:.45mm solid var(--card-border);box-shadow:0 1mm 2mm rgba(20,35,32,.16);border-radius:1.8mm;z-index:2;transform:translateX(-50%) translate(var(--footer-x),var(--footer-y)) scale(var(--footer-scale));transform-origin:center bottom;touch-action:none}
+.signature-footer img{width:auto;height:4.8mm;max-width:none;object-fit:contain;flex:none}
 .qr-preview .logo-resize-handle{display:none}
 .qr-preview [data-layer]{cursor:move;touch-action:none;user-select:none}
 .qr-preview .signature-art{pointer-events:auto}
@@ -77,7 +77,7 @@
 .signature-card:not(.is-landscape) .signature-frame img{max-width:none;max-height:none}
 .signature-hint{font-size:calc(var(--detail-size) + 1pt);color:var(--card-bg);margin:3mm 0 0;letter-spacing:.025em}
 .signature-card:not(.is-landscape) .signature-footer{top:47mm;bottom:auto}
-.signature-footer img{height:3mm;opacity:.75;filter:none}
+.signature-footer img{height:4.8mm;opacity:1;filter:none}
 .signature-card.is-landscape .signature-logo{left:calc(var(--logo-x) + 11mm);top:calc(var(--logo-y) + 4mm);width:calc(var(--logo-width) + 1mm);height:calc(var(--logo-size) + 1mm)}
 .signature-card.is-landscape .signature-heading{left:20mm;top:40mm;width:54mm;min-height:0;height:auto;margin:0;padding:0}
 .signature-card.is-landscape .signature-title{font-size:calc(var(--text-size) - 2pt);line-height:1.15}
