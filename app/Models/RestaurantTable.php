@@ -56,22 +56,34 @@ class RestaurantTable extends Model
 
     public function displayLabel(): string
     {
-        if ($this->table_name) {
-            return preg_replace('/^Hotel\s+Room\b/i', 'Room', $this->table_name);
-        }
-
         if ($this->isRoomServicePoint()) {
+            if ($this->table_name) {
+                return preg_replace('/^Hotel\s+Room\b/i', 'Room', $this->table_name);
+            }
+
             return 'Room '.$this->table_number;
         }
 
         if (str_starts_with($this->table_number, 'restaurant-')) {
-            return 'Restaurant Table '.substr($this->table_number, strlen('restaurant-'));
+            return '(R) Table '.substr($this->table_number, strlen('restaurant-'));
         }
 
         if (str_starts_with($this->table_number, 'lobby-')) {
-            return 'Lobby Table '.substr($this->table_number, strlen('lobby-'));
+            return '(L) Table '.substr($this->table_number, strlen('lobby-'));
         }
 
-        return ($this->isRoomServicePoint() ? 'Room ' : 'Table ').$this->table_number;
+        if ($this->table_name && preg_match('/^Restaurant\s+Table\b\s*(.*)$/i', $this->table_name, $matches) === 1) {
+            return '(R) Table '.trim($matches[1]);
+        }
+
+        if ($this->table_name && preg_match('/^Lobby\s+Table\b\s*(.*)$/i', $this->table_name, $matches) === 1) {
+            return '(L) Table '.trim($matches[1]);
+        }
+
+        if ($this->table_name) {
+            return $this->table_name;
+        }
+
+        return 'Table '.$this->table_number;
     }
 }
