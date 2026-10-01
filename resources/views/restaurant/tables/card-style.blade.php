@@ -68,6 +68,10 @@
 .signature-scan{position:absolute;left:50%;top:84mm;transform:translateX(-50%) translate(var(--scan-x),var(--scan-y));gap:1mm}
 .signature-frame{padding:2.5mm;background:var(--qr-bg,#fff);border-radius:2mm;box-shadow:0 0 0 .2mm var(--card-border),0 0 0 1.3mm var(--card-accent),0 0 0 1.5mm var(--card-border)}
 .signature-frame img{width:calc(var(--qr-size) - 6mm);height:calc(var(--qr-size) - 6mm)}
+/* Keep the portrait QR square under the app's responsive img max-width rule.
+   A squeezed image viewport letterboxes the SVG into oversized white bands. */
+.signature-card:not(.is-landscape) .signature-scan{width:max-content}
+.signature-card:not(.is-landscape) .signature-frame img{max-width:none;max-height:none}
 .signature-hint{font-size:calc(var(--detail-size) + 1pt);color:var(--card-bg);margin:3mm 0 0;letter-spacing:.025em}
 .signature-card:not(.is-landscape) .signature-footer{top:47mm;bottom:auto}
 .signature-footer img{height:3mm;opacity:.75;filter:none}
