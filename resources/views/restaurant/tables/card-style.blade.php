@@ -64,7 +64,7 @@
 .signature-kicker-line[data-layer="line_left"]{margin-left:0}
 .signature-kicker-line{background:var(--card-border);opacity:1}
 .signature-title{font-family:Georgia,serif;font-size:calc(var(--text-size) + 3pt);font-weight:400;letter-spacing:-.025em;line-height:1.12}
-.signature-card:not(.is-landscape) .signature-location{position:absolute;top:1mm;left:5mm;width:65mm;height:7mm;max-width:none;margin:0;padding:0;border:0;color:var(--card-bg);display:flex;align-items:center;justify-content:center;gap:4mm}
+.signature-card:not(.is-landscape) .signature-location{position:absolute;top:1mm;left:5mm;width:65mm;height:7mm;max-width:none;margin:0;padding:0;border:0;color:var(--card-bg);display:flex;align-items:center;justify-content:center;gap:2.2mm}
 .signature-location span{font-family:'Segoe UI',sans-serif;font-size:var(--detail-size);font-weight:600;letter-spacing:.18em}
 .signature-location strong{font-family:Georgia,serif;font-size:23pt;font-weight:400;line-height:1;letter-spacing:0}
 .signature-scan{position:absolute;left:50%;top:84mm;transform:translateX(-50%) translate(var(--scan-x),var(--scan-y));gap:1mm}
