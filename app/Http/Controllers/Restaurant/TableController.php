@@ -72,6 +72,7 @@ class TableController extends Controller
         $rules['remove_qr_logo'] = ['nullable', 'boolean'];
         $rules['apply_colors_to_all'] = ['nullable', 'boolean'];
         $data = $request->validate($rules);
+        $data['qr_color'] = $data['background_color'];
         // These controls are request-only; never store the UploadedFile or the
         // checkbox itself inside the JSON settings column.
         $applyColorsToAll = $request->boolean('apply_colors_to_all');
@@ -446,6 +447,7 @@ class TableController extends Controller
             foreach (['portrait', 'landscape'] as $orientation) {
                 $design = array_merge($base, $orientationDesigns[$orientation] ?? []);
                 $design['orientation'] = $orientation;
+                $design['qr_color'] = $design['background_color'];
                 $design['table_scan_text'] = $design['table_scan_text'] ?? $defaults['table_scan_text'];
                 $design['room_scan_text'] = $design['room_scan_text'] ?? $defaults['room_scan_text'];
                 $design['scan_text'] = $design[$type.'_scan_text'];
