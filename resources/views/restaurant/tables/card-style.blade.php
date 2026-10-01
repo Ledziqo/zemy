@@ -52,6 +52,38 @@
 .qr-editor-controls select,.qr-editor-controls input{width:100%;color:#171717;background:white;border:1px solid #888;padding:6px}
 /* CSS image filters flatten even SVG logos when browsers export a PDF. */
 @media print{.signature-card{break-inside:avoid;page-break-inside:avoid}.signature-logo{filter:none!important}.qr-selection{display:none!important}}
+
+/* Palazzo signature layout; artwork and QR colours remain editable. */
+.signature-card{display:block!important;padding:0;font-family:'Segoe UI',sans-serif}
+.signature-logo{left:calc(var(--logo-x) + .5mm);top:calc(var(--logo-y) + 15mm);width:calc(var(--logo-width) + 4mm);height:var(--logo-size);filter:none}
+.signature-heading{position:absolute;left:6mm;top:54mm;width:63mm;height:auto}
+.signature-kicker{font-size:6pt;font-weight:500;letter-spacing:.23em;gap:2mm;margin-bottom:3mm}
+.signature-kicker-cross{display:none}
+.signature-kicker-line[data-layer="line_left"]{margin-left:0}
+.signature-kicker-line{background:var(--card-border);opacity:1}
+.signature-title{font-family:Georgia,serif;font-size:calc(var(--text-size) + 3pt);font-weight:400;letter-spacing:-.025em;line-height:1.12}
+.signature-card:not(.is-landscape) .signature-location{position:absolute;top:1mm;left:5mm;width:65mm;height:7mm;max-width:none;margin:0;padding:0;border:0;color:var(--card-bg);display:flex;align-items:center;justify-content:center;gap:4mm}
+.signature-location span{font-family:'Segoe UI',sans-serif;font-size:var(--detail-size);font-weight:600;letter-spacing:.18em}
+.signature-location strong{font-family:Georgia,serif;font-size:23pt;font-weight:400;line-height:1;letter-spacing:0}
+.signature-scan{position:absolute;left:50%;top:84mm;transform:translateX(-50%) translate(var(--scan-x),var(--scan-y));gap:1mm}
+.signature-frame{padding:2.5mm;background:var(--qr-bg,#fff);border-radius:2mm;box-shadow:0 0 0 .2mm var(--card-border),0 0 0 1.3mm var(--card-accent),0 0 0 1.5mm var(--card-border)}
+.signature-frame img{width:calc(var(--qr-size) - 6mm);height:calc(var(--qr-size) - 6mm)}
+.signature-hint{font-size:calc(var(--detail-size) + 1pt);color:var(--card-bg);margin:3mm 0 0;letter-spacing:.025em}
+.signature-card:not(.is-landscape) .signature-footer{top:47mm;bottom:auto}
+.signature-footer img{height:3mm;opacity:.75;filter:none}
+.signature-card.is-landscape .signature-logo{left:calc(var(--logo-x) + 11mm);top:calc(var(--logo-y) + 4mm);width:calc(var(--logo-width) + 1mm);height:calc(var(--logo-size) + 1mm)}
+.signature-card.is-landscape .signature-heading{left:20mm;top:40mm;width:54mm;min-height:0;height:auto;margin:0;padding:0}
+.signature-card.is-landscape .signature-title{font-size:calc(var(--text-size) - 2pt);line-height:1.15}
+.signature-card.is-landscape .signature-kicker{font-size:5pt;letter-spacing:.14em;margin-bottom:2.6mm}
+.signature-card.is-landscape .signature-location{left:0;top:24mm;width:12mm;display:flex;flex-direction:column;align-items:center;gap:5mm;padding:0;margin:0;border:0;color:var(--card-bg);white-space:normal}
+.signature-card.is-landscape .signature-location span{font-size:calc(var(--detail-size) - 2pt);letter-spacing:.22em}
+.signature-card.is-landscape .signature-location strong{font-size:20pt;writing-mode:vertical-rl;letter-spacing:.1em}
+.signature-card.is-landscape .signature-footer{left:48mm;right:auto;top:63mm;bottom:auto;transform:translateX(-50%) translate(var(--footer-x),var(--footer-y)) scale(var(--footer-scale))}
+.signature-card.is-landscape .signature-scan{left:auto;right:7mm;top:19mm;width:45mm;transform:translate(var(--scan-x),var(--scan-y))}
+.signature-card.is-landscape .signature-frame{padding:2.5mm;max-width:none}
+.signature-card.is-landscape .signature-frame img{width:calc(var(--qr-size) - 6mm);height:calc(var(--qr-size) - 6mm);max-width:none;max-height:none}
+.signature-card.is-landscape .signature-hint{margin-top:3mm}
+
 </style>
 <script>
 window.fitSignatureTitles = function(root = document) {

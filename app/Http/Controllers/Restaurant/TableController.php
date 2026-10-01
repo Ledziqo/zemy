@@ -52,7 +52,7 @@ class TableController extends Controller
     public function saveDesign(Request $request)
     {
         $rules = [];
-        foreach (['background_color', 'border_color', 'text_color', 'accent_color'] as $key) {
+        foreach (['background_color', 'border_color', 'text_color', 'accent_color', 'qr_color', 'qr_background_color'] as $key) {
             $rules[$key] = ['required', 'regex:/^#[0-9a-fA-F]{6}$/'];
         }
         $rules['orientation'] = ['required', 'in:portrait,landscape'];
@@ -107,8 +107,6 @@ class TableController extends Controller
             'preferred_orientation' => $orientation,
             'orientations' => $orientationDesigns,
         ];
-        $qrSticker['qr_color'] = '#111111';
-        $qrSticker['qr_background_color'] = '#FFFFFF';
         $settings['qr_sticker'] = $qrSticker;
         $restaurant->update(['settings' => $settings]);
         QrSetupPackStore::invalidate((int) $restaurant->id);
@@ -180,7 +178,7 @@ class TableController extends Controller
             $orientation = $type === 'room' ? 'landscape' : 'portrait';
             $sticker = $designs[$type]['orientations'][$orientation];
             $qrImages = $tables->mapWithKeys(fn (RestaurantTable $table) => [
-                $table->id => 'data:image/svg+xml;base64,'.base64_encode($this->cachedQrSvg($restaurant, $table)),
+                $table->id => 'data:image/svg+xml;base64,'.base64_encode($this->cachedQrSvg($restaurant, $table, $sticker)),
             ]);
 
             return view('restaurant.tables.setup_pack_batch', compact('restaurant', 'tables', 'qrImages', 'sticker', 'type'))->render();
@@ -263,9 +261,10 @@ class TableController extends Controller
         ]);
     }
 
-    private function cachedQrSvg($restaurant, RestaurantTable $table): string
+    private function cachedQrSvg($restaurant, RestaurantTable $table, ?array $sticker = null): string
     {
-        $sticker = array_merge($this->defaultStickerSettings($restaurant), $restaurant->settings['qr_sticker'] ?? []);
+        $type = $table->isRoomServicePoint() ? 'room' : 'table';
+        $sticker ??= $this->qrCardDesigns($restaurant)[$type]['orientations'][$type === 'room' ? 'landscape' : 'portrait'];
         $signature = sha1(route('menu.show', [$restaurant->slug, $table->table_number]).'|'.$sticker['qr_color'].'|'.$sticker['qr_background_color'].'|zemtab-center-mark-v1');
         $relativePath = 'uploads/qr-codes/'.$restaurant->id.'/'.$table->id.'-'.$signature.'.svg';
         $absolutePath = public_path($relativePath);
@@ -277,7 +276,7 @@ class TableController extends Controller
             }
         }
 
-        $svg = $this->buildQr($restaurant, $table);
+        $svg = $this->buildQr($restaurant, $table, $sticker);
         $directory = dirname($absolutePath);
         if (! is_dir($directory)) {
             @mkdir($directory, 0755, true);
@@ -288,9 +287,10 @@ class TableController extends Controller
         return $svg;
     }
 
-    private function buildQr($restaurant, RestaurantTable $table)
+    private function buildQr($restaurant, RestaurantTable $table, ?array $sticker = null)
     {
-        $sticker = array_merge($this->defaultStickerSettings($restaurant), $restaurant->settings['qr_sticker'] ?? []);
+        $type = $table->isRoomServicePoint() ? 'room' : 'table';
+        $sticker ??= $this->qrCardDesigns($restaurant)[$type]['orientations'][$type === 'room' ? 'landscape' : 'portrait'];
 
         $result = (new Builder(
             writer: new SvgWriter(),
@@ -353,10 +353,10 @@ class TableController extends Controller
     private function defaultStickerSettings($restaurant = null): array
     {
         return [
-            'background_color' => '#FFFFFF',
-            'border_color' => '#111111',
-            'text_color' => '#111111',
-            'accent_color' => $restaurant?->primary_color ?: '#D22630',
+            'background_color' => '#FCF7EC',
+            'border_color' => '#C8AD78',
+            'text_color' => '#23423E',
+            'accent_color' => '#23423E',
             'qr_color' => '#111111',
             'qr_background_color' => '#FFFFFF',
             'design' => 'classic',

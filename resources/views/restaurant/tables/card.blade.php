@@ -7,29 +7,27 @@
     };
     $locationLabel = $locationLabel ?? (($table ?? null)?->displayLabel());
 @endphp
-<article class="signature-card{{ ($sticker['orientation'] ?? 'portrait') === 'landscape' ? ' is-landscape' : '' }}" style="--card-bg:{{ $sticker['background_color'] }};--card-text:{{ $sticker['text_color'] }};--card-border:{{ $sticker['border_color'] }};--card-accent:{{ $sticker['accent_color'] }};--logo-size:{{ $sticker['logo_size'] }}mm;--logo-half-height:{{ ($sticker['logo_size'] ?? 24) / 2 }}mm;--logo-width:{{ $sticker['logo_width'] ?? 53 }}mm;--logo-half-width:{{ ($sticker['logo_width'] ?? 53) / 2 }}mm;--logo-x:{{ $sticker['logo_x'] ?? 37 }}mm;--logo-y:{{ $sticker['logo_y'] ?? 18 }}mm;--heading-x:{{ $sticker['heading_x'] ?? 0 }}mm;--heading-y:{{ $sticker['heading_y'] ?? 0 }}mm;--kicker-x:{{ $sticker['kicker_x'] ?? 0 }}mm;--kicker-y:{{ $sticker['kicker_y'] ?? 0 }}mm;--title-x:{{ $sticker['title_x'] ?? 0 }}mm;--title-y:{{ $sticker['title_y'] ?? 0 }}mm;--location-x:{{ $sticker['location_x'] ?? 0 }}mm;--location-y:{{ $sticker['location_y'] ?? 0 }}mm;--scan-x:{{ $sticker['scan_x'] ?? 0 }}mm;--scan-y:{{ $sticker['scan_y'] ?? -3 }}mm;--frame-x:{{ $sticker['frame_x'] ?? 0 }}mm;--frame-y:{{ $sticker['frame_y'] ?? 0 }}mm;--hint-x:{{ $sticker['hint_x'] ?? 0 }}mm;--hint-y:{{ $sticker['hint_y'] ?? 0 }}mm;--footer-x:{{ $sticker['footer_x'] ?? 0 }}mm;--footer-y:{{ $sticker['footer_y'] ?? 0 }}mm;--footer-scale:{{ ($sticker['footer_size'] ?? 100) / 100 }};--text-size:{{ $sticker['text_size'] }}pt;--qr-size:{{ $sticker['qr_size'] }}mm;--detail-size:{{ $sticker['detail_size'] }}pt;--art-opacity:{{ $sticker['art_opacity'] / 100 }};">
+<article class="signature-card{{ ($sticker['orientation'] ?? 'portrait') === 'landscape' ? ' is-landscape' : '' }}" style="--qr-bg:{{ $sticker['qr_background_color'] ?? '#FFFFFF' }};--card-bg:{{ $sticker['background_color'] }};--card-text:{{ $sticker['text_color'] }};--card-border:{{ $sticker['border_color'] }};--card-accent:{{ $sticker['accent_color'] }};--logo-size:{{ $sticker['logo_size'] }}mm;--logo-half-height:{{ ($sticker['logo_size'] ?? 24) / 2 }}mm;--logo-width:{{ $sticker['logo_width'] ?? 53 }}mm;--logo-half-width:{{ ($sticker['logo_width'] ?? 53) / 2 }}mm;--logo-x:{{ $sticker['logo_x'] ?? 37 }}mm;--logo-y:{{ $sticker['logo_y'] ?? 18 }}mm;--heading-x:{{ $sticker['heading_x'] ?? 0 }}mm;--heading-y:{{ $sticker['heading_y'] ?? 0 }}mm;--kicker-x:{{ $sticker['kicker_x'] ?? 0 }}mm;--kicker-y:{{ $sticker['kicker_y'] ?? 0 }}mm;--title-x:{{ $sticker['title_x'] ?? 0 }}mm;--title-y:{{ $sticker['title_y'] ?? 0 }}mm;--location-x:{{ $sticker['location_x'] ?? 0 }}mm;--location-y:{{ $sticker['location_y'] ?? 0 }}mm;--scan-x:{{ $sticker['scan_x'] ?? 0 }}mm;--scan-y:{{ $sticker['scan_y'] ?? -3 }}mm;--frame-x:{{ $sticker['frame_x'] ?? 0 }}mm;--frame-y:{{ $sticker['frame_y'] ?? 0 }}mm;--hint-x:{{ $sticker['hint_x'] ?? 0 }}mm;--hint-y:{{ $sticker['hint_y'] ?? 0 }}mm;--footer-x:{{ $sticker['footer_x'] ?? 0 }}mm;--footer-y:{{ $sticker['footer_y'] ?? 0 }}mm;--footer-scale:{{ ($sticker['footer_size'] ?? 100) / 100 }};--text-size:{{ $sticker['text_size'] }}pt;--qr-size:{{ $sticker['qr_size'] }}mm;--detail-size:{{ $sticker['detail_size'] }}pt;--art-opacity:{{ $sticker['art_opacity'] / 100 }};">
     <svg class="signature-art" data-layer="art" style="{{ $elementStyle('art') }}" viewBox="{{ ($sticker['orientation'] ?? 'portrait') === 'landscape' ? '0 0 560 297' : '0 0 297 560' }}" preserveAspectRatio="none" aria-hidden="true">
         <g class="signature-artwork-landscape" @if(($sticker['orientation'] ?? 'portrait') !== 'landscape') style="display:none" @endif>
-        <path d="M0 0H560V297H0Z" fill="var(--card-bg)"/>
-        <path d="M305 0H560V106C485 83 450 54 401 34S348 12 305 0Z" fill="var(--card-accent)" opacity=".13"/>
-        <path d="M335 0H560V91C499 76 465 53 425 33S365 7 335 0Z" fill="var(--card-accent)"/>
-        <path d="M372 -8C422 28 480 42 568 68M389 -11C439 25 497 39 585 65M406 -14C456 22 514 36 602 62" fill="none" stroke="var(--card-bg)" stroke-width=".95" opacity=".72"/>
-        <path d="M0 214C88 225 140 259 237 261S429 242 560 267V297H0Z" fill="var(--card-accent)" opacity=".13"/>
-        <path d="M0 230C97 242 144 274 240 274S429 253 560 277V297H0Z" fill="var(--card-accent)"/>
-        <path d="M-8 246C97 258 145 286 244 286S433 266 568 290M-8 253C97 265 145 293 244 293S433 273 568 297M-8 260C97 272 145 300 244 300S433 280 568 304" fill="none" stroke="var(--card-bg)" stroke-width=".85" opacity=".7"/>
-        <path d="M0 0H113L0 34Z" fill="var(--card-accent)" opacity=".12"/>
-        <path d="M0 23L76 0" fill="none" stroke="var(--card-accent)" stroke-width=".7" opacity=".35"/>
-        </g>
+   <path d="M0 0H560V297H0Z" fill="var(--card-bg)"/>
+   <path d="M63 275C169 224 237 300 366 281L410 297H63Z" fill="var(--card-border)" opacity=".22"/>
+   <path d="M63 285C169 234 237 310 401 285" fill="none" stroke="var(--card-border)" stroke-width=".7"/>
+   <path d="M0 0H63V297H0Z" fill="var(--card-accent)"/>
+   <path d="M53 0V297M47 0V297" stroke="var(--card-border)" stroke-width=".65"/>
+   <path d="M333 0H560V297H385C305 263 293 216 320 165S375 64 333 0Z" fill="var(--card-accent)"/>
+   <path d="M325 0C367 64 339 111 312 163S297 265 377 297" fill="none" stroke="var(--card-border)" stroke-width="1"/>
+   <path d="M560 29C482 -1 447 32 414 76M560 38C482 8 454 40 421 84M560 47C482 17 461 48 428 92" fill="none" stroke="var(--card-border)" stroke-width=".6"/>
+   <path d="M63 0H271C214 24 139 8 63 56Z" fill="var(--card-border)" opacity=".22"/>
+   </g>
         <g class="signature-artwork-portrait" @if(($sticker['orientation'] ?? 'portrait') === 'landscape') style="display:none" @endif>
-        <path d="M155 0H297V173C241 155 264 95 217 73S174 26 155 0Z" fill="var(--card-accent)" opacity=".13"/>
-        <path d="M176 0H297V152C255 131 272 85 231 64S192 20 176 0Z" fill="var(--card-accent)"/>
-        <path d="M214 -16C191 35 320 59 285 145M228 -18C205 33 334 57 299 143M242 -20C219 31 348 55 313 141" fill="none" stroke="var(--card-bg)" stroke-width="1.1" opacity=".7"/>
-        <path d="M0 0H68L0 60Z" fill="var(--card-accent)" opacity=".12"/>
-        <path d="M0 42L47 0" fill="none" stroke="var(--card-accent)" stroke-width=".8" opacity=".35"/>
-        <path d="M0 491C67 506 58 525 135 529S242 524 297 538V560H0Z" fill="var(--card-accent)" opacity=".13"/>
-        <path d="M0 511C61 521 61 537 138 541S246 534 297 549V560H0Z" fill="var(--card-accent)"/>
-        <path d="M-12 524C56 534 65 547 143 550S250 543 310 558M-12 532C56 542 65 555 143 558S250 551 310 566M-12 540C56 550 65 563 143 566S250 559 310 574" fill="none" stroke="var(--card-bg)" stroke-width="1" opacity=".7"/>
-        </g>
+   <path d="M0 0H297V560H0Z" fill="var(--card-bg)"/>
+   <path d="M0 0H297V44H0Z" fill="var(--card-accent)"/>
+   <path d="M0 36H297M0 40H297" stroke="var(--card-border)" stroke-width=".65"/>
+   <path d="M0 294C92 330 219 256 297 303V560H0Z" fill="var(--card-accent)"/>
+   <path d="M0 282C92 318 219 244 297 291" fill="none" stroke="var(--card-border)" stroke-width="1"/>
+   <path d="M0 550C91 533 190 575 297 547M0 557C91 540 190 582 297 554" fill="none" stroke="var(--card-border)" stroke-width=".65"/>
+   <path d="M23 83V188M274 83V188" stroke="var(--card-border)" stroke-width=".6"/></g>
     </svg>
     <div class="signature-logo-slot" aria-hidden="true"></div>
     <div class="signature-logo-wrap">
@@ -42,7 +40,7 @@
         <p class="signature-kicker"><span class="signature-kicker-cross" data-layer="cross" style="{{ $elementStyle('cross') }}" aria-hidden="true">＋</span><span class="signature-kicker-line" data-layer="line_left" style="{{ $elementStyle('line_left') }}" aria-hidden="true"></span><span class="signature-kicker-text" data-layer="kicker_text" style="{{ $elementStyle('kicker_text') }}">AT YOUR SERVICE</span><span class="signature-kicker-line" data-layer="line_right" style="{{ $elementStyle('line_right') }}" aria-hidden="true"></span></p>
         <p class="signature-title" data-layer="title" style="{{ $elementStyle('title') }}">{{ $scanText }}</p>
     </div>
-    @if(!empty($locationLabel ?? null))<p class="signature-location" data-layer="location" style="{{ $elementStyle('location') }}">{{ $locationLabel }}</p>@endif
+    @if(!empty($locationLabel ?? null))<p class="signature-location" data-layer="location" style="{{ $elementStyle('location') }}">@php($labelParts = preg_split('/\s+(?=\S+$)/u', trim($locationLabel), 2))<span>{{ $labelParts[0] }}</span>@if(isset($labelParts[1]))<strong>{{ $labelParts[1] }}</strong>@endif</p>@endif
     <div class="signature-scan">
         <div class="signature-frame" data-layer="frame" style="{{ $elementStyle('frame') }}"><img src="{{ $qrImage }}" alt="Menu QR code" width="500" height="500" data-print-resource></div>
         <p class="signature-hint" data-layer="hint" style="{{ $elementStyle('hint') }}">Scan. Tap. Enjoy.</p>
