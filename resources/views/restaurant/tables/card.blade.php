@@ -24,9 +24,9 @@
    <path d="M0 0H297V560H0Z" fill="var(--card-bg)"/>
    <path d="M0 0H297V44H0Z" fill="var(--card-accent)"/>
    <path d="M0 36H297M0 40H297" stroke="var(--card-border)" stroke-width=".65"/>
-   <path d="M0 294C92 330 219 256 297 303V530C190 559 87 506 0 530Z" fill="var(--card-accent)"/>
-   <path d="M0 273C92 309 219 235 297 282V298C219 251 92 325 0 289Z" fill="var(--card-border)" opacity=".13"/>
-   <path d="M0 282C92 318 219 244 297 291" fill="none" stroke="var(--card-border)" stroke-width="1"/>
+   <path d="M0 294C92 330 219 256 297 303V545C190 574 87 521 0 545Z" fill="var(--card-accent)"/>
+   <path d="M0 273C92 309 219 235 297 282V313C219 266 92 340 0 304Z" fill="var(--card-border)" opacity=".13"/>
+   <path d="M0 297C92 333 219 259 297 306" fill="none" stroke="var(--card-border)" stroke-width="1"/>
    <path d="M0 553C87 535 190 577 297 546V560H0Z" fill="var(--card-bg)"/>
    <path d="M0 544C87 526 190 568 297 537" fill="none" stroke="var(--card-border)" stroke-width="1.35"/>
    <path d="M0 552C87 534 190 576 297 545" fill="none" stroke="var(--card-border)" stroke-width=".9"/>
