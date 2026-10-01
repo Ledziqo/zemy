@@ -110,7 +110,7 @@
 @endif
 </aside>
 </form></details>
-<script src="{{ asset('assets/qr-editor.js') }}?v=6"></script>
+<script src="{{ asset('assets/qr-editor.js') }}?v=7"></script>
 <script>
 (() => {
  const form=document.getElementById('qr-design-form'),card=form.querySelector('.signature-card'),preview=form.querySelector('.qr-preview'),type=document.getElementById('qr-preview-type'),typeValue=document.getElementById('qr-design-type-value'),status=document.getElementById('qr-design-status'),logoInput=form.elements.namedItem('qr_logo'),logoWrap=card?.querySelector('.signature-logo-wrap'),logoSizeInput=form.elements.namedItem('logo_size'),logoWidthInput=form.elements.namedItem('logo_width');
