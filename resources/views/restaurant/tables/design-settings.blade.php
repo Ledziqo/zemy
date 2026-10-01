@@ -80,11 +80,13 @@
 <label>Width %<input id="qr-layer-width" type="number" min="2" max="2000" step="1"></label>
 <label>Height %<input id="qr-layer-height" type="number" min="2" max="2000" step="1"></label>
 </div>
+<label>Rotation °<input id="qr-layer-rotation" type="number" min="-360" max="360" step="1" value="0"></label>
+<button type="button" id="qr-layer-undo" class="qr-reset" disabled>Undo</button>
 <button type="button" id="qr-layer-reset" class="qr-reset">Reset selected element</button>
-<p>Drag the selection to move. Drag its right, bottom, or corner handle to resize. Use the list to reach overlapping elements.</p>
+<p>Drag an element to move it. Use the top handle or rotation control to turn it. Side handles resize width or height; the corner keeps the proportions.</p>
 </div>
 @foreach(['logo','cross','line_left','line_right','kicker_text','title','location','frame','hint','footer','art'] as $element)
-@foreach(['x'=>0,'y'=>0,'sx'=>1,'sy'=>1] as $dimension=>$default)
+@foreach(['x'=>0,'y'=>0,'sx'=>1,'sy'=>1,'r'=>0] as $dimension=>$default)
 <input type="hidden" name="elements[{{ $element }}][{{ $dimension }}]" value="{{ old('elements.'.$element.'.'.$dimension,$sticker['elements'][$element][$dimension] ?? $default) }}">
 @endforeach
 @endforeach
@@ -97,11 +99,11 @@
 @endif
 </aside>
 </form></details>
-<script src="{{ asset('assets/qr-editor.js') }}?v=5"></script>
+<script src="{{ asset('assets/qr-editor.js') }}?v=6"></script>
 <script>
 (() => {
  const form=document.getElementById('qr-design-form'),card=form.querySelector('.signature-card'),preview=form.querySelector('.qr-preview'),type=document.getElementById('qr-preview-type'),typeValue=document.getElementById('qr-design-type-value'),status=document.getElementById('qr-design-status'),logoInput=form.elements.namedItem('qr_logo'),logoWrap=card?.querySelector('.signature-logo-wrap'),logoSizeInput=form.elements.namedItem('logo_size'),logoWidthInput=form.elements.namedItem('logo_width');
- const designs=@json($qrCardDesigns),previewCards=@json($previewCards),fileDrafts={table:{portrait:null,landscape:null},room:{portrait:null,landscape:null}},dirty=new Set();
+ const designs=@json($qrCardDesigns),previewCards=@json($previewCards),fileDrafts={table:{portrait:null,landscape:null},room:{portrait:null,landscape:null}},fileDraftIds={table:{portrait:null,landscape:null},room:{portrait:null,landscape:null}},qrFileRegistry=new Map(),dirty=new Set();
  let activeOrientation=field('orientation').value;
  let logo=card?.querySelector('.signature-logo');
  const palettes={signature:['#FFFFFF','#171717','#D22630','#D6D0CA'],forest:['#FBF8F0','#173F35','#38715C','#B7C3B5'],midnight:['#15232D','#FFF7E7','#B99151','#57636A'],brand:['#FFFFFF','#171717',@json($restaurant->primary_color ?: '#D22630'),'#D6D0CA']};
@@ -109,9 +111,19 @@
  const scalarKeys=['orientation',...keys,'qr_color','qr_background_color','logo_size','logo_width','logo_x','logo_y','heading_x','heading_y','kicker_x','kicker_y','title_x','title_y','location_x','location_y','scan_x','scan_y','frame_x','frame_y','hint_x','hint_y','footer_x','footer_y','text_size','qr_size','detail_size','footer_size','art_opacity','scan_text'];
  function field(name){return form.elements.namedItem(name)}
  function activeDesign(){return designs[type.value].orientations[activeOrientation]}
- function capture(){const state={};scalarKeys.forEach(key=>{if(key==='orientation')state[key]=activeOrientation;else state[key]=field(key).value});state.elements={};['logo','cross','line_left','line_right','kicker_text','title','location','frame','hint','footer','credit','zemtab','art'].forEach(name=>{state.elements[name]={};['x','y','sx','sy'].forEach(d=>{const input=field(`elements[${name}][${d}]`);if(input)state.elements[name][d]=input.value})});state.qr_logo_path=activeDesign().qr_logo_path;state.logo_url=activeDesign().logo_url;state.restaurant_logo_url=activeDesign().restaurant_logo_url;state.remove_qr_logo=field('remove_qr_logo').checked;return state}
+ function capture(){const state={};scalarKeys.forEach(key=>{if(key==='orientation')state[key]=activeOrientation;else state[key]=field(key).value});state.elements={};['logo','cross','line_left','line_right','kicker_text','title','location','frame','hint','footer','credit','zemtab','art'].forEach(name=>{state.elements[name]={};['x','y','sx','sy','r'].forEach(d=>{const input=field(`elements[${name}][${d}]`);if(input)state.elements[name][d]=input.value})});state.qr_logo_path=activeDesign().qr_logo_path;state.logo_url=activeDesign().logo_url;state.restaurant_logo_url=activeDesign().restaurant_logo_url;state.qr_logo_draft_id=fileDraftIds[type.value][activeOrientation];state.remove_qr_logo=field('remove_qr_logo').checked;return state}
  function restoreFileInput(value){if(!logoInput)return;const transfer=new DataTransfer();if(value)transfer.items.add(value);logoInput.files=transfer.files}
- function applyDesign(state){scalarKeys.forEach(key=>{const input=field(key);if(!input)return;if(key==='orientation')input.value=state[key];else input.value=state[key]??''});Object.entries(state.elements||{}).forEach(([name,dimensions])=>Object.entries(dimensions).forEach(([dimension,value])=>{const input=field(`elements[${name}][${dimension}]`);if(input)input.value=value}));field('remove_qr_logo').checked=!!state.remove_qr_logo;restoreFileInput(fileDrafts[type.value][activeOrientation]);update(false);form.refreshQrEditor?.()}
+ function applyDesign(state){
+  scalarKeys.forEach(key=>{const input=field(key);if(input)input.value=state[key]??''});
+  form.querySelectorAll('input[name^="elements["]').forEach(input=>{
+   const [,name,dimension]=input.name.match(/^elements\[([^\]]+)\]\[([^\]]+)\]$/);
+   input.value=state.elements?.[name]?.[dimension]??(['sx','sy'].includes(dimension)?1:0);
+  });
+  field('remove_qr_logo').checked=!!state.remove_qr_logo;
+  fileDraftIds[type.value][activeOrientation]=state.qr_logo_draft_id??null;
+  fileDrafts[type.value][activeOrientation]=qrFileRegistry.get(state.qr_logo_draft_id)||null;
+  restoreFileInput(fileDrafts[type.value][activeOrientation]);update(false);form.refreshQrEditor?.();lastUndoSnapshot=JSON.stringify(capture());
+ }
  function setLogo(src){if(!card)return;if(src){if(!logo){logo=document.createElement('img');logo.className='signature-logo';logo.dataset.layer='logo';logo.alt='QR logo';logo.setAttribute('data-print-resource','');logoWrap.appendChild(logo)}logo.src=src;logo.hidden=false}else if(logo){logo.remove();logo=null}}
  function renderLocation(label){
  const el=card.querySelector('.signature-location'),parts=label.trim().split(/\s+(?=\S+$)/u);
@@ -125,6 +137,7 @@
  card.querySelector('.signature-frame img').src='data:image/svg+xml;base64,'+btoa(new XMLSerializer().serializeToString(svg));
  }
  function update(markDirty=true){
+  if(markDirty)trackUndo();
   const properties={background_color:'--card-bg',text_color:'--card-text',accent_color:'--card-accent',border_color:'--card-border',qr_background_color:'--qr-bg',logo_size:'--logo-size',logo_width:'--logo-width',logo_x:'--logo-x',logo_y:'--logo-y',heading_x:'--heading-x',heading_y:'--heading-y',kicker_x:'--kicker-x',kicker_y:'--kicker-y',title_x:'--title-x',title_y:'--title-y',location_x:'--location-x',location_y:'--location-y',scan_x:'--scan-x',scan_y:'--scan-y',frame_x:'--frame-x',frame_y:'--frame-y',hint_x:'--hint-x',hint_y:'--hint-y',footer_x:'--footer-x',footer_y:'--footer-y',text_size:'--text-size',qr_size:'--qr-size',detail_size:'--detail-size',footer_size:'--footer-scale',art_opacity:'--art-opacity'};
   Object.entries(properties).forEach(([key,property])=>{const input=form.elements.namedItem(key),unit=input.dataset.unit||(/_[xy]$/.test(key)?'mm':''),value=['art_opacity','footer_size'].includes(key)?Number(input.value)/100:input.value+unit;if(card)card.style.setProperty(property,value);const output=form.querySelector('[data-value="'+key+'"]');if(output)output.textContent=input.value+unit;});
   if(card){card.style.setProperty('--logo-half-width',(Number(logoWidthInput.value)/2)+'mm');card.style.setProperty('--logo-half-height',(Number(logoSizeInput.value)/2)+'mm');}
@@ -136,16 +149,29 @@
   if(card){card.querySelector('.signature-title').textContent=field('scan_text').value;renderLocation(previewCards[type.value].label);renderQr(previewCards[type.value].qr);const label=document.getElementById('qr-preview-label');if(label)label.textContent=previewCards[type.value].label;const uploaded=fileDrafts[type.value][activeOrientation];setLogo(uploaded?URL.createObjectURL(uploaded):(field('remove_qr_logo').checked?activeDesign().restaurant_logo_url:activeDesign().logo_url));window.fitSignatureTitles(form);}
   if(markDirty){designs[type.value].orientations[activeOrientation]=capture();dirty.add(`${type.value}:${activeOrientation}`);status.textContent=`Unsaved ${activeOrientation} ${type.value} design — save to apply this exact layout to the print pack.`;}
  }
- type.addEventListener('change',()=>{const previous=typeValue.value;designs[previous].orientations[activeOrientation]=capture();if(logoInput?.files?.[0])fileDrafts[previous][activeOrientation]=logoInput.files[0];typeValue.value=type.value;applyDesign(designs[type.value].orientations[activeOrientation]);document.getElementById('qr-design-save').textContent=`Save ${activeOrientation} ${type.value} card design`;status.textContent=`Editing ${activeOrientation} ${type.value} cards.`});
- form.querySelectorAll('input[name="orientation"]').forEach(input=>input.addEventListener('change',()=>{const next=input.value;if(next===activeOrientation)return;designs[type.value].orientations[activeOrientation]=capture();if(logoInput?.files?.[0])fileDrafts[type.value][activeOrientation]=logoInput.files[0];activeOrientation=next;applyDesign(designs[type.value].orientations[activeOrientation]);document.getElementById('qr-design-save').textContent=`Save ${activeOrientation} ${type.value} card design`;status.textContent=`Editing the independent ${activeOrientation} ${type.value} layout.`}));
- logoInput?.addEventListener('change',()=>{fileDrafts[type.value][activeOrientation]=logoInput.files?.[0]||null;update();});
+ type.addEventListener('change',()=>{const previous=typeValue.value;designs[previous].orientations[activeOrientation]=capture();if(logoInput?.files?.[0])fileDrafts[previous][activeOrientation]=logoInput.files[0];typeValue.value=type.value;applyDesign(designs[type.value].orientations[activeOrientation]);clearUndo();document.getElementById('qr-design-save').textContent=`Save ${activeOrientation} ${type.value} card design`;status.textContent=`Editing ${activeOrientation} ${type.value} cards.`});
+ form.querySelectorAll('input[name="orientation"]').forEach(input=>input.addEventListener('change',()=>{const next=input.value;if(next===activeOrientation)return;designs[type.value].orientations[activeOrientation]=capture();if(logoInput?.files?.[0])fileDrafts[type.value][activeOrientation]=logoInput.files[0];activeOrientation=next;applyDesign(designs[type.value].orientations[activeOrientation]);clearUndo();document.getElementById('qr-design-save').textContent=`Save ${activeOrientation} ${type.value} card design`;status.textContent=`Editing the independent ${activeOrientation} ${type.value} layout.`}));
+ logoInput?.addEventListener('change',()=>{const file=logoInput.files?.[0]||null;fileDrafts[type.value][activeOrientation]=file;const id=file?`${Date.now()}-${Math.random()}`:null;fileDraftIds[type.value][activeOrientation]=id;if(id)qrFileRegistry.set(id,file);update();});
  form.elements.namedItem('remove_qr_logo').addEventListener('change',()=>update());
  form.addEventListener('submit',event=>{const current=`${type.value}:${activeOrientation}`,others=[...dirty].filter(key=>key!==current);if(others.length&&!confirm(`Only the ${activeOrientation} ${type.value} layout will be saved. Other unsaved card layouts will be discarded. Continue?`)){event.preventDefault();return}dirty.delete(current)});
  form.querySelectorAll('[data-palette]').forEach(button=>button.addEventListener('click',()=>{keys.forEach((key,index)=>field(key).value=palettes[button.dataset.palette][index]);update()}));
- document.getElementById('qr-design-reset').addEventListener('click',()=>{keys.forEach((key,index)=>field(key).value=palettes.signature[index]);Object.entries({orientation:activeOrientation,qr_color:'#111111',qr_background_color:'#FFFFFF',logo_size:24,logo_width:53,logo_x:37,logo_y:18,heading_x:0,heading_y:0,kicker_x:0,kicker_y:0,title_x:0,title_y:0,location_x:0,location_y:0,scan_x:0,scan_y:-3,frame_x:0,frame_y:0,hint_x:0,hint_y:0,footer_x:0,footer_y:0,text_size:18,qr_size:46,detail_size:7,footer_size:100,art_opacity:100,scan_text:type.value==='table'?'SCAN TO ORDER':'SCAN FOR ROOM SERVICE'}).forEach(([key,value])=>field(key).value=value);fileDrafts[type.value][activeOrientation]=null;restoreFileInput(null);field('remove_qr_logo').checked=false;logoWrap?.classList.remove('is-selected');update()});
+ document.getElementById('qr-design-reset').addEventListener('click',()=>{keys.forEach((key,index)=>field(key).value=palettes.signature[index]);Object.entries({orientation:activeOrientation,qr_color:'#111111',qr_background_color:'#FFFFFF',logo_size:24,logo_width:53,logo_x:37,logo_y:18,heading_x:0,heading_y:0,kicker_x:0,kicker_y:0,title_x:0,title_y:0,location_x:0,location_y:0,scan_x:0,scan_y:-3,frame_x:0,frame_y:0,hint_x:0,hint_y:0,footer_x:0,footer_y:0,text_size:18,qr_size:46,detail_size:7,footer_size:100,art_opacity:100,scan_text:type.value==='table'?'SCAN TO ORDER':'SCAN FOR ROOM SERVICE'}).forEach(([key,value])=>field(key).value=value);fileDrafts[type.value][activeOrientation]=null;fileDraftIds[type.value][activeOrientation]=null;restoreFileInput(null);field('remove_qr_logo').checked=false;logoWrap?.classList.remove('is-selected');update()});
  form.addEventListener('input',event=>{if(event.target!==type&&event.target.name!=='orientation')update()});
  card?.addEventListener('pointerup',()=>update());
  update(false);
+ const undoButton=form.querySelector('#qr-layer-undo'),undoStack=[];
+ let lastUndoSnapshot=JSON.stringify(capture()),pendingUndoSnapshot=null,undoTimer=null,actionUndoSnapshot=null;
+ function paintUndo(){undoButton.disabled=undoStack.length===0&&!pendingUndoSnapshot}
+ function clearUndo(){clearTimeout(undoTimer);undoStack.length=0;pendingUndoSnapshot=null;lastUndoSnapshot=JSON.stringify(capture());paintUndo()}
+ function commitUndo(snapshot){if(!snapshot)return;undoStack.push(snapshot);if(undoStack.length>60)undoStack.shift();paintUndo()}
+ function flushUndo(){clearTimeout(undoTimer);if(pendingUndoSnapshot!==null){commitUndo(pendingUndoSnapshot);pendingUndoSnapshot=null}paintUndo()}
+ form.addEventListener('focusin',flushUndo);
+ form.addEventListener('click',event=>{if(event.target.closest('[data-palette],#qr-design-reset,#qr-layer-reset'))flushUndo()},true);
+ function trackUndo(){const next=JSON.stringify(capture());if(actionUndoSnapshot!==null){lastUndoSnapshot=next;return}if(next===lastUndoSnapshot)return;if(pendingUndoSnapshot===null)pendingUndoSnapshot=lastUndoSnapshot;lastUndoSnapshot=next;clearTimeout(undoTimer);undoTimer=setTimeout(()=>{commitUndo(pendingUndoSnapshot);pendingUndoSnapshot=null;undoTimer=null;paintUndo()},450);paintUndo()}
+ form.addEventListener('qr-editor-action-start',()=>{clearTimeout(undoTimer);if(pendingUndoSnapshot!==null){commitUndo(pendingUndoSnapshot);pendingUndoSnapshot=null}actionUndoSnapshot=JSON.stringify(capture())});
+ form.addEventListener('qr-editor-action-end',()=>{const next=JSON.stringify(capture());if(actionUndoSnapshot&&next!==actionUndoSnapshot)commitUndo(actionUndoSnapshot);actionUndoSnapshot=null;lastUndoSnapshot=next;paintUndo()});
+ undoButton.addEventListener('click',()=>{clearTimeout(undoTimer);if(pendingUndoSnapshot!==null){commitUndo(pendingUndoSnapshot);pendingUndoSnapshot=null}const previous=undoStack.pop();if(!previous)return;applyDesign(JSON.parse(previous));designs[type.value].orientations[activeOrientation]=capture();dirty.add(`${type.value}:${activeOrientation}`);status.textContent=`Undid the last change. Save to keep this ${activeOrientation} ${type.value} design.`;paintUndo()});
+ form.addEventListener('qr-editor-change',()=>update());
  window.initQrEditor(form, card);
 })();
 </script>

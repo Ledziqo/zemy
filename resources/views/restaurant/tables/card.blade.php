@@ -3,7 +3,7 @@
     $logoUrl = $logoPath ? (\Illuminate\Support\Str::startsWith($logoPath, ['http://', 'https://', 'uploads/']) ? (str_starts_with($logoPath, 'uploads/') ? asset($logoPath) : $logoPath) : asset('storage/'.$logoPath)) : null;
     $elementStyle = function ($key) use ($sticker) {
         $e = $sticker['elements'][$key] ?? [];
-        return 'translate:'.(float)($e['x'] ?? 0).'mm '.(float)($e['y'] ?? 0).'mm;scale:'.(float)($e['sx'] ?? 1).' '.(float)($e['sy'] ?? 1).';';
+        return 'translate:'.(float)($e['x'] ?? 0).'mm '.(float)($e['y'] ?? 0).'mm;scale:'.(float)($e['sx'] ?? 1).' '.(float)($e['sy'] ?? 1).';rotate:'.(float)($e['r'] ?? 0).'deg;';
     };
     $locationLabel = $locationLabel ?? (($table ?? null)?->displayLabel());
 @endphp
@@ -42,7 +42,13 @@
     </div>
     @if(!empty($locationLabel ?? null))<p class="signature-location" data-layer="location" style="{{ $elementStyle('location') }}">@php($labelParts = preg_split('/\s+(?=\S+$)/u', trim($locationLabel), 2))<span>{{ $labelParts[0] }}</span>@if(isset($labelParts[1]))<strong>{{ $labelParts[1] }}</strong>@endif</p>@endif
     <div class="signature-scan">
-        <div class="signature-frame" data-layer="frame" style="{{ $elementStyle('frame') }}"><img src="{{ $qrImage }}" alt="Menu QR code" width="500" height="500" data-print-resource></div>
+        <div class="signature-frame" data-layer="frame" style="{{ $elementStyle('frame') }}">
+            <img src="{{ $qrImage }}" alt="Menu QR code" width="500" height="500" data-print-resource>
+            <svg class="signature-frame-detail" viewBox="0 0 440 440" preserveAspectRatio="none" aria-hidden="true">
+                <rect x="8" y="8" width="424" height="424" rx="10" fill="none" stroke-opacity=".55" stroke-width=".9"/>
+                <path d="M204 8H236M432 204V236M204 432H236M8 204V236" fill="none" stroke-width="2.8" stroke-linecap="round"/>
+            </svg>
+        </div>
         <p class="signature-hint" data-layer="hint" style="{{ $elementStyle('hint') }}">Scan. Tap. Enjoy.</p>
     </div>
     <div class="signature-footer" data-layer="footer" style="{{ $elementStyle('footer') }}"><img src="{{ asset('logo/zemtab-pantone-1795-c-icon-text-transparent.png') }}" alt="ZemTab" data-print-resource></div>

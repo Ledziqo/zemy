@@ -45,6 +45,8 @@
 .qr-selection{position:absolute;border:1px dashed #1688ff;z-index:100;cursor:move;touch-action:none}
 .qr-selection[hidden]{display:none}
 .qr-selection button{position:absolute;width:12px;height:12px;padding:0;background:#1688ff;border:2px solid white;border-radius:2px;touch-action:none}
+.qr-selection [data-rotate]{left:50%;top:-28px;width:18px;height:18px;border-radius:50%;transform:translateX(-50%);cursor:grab;background:#1688ff}
+.qr-selection [data-rotate]::after{content:'↻';display:block;color:#fff;font:14px/14px Arial,sans-serif}
 .qr-selection [data-axis=x]{right:-6px;top:50%;cursor:ew-resize}
 .qr-selection [data-axis=y]{bottom:-6px;left:50%;cursor:ns-resize}
 .qr-selection [data-axis=xy]{right:-6px;bottom:-6px;cursor:nwse-resize}
@@ -66,7 +68,8 @@
 .signature-location span{font-family:'Segoe UI',sans-serif;font-size:var(--detail-size);font-weight:600;letter-spacing:.18em}
 .signature-location strong{font-family:Georgia,serif;font-size:23pt;font-weight:400;line-height:1;letter-spacing:0}
 .signature-scan{position:absolute;left:50%;top:84mm;transform:translateX(-50%) translate(var(--scan-x),var(--scan-y));gap:1mm}
-.signature-frame{padding:2.5mm;background:var(--qr-bg,#fff);border-radius:2mm;box-shadow:0 0 0 .2mm var(--card-border),0 0 0 1.3mm var(--card-accent),0 0 0 1.5mm var(--card-border)}
+.signature-frame{padding:2mm;background:var(--card-bg);border-radius:1.5mm;box-shadow:0 0 0 .2mm var(--card-border),0 0 0 1.3mm var(--card-accent),0 0 0 1.5mm var(--card-border)}
+.signature-frame .signature-frame-detail{position:absolute;inset:0;width:100%;height:100%;pointer-events:none;stroke:var(--card-border)}
 .signature-frame img{width:calc(var(--qr-size) - 6mm);height:calc(var(--qr-size) - 6mm)}
 /* Keep the portrait QR square under the app's responsive img max-width rule.
    A squeezed image viewport letterboxes the SVG into oversized white bands. */
@@ -84,7 +87,7 @@
 .signature-card.is-landscape .signature-location strong{font-size:20pt;writing-mode:vertical-rl;letter-spacing:.1em}
 .signature-card.is-landscape .signature-footer{left:48mm;right:auto;top:63mm;bottom:auto;transform:translateX(-50%) translate(var(--footer-x),var(--footer-y)) scale(var(--footer-scale))}
 .signature-card.is-landscape .signature-scan{left:auto;right:7mm;top:19mm;width:45mm;transform:translate(var(--scan-x),var(--scan-y))}
-.signature-card.is-landscape .signature-frame{padding:2.5mm;max-width:none}
+.signature-card.is-landscape .signature-frame{padding:2mm;max-width:none}
 .signature-card.is-landscape .signature-frame img{width:calc(var(--qr-size) - 6mm);height:calc(var(--qr-size) - 6mm);max-width:none;max-height:none}
 .signature-card.is-landscape .signature-hint{margin-top:3mm}
 

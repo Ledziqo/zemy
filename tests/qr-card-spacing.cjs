@@ -34,10 +34,10 @@ const {chromium} = require(process.env.QR_PLAYWRIGHT || 'playwright');
                         const frame = await page.locator('.signature-frame').boundingBox();
                         close(image.width, mm(size - 6), `${label}: QR width`);
                         close(image.height, image.width, `${label}: QR stays square`);
-                        close(frame.width, mm(size - 1), `${label}: approved frame width`);
+                        close(frame.width, mm(size - 2), `${label}: approved frame width`);
                         close(frame.height, frame.width, `${label}: no white bands`);
-                        close(image.x - frame.x, mm(2.5), `${label}: horizontal padding`);
-                        close(image.y - frame.y, mm(2.5), `${label}: vertical padding`);
+                        close(image.x - frame.x, mm(2), `${label}: horizontal padding`);
+                        close(image.y - frame.y, mm(2), `${label}: vertical padding`);
                     }
                 }
             }

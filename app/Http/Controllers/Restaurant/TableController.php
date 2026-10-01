@@ -63,9 +63,9 @@ class TableController extends Controller
         $rules['scan_text'] = ['required', 'string', 'max:40'];
         $rules['elements'] = ['sometimes', 'array'];
         foreach (['logo','cross','line_left','line_right','kicker_text','title','location','frame','hint','footer','credit','zemtab','art'] as $element) {
-            $rules['elements.'.$element] = ['sometimes', 'array:x,y,sx,sy'];
-            foreach (['x','y','sx','sy'] as $dimension) {
-                $rules['elements.'.$element.'.'.$dimension] = ['sometimes', 'numeric', str_starts_with($dimension, 's') ? 'between:0.02,20' : 'between:-1000,1000'];
+            $rules['elements.'.$element] = ['sometimes', 'array:x,y,sx,sy,r'];
+            foreach (['x','y','sx','sy','r'] as $dimension) {
+                $rules['elements.'.$element.'.'.$dimension] = ['sometimes', 'numeric', in_array($dimension, ['sx','sy'], true) ? 'between:0.02,20' : ($dimension === 'r' ? 'between:-360,360' : 'between:-1000,1000')];
             }
         }
         $rules['qr_logo'] = ['nullable', 'file', 'mimes:png,jpg,jpeg,webp,svg', 'max:4096'];
