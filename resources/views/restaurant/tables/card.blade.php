@@ -24,9 +24,12 @@
    <path d="M0 0H297V560H0Z" fill="var(--card-bg)"/>
    <path d="M0 0H297V44H0Z" fill="var(--card-accent)"/>
    <path d="M0 36H297M0 40H297" stroke="var(--card-border)" stroke-width=".65"/>
-   <path d="M0 294C92 330 219 256 297 303V560H0Z" fill="var(--card-accent)"/>
+   <path d="M0 294C92 330 219 256 297 303V530C190 559 87 506 0 530Z" fill="var(--card-accent)"/>
+   <path d="M0 273C92 309 219 235 297 282V298C219 251 92 325 0 289Z" fill="var(--card-border)" opacity=".13"/>
    <path d="M0 282C92 318 219 244 297 291" fill="none" stroke="var(--card-border)" stroke-width="1"/>
-   <path d="M0 550C91 533 190 575 297 547M0 557C91 540 190 582 297 554" fill="none" stroke="var(--card-border)" stroke-width=".65"/>
+   <path d="M0 539C87 515 190 568 297 531V560H0Z" fill="var(--card-bg)"/>
+   <path d="M0 530C87 506 190 559 297 522" fill="none" stroke="var(--card-border)" stroke-width="1.35"/>
+   <path d="M0 538C87 514 190 567 297 530" fill="none" stroke="var(--card-border)" stroke-width=".9"/>
    <path d="M23 83V188M274 83V188" stroke="var(--card-border)" stroke-width=".6"/></g>
     </svg>
     <div class="signature-logo-slot" aria-hidden="true"></div>
