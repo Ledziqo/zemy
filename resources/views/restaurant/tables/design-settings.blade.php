@@ -40,7 +40,7 @@
 @csrf @method('PATCH')
 <input type="hidden" name="design_type" id="qr-design-type-value" value="{{ $designType }}">
 <input type="hidden" name="apply_colors_to_all" id="apply-colors-to-all" value="0">
-<input type="hidden" name="qr_color" value="{{ old('qr_color',$sticker['background_color']) }}">
+<input type="hidden" name="qr_background_color" value="{{ old('qr_background_color',$sticker['background_color']) }}">
 <div>
 @if($errors->any())<p role="alert" class="mb-4 text-red-500">{{ $errors->first() }}</p>@endif
 <fieldset><legend>00 / Card orientation</legend>
@@ -51,7 +51,7 @@
 <fieldset><legend>01 / Brand palette</legend>
 <div class="qr-presets"><button type="button" data-palette="signature">Signature red</button><button type="button" data-palette="forest">Forest & cream</button><button type="button" data-palette="midnight">Midnight & gold</button><button type="button" data-palette="brand">Venue brand</button></div>
 <div class="qr-controls">
-@foreach(['background_color'=>'Card background','text_color'=>'Typography','accent_color'=>'Abstract artwork','border_color'=>'Border & fine lines','qr_background_color'=>'QR background'] as $key=>$label)
+@foreach(['background_color'=>'Card background','text_color'=>'Typography','accent_color'=>'Abstract artwork','border_color'=>'Border & fine lines','qr_color'=>'QR code colour'] as $key=>$label)
 <label>{{ $label }}<input type="color" name="{{ $key }}" value="{{ old($key,$sticker[$key]) }}"></label>
 @endforeach
 </div></fieldset>
@@ -112,7 +112,7 @@
  let logo=card?.querySelector('.signature-logo');
  const palettes={signature:['#FFFFFF','#171717','#D22630','#D6D0CA'],forest:['#FBF8F0','#173F35','#38715C','#B7C3B5'],midnight:['#15232D','#FFF7E7','#B99151','#57636A'],brand:['#FFFFFF','#171717',@json($restaurant->primary_color ?: '#D22630'),'#D6D0CA']};
  const keys=['background_color','text_color','accent_color','border_color'];
- const colorKeys=[...keys,'qr_background_color'];
+ const colorKeys=[...keys,'qr_color'];
  const scalarKeys=['orientation',...keys,'qr_color','qr_background_color','logo_size','logo_width','logo_x','logo_y','heading_x','heading_y','kicker_x','kicker_y','title_x','title_y','location_x','location_y','scan_x','scan_y','frame_x','frame_y','hint_x','hint_y','footer_x','footer_y','text_size','qr_size','detail_size','footer_size','art_opacity','scan_text'];
  function field(name){return form.elements.namedItem(name)}
  function activeDesign(){return designs[type.value].orientations[activeOrientation]}
@@ -145,12 +145,12 @@
  function renderQr(src){
  const svg=new DOMParser().parseFromString(atob(src.split(',')[1]),'image/svg+xml');
  svg.documentElement.querySelector('rect')?.setAttribute('fill',field('qr_background_color').value);
- svg.documentElement.querySelectorAll('path').forEach(path=>path.setAttribute('fill',field('background_color').value));
+ svg.documentElement.querySelectorAll('path').forEach(path=>path.setAttribute('fill',field('qr_color').value));
  card.querySelector('.signature-frame img').src='data:image/svg+xml;base64,'+btoa(new XMLSerializer().serializeToString(svg));
  }
  function update(markDirty=true){
   if(markDirty)trackUndo();
-  field('qr_color').value=field('background_color').value;
+  field('qr_background_color').value=field('background_color').value;
   const properties={background_color:'--card-bg',text_color:'--card-text',accent_color:'--card-accent',border_color:'--card-border',qr_background_color:'--qr-bg',logo_size:'--logo-size',logo_width:'--logo-width',logo_x:'--logo-x',logo_y:'--logo-y',heading_x:'--heading-x',heading_y:'--heading-y',kicker_x:'--kicker-x',kicker_y:'--kicker-y',title_x:'--title-x',title_y:'--title-y',location_x:'--location-x',location_y:'--location-y',scan_x:'--scan-x',scan_y:'--scan-y',frame_x:'--frame-x',frame_y:'--frame-y',hint_x:'--hint-x',hint_y:'--hint-y',footer_x:'--footer-x',footer_y:'--footer-y',text_size:'--text-size',qr_size:'--qr-size',detail_size:'--detail-size',footer_size:'--footer-scale',art_opacity:'--art-opacity'};
   Object.entries(properties).forEach(([key,property])=>{const input=form.elements.namedItem(key),unit=input.dataset.unit||(/_[xy]$/.test(key)?'mm':''),value=['art_opacity','footer_size'].includes(key)?Number(input.value)/100:input.value+unit;if(card)card.style.setProperty(property,value);const output=form.querySelector('[data-value="'+key+'"]');if(output)output.textContent=input.value+unit;});
   if(card){card.style.setProperty('--logo-half-width',(Number(logoWidthInput.value)/2)+'mm');card.style.setProperty('--logo-half-height',(Number(logoSizeInput.value)/2)+'mm');}
