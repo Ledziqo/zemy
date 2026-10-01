@@ -70,10 +70,12 @@ class TableController extends Controller
         }
         $rules['qr_logo'] = ['nullable', 'file', 'mimes:png,jpg,jpeg,webp,svg', 'max:4096'];
         $rules['remove_qr_logo'] = ['nullable', 'boolean'];
+        $rules['apply_colors_to_all'] = ['nullable', 'boolean'];
         $data = $request->validate($rules);
         // These controls are request-only; never store the UploadedFile or the
         // checkbox itself inside the JSON settings column.
-        unset($data['qr_logo'], $data['remove_qr_logo']);
+        $applyColorsToAll = $request->boolean('apply_colors_to_all');
+        unset($data['qr_logo'], $data['remove_qr_logo'], $data['apply_colors_to_all']);
         $restaurant = $this->restaurant($request);
         $settings = $restaurant->settings ?? [];
         $type = $data['design_type'];
@@ -103,6 +105,25 @@ class TableController extends Controller
             }
         }
         $orientationDesigns[$orientation] = array_merge($current, $orientationDesigns[$orientation] ?? [], $data);
+        if ($applyColorsToAll) {
+            $colorKeys = ['background_color', 'text_color', 'accent_color', 'border_color', 'qr_color', 'qr_background_color'];
+            $colors = array_intersect_key($data, array_flip($colorKeys));
+            foreach (['table', 'room'] as $allType) {
+                $allDesign = $qrSticker['designs'][$allType] ?? [];
+                $allOrientations = $allDesign['orientations'] ?? [];
+                foreach (['portrait', 'landscape'] as $allOrientation) {
+                    $allOrientations[$allOrientation] = array_merge(
+                        $this->qrCardDesigns($restaurant)[$allType]['orientations'][$allOrientation],
+                        $allOrientations[$allOrientation] ?? [],
+                        $colors,
+                    );
+                }
+                $qrSticker['designs'][$allType] = [
+                    'preferred_orientation' => $allDesign['preferred_orientation'] ?? $allOrientation,
+                    'orientations' => $allOrientations,
+                ];
+            }
+        }
         $qrSticker['designs'][$type] = [
             'preferred_orientation' => $orientation,
             'orientations' => $orientationDesigns,

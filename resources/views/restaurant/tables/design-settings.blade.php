@@ -39,6 +39,7 @@
 <form method="post" action="{{ $designSaveUrl }}" id="qr-design-form" class="qr-studio-body" enctype="multipart/form-data">
 @csrf @method('PATCH')
 <input type="hidden" name="design_type" id="qr-design-type-value" value="{{ $designType }}">
+<input type="hidden" name="apply_colors_to_all" id="apply-colors-to-all" value="0">
 <div>
 @if($errors->any())<p role="alert" class="mb-4 text-red-500">{{ $errors->first() }}</p>@endif
 <fieldset><legend>00 / Card orientation</legend>
@@ -53,6 +54,8 @@
 <label>{{ $label }}<input type="color" name="{{ $key }}" value="{{ old($key,$sticker[$key]) }}"></label>
 @endforeach
 </div></fieldset>
+<button type="button" class="qr-reset" id="qr-save-colors-all">Save these colours to all card layouts</button>
+<p class="qr-notice">This copies the card, artwork, border, QR, and QR background colours to table and room cards in both orientations. Positions, sizes, text, and artwork shapes stay independent.</p>
 <fieldset><legend>02 / Scale & detail</legend><div class="qr-controls">
 @foreach(['logo_size'=>['Logo height',1,200,'mm'],'logo_width'=>['Logo width',1,200,'mm'],'text_size'=>['Headline size',14,22,'pt'],'qr_size'=>['QR size',38,50,'mm'],'detail_size'=>['Small text',6,9,'pt'],'footer_size'=>['Powered-by size',50,200,'%'],'art_opacity'=>['Artwork intensity',10,100,'%']] as $key=>[$label,$min,$max,$unit])
 <label>{{ $label }} <output data-value="{{ $key }}"></output><input type="range" name="{{ $key }}" min="{{ $min }}" max="{{ $max }}" step="1" value="{{ old($key,$sticker[$key]) }}" data-unit="{{ $unit }}"></label>
@@ -108,9 +111,17 @@
  let logo=card?.querySelector('.signature-logo');
  const palettes={signature:['#FFFFFF','#171717','#D22630','#D6D0CA'],forest:['#FBF8F0','#173F35','#38715C','#B7C3B5'],midnight:['#15232D','#FFF7E7','#B99151','#57636A'],brand:['#FFFFFF','#171717',@json($restaurant->primary_color ?: '#D22630'),'#D6D0CA']};
  const keys=['background_color','text_color','accent_color','border_color'];
+ const colorKeys=[...keys,'qr_color','qr_background_color'];
  const scalarKeys=['orientation',...keys,'qr_color','qr_background_color','logo_size','logo_width','logo_x','logo_y','heading_x','heading_y','kicker_x','kicker_y','title_x','title_y','location_x','location_y','scan_x','scan_y','frame_x','frame_y','hint_x','hint_y','footer_x','footer_y','text_size','qr_size','detail_size','footer_size','art_opacity','scan_text'];
  function field(name){return form.elements.namedItem(name)}
  function activeDesign(){return designs[type.value].orientations[activeOrientation]}
+ document.getElementById('qr-save-colors-all').addEventListener('click',()=>{
+  const colors=Object.fromEntries(colorKeys.map(key=>[key,field(key).value]));
+  for(const allType of ['table','room'])for(const allOrientation of ['portrait','landscape'])Object.assign(designs[allType].orientations[allOrientation],colors);
+  field('apply_colors_to_all').value='1';
+  status.textContent='These colours will be saved across all table and room layouts.';
+  update();
+ });
  function capture(){const state={};scalarKeys.forEach(key=>{if(key==='orientation')state[key]=activeOrientation;else state[key]=field(key).value});state.elements={};['logo','cross','line_left','line_right','kicker_text','title','location','frame','hint','footer','credit','zemtab','art'].forEach(name=>{state.elements[name]={};['x','y','sx','sy','r'].forEach(d=>{const input=field(`elements[${name}][${d}]`);if(input)state.elements[name][d]=input.value})});state.qr_logo_path=activeDesign().qr_logo_path;state.logo_url=activeDesign().logo_url;state.restaurant_logo_url=activeDesign().restaurant_logo_url;state.qr_logo_draft_id=fileDraftIds[type.value][activeOrientation];state.remove_qr_logo=field('remove_qr_logo').checked;return state}
  function restoreFileInput(value){if(!logoInput)return;const transfer=new DataTransfer();if(value)transfer.items.add(value);logoInput.files=transfer.files}
  function applyDesign(state){
