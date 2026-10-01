@@ -87,6 +87,13 @@
 <label>Rotation °<input id="qr-layer-rotation" type="number" min="-360" max="360" step="1" value="0"></label>
 <button type="button" id="qr-layer-undo" class="qr-reset" disabled>Undo</button>
 <button type="button" id="qr-layer-reset" class="qr-reset">Reset selected element</button>
+<div class="qr-nudge" aria-label="Nudge selected element">
+<span>Tiny adjustments</span>
+<button type="button" data-nudge="up" aria-label="Move selected element up">↑</button>
+<button type="button" data-nudge="left" aria-label="Move selected element left">←</button>
+<button type="button" data-nudge="down" aria-label="Move selected element down">↓</button>
+<button type="button" data-nudge="right" aria-label="Move selected element right">→</button>
+</div>
 <p>Drag an element to move it. Use the top handle or rotation control to turn it. Side handles resize width or height; the corner keeps the proportions.</p>
 </div>
 @foreach(['logo','cross','line_left','line_right','kicker_text','title','location','frame','hint','footer','art'] as $element)

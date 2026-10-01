@@ -50,6 +50,19 @@ window.initQrEditor = function (form, card) {
         select.add(option); apply(key);
     });
     select.addEventListener('change',()=>choose(select.value));
+    form.querySelectorAll('[data-nudge]').forEach(button=>button.addEventListener('click',()=>{
+        if (!selected) return;
+        const step=.25, s=state(selected);
+        if(button.dataset.nudge==='left')s.x-=step;
+        if(button.dataset.nudge==='right')s.x+=step;
+        if(button.dataset.nudge==='up')s.y-=step;
+        if(button.dataset.nudge==='down')s.y+=step;
+        form.dispatchEvent(new CustomEvent('qr-editor-action-start'));
+        field(selected,'x').value=clamp(s.x,-1000,1000).toFixed(3);
+        field(selected,'y').value=clamp(s.y,-1000,1000).toFixed(3);
+        changed();
+        form.dispatchEvent(new CustomEvent('qr-editor-action-end'));
+    }));
     card.addEventListener('keydown',event=>{
         if (!selected || !['ArrowLeft','ArrowRight','ArrowUp','ArrowDown'].includes(event.key)) return;
         if (event.target.matches('input,textarea,select,button,[contenteditable="true"]')) return;

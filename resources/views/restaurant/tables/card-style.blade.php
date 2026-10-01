@@ -52,6 +52,7 @@
 .qr-selection [data-axis=xy]{right:-6px;bottom:-6px;cursor:nwse-resize}
 .qr-editor-controls{width:100%;font-size:12px}
 .qr-editor-controls select,.qr-editor-controls input{width:100%;color:#171717;background:white;border:1px solid #888;padding:6px}
+.qr-nudge{display:grid;grid-template-columns:repeat(3,32px);gap:3px;align-items:center;justify-content:center;margin:8px 0}.qr-nudge span{grid-column:1/-1;text-align:center;font-size:11px;color:#555}.qr-nudge button{width:32px;height:28px;padding:0;background:#fff;color:#171717;border:1px solid #888;border-radius:4px;font-size:18px;line-height:1}.qr-nudge button:first-of-type{grid-column:2}.qr-nudge button:focus-visible{outline:2px solid #1688ff;outline-offset:1px}
 /* CSS image filters flatten even SVG logos when browsers export a PDF. */
 @media print{.signature-card{break-inside:avoid;page-break-inside:avoid}.signature-logo{filter:none!important}.qr-selection{display:none!important}}
 
