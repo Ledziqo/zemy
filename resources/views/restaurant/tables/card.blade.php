@@ -27,9 +27,9 @@
    <path d="M0 294C92 330 219 256 297 303V530C190 559 87 506 0 530Z" fill="var(--card-accent)"/>
    <path d="M0 273C92 309 219 235 297 282V298C219 251 92 325 0 289Z" fill="var(--card-border)" opacity=".13"/>
    <path d="M0 282C92 318 219 244 297 291" fill="none" stroke="var(--card-border)" stroke-width="1"/>
-   <path d="M0 548C87 527 190 573 297 540V560H0Z" fill="var(--card-bg)"/>
-   <path d="M0 539C87 518 190 564 297 531" fill="none" stroke="var(--card-border)" stroke-width="1.35"/>
-   <path d="M0 547C87 526 190 572 297 539" fill="none" stroke="var(--card-border)" stroke-width=".9"/>
+   <path d="M0 553C87 535 190 577 297 546V560H0Z" fill="var(--card-bg)"/>
+   <path d="M0 544C87 526 190 568 297 537" fill="none" stroke="var(--card-border)" stroke-width="1.35"/>
+   <path d="M0 552C87 534 190 576 297 545" fill="none" stroke="var(--card-border)" stroke-width=".9"/>
    <path d="M23 83V188M274 83V188" stroke="var(--card-border)" stroke-width=".6"/></g>
     </svg>
     <div class="signature-logo-slot" aria-hidden="true"></div>
