@@ -193,14 +193,23 @@
  form.addEventListener('input',event=>{if(event.target!==type&&event.target.name!=='orientation')update()});
  field('card_size').addEventListener('change',()=>update());
  document.getElementById('qr-find-zemtab-pill').addEventListener('click',()=>{
-  if(!card?.querySelector('[data-layer="footer"]')){status.textContent='Add a QR preview card before placing the ZemTab pill.';return}
+  const pill=card?.querySelector('[data-layer="footer"]');
+  if(!pill){status.textContent='Add a QR preview card before placing the ZemTab pill.';return}
   form.dispatchEvent(new CustomEvent('qr-editor-action-start'));
   for(const dimension of ['x','y'])field(`elements[footer][${dimension}]`).value='0';
   for(const dimension of ['sx','sy'])field(`elements[footer][${dimension}]`).value='1';
   field('elements[footer][r]').value='0';
-  const layer=form.querySelector('#qr-layer');layer.value='footer';layer.dispatchEvent(new Event('change',{bubbles:true}));
+  pill.style.setProperty('display','flex','important');
+  pill.style.setProperty('visibility','visible','important');
+  pill.style.setProperty('opacity','1','important');
+  const layer=form.querySelector('#qr-layer');layer.value='footer';
+  if(form.selectQrLayer)form.selectQrLayer('footer');else layer.dispatchEvent(new Event('change',{bubbles:true}));
   form.dispatchEvent(new Event('input',{bubbles:true}));
   form.dispatchEvent(new CustomEvent('qr-editor-action-end'));
+  pill.style.outline='2px solid #1688ff';pill.style.outlineOffset='2mm';
+  pill.scrollIntoView({behavior:'smooth',block:'center',inline:'center'});
+  window.setTimeout(()=>{pill.style.outline='';pill.style.outlineOffset='';},1800);
+  status.textContent='ZemTab pill restored, selected, and brought into view. Save to keep its position.';
  });
  card?.addEventListener('pointerup',()=>update());
  update(false);
