@@ -56,6 +56,7 @@ class TableController extends Controller
             $rules[$key] = ['required', 'regex:/^#[0-9a-fA-F]{6}$/'];
         }
         $rules['orientation'] = ['required', 'in:portrait,landscape'];
+        $rules['card_size'] = ['required', 'in:small,medium,large'];
         foreach (['logo_size' => [1, 200], 'logo_width' => [1, 200], 'logo_x' => [-200, 300], 'logo_y' => [-200, 400], 'heading_x' => [-300, 300], 'heading_y' => [-300, 400], 'kicker_x' => [-300, 300], 'kicker_y' => [-300, 400], 'title_x' => [-300, 300], 'title_y' => [-300, 400], 'location_x' => [-300, 300], 'location_y' => [-300, 400], 'scan_x' => [-300, 300], 'scan_y' => [-300, 400], 'frame_x' => [-300, 300], 'frame_y' => [-300, 400], 'hint_x' => [-300, 300], 'hint_y' => [-300, 400], 'footer_x' => [-300, 300], 'footer_y' => [-300, 400], 'text_size' => [14, 22], 'qr_size' => [38, 50], 'detail_size' => [6, 9], 'footer_size' => [50, 200], 'art_opacity' => [10, 100]] as $key => [$min, $max]) {
             $rules[$key] = ['required', 'integer', "between:$min,$max"];
         }
@@ -148,9 +149,8 @@ class TableController extends Controller
         $tables = $allTables->filter(fn (RestaurantTable $table) => $table->is_active)->values();
         $tableCount = $tables->count();
         $roomCount = $tables->filter(fn (RestaurantTable $table) => $table->isRoomServicePoint())->count();
-        $tablePageCount = (int) ceil(($tableCount - $roomCount) / 8);
-        $roomPageCount = (int) ceil($roomCount / 3);
-        $pageCount = $tablePageCount + $roomPageCount;
+        $pagePlan = $this->setupPackPagePlan($tables, $designs);
+        $pageCount = count($pagePlan);
         $buildToken = QrSetupPackStore::begin($restaurant, $allTables, $pageCount);
         $batchUrls = [];
         for ($page = 0; $page < $pageCount; $page++) {
@@ -168,7 +168,7 @@ class TableController extends Controller
             'pageCount' => $pageCount,
             'roomCount' => $roomCount,
             'tableOnlyCount' => $tableCount - $roomCount,
-            'batchSize' => 8,
+            'pagePlan' => $pagePlan,
             'buildToken' => $buildToken,
             'batchUrls' => $batchUrls,
         ]);
@@ -186,19 +186,18 @@ class TableController extends Controller
                 $snapshot['tables'],
             ));
             $allTables->each(fn (RestaurantTable $table) => $table->setRelation('restaurant', $restaurant));
-            $tableCards = $allTables->filter(fn (RestaurantTable $table) => ! $table->isRoomServicePoint())->values();
-            $roomCards = $allTables->filter(fn (RestaurantTable $table) => $table->isRoomServicePoint())->values();
-            $tablePageCount = (int) ceil($tableCards->count() / 8);
-            $type = $page < $tablePageCount ? 'table' : 'room';
-            $typePage = $type === 'table' ? $page : $page - $tablePageCount;
-            $cardsPerPage = $type === 'table' ? 8 : 3;
-            $tables = ($type === 'table' ? $tableCards : $roomCards)->slice($typePage * $cardsPerPage, $cardsPerPage)->values();
             $designs = $this->qrCardDesigns($restaurant);
-            // Setup packs use a consistent print orientation by location type:
-            // tables/lobby in portrait, guest rooms in landscape. Keep each
-            // type's saved editor variants untouched.
-            $orientation = $type === 'room' ? 'landscape' : 'portrait';
+            $pagePlan = $this->setupPackPagePlan($allTables, $designs);
+            abort_unless(isset($pagePlan[$page]), 404);
+            $pageDetails = $pagePlan[$page];
+            $type = $pageDetails['type'];
+            $orientation = $pageDetails['orientation'];
             $sticker = $designs[$type]['orientations'][$orientation];
+            $sticker['card_size'] = $pageDetails['size'];
+            $cards = $allTables->filter(fn (RestaurantTable $table) => $type === 'room'
+                ? $table->isRoomServicePoint()
+                : ! $table->isRoomServicePoint())->values();
+            $tables = $cards->slice($pageDetails['offset'], $pageDetails['capacity'])->values();
             $qrImages = $tables->mapWithKeys(fn (RestaurantTable $table) => [
                 $table->id => 'data:image/svg+xml;base64,'.base64_encode($this->cachedQrSvg($restaurant, $table, $sticker)),
             ]);
@@ -383,6 +382,7 @@ class TableController extends Controller
             'qr_background_color' => '#F4F1EC',
             'design' => 'classic',
             'orientation' => 'portrait',
+            'card_size' => 'large',
             'table_scan_text' => 'SCAN TO ORDER',
             'room_scan_text' => 'SCAN FOR ROOM SERVICE',
             'logo_size' => 24,
@@ -439,7 +439,9 @@ class TableController extends Controller
                     $orientationDesigns[$legacyOrientation] = $typeDesign;
                 }
             }
-            $defaultPreferred = $type === 'room' ? 'landscape' : 'portrait';
+            // Both card types start in the same neutral orientation. Each type's
+            // preferred orientation is then saved independently from the editor.
+            $defaultPreferred = 'portrait';
             $preferred = $typeDesign['preferred_orientation'] ?? ($typeDesign['orientation'] ?? ($base['orientation'] ?? $defaultPreferred));
             if ($typeDesign === [] && $root === []) {
                 $preferred = $defaultPreferred;
@@ -452,6 +454,9 @@ class TableController extends Controller
                 $orientationDefaults = $orientation === 'landscape' ? ['qr_size' => 46] : ['qr_size' => 50];
                 $design = array_merge($base, $orientationDefaults, $orientationDesigns[$orientation] ?? []);
                 $design['orientation'] = $orientation;
+                if (! in_array($design['card_size'] ?? null, ['small', 'medium', 'large'], true)) {
+                    $design['card_size'] = 'large';
+                }
                 $design['qr_background_color'] = $design['background_color'];
                 $design['table_scan_text'] = $design['table_scan_text'] ?? $defaults['table_scan_text'];
                 $design['room_scan_text'] = $design['room_scan_text'] ?? $defaults['room_scan_text'];
@@ -474,6 +479,43 @@ class TableController extends Controller
         }
 
         return $designs;
+    }
+
+    /** Build deterministic pages from each card type's saved editor choices. */
+    private function setupPackPagePlan($tables, array $designs): array
+    {
+        $plan = [];
+        foreach (['table', 'room'] as $type) {
+            $cards = $tables->filter(fn (RestaurantTable $table) => $type === 'room'
+                ? $table->isRoomServicePoint()
+                : ! $table->isRoomServicePoint())->values();
+            if ($cards->isEmpty()) {
+                continue;
+            }
+
+            $orientation = $designs[$type]['preferred_orientation'];
+            $size = $designs[$type]['orientations'][$orientation]['card_size'] ?? 'large';
+            $size = in_array($size, ['small', 'medium', 'large'], true) ? $size : 'large';
+            $capacity = $this->setupPackCapacity($orientation, $size);
+            for ($offset = 0; $offset < $cards->count(); $offset += $capacity) {
+                $plan[] = compact('type', 'orientation', 'size', 'offset', 'capacity');
+            }
+        }
+
+        return $plan;
+    }
+
+    private function setupPackCapacity(string $orientation, string $size): int
+    {
+        return match ([$orientation, $size]) {
+            ['portrait', 'small'] => 18,
+            ['portrait', 'medium'] => 10,
+            ['portrait', 'large'] => 8,
+            ['landscape', 'small'] => 18,
+            ['landscape', 'medium'] => 15,
+            ['landscape', 'large'] => 3,
+            default => 8,
+        };
     }
 
     private function validated(Request $request): array

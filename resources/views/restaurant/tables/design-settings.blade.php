@@ -30,6 +30,7 @@
 .qr-studio input[type=range]{width:100%;margin-top:10px;accent-color:#d22630}.qr-studio input[type=text]{display:block;width:100%;margin-top:6px;padding:10px;border:1px solid #8886;border-radius:6px;background:transparent;color:inherit}
 .qr-presets{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px}.qr-presets button,.qr-preview select,.qr-reset{padding:8px 12px;border:1px solid #8886;border-radius:7px;background:transparent;color:inherit;cursor:pointer}
 .qr-orientation{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}.qr-orientation label{display:flex;align-items:center;gap:10px;padding:12px;border:1px solid #8886;border-radius:9px;cursor:pointer}.qr-orientation input{width:auto;accent-color:#d22630}.qr-orientation span{display:grid;gap:3px}.qr-orientation small{font-size:11px;opacity:.7}
+.qr-studio select[name="card_size"]{display:block;width:100%;margin-top:7px;padding:10px;border:1px solid #8886;border-radius:7px;background:transparent;color:inherit}
 .qr-preview{background:#d9d9d6;border-radius:12px;padding:20px 12px;color:#171717;align-self:start;display:flex;flex-direction:column;align-items:center;gap:14px;max-width:100%;overflow-x:auto}.qr-preview.is-landscape{align-items:flex-start}.qr-preview select{background:white}.qr-preview > p{font-size:12px;text-align:center;margin:0}.qr-preview-location{max-width:290px;padding:8px 12px;border:1px solid #17171733;border-radius:7px;background:#fff8;font-weight:600}.qr-save{background:#d22630;color:#fff;border:0;border-radius:8px;padding:12px 18px;font-weight:700;cursor:pointer}.qr-notice{font-size:12px;opacity:.75;margin:12px 0}
 @media(max-width:1000px){.qr-studio-body{grid-template-columns:1fr}.qr-preview{width:100%}}@media(max-width:480px){.qr-studio-body{padding:12px}.qr-controls{grid-template-columns:1fr}.qr-preview{padding:12px 0;overflow:auto}}
 </style>
@@ -45,9 +46,15 @@
 @if($errors->any())<p role="alert" class="mb-4 text-red-500">{{ $errors->first() }}</p>@endif
 <fieldset><legend>00 / Card orientation</legend>
 <div class="qr-orientation" role="radiogroup" aria-label="Card orientation">
-<label><input type="radio" name="orientation" value="portrait" @checked($designOrientation === 'portrait')><span><strong>Portrait</strong><small>75 × 140 mm · 4 across × 2 down</small></span></label>
-<label><input type="radio" name="orientation" value="landscape" @checked($designOrientation === 'landscape')><span><strong>Landscape</strong><small>140 × 75 mm · 2 across × 4 down</small></span></label>
-</div><p class="qr-notice">Each card type has separate portrait and landscape designs. Switching orientation loads that layout’s own settings; changing table designs won’t affect room cards.</p></fieldset>
+<label><input type="radio" name="orientation" value="portrait" @checked($designOrientation === 'portrait')><span><strong>Portrait</strong><small>Tall card layout</small></span></label>
+<label><input type="radio" name="orientation" value="landscape" @checked($designOrientation === 'landscape')><span><strong>Landscape</strong><small>Wide card layout</small></span></label>
+</div><p class="qr-notice">Choose this independently for table/lobby cards and room cards. The setup pack follows each type’s saved orientation.</p></fieldset>
+<fieldset><legend>Card size</legend>
+<label>Printed size for this layout<select name="card_size" required>
+<option value="small" @selected(($sticker['card_size'] ?? 'large') === 'small')>Small · 50 × 93 mm</option>
+<option value="medium" @selected(($sticker['card_size'] ?? 'large') === 'medium')>Medium · 62.5 × 116.7 mm</option>
+<option value="large" @selected(($sticker['card_size'] ?? 'large') === 'large')>Large · 75 × 140 mm (current)</option>
+</select></label><p class="qr-notice">Landscape cards use the same sizes rotated. Large keeps the current print size, including the existing landscape enlargement.</p></fieldset>
 <fieldset><legend>01 / Brand palette</legend>
 <div class="qr-presets"><button type="button" data-palette="signature">Signature red</button><button type="button" data-palette="forest">Forest & cream</button><button type="button" data-palette="midnight">Midnight & gold</button><button type="button" data-palette="brand">Venue brand</button></div>
 <div class="qr-controls">
@@ -120,7 +127,7 @@
  const palettes={signature:['#F4F1EC','#111111','#000000','#C8C2AE'],forest:['#FBF8F0','#173F35','#38715C','#B7C3B5'],midnight:['#15232D','#FFF7E7','#B99151','#57636A'],brand:['#FFFFFF','#171717',@json($restaurant->primary_color ?: '#D22630'),'#D6D0CA']};
  const keys=['background_color','text_color','accent_color','border_color'];
  const colorKeys=[...keys,'qr_color'];
- const scalarKeys=['orientation',...keys,'qr_color','qr_background_color','logo_size','logo_width','logo_x','logo_y','heading_x','heading_y','kicker_x','kicker_y','title_x','title_y','location_x','location_y','scan_x','scan_y','frame_x','frame_y','hint_x','hint_y','footer_x','footer_y','text_size','qr_size','detail_size','footer_size','art_opacity','scan_text'];
+ const scalarKeys=['orientation','card_size',...keys,'qr_color','qr_background_color','logo_size','logo_width','logo_x','logo_y','heading_x','heading_y','kicker_x','kicker_y','title_x','title_y','location_x','location_y','scan_x','scan_y','frame_x','frame_y','hint_x','hint_y','footer_x','footer_y','text_size','qr_size','detail_size','footer_size','art_opacity','scan_text'];
  function field(name){return form.elements.namedItem(name)}
  function activeDesign(){return designs[type.value].orientations[activeOrientation]}
  document.getElementById('qr-save-colors-all').addEventListener('click',()=>{
@@ -162,6 +169,11 @@
   Object.entries(properties).forEach(([key,property])=>{const input=form.elements.namedItem(key),unit=input.dataset.unit||(/_[xy]$/.test(key)?'mm':''),value=['art_opacity','footer_size'].includes(key)?Number(input.value)/100:input.value+unit;if(card)card.style.setProperty(property,value);const output=form.querySelector('[data-value="'+key+'"]');if(output)output.textContent=input.value+unit;});
   if(card){card.style.setProperty('--logo-half-width',(Number(logoWidthInput.value)/2)+'mm');card.style.setProperty('--logo-half-height',(Number(logoSizeInput.value)/2)+'mm');}
   const orientation=field('orientation').value;
+  const sizeScale={small:2/3,medium:5/6,large:1}[field('card_size').value]||1;
+  card?.style.setProperty('--card-size-scale',sizeScale);
+  const sizeLabels={small:'50 × 93 mm',medium:'62.5 × 116.7 mm',large:'75 × 140 mm'};
+  const sizeOption=field('card_size').selectedOptions[0];
+  if(sizeOption)sizeOption.textContent=`${field('card_size').value[0].toUpperCase()+field('card_size').value.slice(1)} · ${orientation==='landscape'?sizeLabels[field('card_size').value].split(' × ').reverse().join(' × '):sizeLabels[field('card_size').value]}${field('card_size').value==='large'?' (current)':''}`;
   card?.classList.toggle('is-landscape',orientation==='landscape');
   preview?.classList.toggle('is-landscape',orientation==='landscape');
   const artwork=card?.querySelector('.signature-art');
@@ -175,8 +187,9 @@
  form.elements.namedItem('remove_qr_logo').addEventListener('change',()=>update());
  form.addEventListener('submit',event=>{const current=`${type.value}:${activeOrientation}`,others=[...dirty].filter(key=>key!==current);if(others.length&&!confirm(`Only the ${activeOrientation} ${type.value} layout will be saved. Other unsaved card layouts will be discarded. Continue?`)){event.preventDefault();return}dirty.delete(current)});
  form.querySelectorAll('[data-palette]').forEach(button=>button.addEventListener('click',()=>{keys.forEach((key,index)=>field(key).value=palettes[button.dataset.palette][index]);update()}));
- document.getElementById('qr-design-reset').addEventListener('click',()=>{keys.forEach((key,index)=>field(key).value=palettes.signature[index]);Object.entries({orientation:activeOrientation,qr_color:'#111111',qr_background_color:'#F4F1EC',logo_size:24,logo_width:53,logo_x:37,logo_y:18,heading_x:0,heading_y:0,kicker_x:0,kicker_y:0,title_x:0,title_y:0,location_x:0,location_y:0,scan_x:0,scan_y:-3,frame_x:0,frame_y:0,hint_x:0,hint_y:0,footer_x:0,footer_y:0,text_size:18,qr_size:activeOrientation==='portrait'?50:46,detail_size:7,footer_size:100,art_opacity:100,scan_text:type.value==='table'?'SCAN TO ORDER':'SCAN FOR ROOM SERVICE'}).forEach(([key,value])=>field(key).value=value);fileDrafts[type.value][activeOrientation]=null;fileDraftIds[type.value][activeOrientation]=null;restoreFileInput(null);field('remove_qr_logo').checked=false;logoWrap?.classList.remove('is-selected');update()});
+ document.getElementById('qr-design-reset').addEventListener('click',()=>{keys.forEach((key,index)=>field(key).value=palettes.signature[index]);Object.entries({orientation:activeOrientation,card_size:'large',qr_color:'#111111',qr_background_color:'#F4F1EC',logo_size:24,logo_width:53,logo_x:37,logo_y:18,heading_x:0,heading_y:0,kicker_x:0,kicker_y:0,title_x:0,title_y:0,location_x:0,location_y:0,scan_x:0,scan_y:-3,frame_x:0,frame_y:0,hint_x:0,hint_y:0,footer_x:0,footer_y:0,text_size:18,qr_size:activeOrientation==='portrait'?50:46,detail_size:7,footer_size:100,art_opacity:100,scan_text:type.value==='table'?'SCAN TO ORDER':'SCAN FOR ROOM SERVICE'}).forEach(([key,value])=>field(key).value=value);fileDrafts[type.value][activeOrientation]=null;fileDraftIds[type.value][activeOrientation]=null;restoreFileInput(null);field('remove_qr_logo').checked=false;logoWrap?.classList.remove('is-selected');update()});
  form.addEventListener('input',event=>{if(event.target!==type&&event.target.name!=='orientation')update()});
+ field('card_size').addEventListener('change',()=>update());
  card?.addEventListener('pointerup',()=>update());
  update(false);
  const undoButton=form.querySelector('#qr-layer-undo'),undoStack=[];

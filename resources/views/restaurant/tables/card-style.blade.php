@@ -1,5 +1,5 @@
 <style>
-.signature-card{box-sizing:border-box;width:75mm;height:140mm;padding:6mm;position:relative;isolation:isolate;overflow:hidden;display:flex;flex-direction:column;align-items:center;justify-content:space-between;gap:1mm;background:var(--card-bg);color:var(--card-text);border:.2mm solid var(--card-border);font-family:Arial,Helvetica,sans-serif;text-align:center;print-color-adjust:exact;-webkit-print-color-adjust:exact;flex-shrink:0}
+.signature-card{box-sizing:border-box;width:75mm;height:140mm;padding:6mm;position:relative;isolation:isolate;overflow:hidden;display:flex;flex-direction:column;align-items:center;justify-content:space-between;gap:1mm;background:var(--card-bg);color:var(--card-text);border:.2mm solid var(--card-border);font-family:Arial,Helvetica,sans-serif;text-align:center;print-color-adjust:exact;-webkit-print-color-adjust:exact;flex-shrink:0;zoom:var(--card-size-scale,1)}
 .signature-card *{box-sizing:border-box}
 .signature-card:not(.is-landscape){display:grid;grid-template-rows:24mm 24mm 11mm 1fr;gap:2mm;justify-items:center;align-items:center}
 .signature-card{font-family:'Trebuchet MS','Segoe UI',sans-serif}

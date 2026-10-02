@@ -60,6 +60,30 @@ try {
     $check($first === '<section>cached page</section>' && $second === $first && $renders === 1, 'repeated page requests return the disk-cached page without rerendering');
     $check(App\Support\QrSetupPackStore::renderPageOnce(77, $token, 3, fn () => 'invalid') === null, 'out-of-range batch page is rejected');
 
+    $controller = new App\Http\Controllers\Restaurant\TableController;
+    $designsForPack = new ReflectionMethod($controller, 'setupPackPagePlan');
+    $activeTables = $tables->filter(fn ($table) => (bool) $table->is_active)->values();
+    $pagePlan = $designsForPack->invoke($controller, $activeTables, [
+        'table' => ['preferred_orientation' => 'landscape', 'orientations' => ['landscape' => ['card_size' => 'large']]],
+        'room' => ['preferred_orientation' => 'portrait', 'orientations' => ['portrait' => ['card_size' => 'small']]],
+    ]);
+    $check(count($pagePlan) === 4, 'independent saved orientations and sizes determine pack pagination');
+    $check($pagePlan[0]['type'] === 'table' && $pagePlan[0]['orientation'] === 'landscape' && $pagePlan[0]['capacity'] === 3, 'landscape Large tables keep the existing three-card page capacity');
+    $check($pagePlan[3]['type'] === 'room' && $pagePlan[3]['orientation'] === 'portrait' && $pagePlan[3]['size'] === 'small' && $pagePlan[3]['capacity'] === 18, 'portrait Small rooms use their own orientation and denser page capacity');
+
+    $smallPack = $designsForPack->invoke($controller, $activeTables, [
+        'table' => ['preferred_orientation' => 'portrait', 'orientations' => ['portrait' => ['card_size' => 'small']]],
+        'room' => ['preferred_orientation' => 'landscape', 'orientations' => ['landscape' => ['card_size' => 'medium']]],
+    ]);
+    $check(count($smallPack) === 2 && $smallPack[0]['capacity'] === 18 && $smallPack[1]['capacity'] === 15, 'small and medium cards are tiled efficiently in either orientation');
+
+    $freshRestaurant = new App\Models\Restaurant;
+    $freshRestaurant->forceFill(['settings' => []]);
+    $cardDesigns = new ReflectionMethod($controller, 'qrCardDesigns');
+    $defaults = $cardDesigns->invoke($controller, $freshRestaurant);
+    $check($defaults['table']['preferred_orientation'] === 'portrait' && $defaults['room']['preferred_orientation'] === 'portrait', 'new card groups use a neutral shared orientation default');
+    $check($defaults['table']['orientations']['portrait']['card_size'] === 'large', 'current card dimensions remain the default Large size');
+
     App\Support\QrSetupPackStore::invalidate(77);
     $check(App\Support\QrSetupPackStore::begin($restaurant, $tables, 3) !== $token, 'invalidation prevents reusing a stale build');
 } finally {
