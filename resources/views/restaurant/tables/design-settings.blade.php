@@ -1,6 +1,6 @@
 @include('restaurant.tables.card-style')
 @php
-    $fallbackLogoPath = $sticker['qr_logo_path'] ?? $restaurant->logo_path;
+    $fallbackLogoPath = $sticker['qr_logo_path'] ?? null;
     $fallbackLogoUrl = $fallbackLogoPath ? (\Illuminate\Support\Str::startsWith($fallbackLogoPath, ['http://', 'https://', 'uploads/']) ? (str_starts_with($fallbackLogoPath, 'uploads/') ? asset($fallbackLogoPath) : $fallbackLogoPath) : asset('storage/'.$fallbackLogoPath)) : null;
     $fallbackRestaurantLogoPath = $restaurant->logo_path;
     $fallbackRestaurantLogoUrl = $fallbackRestaurantLogoPath ? (\Illuminate\Support\Str::startsWith($fallbackRestaurantLogoPath, ['http://', 'https://', 'uploads/']) ? (str_starts_with($fallbackRestaurantLogoPath, 'uploads/') ? asset($fallbackRestaurantLogoPath) : $fallbackRestaurantLogoPath) : asset('storage/'.$fallbackRestaurantLogoPath)) : null;
@@ -110,14 +110,14 @@
 @endif
 </aside>
 </form></details>
-<script src="{{ asset('assets/qr-editor.js') }}?v=7"></script>
+<script src="{{ asset('assets/qr-editor.js') }}?v=8"></script>
 <script>
 (() => {
  const form=document.getElementById('qr-design-form'),card=form.querySelector('.signature-card'),preview=form.querySelector('.qr-preview'),type=document.getElementById('qr-preview-type'),typeValue=document.getElementById('qr-design-type-value'),status=document.getElementById('qr-design-status'),logoInput=form.elements.namedItem('qr_logo'),logoWrap=card?.querySelector('.signature-logo-wrap'),logoSizeInput=form.elements.namedItem('logo_size'),logoWidthInput=form.elements.namedItem('logo_width');
  const designs=@json($qrCardDesigns),previewCards=@json($previewCards),fileDrafts={table:{portrait:null,landscape:null},room:{portrait:null,landscape:null}},fileDraftIds={table:{portrait:null,landscape:null},room:{portrait:null,landscape:null}},qrFileRegistry=new Map(),dirty=new Set();
  let activeOrientation=field('orientation').value;
  let logo=card?.querySelector('.signature-logo');
- const palettes={signature:['#FFFFFF','#171717','#D22630','#D6D0CA'],forest:['#FBF8F0','#173F35','#38715C','#B7C3B5'],midnight:['#15232D','#FFF7E7','#B99151','#57636A'],brand:['#FFFFFF','#171717',@json($restaurant->primary_color ?: '#D22630'),'#D6D0CA']};
+ const palettes={signature:['#F4F1EC','#111111','#000000','#C8C2AE'],forest:['#FBF8F0','#173F35','#38715C','#B7C3B5'],midnight:['#15232D','#FFF7E7','#B99151','#57636A'],brand:['#FFFFFF','#171717',@json($restaurant->primary_color ?: '#D22630'),'#D6D0CA']};
  const keys=['background_color','text_color','accent_color','border_color'];
  const colorKeys=[...keys,'qr_color'];
  const scalarKeys=['orientation',...keys,'qr_color','qr_background_color','logo_size','logo_width','logo_x','logo_y','heading_x','heading_y','kicker_x','kicker_y','title_x','title_y','location_x','location_y','scan_x','scan_y','frame_x','frame_y','hint_x','hint_y','footer_x','footer_y','text_size','qr_size','detail_size','footer_size','art_opacity','scan_text'];
@@ -175,7 +175,7 @@
  form.elements.namedItem('remove_qr_logo').addEventListener('change',()=>update());
  form.addEventListener('submit',event=>{const current=`${type.value}:${activeOrientation}`,others=[...dirty].filter(key=>key!==current);if(others.length&&!confirm(`Only the ${activeOrientation} ${type.value} layout will be saved. Other unsaved card layouts will be discarded. Continue?`)){event.preventDefault();return}dirty.delete(current)});
  form.querySelectorAll('[data-palette]').forEach(button=>button.addEventListener('click',()=>{keys.forEach((key,index)=>field(key).value=palettes[button.dataset.palette][index]);update()}));
- document.getElementById('qr-design-reset').addEventListener('click',()=>{keys.forEach((key,index)=>field(key).value=palettes.signature[index]);Object.entries({orientation:activeOrientation,qr_color:'#111111',qr_background_color:'#FFFFFF',logo_size:24,logo_width:53,logo_x:37,logo_y:18,heading_x:0,heading_y:0,kicker_x:0,kicker_y:0,title_x:0,title_y:0,location_x:0,location_y:0,scan_x:0,scan_y:-3,frame_x:0,frame_y:0,hint_x:0,hint_y:0,footer_x:0,footer_y:0,text_size:18,qr_size:46,detail_size:7,footer_size:100,art_opacity:100,scan_text:type.value==='table'?'SCAN TO ORDER':'SCAN FOR ROOM SERVICE'}).forEach(([key,value])=>field(key).value=value);fileDrafts[type.value][activeOrientation]=null;fileDraftIds[type.value][activeOrientation]=null;restoreFileInput(null);field('remove_qr_logo').checked=false;logoWrap?.classList.remove('is-selected');update()});
+ document.getElementById('qr-design-reset').addEventListener('click',()=>{keys.forEach((key,index)=>field(key).value=palettes.signature[index]);Object.entries({orientation:activeOrientation,qr_color:'#111111',qr_background_color:'#F4F1EC',logo_size:24,logo_width:53,logo_x:37,logo_y:18,heading_x:0,heading_y:0,kicker_x:0,kicker_y:0,title_x:0,title_y:0,location_x:0,location_y:0,scan_x:0,scan_y:-3,frame_x:0,frame_y:0,hint_x:0,hint_y:0,footer_x:0,footer_y:0,text_size:18,qr_size:activeOrientation==='portrait'?50:46,detail_size:7,footer_size:100,art_opacity:100,scan_text:type.value==='table'?'SCAN TO ORDER':'SCAN FOR ROOM SERVICE'}).forEach(([key,value])=>field(key).value=value);fileDrafts[type.value][activeOrientation]=null;fileDraftIds[type.value][activeOrientation]=null;restoreFileInput(null);field('remove_qr_logo').checked=false;logoWrap?.classList.remove('is-selected');update()});
  form.addEventListener('input',event=>{if(event.target!==type&&event.target.name!=='orientation')update()});
  card?.addEventListener('pointerup',()=>update());
  update(false);

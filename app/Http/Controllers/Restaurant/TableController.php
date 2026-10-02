@@ -287,7 +287,7 @@ class TableController extends Controller
     {
         $type = $table->isRoomServicePoint() ? 'room' : 'table';
         $sticker ??= $this->qrCardDesigns($restaurant)[$type]['orientations'][$type === 'room' ? 'landscape' : 'portrait'];
-        $signature = sha1(route('menu.show', [$restaurant->slug, $table->table_number]).'|'.$sticker['qr_color'].'|'.$sticker['qr_background_color'].'|zemtab-center-mark-v1');
+        $signature = sha1(route('menu.show', [$restaurant->slug, $table->table_number]).'|'.$sticker['qr_color'].'|'.$sticker['qr_background_color'].'|zemtab-center-mark-v2');
         $relativePath = 'uploads/qr-codes/'.$restaurant->id.'/'.$table->id.'-'.$signature.'.svg';
         $absolutePath = public_path($relativePath);
 
@@ -324,7 +324,7 @@ class TableController extends Controller
             backgroundColor: $this->qrColor($sticker['qr_background_color']),
         ))->build();
 
-        // Embed a small, white-backed ZemTab mark into the real QR artwork so
+        // Embed a small ZemTab mark into the real QR artwork so
         // it appears in downloads, editor previews, and printed setup packs.
         // High error correction and the modest central knockout preserve scanability.
         $svg = simplexml_load_string($result->getString());
@@ -346,7 +346,7 @@ class TableController extends Controller
         $backing->addAttribute('width', (string) $backingWidth);
         $backing->addAttribute('height', (string) $backingHeight);
         $backing->addAttribute('rx', '8');
-        $backing->addAttribute('fill', '#FFFFFF');
+        $backing->addAttribute('fill', $sticker['qr_background_color']);
 
         $logo = $svg->addChild('image', null, 'http://www.w3.org/2000/svg');
         $logo->addAttribute('x', (string) ($center - $logoWidth / 2));
@@ -375,12 +375,12 @@ class TableController extends Controller
     private function defaultStickerSettings($restaurant = null): array
     {
         return [
-            'background_color' => '#FCF7EC',
-            'border_color' => '#C8AD78',
-            'text_color' => '#23423E',
-            'accent_color' => '#23423E',
+            'background_color' => '#F4F1EC',
+            'border_color' => '#C8C2AE',
+            'text_color' => '#111111',
+            'accent_color' => '#000000',
             'qr_color' => '#111111',
-            'qr_background_color' => '#FFFFFF',
+            'qr_background_color' => '#F4F1EC',
             'design' => 'classic',
             'orientation' => 'portrait',
             'table_scan_text' => 'SCAN TO ORDER',
@@ -406,7 +406,7 @@ class TableController extends Controller
             'footer_x' => 0,
             'footer_y' => 0,
             'text_size' => 18,
-            'qr_size' => 46,
+            'qr_size' => 50,
             'detail_size' => 7,
             'footer_size' => 100,
             'art_opacity' => 100,
@@ -439,19 +439,30 @@ class TableController extends Controller
                     $orientationDesigns[$legacyOrientation] = $typeDesign;
                 }
             }
-            $preferred = $typeDesign['preferred_orientation'] ?? ($typeDesign['orientation'] ?? $base['orientation'] ?? 'portrait');
+            $defaultPreferred = $type === 'room' ? 'landscape' : 'portrait';
+            $preferred = $typeDesign['preferred_orientation'] ?? ($typeDesign['orientation'] ?? ($base['orientation'] ?? $defaultPreferred));
+            if ($typeDesign === [] && $root === []) {
+                $preferred = $defaultPreferred;
+            }
             if (! in_array($preferred, ['portrait', 'landscape'], true)) {
                 $preferred = 'portrait';
             }
             $designs[$type] = ['preferred_orientation' => $preferred, 'orientations' => []];
             foreach (['portrait', 'landscape'] as $orientation) {
-                $design = array_merge($base, $orientationDesigns[$orientation] ?? []);
+                $orientationDefaults = $orientation === 'landscape' ? ['qr_size' => 46] : ['qr_size' => 50];
+                $design = array_merge($base, $orientationDefaults, $orientationDesigns[$orientation] ?? []);
                 $design['orientation'] = $orientation;
                 $design['qr_background_color'] = $design['background_color'];
                 $design['table_scan_text'] = $design['table_scan_text'] ?? $defaults['table_scan_text'];
                 $design['room_scan_text'] = $design['room_scan_text'] ?? $defaults['room_scan_text'];
                 $design['scan_text'] = $design[$type.'_scan_text'];
-                $logoPath = $design['qr_logo_path'] ?? $restaurant->logo_path;
+                $storedOrientation = $orientationDesigns[$orientation] ?? [];
+                $hasExplicitQrLogo = array_key_exists('qr_logo_path', $storedOrientation)
+                    || array_key_exists('qr_logo_path', $typeDesign)
+                    || array_key_exists('qr_logo_path', $root);
+                $logoPath = $hasExplicitQrLogo
+                    ? $design['qr_logo_path']
+                    : (($typeDesign !== [] || $root !== []) ? $restaurant->logo_path : null);
                 $design['logo_url'] = $logoPath
                     ? (\Illuminate\Support\Str::startsWith($logoPath, ['http://', 'https://', 'uploads/'])
                         ? (str_starts_with($logoPath, 'uploads/') ? asset($logoPath) : $logoPath)
