@@ -80,13 +80,15 @@
 @foreach(['logo_x'=>37,'logo_y'=>18,'heading_x'=>0,'heading_y'=>0,'kicker_x'=>0,'kicker_y'=>0,'title_x'=>0,'title_y'=>0,'location_x'=>0,'location_y'=>0,'scan_x'=>0,'scan_y'=>-3,'frame_x'=>0,'frame_y'=>0,'hint_x'=>0,'hint_y'=>0,'footer_x'=>0,'footer_y'=>0] as $key=>$default)
 <input type="hidden" name="{{ $key }}" value="{{ old($key,$sticker[$key] ?? $default) }}">
 @endforeach
-<p class="qr-notice">Drag the logo, headline, QR block, or powered-by footer anywhere on the preview. Resize the logo, QR, text, and powered-by block with the controls. Dragged elements can overlap without moving anything else. Save before opening the print pack.</p>
+<p class="qr-notice">Drag the logo, headline, QR block, or ZemTab pill anywhere on the preview. Resize elements with the controls. Dragged elements can overlap without moving anything else. Save before opening the print pack.</p>
 <button class="qr-save" id="qr-design-save">Save {{ $designOrientation }} {{ $designType }} card design</button> <button type="button" class="qr-reset" id="qr-design-reset">Reset this layout</button>
 <p id="qr-design-status" class="qr-notice" role="status">Preview of saved settings.</p>
 </div>
 <aside class="qr-preview">
 <div class="qr-editor-controls">
 <label>Selected element<select id="qr-layer"></select></label>
+<button type="button" id="qr-find-zemtab-pill" class="qr-reset">Find / restore ZemTab pill</button>
+<p>If the pill was moved off the card, restore brings it back and selects it so you can position it.</p>
 <div class="qr-controls">
 <label>Width %<input id="qr-layer-width" type="number" min="2" max="2000" step="1"></label>
 <label>Height %<input id="qr-layer-height" type="number" min="2" max="2000" step="1"></label>
@@ -117,7 +119,7 @@
 @endif
 </aside>
 </form></details>
-<script src="{{ asset('assets/qr-editor.js') }}?v=8"></script>
+<script src="{{ asset('assets/qr-editor.js') }}?v=9"></script>
 <script>
 (() => {
  const form=document.getElementById('qr-design-form'),card=form.querySelector('.signature-card'),preview=form.querySelector('.qr-preview'),type=document.getElementById('qr-preview-type'),typeValue=document.getElementById('qr-design-type-value'),status=document.getElementById('qr-design-status'),logoInput=form.elements.namedItem('qr_logo'),logoWrap=card?.querySelector('.signature-logo-wrap'),logoSizeInput=form.elements.namedItem('logo_size'),logoWidthInput=form.elements.namedItem('logo_width');
@@ -190,6 +192,16 @@
  document.getElementById('qr-design-reset').addEventListener('click',()=>{keys.forEach((key,index)=>field(key).value=palettes.signature[index]);Object.entries({orientation:activeOrientation,card_size:'large',qr_color:'#111111',qr_background_color:'#F4F1EC',logo_size:24,logo_width:53,logo_x:37,logo_y:18,heading_x:0,heading_y:0,kicker_x:0,kicker_y:0,title_x:0,title_y:0,location_x:0,location_y:0,scan_x:0,scan_y:-3,frame_x:0,frame_y:0,hint_x:0,hint_y:0,footer_x:0,footer_y:0,text_size:18,qr_size:activeOrientation==='portrait'?50:46,detail_size:7,footer_size:100,art_opacity:100,scan_text:type.value==='table'?'SCAN TO ORDER':'SCAN FOR ROOM SERVICE'}).forEach(([key,value])=>field(key).value=value);fileDrafts[type.value][activeOrientation]=null;fileDraftIds[type.value][activeOrientation]=null;restoreFileInput(null);field('remove_qr_logo').checked=false;logoWrap?.classList.remove('is-selected');update()});
  form.addEventListener('input',event=>{if(event.target!==type&&event.target.name!=='orientation')update()});
  field('card_size').addEventListener('change',()=>update());
+ document.getElementById('qr-find-zemtab-pill').addEventListener('click',()=>{
+  if(!card?.querySelector('[data-layer="footer"]')){status.textContent='Add a QR preview card before placing the ZemTab pill.';return}
+  form.dispatchEvent(new CustomEvent('qr-editor-action-start'));
+  for(const dimension of ['x','y'])field(`elements[footer][${dimension}]`).value='0';
+  for(const dimension of ['sx','sy'])field(`elements[footer][${dimension}]`).value='1';
+  field('elements[footer][r]').value='0';
+  const layer=form.querySelector('#qr-layer');layer.value='footer';layer.dispatchEvent(new Event('change',{bubbles:true}));
+  form.dispatchEvent(new Event('input',{bubbles:true}));
+  form.dispatchEvent(new CustomEvent('qr-editor-action-end'));
+ });
  card?.addEventListener('pointerup',()=>update());
  update(false);
  const undoButton=form.querySelector('#qr-layer-undo'),undoStack=[];

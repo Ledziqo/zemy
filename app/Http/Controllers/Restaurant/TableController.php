@@ -139,19 +139,29 @@ class TableController extends Controller
     public function setupPack(Request $request)
     {
         $restaurant = $this->restaurant($request);
-        if ($url = QrSetupPackStore::currentUrl((int) $restaurant->id)) {
-            return redirect()->away($url);
-        }
-
         $designs = $this->qrCardDesigns($restaurant);
+        $requested = $request->validate([
+            'table_orientation' => ['sometimes', 'in:portrait,landscape'],
+            'table_size' => ['sometimes', 'in:small,medium,large'],
+            'room_orientation' => ['sometimes', 'in:portrait,landscape'],
+            'room_size' => ['sometimes', 'in:small,medium,large'],
+        ]);
+        $printOptions = [];
+        foreach (['table', 'room'] as $type) {
+            $orientation = $requested[$type.'_orientation'] ?? $designs[$type]['preferred_orientation'];
+            $printOptions[$type] = [
+                'orientation' => $orientation,
+                'size' => $requested[$type.'_size'] ?? ($designs[$type]['orientations'][$orientation]['card_size'] ?? 'large'),
+            ];
+        }
         $allTables = $restaurant->tables()->orderByRaw('CAST(table_number AS UNSIGNED)')->get();
         $allTables->each(fn (RestaurantTable $table) => $table->setRelation('restaurant', $restaurant));
         $tables = $allTables->filter(fn (RestaurantTable $table) => $table->is_active)->values();
         $tableCount = $tables->count();
         $roomCount = $tables->filter(fn (RestaurantTable $table) => $table->isRoomServicePoint())->count();
-        $pagePlan = $this->setupPackPagePlan($tables, $designs);
+        $pagePlan = $this->setupPackPagePlan($tables, $designs, $printOptions);
         $pageCount = count($pagePlan);
-        $buildToken = QrSetupPackStore::begin($restaurant, $allTables, $pageCount);
+        $buildToken = QrSetupPackStore::begin($restaurant, $allTables, $pageCount, $printOptions);
         $batchUrls = [];
         for ($page = 0; $page < $pageCount; $page++) {
             $batchUrls[] = \Illuminate\Support\Facades\URL::temporarySignedRoute(
@@ -169,6 +179,7 @@ class TableController extends Controller
             'roomCount' => $roomCount,
             'tableOnlyCount' => $tableCount - $roomCount,
             'pagePlan' => $pagePlan,
+            'printOptions' => $printOptions,
             'buildToken' => $buildToken,
             'batchUrls' => $batchUrls,
         ]);
@@ -187,7 +198,7 @@ class TableController extends Controller
             ));
             $allTables->each(fn (RestaurantTable $table) => $table->setRelation('restaurant', $restaurant));
             $designs = $this->qrCardDesigns($restaurant);
-            $pagePlan = $this->setupPackPagePlan($allTables, $designs);
+            $pagePlan = $this->setupPackPagePlan($allTables, $designs, $snapshot['print_options'] ?? []);
             abort_unless(isset($pagePlan[$page]), 404);
             $pageDetails = $pagePlan[$page];
             $type = $pageDetails['type'];
@@ -482,7 +493,7 @@ class TableController extends Controller
     }
 
     /** Build deterministic pages from each card type's saved editor choices. */
-    private function setupPackPagePlan($tables, array $designs): array
+    private function setupPackPagePlan($tables, array $designs, array $printOptions = []): array
     {
         $plan = [];
         foreach (['table', 'room'] as $type) {
@@ -493,8 +504,8 @@ class TableController extends Controller
                 continue;
             }
 
-            $orientation = $designs[$type]['preferred_orientation'];
-            $size = $designs[$type]['orientations'][$orientation]['card_size'] ?? 'large';
+            $orientation = $printOptions[$type]['orientation'] ?? $designs[$type]['preferred_orientation'];
+            $size = $printOptions[$type]['size'] ?? ($designs[$type]['orientations'][$orientation]['card_size'] ?? 'large');
             $size = in_array($size, ['small', 'medium', 'large'], true) ? $size : 'large';
             $capacity = $this->setupPackCapacity($orientation, $size);
             for ($offset = 0; $offset < $cards->count(); $offset += $capacity) {

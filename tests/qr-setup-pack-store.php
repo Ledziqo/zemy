@@ -43,10 +43,20 @@ try {
         $tables->push($table);
     }
 
-    $token = App\Support\QrSetupPackStore::begin($restaurant, $tables, 3);
-    $check(App\Support\QrSetupPackStore::begin($restaurant, $tables, 3) === $token, 'concurrent opens reuse the active pack build');
+    $printOptions = [
+        'table' => ['orientation' => 'landscape', 'size' => 'small'],
+        'room' => ['orientation' => 'portrait', 'size' => 'medium'],
+    ];
+    $token = App\Support\QrSetupPackStore::begin($restaurant, $tables, 3, $printOptions);
+    $check(App\Support\QrSetupPackStore::begin($restaurant, $tables, 3, $printOptions) === $token, 'identical print options reuse the active pack build');
     $snapshot = App\Support\QrSetupPackStore::snapshot(77, $token);
     $check(is_array($snapshot) && count($snapshot['tables']) === 17, 'build snapshot includes active tables only');
+    $check(($snapshot['print_options'] ?? null) === $printOptions, 'chosen print orientations and sizes are captured in the build snapshot');
+    $differentToken = App\Support\QrSetupPackStore::begin($restaurant, $tables, 3, [
+        'table' => ['orientation' => 'portrait', 'size' => 'large'],
+        'room' => ['orientation' => 'landscape', 'size' => 'large'],
+    ]);
+    $check($differentToken !== $token, 'different print selections cannot reuse a mismatched prepared build');
 
     $renders = 0;
     $first = App\Support\QrSetupPackStore::renderPageOnce(77, $token, 0, function () use (&$renders): string {
@@ -76,6 +86,11 @@ try {
         'room' => ['preferred_orientation' => 'landscape', 'orientations' => ['landscape' => ['card_size' => 'medium']]],
     ]);
     $check(count($smallPack) === 2 && $smallPack[0]['capacity'] === 18 && $smallPack[1]['capacity'] === 15, 'small and medium cards are tiled efficiently in either orientation');
+    $overriddenPack = $designsForPack->invoke($controller, $activeTables, [
+        'table' => ['preferred_orientation' => 'portrait', 'orientations' => ['portrait' => ['card_size' => 'large']]],
+        'room' => ['preferred_orientation' => 'landscape', 'orientations' => ['landscape' => ['card_size' => 'large']]],
+    ], $printOptions);
+    $check($overriddenPack[0]['orientation'] === 'landscape' && $overriddenPack[0]['size'] === 'small' && $overriddenPack[0]['capacity'] === 18, 'print-dialog selections override saved editor preferences for this pack');
 
     $freshRestaurant = new App\Models\Restaurant;
     $freshRestaurant->forceFill(['settings' => []]);

@@ -11,11 +11,11 @@ use Illuminate\Support\Str;
 class QrSetupPackStore
 {
     private const BATCH_SIZE = 8;
-    private const PRINT_LAYOUT_VERSION = 26;
+    private const PRINT_LAYOUT_VERSION = 27;
     private const MAX_PAGES = 1000;
     private const MAX_PACK_BYTES = 30_000_000;
 
-    public static function begin(Restaurant $restaurant, Collection $tables, int $pageCount): string
+    public static function begin(Restaurant $restaurant, Collection $tables, int $pageCount, array $printOptions = []): string
     {
         $parent = storage_path('app/qr-setup-pack-builds/'.(int) $restaurant->id);
         File::ensureDirectoryExists($parent);
@@ -32,7 +32,7 @@ class QrSetupPackStore
         abort_unless($lock !== false, 500, 'Could not lock QR print-pack builder.');
         flock($lock, LOCK_EX);
         try {
-            $fingerprint = self::fingerprint($restaurant, $tables);
+            $fingerprint = self::fingerprint($restaurant, $tables, $printOptions);
             $activeTables = $tables->filter(fn ($table) => (bool) $table->is_active)->values();
             $activePath = $parent.'/active-build.json';
             $active = is_file($activePath) ? json_decode((string) File::get($activePath), true) : null;
@@ -59,6 +59,7 @@ class QrSetupPackStore
             File::put($directory.'/manifest.json', json_encode([
                 'fingerprint' => $fingerprint,
                 'pages' => $pageCount,
+                'print_options' => $printOptions,
                 'created_at' => now()->timestamp,
                 'layout_version' => self::PRINT_LAYOUT_VERSION,
             ], JSON_THROW_ON_ERROR));
@@ -69,6 +70,7 @@ class QrSetupPackStore
                 'tables' => $activeTables->map(fn ($table) => array_intersect_key($table->getAttributes(), array_flip([
                     'id', 'restaurant_id', 'table_number', 'table_name', 'location_type', 'is_active', 'updated_at',
                 ])))->values()->all(),
+                'print_options' => $printOptions,
             ], JSON_THROW_ON_ERROR));
             File::put($activePath, json_encode(['token' => $token], JSON_THROW_ON_ERROR), true);
 
@@ -148,7 +150,8 @@ class QrSetupPackStore
         abort_unless(is_file($manifestPath), 404, 'This QR pack build has expired. Start again.');
 
         $manifest = json_decode((string) File::get($manifestPath), true);
-        abort_unless(is_array($manifest) && hash_equals((string) ($manifest['fingerprint'] ?? ''), self::fingerprint($restaurant)), 409, 'Tables or QR design changed while this pack was being prepared. Start again to include the latest changes.');
+        $printOptions = is_array($manifest['print_options'] ?? null) ? $manifest['print_options'] : [];
+        abort_unless(is_array($manifest) && hash_equals((string) ($manifest['fingerprint'] ?? ''), self::fingerprint($restaurant, null, $printOptions)), 409, 'Tables or QR design changed while this pack was being prepared. Start again to include the latest changes.');
         abort_unless($pageCount > 0 && $pageCount === (int) ($manifest['pages'] ?? -1) && str_contains($shell, '<!--QR_PACK_PAGES-->'), 422, 'The QR pack is incomplete. Start again.');
 
         $pages = '';
@@ -271,7 +274,7 @@ class QrSetupPackStore
         ]);
     }
 
-    private static function fingerprint(Restaurant $restaurant, ?Collection $tables = null): string
+    private static function fingerprint(Restaurant $restaurant, ?Collection $tables = null, array $printOptions = []): string
     {
         $tableState = ($tables ?? \App\Models\RestaurantTable::query()
             ->where('restaurant_id', $restaurant->id)
@@ -296,6 +299,7 @@ class QrSetupPackStore
             (string) $restaurant->updated_at,
             $restaurant->logo_path,
             $restaurant->settings['qr_sticker'] ?? [],
+            $printOptions,
             $tableState,
         ], JSON_THROW_ON_ERROR));
     }
