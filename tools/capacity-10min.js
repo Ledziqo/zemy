@@ -14,6 +14,7 @@ const baseUrl = (process.env.ZEMTAB_BASE_URL || '').replace(/\/$/, '');
 const fs = require('node:fs');
 const stages = (process.env.ZEMTAB_STAGES || '10,20,40,60,80,100,150,200,300,400,500').split(',').map(Number);
 const stageSeconds = Number(process.env.ZEMTAB_STAGE_SECONDS || 120);
+const finalStageSeconds = Number(process.env.ZEMTAB_FINAL_STAGE_SECONDS || stageSeconds);
 const staffScreensPerVenue = Number(process.env.ZEMTAB_STAFF_SCREENS || 2);
 const pollIntervalMs = Number(process.env.ZEMTAB_POLL_INTERVAL_MS || 30000);
 const loginConcurrency = Number(process.env.ZEMTAB_LOGIN_CONCURRENCY || 1);
@@ -301,6 +302,7 @@ async function runStage(activeVenues) {
   const metrics = [];
   const state = { failed: false, errors: [] };
   const venueIndexes = Array.from({ length: activeVenues }, (_, index) => index);
+  const runSeconds = activeVenues === stages[stages.length - 1] ? finalStageSeconds : stageSeconds;
 
   console.log(`\nStage ${activeVenues} active venues: logging in ${activeVenues * staffScreensPerVenue} staff screens...`);
   const missingVenueIndexes = venueIndexes.filter(venueIndex => !staffSessionCache.has(venueIndex));
@@ -316,15 +318,15 @@ async function runStage(activeVenues) {
     }))
   );
 
-  console.log(`Stage ${activeVenues}: running ${stageSeconds}s...`);
-  const stopAt = Date.now() + stageSeconds * 1000;
+  console.log(`Stage ${activeVenues}: running ${runSeconds}s...`);
+  const stopAt = Date.now() + runSeconds * 1000;
   const workers = [
     ...staffSessions.map(session => pollLoop(session, stopAt, metrics, session.venueIndex, session.screenIndex, state)),
     ...venueIndexes.map(venueIndex => guestLoop(venueIndex, stopAt, metrics, state)),
   ];
 
   const progress = setInterval(() => {
-    const summary = summarize(metrics, Math.max(1, stageSeconds - Math.ceil((stopAt - Date.now()) / 1000)));
+    const summary = summarize(metrics, Math.max(1, runSeconds - Math.ceil((stopAt - Date.now()) / 1000)));
     process.stdout.write(`\r  requests ${summary.totalRequests} | rpm ${summary.requestsPerMinute} | errors ${summary.errors.length} | ${state.failed ? 'FAILING' : 'running'}   `);
   }, 5000);
 
@@ -333,12 +335,12 @@ async function runStage(activeVenues) {
   process.stdout.write('\n');
 
   const recovery = await recoveryProbe(metrics).catch(error => ({ ok: false, ms: 0, error: error.message }));
-  const summary = summarize(metrics, stageSeconds);
+  const summary = summarize(metrics, runSeconds);
   const pollP95 = summary.byLabel.poll?.p95 || 0;
   const realErrors = summary.errors.filter(row => [0, 500, 502, 503].includes(row.status));
   const passed = !state.failed && state.errors.length === 0 && realErrors.length === 0 && (summary.byLabel.poll?.count || 0) > 0 && pollP95 < 3000 && recovery.ok;
 
-  return { activeVenues, staffScreens: activeVenues * staffScreensPerVenue, passed, pollP95, realErrors, recovery, summary, errors: state.errors.slice(0, 10) };
+  return { activeVenues, stageSeconds: runSeconds, staffScreens: activeVenues * staffScreensPerVenue, passed, pollP95, realErrors, recovery, summary, errors: state.errors.slice(0, 10) };
 }
 
 async function main() {
@@ -350,7 +352,7 @@ async function main() {
   }
   console.log(`Target: ${baseUrl}`);
   console.log(`Stages: ${stages.join(', ')} active venues`);
-  console.log(`Stage duration: ${stageSeconds}s | staff screens per venue: ${staffScreensPerVenue}`);
+  console.log(`Stage duration: ${stageSeconds}s (final stage: ${finalStageSeconds}s) | staff screens per venue: ${staffScreensPerVenue}`);
 
   const results = [];
   for (const stage of stages) {
@@ -380,6 +382,7 @@ async function main() {
     target: baseUrl,
     stages,
     stageSeconds,
+    finalStageSeconds,
     loginSpacingMs,
     staffScreensPerVenue,
     pollIntervalMs,

@@ -28,11 +28,14 @@ const assert = require('node:assert/strict');
   assert.match(workflow, /repository_dispatch:\s*\n\s*types:\s*\[zemtab-complete-release-test\]/);
   assert.equal((workflow.match(/RELEASE_TEST_SEED_BATCHES: 50/g) || []).length, 2);
   assert.equal((workflow.match(/ZEMTAB_STAGES: 10,20,40,60,80,100,150,200,300,400,500/g) || []).length, 2);
+  assert.equal((workflow.match(/ZEMTAB_FINAL_STAGE_SECONDS: 600/g) || []).length, 2);
+  assert.equal((workflow.match(/ZEMTAB_LOGIN_SPACING_MS: 7000/g) || []).length, 2);
+  assert.match(capacity, /finalStageSeconds = Number\(process\.env\.ZEMTAB_FINAL_STAGE_SECONDS \|\| stageSeconds\)/);
   const stage = capacity.slice(capacity.indexOf('async function runStage('), capacity.indexOf('async function main('));
   const pollCalls = [];
   const fixture = {
     console, Date, process: { stdout: { write() {} } }, setInterval: () => 1, clearInterval() {},
-    staffScreensPerVenue: 2, loginConcurrency: 1, stageSeconds: 1, staffSessionCache: new Map(),
+    staffScreensPerVenue: 2, loginConcurrency: 1, stageSeconds: 1, finalStageSeconds: 1, stages: [1], staffSessionCache: new Map(),
     mapLimit: async (items, limit, fn) => Promise.all(items.map(fn)),
     loginStaffSession: async () => ({ jar: {}, pollUrl: 'https://example.test/poll?signature=test' }),
     pollLoop: async session => { assert.ok(session.jar); assert.ok(session.pollUrl); pollCalls.push(session); },
