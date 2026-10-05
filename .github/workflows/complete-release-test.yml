@@ -1,6 +1,10 @@
 name: ZemTab complete release test
-# Retired automatic runner: keep available only for an intentional manual run.
-on: workflow_dispatch
+# The staging app starts the full test by sending this repository_dispatch.
+# workflow_dispatch remains available for the queued-run fallback poller.
+on:
+  repository_dispatch:
+    types: [zemtab-complete-release-test]
+  workflow_dispatch:
 
 permissions:
   contents: read

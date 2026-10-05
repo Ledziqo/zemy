@@ -25,6 +25,7 @@ const assert = require('node:assert/strict');
   assert.match(capacity, /orderAndConfirmation: 15/);
   assert.match(fs.readFileSync('config/stress.php', 'utf8'), /'max_restaurants'\s*=>\s*500/);
   const workflow = fs.readFileSync('.github/workflows/complete-release-test.yml', 'utf8');
+  assert.match(workflow, /repository_dispatch:\s*\n\s*types:\s*\[zemtab-complete-release-test\]/);
   assert.equal((workflow.match(/RELEASE_TEST_SEED_BATCHES: 50/g) || []).length, 2);
   assert.equal((workflow.match(/ZEMTAB_STAGES: 10,20,40,60,80,100,150,200,300,400,500/g) || []).length, 2);
   const stage = capacity.slice(capacity.indexOf('async function runStage('), capacity.indexOf('async function main('));
