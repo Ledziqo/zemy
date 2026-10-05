@@ -212,15 +212,28 @@ async function guestWorkflow() {
   return { menuStatus: menu.status, orderStatus: order.status, serviceStatus: service.status };
 }
 
-async function runExternalCommand(command, args, env) {
+async function runExternalCommand(command, args, env, onStdoutLine) {
   return new Promise((resolve, reject) => {
     const child = spawn(command, args, { env: { ...process.env, ...env }, stdio: ['ignore', 'pipe', 'pipe'] });
     let stdout = '';
     let stderr = '';
-    child.stdout.on('data', chunk => { stdout += chunk.toString(); process.stdout.write(chunk); });
+    let pendingLine = '';
+    child.stdout.on('data', chunk => {
+      const text = chunk.toString();
+      stdout += text;
+      process.stdout.write(chunk);
+      if (onStdoutLine) {
+        const lines = (pendingLine + text).split(/\r?\n/);
+        pendingLine = lines.pop();
+        for (const line of lines) onStdoutLine(line);
+      }
+    });
     child.stderr.on('data', chunk => { stderr += chunk.toString(); process.stderr.write(chunk); });
     child.on('error', reject);
-    child.on('close', code => resolve({ code, stdout: stdout.slice(-20000), stderr: stderr.slice(-10000) }));
+    child.on('close', code => {
+      if (onStdoutLine && pendingLine) onStdoutLine(pendingLine);
+      resolve({ code, stdout: stdout.slice(-20000), stderr: stderr.slice(-10000) });
+    });
   });
 }
 
@@ -272,6 +285,18 @@ async function main() {
         ZEMTAB_STRESS_P95_LIMIT_MS: process.env.ZEMTAB_STRESS_P95_LIMIT_MS || '3000',
         ZEMTAB_STRESS_P95_WINDOWS_TO_FAIL: process.env.ZEMTAB_STRESS_P95_WINDOWS_TO_FAIL || '2',
         ZEMTAB_STRESS_MAX_429_PERCENT: process.env.ZEMTAB_STRESS_MAX_429_PERCENT || '5',
+        ZEMTAB_STRESS_STAFF_SCREENS: process.env.ZEMTAB_STRESS_STAFF_SCREENS || '50',
+        ZEMTAB_STRESS_STAFF_LOGIN_SPACING_MS: process.env.ZEMTAB_STRESS_STAFF_LOGIN_SPACING_MS || '7000',
+        ZEMTAB_STRESS_STAFF_POLL_INTERVAL_MS: process.env.ZEMTAB_STRESS_STAFF_POLL_INTERVAL_MS || '30000',
+      }, line => {
+        const match = line.match(/^LOAD_PROGRESS elapsed=(\d+) guests=(\d+) staff=(\d+) requests=(\d+)$/);
+        if (!match) return;
+        const elapsed = Number(match[1]);
+        callback({
+          status: 'running',
+          phase: `Load ${elapsed}/600s · ${match[2]} guest sessions · ${match[3]} staff boards · ${match[4]} requests`,
+          progress: Math.min(84, 65 + Math.floor((elapsed / 600) * 19)),
+        }).catch(error => console.error(`Progress update failed: ${error.message}`));
       });
       const artifact = fs.existsSync(stressReportPath) ? JSON.parse(fs.readFileSync(stressReportPath, 'utf8')) : null;
       report.phases.push({ name: 'stress-load', ok: stress.code === 0, output: stress.stdout.slice(-12000), artifact });

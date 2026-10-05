@@ -16,6 +16,9 @@ const p95WindowsToFail = Number(process.env.ZEMTAB_STRESS_P95_WINDOWS_TO_FAIL ||
 const maxRateLimitedPercent = Number(process.env.ZEMTAB_STRESS_MAX_429_PERCENT || 5);
 const thinkMinMs = Number(process.env.ZEMTAB_STRESS_THINK_MIN_MS || 20000);
 const thinkMaxMs = Number(process.env.ZEMTAB_STRESS_THINK_MAX_MS || 60000);
+const staffScreens = Number(process.env.ZEMTAB_STRESS_STAFF_SCREENS || 50);
+const staffLoginSpacingMs = Number(process.env.ZEMTAB_STRESS_STAFF_LOGIN_SPACING_MS || 7000);
+const staffPollIntervalMs = Number(process.env.ZEMTAB_STRESS_STAFF_POLL_INTERVAL_MS || 30000);
 const rampPlan = [100, 250, 500, 750, 1000, 1250, 1500, 1750, 2000]
   .map((guests, index) => ({ atSeconds: index * 60, guests: Math.min(guests, maxGuests) }))
   .filter((step, index, rows) => index === 0 || step.guests > rows[index - 1].guests);
@@ -40,10 +43,21 @@ async function sleepWhileActive(ms, stopAt = Infinity) {
 }
 const csrf = html => html.match(/name="_token"\s+value="([^"]+)"/)?.[1] || html.match(/<meta name="csrf-token" content="([^"]+)"/)?.[1];
 const firstItemId = html => html.match(/add\(\{\s*id:\s*(\d+)/)?.[1] || html.match(/name="items\[0\]\[id\]"\s+value="(\d+)"/)?.[1];
+const firstProfileId = html => html.match(/name="profile_id"[^>]*value="(\d+)"/)?.[1] || html.match(/value="(\d+)"[^>]*name="profile_id"/)?.[1];
+function extractPollUrl(html) {
+  const match = html.match(/pollUrl:\s*("(?:\\.|[^"\\])*"|'(?:\\.|[^'\\])*')\s*,/s);
+  if (!match) return null;
+  if (match[1].startsWith('"')) return JSON.parse(match[1]);
+  return match[1].slice(1, -1)
+    .replace(/\\u([0-9a-fA-F]{4})/g, (_, hex) => String.fromCharCode(parseInt(hex, 16)))
+    .replace(/\\\//g, '/')
+    .replace(/\\'/g, "'")
+    .replace(/\\\\/g, '\\');
+}
 const slugFor = index => `zt-stress-${String((index % venueCount) + 1).padStart(3, '0')}`;
 const tableFor = index => String((index % 10) + 1);
 const metrics = [];
-const state = { failed: false, failure: null, rateLimited: 0, functionalErrors: 0, consecutiveSlowWindows: 0, consecutiveThrottleWindows: 0 };
+const state = { failed: false, failure: null, rateLimited: 0, functionalErrors: 0, consecutiveSlowWindows: 0, consecutiveThrottleWindows: 0, staffSessionsStarted: 0 };
 
 function record(label, status, ms, extra = {}) {
   metrics.push({ label, status, ms, at: Date.now(), ...extra });
@@ -95,7 +109,7 @@ function snapshot(rows) {
   const byLabel = {};
   for (const label of [...new Set(rows.map(row => row.label))]) {
     const group = rows.filter(row => row.label === label);
-    const ok = group.filter(row => row.status >= 200 && row.status < 400 && row.status !== 304);
+    const ok = group.filter(row => (row.status >= 200 && row.status < 400) || row.status === 304);
     const throttled = group.filter(row => row.status === 429);
     const failed = group.filter(row => row.status === 0 || row.status >= 500 || (row.status >= 400 && row.status !== 429));
     byLabel[label] = {
@@ -112,11 +126,12 @@ function snapshot(rows) {
   return { requests: rows.length, byLabel };
 }
 
-async function pauseForRateLimit(response) {
+async function pauseForRateLimit(response, stopAt = Infinity) {
   const header = response.headers.get('retry-after');
   const retrySeconds = header && /^\d+$/.test(header) ? Number(header) : 2;
   await response.arrayBuffer();
-  await sleepWhileActive(Math.min(10000, Math.max(1000, retrySeconds * 1000)));
+  await sleepWhileActive(Math.min(600000, Math.max(1000, retrySeconds * 1000)), stopAt);
+  return Date.now() < stopAt && !state.failed;
 }
 
 function requireSuccess(response, label, accepted = [200]) {
@@ -127,6 +142,86 @@ function requireSuccess(response, label, accepted = [200]) {
     return false;
   }
   return true;
+}
+
+async function checkedStaffRequest(url, options, jar, label, stopAt, accepted = [200]) {
+  for (let attempt = 0; attempt < 4; attempt++) {
+    const response = await request(url, options, jar, label);
+    if (response.status === 429 && attempt < 3) {
+      if (!await pauseForRateLimit(response, stopAt)) throw new Error('rate-limit cooldown extends beyond the test window');
+      continue;
+    }
+    if (!accepted.includes(response.status)) {
+      state.functionalErrors++;
+      fail(`${label} returned unexpected HTTP ${response.status}`);
+    }
+    return response;
+  }
+}
+
+async function loginStaffSession(venueIndex, stopAt) {
+  const jar = new Jar();
+  const loginPage = await checkedStaffRequest(`${baseUrl}/login`, {}, jar, 'staff-login-page', stopAt);
+  const loginHtml = await loginPage.text();
+  const loginToken = csrf(loginHtml);
+  if (!loginToken) throw new Error('staff login page did not contain a CSRF token');
+
+  const slug = slugFor(venueIndex);
+  const loginBody = new URLSearchParams({ _token: loginToken, email: `${slug}@zemtab.test`, password: 'password' });
+  const login = await checkedStaffRequest(`${baseUrl}/login`, {
+    method: 'POST', headers: { 'content-type': 'application/x-www-form-urlencoded' }, body: loginBody, followRedirects: false,
+  }, jar, 'staff-login', stopAt, [200, 302, 303]);
+  await login.arrayBuffer();
+  if (state.failed) throw new Error(state.failure);
+
+  const profilePage = await checkedStaffRequest(`${baseUrl}/restaurant/profile-select`, {}, jar, 'staff-profile-page', stopAt);
+  const profileHtml = await profilePage.text();
+  const profileToken = csrf(profileHtml);
+  const profileId = firstProfileId(profileHtml);
+  if (!profileToken || !profileId) throw new Error('staff profile page did not contain its CSRF token and profile id');
+
+  const profileBody = new URLSearchParams({ _token: profileToken, profile_id: profileId, password: 'password' });
+  const profileLogin = await checkedStaffRequest(`${baseUrl}/restaurant/profile-login`, {
+    method: 'POST', headers: { 'content-type': 'application/x-www-form-urlencoded' }, body: profileBody, followRedirects: false,
+  }, jar, 'staff-profile-login', stopAt, [200, 302, 303]);
+  await profileLogin.arrayBuffer();
+  if (state.failed) throw new Error(state.failure);
+
+  const workboard = await checkedStaffRequest(`${baseUrl}/restaurant/orders`, {}, jar, 'staff-workboard', stopAt);
+  const workboardHtml = await workboard.text();
+  const pollUrl = extractPollUrl(workboardHtml);
+  if (!pollUrl) throw new Error('staff Work Board did not expose its signed poll URL');
+  return { jar, pollUrl, venueIndex };
+}
+
+async function staffWorkboardLoop(session, stopAt) {
+  let revision = null;
+  await sleepWhileActive(Math.random() * staffPollIntervalMs, stopAt);
+  while (Date.now() < stopAt && !state.failed) {
+    const headers = { accept: 'application/json', 'x-requested-with': 'XMLHttpRequest' };
+    if (revision) headers['x-board-revision'] = revision;
+    try {
+      const response = await request(session.pollUrl, { headers, followRedirects: false }, session.jar, 'staff-poll');
+      if (response.status === 429) {
+        await pauseForRateLimit(response, stopAt);
+      } else if (response.status === 304) {
+        revision = response.headers.get('x-board-revision') || revision;
+        await response.arrayBuffer();
+      } else if (requireSuccess(response, 'staff Work Board poll', [200])) {
+        const data = await response.json();
+        revision = response.headers.get('x-board-revision') || data.revision || revision;
+      } else {
+        await response.arrayBuffer();
+      }
+    } catch (error) {
+      if (!state.failed) {
+        state.functionalErrors++;
+        fail(`staff Work Board poll failed for ${slugFor(session.venueIndex)}: ${error.message}`);
+      }
+      return;
+    }
+    await sleepWhileActive(staffPollIntervalMs + Math.random() * 5000, stopAt);
+  }
 }
 
 async function guestLoop(guestIndex, stopAt) {
@@ -141,7 +236,7 @@ async function guestLoop(guestIndex, stopAt) {
     try {
       const menu = await request(menuUrl, {}, jar, 'menu');
       if (menu.status === 429) {
-        await pauseForRateLimit(menu);
+        await pauseForRateLimit(menu, stopAt);
         continue;
       }
       if (!requireSuccess(menu, 'menu')) {
@@ -169,11 +264,11 @@ async function guestLoop(guestIndex, stopAt) {
         const order = await request(`${menuUrl}/orders`, {
           method: 'POST', headers: { 'content-type': 'application/x-www-form-urlencoded' }, body, followRedirects: false,
         }, jar, 'order');
-        if (order.status === 429) await pauseForRateLimit(order);
+        if (order.status === 429) await pauseForRateLimit(order, stopAt);
         else if (requireSuccess(order, 'order', [200, 302, 303])) {
           await order.arrayBuffer();
           const confirmation = await request(`${menuUrl}/confirmation`, {}, jar, 'confirmation');
-          if (confirmation.status === 429) await pauseForRateLimit(confirmation);
+          if (confirmation.status === 429) await pauseForRateLimit(confirmation, stopAt);
           else if (requireSuccess(confirmation, 'confirmation')) await confirmation.arrayBuffer();
           else await confirmation.arrayBuffer();
         } else await order.arrayBuffer();
@@ -182,13 +277,13 @@ async function guestLoop(guestIndex, stopAt) {
         const service = await request(`${menuUrl}/service-requests`, {
           method: 'POST', headers: { 'content-type': 'application/x-www-form-urlencoded' }, body, followRedirects: false,
         }, jar, 'service-request');
-        if (service.status === 429) await pauseForRateLimit(service);
+        if (service.status === 429) await pauseForRateLimit(service, stopAt);
         else requireSuccess(service, 'service request', [200, 302, 303]);
         await service.arrayBuffer();
       } else if (behavior >= 0.90) {
         await sleep(1000 + Math.random() * 3000);
         const refresh = await request(menuUrl, {}, jar, 'menu-refresh');
-        if (refresh.status === 429) await pauseForRateLimit(refresh);
+        if (refresh.status === 429) await pauseForRateLimit(refresh, stopAt);
         else if (!requireSuccess(refresh, 'menu refresh')) await refresh.arrayBuffer();
         else await refresh.arrayBuffer();
       }
@@ -226,9 +321,11 @@ async function main() {
   if (!Number.isInteger(venueCount) || venueCount < 1 || venueCount > 500) throw new Error('ZEMTAB_STRESS_VENUES must be between 1 and 500.');
   if (!Number.isInteger(maxGuests) || maxGuests < 100 || maxGuests > 2000) throw new Error('ZEMTAB_STRESS_MAX_GUESTS must be between 100 and 2000.');
   if (!Number.isFinite(p95LimitMs) || p95LimitMs < 1 || !Number.isInteger(p95WindowsToFail) || p95WindowsToFail < 1 || !Number.isFinite(maxRateLimitedPercent) || maxRateLimitedPercent < 0 || maxRateLimitedPercent > 100) throw new Error('Load stop thresholds must be valid.');
+  if (!Number.isInteger(staffScreens) || staffScreens < 0 || staffScreens > venueCount || !Number.isInteger(staffLoginSpacingMs) || staffLoginSpacingMs < 5000 || !Number.isInteger(staffPollIntervalMs) || staffPollIntervalMs < 10000) throw new Error('Staff screen count/intervals are outside the safe test profile.');
 
   console.log(`Target: ${baseUrl}`);
   console.log(`Load window: 10 minutes | seeded venues: ${venueCount} | max guest sessions: ${maxGuests}`);
+  console.log(`Staff workload: ${staffScreens} independently authenticated Work Boards | login spacing: ${staffLoginSpacingMs}ms | poll interval: ${staffPollIntervalMs}ms`);
   console.log(`Traffic mix: 70% browse, 15% order + confirmation, 5% service request, 10% refresh`);
   console.log(`Failure stops: HTTP 5xx/timeouts, functional errors, p95 > ${p95LimitMs}ms, or 429s > ${maxRateLimitedPercent}% for ${p95WindowsToFail} consecutive 30s windows`);
 
@@ -238,10 +335,11 @@ async function main() {
   const rampResults = [];
   let spawned = 0;
   let planIndex = 0;
+  let staffPreparation;
 
   const latencyMonitor = setInterval(() => {
     const cutoff = Date.now() - 30000;
-    const recent = metrics.filter(row => row.at >= cutoff && row.status >= 200 && row.status < 400 && row.status !== 304);
+    const recent = metrics.filter(row => row.at >= cutoff && row.status >= 200 && row.status < 400);
     const allRecent = metrics.filter(row => row.at >= cutoff);
     const p95Ms = percentile(recent.map(row => row.ms), 0.95);
     if (recent.length >= 30 && p95Ms > p95LimitMs) state.consecutiveSlowWindows++;
@@ -251,13 +349,35 @@ async function main() {
     else state.consecutiveThrottleWindows = 0;
     if (state.consecutiveSlowWindows >= p95WindowsToFail) fail(`successful-request p95 exceeded ${p95LimitMs}ms for ${p95WindowsToFail} consecutive windows`);
     if (state.consecutiveThrottleWindows >= p95WindowsToFail) fail(`HTTP 429 rate exceeded ${maxRateLimitedPercent}% for ${p95WindowsToFail} consecutive windows`);
+    const elapsedSeconds = Math.min(durationSeconds, Math.floor((Date.now() - startedAt) / 1000));
+    console.log(`LOAD_PROGRESS elapsed=${elapsedSeconds} guests=${spawned} staff=${state.staffSessionsStarted} requests=${metrics.length}`);
   }, 30000);
 
   try {
+    staffPreparation = (async () => {
+      for (let index = 0; index < staffScreens && !state.failed && Date.now() < stopAt; index++) {
+        try {
+          const session = await loginStaffSession(index, stopAt);
+          state.staffSessionsStarted++;
+          workers.push(staffWorkboardLoop(session, stopAt));
+          if (state.staffSessionsStarted % 10 === 0 || state.staffSessionsStarted === staffScreens) {
+            console.log(`Authenticated staff Work Boards: ${state.staffSessionsStarted}/${staffScreens}`);
+          }
+          await sleepWhileActive(staffLoginSpacingMs, stopAt);
+        } catch (error) {
+          if (!state.failed) {
+            state.functionalErrors++;
+            fail(`staff setup failed for ${slugFor(index)}: ${error.message}`);
+          }
+          break;
+        }
+      }
+    })();
+
     while (planIndex < rampPlan.length && !state.failed) {
       const step = rampPlan[planIndex];
       const dueAt = startedAt + step.atSeconds * 1000;
-      if (Date.now() < dueAt) await sleep(dueAt - Date.now());
+      if (Date.now() < dueAt) await sleepWhileActive(dueAt - Date.now(), stopAt);
       if (state.failed || Date.now() >= stopAt) break;
       while (spawned < step.guests) {
         workers.push(guestLoop(spawned++, stopAt));
@@ -271,7 +391,12 @@ async function main() {
     clearInterval(latencyMonitor);
   }
 
+  await staffPreparation;
   await Promise.allSettled(workers);
+  if (!state.failed && state.staffSessionsStarted < staffScreens) {
+    state.functionalErrors++;
+    fail(`only ${state.staffSessionsStarted}/${staffScreens} staff Work Boards authenticated before the test window ended`);
+  }
   const recovery = await recoveryProbe();
   const summary = snapshot(metrics);
   const lastLoadAt = metrics.length ? Math.max(...metrics.map(row => row.at)) : startedAt;
@@ -299,7 +424,10 @@ async function main() {
       rampPlan,
       thinkTimeSeconds: [thinkMinMs / 1000, thinkMaxMs / 1000],
       mixPercent: { browse: 70, orderAndConfirmation: 15, serviceRequest: 5, refresh: 10 },
-      staffWorkBoardSessions: 0,
+      staffWorkBoardSessions: state.staffSessionsStarted,
+      requestedStaffWorkBoardSessions: staffScreens,
+      staffLoginSpacingSeconds: staffLoginSpacingMs / 1000,
+      staffPollIntervalSeconds: staffPollIntervalMs / 1000,
     },
     ramp: rampResults,
     summary,

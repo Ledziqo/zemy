@@ -42,6 +42,9 @@ jobs:
           ZEMTAB_STRESS_P95_LIMIT_MS: 3000
           ZEMTAB_STRESS_P95_WINDOWS_TO_FAIL: 2
           ZEMTAB_STRESS_MAX_429_PERCENT: 5
+          ZEMTAB_STRESS_STAFF_SCREENS: 50
+          ZEMTAB_STRESS_STAFF_LOGIN_SPACING_MS: 7000
+          ZEMTAB_STRESS_STAFF_POLL_INTERVAL_MS: 30000
         run: node tools/github-release-runner.cjs
 
   scheduled-fallback:
@@ -70,4 +73,7 @@ jobs:
           ZEMTAB_STRESS_P95_LIMIT_MS: 3000
           ZEMTAB_STRESS_P95_WINDOWS_TO_FAIL: 2
           ZEMTAB_STRESS_MAX_429_PERCENT: 5
+          ZEMTAB_STRESS_STAFF_SCREENS: 50
+          ZEMTAB_STRESS_STAFF_LOGIN_SPACING_MS: 7000
+          ZEMTAB_STRESS_STAFF_POLL_INTERVAL_MS: 30000
         run: node tools/github-release-poller.cjs
