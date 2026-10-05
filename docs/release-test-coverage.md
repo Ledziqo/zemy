@@ -39,8 +39,21 @@ following sequence and reports progress in the browser:
    Work Board rendering, and signed polling.
 5. Run desktop and mobile Chromium checks for menu/category/cart interactions and
    the admin database page.
-6. Run the gradual 10/20/40/60/80/100 venue capacity test last.
+6. Run a 10-minute guest load test last: gradually ramp to 2,000 independent
+   guest sessions distributed across up to 500 disposable venues, with realistic
+   20–60 second think time and a browse/order/service/refresh mix. It stops early
+   on 5xx/timeouts, functional failures, sustained successful-request p95 above
+   3 seconds, or sustained HTTP 429s above 5%, and records per-route latency,
+   errors, throttling, peak sessions, and a post-load recovery probe.
 7. Verify recovery, delete all stress data, and report whether cleanup succeeded.
+
+The 10 minutes refers only to the active guest-load window. Seeding, release
+checks, browser tests, recovery, and cleanup add time to the full run. A passing
+run means only that this configured guest workload completed; it does not prove
+launch readiness, establish a maximum hotel count, or measure fresh database
+connections directly. This short profile does not load staff Work Boards or
+simulate a unique staff login per restaurant; it is not a substitute for a
+separate staff-session test.
 
 The GitHub Actions repository must contain `ZEMTAB_CALLBACK_SECRET`,
 `ZEMTAB_STAGING_ADMIN_EMAIL`, `ZEMTAB_STAGING_ADMIN_PASSWORD`, and

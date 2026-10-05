@@ -154,7 +154,7 @@ async function cleanupStressData(admin) {
     await setupRun(admin, fields);
     return { admin, reauthenticated: false };
   } catch (error) {
-    // A full capacity run can outlast the Laravel session lifetime. Refresh
+    // The complete release run can outlast the Laravel session lifetime. Refresh
     // the admin cookie and CSRF token once so cleanup still runs afterward.
     if (!/setup operation returned HTTP 419\b/.test(error.message)) throw error;
     await callback({ status: 'running', phase: 'Admin session expired; signing in again to finish cleanup', progress: 96 });
@@ -261,12 +261,21 @@ async function main() {
       report.phases.push({ name: 'browser', ok: browser.code === 0, output: browser.stdout.slice(-8000), artifact });
       if (browser.code !== 0) throw new Error(`browser phase failed: ${browser.stderr || browser.stdout}`);
     });
-    await phase('Running gradual capacity test last', 65, async () => {
-      const capacityReportPath = path.join(os.tmpdir(), `zemtab-capacity-${runId}.json`);
-      const capacity = await runExternalCommand('node', [path.join(process.cwd(), 'tools', 'capacity-10min.js')], { ZEMTAB_BASE_URL: baseUrl, ZEMTAB_REPORT_PATH: capacityReportPath });
-      const artifact = fs.existsSync(capacityReportPath) ? JSON.parse(fs.readFileSync(capacityReportPath, 'utf8')) : null;
-      report.phases.push({ name: 'capacity', ok: capacity.code === 0, output: capacity.stdout.slice(-12000), artifact });
-      if (capacity.code !== 0) throw new Error(`capacity phase stopped before a passing stage: ${capacity.stderr || capacity.stdout.slice(-3000)}`);
+    await phase('Running 10-minute guest load-to-failure test', 65, async () => {
+      const stressReportPath = path.join(os.tmpdir(), `zemtab-stress-${runId}.json`);
+      const stress = await runExternalCommand('node', [path.join(process.cwd(), 'tools', 'quick-stress-10min.js')], {
+        ZEMTAB_BASE_URL: baseUrl,
+        ZEMTAB_REPORT_PATH: stressReportPath,
+        ZEMTAB_STRESS_DURATION_SECONDS: process.env.ZEMTAB_STRESS_DURATION_SECONDS || '600',
+        ZEMTAB_STRESS_VENUES: process.env.ZEMTAB_STRESS_VENUES || '500',
+        ZEMTAB_STRESS_MAX_GUESTS: process.env.ZEMTAB_STRESS_MAX_GUESTS || '2000',
+        ZEMTAB_STRESS_P95_LIMIT_MS: process.env.ZEMTAB_STRESS_P95_LIMIT_MS || '3000',
+        ZEMTAB_STRESS_P95_WINDOWS_TO_FAIL: process.env.ZEMTAB_STRESS_P95_WINDOWS_TO_FAIL || '2',
+        ZEMTAB_STRESS_MAX_429_PERCENT: process.env.ZEMTAB_STRESS_MAX_429_PERCENT || '5',
+      });
+      const artifact = fs.existsSync(stressReportPath) ? JSON.parse(fs.readFileSync(stressReportPath, 'utf8')) : null;
+      report.phases.push({ name: 'stress-load', ok: stress.code === 0, output: stress.stdout.slice(-12000), artifact });
+      if (stress.code !== 0) throw new Error(`10-minute load test stopped on a failure signal: ${stress.stderr || stress.stdout.slice(-3000)}`);
     });
     await phase('Verifying the site recovers after the test', 88, async () => {
       const home = await fetch(`${baseUrl}/login`, { headers: { accept: 'text/html' } });
