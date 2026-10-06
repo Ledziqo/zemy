@@ -68,6 +68,7 @@
 .signature-card:not(.is-landscape) .signature-location{position:absolute;top:1mm;left:5mm;width:65mm;height:7mm;max-width:none;margin:0;padding:0;border:0;color:var(--card-bg);display:flex;align-items:center;justify-content:center;gap:2.2mm}
 .signature-location span{font-family:'Segoe UI',sans-serif;font-size:var(--detail-size);font-weight:600;letter-spacing:.18em}
 .signature-location strong{font-family:Georgia,serif;font-size:23pt;font-weight:400;line-height:1;letter-spacing:0}
+.signature-card:not(.is-landscape) .signature-location strong{writing-mode:horizontal-tb;white-space:nowrap;flex:none;overflow-wrap:normal}
 .signature-scan{position:absolute;left:50%;top:84mm;transform:translateX(-50%) translate(var(--scan-x),var(--scan-y));gap:1mm}
 .signature-frame{padding:2mm;background:var(--card-bg);border-radius:1.5mm;box-shadow:0 0 0 .2mm var(--card-border),0 0 0 1.3mm var(--card-accent),0 0 0 1.5mm var(--card-border)}
 .signature-frame .signature-frame-detail{position:absolute;inset:0;width:100%;height:100%;pointer-events:none;stroke:var(--card-border)}
