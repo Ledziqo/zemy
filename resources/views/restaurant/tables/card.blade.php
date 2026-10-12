@@ -25,7 +25,7 @@
         <g class="signature-artwork-portrait" @if(($sticker['orientation'] ?? 'portrait') === 'landscape') style="display:none" @endif>
    <path d="M0 0H297V560H0Z" fill="var(--card-bg)"/>
    <path d="M0 0H297V44H0Z" fill="var(--card-accent)"/>
-   <path d="M0 36H297M0 40H297" stroke="var(--card-border)" stroke-width=".65"/>
+   <path d="M0 36H115M182 36H297M0 40H115M182 40H297" stroke="var(--card-border)" stroke-width=".65"/>
    <path d="M0 294C92 330 219 256 297 303V560C190 560 87 560 0 560Z" fill="var(--card-accent)"/>
    <path d="M0 273C92 309 219 235 297 282V313C219 266 92 340 0 304Z" fill="var(--card-border)" opacity=".13"/>
    <path d="M0 297C92 333 219 259 297 306" fill="none" stroke="var(--card-border)" stroke-width="1"/>
