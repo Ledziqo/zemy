@@ -1,0 +1,1747 @@
+{
+  "format": "zemtab-menu",
+  "version": 1,
+  "photo_mode": "text_only",
+  "price_note": "All prices are in Ethiopian birr and include 10% service charge and 15% VAT. Room service: dial 147.",
+  "categories": [
+    {
+      "name": "All-day · Breakfast",
+      "items": [
+        {
+          "name": "French Toast",
+          "price": 400,
+          "description": "",
+          "is_available": true
+        },
+        {
+          "name": "Continental Breakfast",
+          "price": 600,
+          "description": "",
+          "is_available": true
+        },
+        {
+          "name": "English Breakfast",
+          "price": 600,
+          "description": "",
+          "is_available": true
+        },
+        {
+          "name": "Mini Breakfast",
+          "price": 550,
+          "description": "",
+          "is_available": true
+        },
+        {
+          "name": "Spinach Omelet",
+          "price": 400,
+          "description": "",
+          "is_available": true
+        },
+        {
+          "name": "Normal Omelet",
+          "price": 400,
+          "description": "",
+          "is_available": true
+        },
+        {
+          "name": "Cheese Omelet",
+          "price": 450,
+          "description": "",
+          "is_available": true
+        },
+        {
+          "name": "Special Omelet",
+          "price": 500,
+          "description": "",
+          "is_available": true
+        },
+        {
+          "name": "Scrambled Egg",
+          "price": 450,
+          "description": "",
+          "is_available": true
+        },
+        {
+          "name": "Egg Sandwich",
+          "price": 450,
+          "description": "",
+          "is_available": true
+        },
+        {
+          "name": "Fetira with Egg",
+          "price": 600,
+          "description": "",
+          "is_available": true
+        },
+        {
+          "name": "Fetira with Honey",
+          "price": 600,
+          "description": "",
+          "is_available": true
+        },
+        {
+          "name": "Foul Madams",
+          "price": 550,
+          "description": "",
+          "is_available": true
+        },
+        {
+          "name": "Normal Foul",
+          "price": 500,
+          "description": "",
+          "is_available": true
+        },
+        {
+          "name": "Special Foul",
+          "price": 550,
+          "description": "",
+          "is_available": true
+        },
+        {
+          "name": "Breakfast Buffet",
+          "price": 600,
+          "description": "",
+          "is_available": true
+        },
+        {
+          "name": "Chechebsa with Egg",
+          "price": 450,
+          "description": "",
+          "is_available": true
+        },
+        {
+          "name": "Chechebsa with Butter",
+          "price": 450,
+          "description": "",
+          "is_available": true
+        },
+        {
+          "name": "Chechebsa with Honey",
+          "price": 450,
+          "description": "",
+          "is_available": true
+        },
+        {
+          "name": "Fasting Firfir",
+          "price": 500,
+          "description": "",
+          "is_available": true
+        },
+        {
+          "name": "Quanta Firfir",
+          "price": 600,
+          "description": "",
+          "is_available": true
+        },
+        {
+          "name": "Siga Firfir",
+          "price": 600,
+          "description": "",
+          "is_available": true
+        },
+        {
+          "name": "Tuna Firfir",
+          "price": 700,
+          "description": "",
+          "is_available": true
+        }
+      ]
+    },
+    {
+      "name": "All-day · Cold starters",
+      "items": [
+        {
+          "name": "Garden Salad",
+          "price": 500,
+          "description": "Salad greens, tomato, onion, carrot, olive, pepper and vinaigrette dressing.",
+          "is_available": true
+        },
+        {
+          "name": "Salad Nicosia",
+          "price": 750,
+          "description": "Salad greens, green beans, olive, onion, hot peppers, tomato, topped with tuna and boiled eggs.",
+          "is_available": true
+        },
+        {
+          "name": "Nazra Hotel Special Salad",
+          "price": 700,
+          "description": "",
+          "is_available": true
+        },
+        {
+          "name": "Assorted Salad",
+          "price": 700,
+          "description": "",
+          "is_available": true
+        },
+        {
+          "name": "Tuna Salad",
+          "price": 800,
+          "description": "",
+          "is_available": true
+        }
+      ]
+    },
+    {
+      "name": "All-day · Hot starters",
+      "items": [
+        {
+          "name": "Vegetable Soup",
+          "price": 500,
+          "description": "",
+          "is_available": true
+        },
+        {
+          "name": "Tomato Cream Soup",
+          "price": 500,
+          "description": "",
+          "is_available": true
+        },
+        {
+          "name": "Chicken Cream Soup",
+          "price": 550,
+          "description": "",
+          "is_available": true
+        },
+        {
+          "name": "Beef Soup",
+          "price": 550,
+          "description": "",
+          "is_available": true
+        },
+        {
+          "name": "Fish Soup",
+          "price": 500,
+          "description": "",
+          "is_available": true
+        }
+      ]
+    },
+    {
+      "name": "All-day · Vegetarian",
+      "items": [
+        {
+          "name": "Vegetarian Potpourri",
+          "price": 500,
+          "description": "Freshly oven-baked Mediterranean vegetables.",
+          "is_available": true
+        },
+        {
+          "name": "Vegetarian Fruity Curry",
+          "price": 550,
+          "description": "Zucchini, paprika, champignons, banana and pineapple served with fresh curry sauce.",
+          "is_available": true
+        },
+        {
+          "name": "Roasted Vegetable",
+          "price": 500,
+          "description": "",
+          "is_available": true
+        }
+      ]
+    },
+    {
+      "name": "All-day · Pasta",
+      "items": [
+        {
+          "name": "Alla Napolitano",
+          "price": 550,
+          "description": "Light tomato sauce.",
+          "is_available": true
+        },
+        {
+          "name": "Alla Arrabbiata",
+          "price": 550,
+          "description": "Light tomato sauce, chilies and fresh garlic.",
+          "is_available": true
+        },
+        {
+          "name": "Pasta Primavera",
+          "price": 550,
+          "description": "Light tomato sauce with vegetables.",
+          "is_available": true
+        },
+        {
+          "name": "Alla Bolognese",
+          "price": 650,
+          "description": "Beef, tomato and herbs.",
+          "is_available": true
+        },
+        {
+          "name": "Alla Carbonara",
+          "price": 700,
+          "description": "Bacon, cream, cream cheese and egg yolk.",
+          "is_available": true
+        },
+        {
+          "name": "Champignon Alla Penne",
+          "price": 650,
+          "description": "Mushroom and cream sauce.",
+          "is_available": true
+        },
+        {
+          "name": "Alla Tuna",
+          "price": 750,
+          "description": "",
+          "is_available": true
+        },
+        {
+          "name": "Fettuccine Alfredo",
+          "price": 700,
+          "description": "",
+          "is_available": true
+        }
+      ]
+    },
+    {
+      "name": "All-day · Rice",
+      "items": [
+        {
+          "name": "Rice with Vegetable",
+          "price": 500,
+          "description": "Assorted vegetables served with rice.",
+          "is_available": true
+        },
+        {
+          "name": "Rice with Beef Sausage",
+          "price": 600,
+          "description": "",
+          "is_available": true
+        },
+        {
+          "name": "Rice with Curried Chicken",
+          "price": 700,
+          "description": "",
+          "is_available": true
+        },
+        {
+          "name": "Rice with Tomato Sauce",
+          "price": 500,
+          "description": "",
+          "is_available": true
+        }
+      ]
+    },
+    {
+      "name": "All-day · Beef",
+      "items": [
+        {
+          "name": "Fillet Steak",
+          "price": 900,
+          "description": "With mushroom and cream.",
+          "is_available": true
+        },
+        {
+          "name": "Steak with Pepper",
+          "price": 900,
+          "description": "",
+          "is_available": true
+        },
+        {
+          "name": "Beef Stroganoff",
+          "price": 850,
+          "description": "With mushroom and cream.",
+          "is_available": true
+        },
+        {
+          "name": "Grilled Steak",
+          "price": 900,
+          "description": "Beef tenderloin with pepper and cream.",
+          "is_available": true
+        },
+        {
+          "name": "Grilled Sausage",
+          "price": 850,
+          "description": "Five pieces of sausage and sauce.",
+          "is_available": true
+        }
+      ]
+    },
+    {
+      "name": "All-day · Chicken",
+      "items": [
+        {
+          "name": "Health Chicken Breasts",
+          "price": 850,
+          "description": "Grilled chicken breast with rice and vegetables.",
+          "is_available": true
+        },
+        {
+          "name": "Chicken Schnitzel",
+          "price": 850,
+          "description": "Lightly crumbed chicken fillet.",
+          "is_available": true
+        },
+        {
+          "name": "Chicken Stroganoff",
+          "price": 850,
+          "description": "With mushroom and cream.",
+          "is_available": true
+        },
+        {
+          "name": "Chicken Nuggets",
+          "price": 850,
+          "description": "",
+          "is_available": true
+        }
+      ]
+    },
+    {
+      "name": "All-day · Roasted",
+      "items": [
+        {
+          "name": "Roasted Beef",
+          "price": 900,
+          "description": "",
+          "is_available": true
+        },
+        {
+          "name": "Roasted Chicken",
+          "price": 900,
+          "description": "",
+          "is_available": true
+        }
+      ]
+    },
+    {
+      "name": "All-day · Fish",
+      "items": [
+        {
+          "name": "Grilled Tilapia",
+          "price": 650,
+          "description": "",
+          "is_available": true
+        },
+        {
+          "name": "Goulash",
+          "price": 650,
+          "description": "",
+          "is_available": true
+        },
+        {
+          "name": "Breaded Baked Tilapia",
+          "price": 700,
+          "description": "",
+          "is_available": true
+        },
+        {
+          "name": "Cutlet",
+          "price": 700,
+          "description": "",
+          "is_available": true
+        }
+      ]
+    },
+    {
+      "name": "All-day · Sandwiches",
+      "items": [
+        {
+          "name": "Vegetable Sandwich",
+          "price": 500,
+          "description": "",
+          "is_available": true
+        },
+        {
+          "name": "Club Sandwich",
+          "price": 650,
+          "description": "Toasted triple-decker sandwich with shredded chicken.",
+          "is_available": true
+        },
+        {
+          "name": "Tuna Sandwich",
+          "price": 750,
+          "description": "Tuna, chopped onions and toasted bread, served with fries.",
+          "is_available": true
+        },
+        {
+          "name": "Chicken Sandwich",
+          "price": 700,
+          "description": "Served with French fries.",
+          "is_available": true
+        },
+        {
+          "name": "Steak Sandwich",
+          "price": 750,
+          "description": "Served with French fries.",
+          "is_available": true
+        },
+        {
+          "name": "French Fries",
+          "price": 450,
+          "description": "",
+          "is_available": true
+        }
+      ]
+    },
+    {
+      "name": "All-day · Ethiopian corner",
+      "items": [
+        {
+          "name": "Fasting Fir-Fir",
+          "price": 500,
+          "description": "",
+          "is_available": true
+        },
+        {
+          "name": "Quanta Fir-Fir",
+          "price": 600,
+          "description": "",
+          "is_available": true
+        },
+        {
+          "name": "Tuna Fir-Fir",
+          "price": 700,
+          "description": "",
+          "is_available": true
+        },
+        {
+          "name": "Shero/Quanta",
+          "price": 600,
+          "description": "",
+          "is_available": true
+        },
+        {
+          "name": "Bozena Shiro",
+          "price": 600,
+          "description": "",
+          "is_available": true
+        },
+        {
+          "name": "Shero/Tomato",
+          "price": 550,
+          "description": "",
+          "is_available": true
+        },
+        {
+          "name": "Chekina Tibs",
+          "price": 850,
+          "description": "",
+          "is_available": true
+        },
+        {
+          "name": "Grilled Tibes",
+          "price": 850,
+          "description": "",
+          "is_available": true
+        },
+        {
+          "name": "Shero",
+          "price": 500,
+          "description": "",
+          "is_available": true
+        }
+      ]
+    },
+    {
+      "name": "All-day · Combination",
+      "items": [
+        {
+          "name": "Non-fasting Combo",
+          "price": 850,
+          "description": "Tibs firfir, shero, vegetables, rice and beef.",
+          "is_available": true
+        },
+        {
+          "name": "Fasting Combo",
+          "price": 650,
+          "description": "Shero, vegetables, spaghetti, rice and tomato.",
+          "is_available": true
+        }
+      ]
+    },
+    {
+      "name": "Room service · Breakfast",
+      "items": [
+        {
+          "name": "French Toast",
+          "price": 450,
+          "description": "",
+          "is_available": true
+        },
+        {
+          "name": "Normal Omelet",
+          "price": 450,
+          "description": "",
+          "is_available": true
+        },
+        {
+          "name": "Special Omelet",
+          "price": 570,
+          "description": "",
+          "is_available": true
+        },
+        {
+          "name": "Scrambled Egg",
+          "price": 500,
+          "description": "",
+          "is_available": true
+        },
+        {
+          "name": "Egg Sandwich",
+          "price": 500,
+          "description": "",
+          "is_available": true
+        },
+        {
+          "name": "Normal Foul",
+          "price": 550,
+          "description": "",
+          "is_available": true
+        },
+        {
+          "name": "Special Foul",
+          "price": 600,
+          "description": "",
+          "is_available": true
+        },
+        {
+          "name": "Chechebsa with Egg",
+          "price": 500,
+          "description": "",
+          "is_available": true
+        },
+        {
+          "name": "Chechebsa with Butter",
+          "price": 500,
+          "description": "",
+          "is_available": true
+        },
+        {
+          "name": "Fasting Firfir",
+          "price": 550,
+          "description": "",
+          "is_available": true
+        },
+        {
+          "name": "Siga Firfir",
+          "price": 600,
+          "description": "",
+          "is_available": true
+        }
+      ]
+    },
+    {
+      "name": "Room service · Cold starters",
+      "items": [
+        {
+          "name": "Garden Salad",
+          "price": 550,
+          "description": "Salad greens, tomato, onion, carrot, olive, pepper and vinaigrette dressing.",
+          "is_available": true
+        },
+        {
+          "name": "Nazra Hotel Special Salad",
+          "price": 750,
+          "description": "",
+          "is_available": true
+        },
+        {
+          "name": "Tuna Salad",
+          "price": 800,
+          "description": "",
+          "is_available": true
+        }
+      ]
+    },
+    {
+      "name": "Room service · Hot starters",
+      "items": [
+        {
+          "name": "Hot Soup",
+          "price": 550,
+          "description": "",
+          "is_available": true
+        },
+        {
+          "name": "Vegetable Soup",
+          "price": 550,
+          "description": "",
+          "is_available": true
+        },
+        {
+          "name": "Chicken Cream Soup",
+          "price": 600,
+          "description": "",
+          "is_available": true
+        },
+        {
+          "name": "Beef Soup",
+          "price": 600,
+          "description": "",
+          "is_available": true
+        }
+      ]
+    },
+    {
+      "name": "Room service · Vegetarian",
+      "items": [
+        {
+          "name": "Vegetarian Potpourri",
+          "price": 550,
+          "description": "Freshly oven-baked Mediterranean vegetables.",
+          "is_available": true
+        },
+        {
+          "name": "Roasted Vegetable",
+          "price": 550,
+          "description": "",
+          "is_available": true
+        }
+      ]
+    },
+    {
+      "name": "Room service · Pasta",
+      "items": [
+        {
+          "name": "Alla Napolitano",
+          "price": 600,
+          "description": "Light tomato sauce.",
+          "is_available": true
+        },
+        {
+          "name": "Alla Bolognese",
+          "price": 600,
+          "description": "Beef, tomato and herbs.",
+          "is_available": true
+        },
+        {
+          "name": "Alla Carbonara",
+          "price": 750,
+          "description": "Bacon, cream, cream cheese and egg yolk.",
+          "is_available": true
+        },
+        {
+          "name": "Alla Tuna",
+          "price": 800,
+          "description": "",
+          "is_available": true
+        }
+      ]
+    },
+    {
+      "name": "Room service · Rice",
+      "items": [
+        {
+          "name": "Rice with Vegetable",
+          "price": 550,
+          "description": "Assorted vegetables served with rice.",
+          "is_available": true
+        },
+        {
+          "name": "Rice with Beef Sausage",
+          "price": 650,
+          "description": "",
+          "is_available": true
+        },
+        {
+          "name": "Rice with Curried Chicken",
+          "price": 750,
+          "description": "",
+          "is_available": true
+        },
+        {
+          "name": "Rice with Tomato Sauce",
+          "price": 550,
+          "description": "",
+          "is_available": true
+        }
+      ]
+    },
+    {
+      "name": "Room service · Beef",
+      "items": [
+        {
+          "name": "Fillet Steak",
+          "price": 900,
+          "description": "With mushroom and cream.",
+          "is_available": true
+        },
+        {
+          "name": "Beef Stroganoff",
+          "price": 850,
+          "description": "With mushroom and cream.",
+          "is_available": true
+        },
+        {
+          "name": "Grilled Steak",
+          "price": 900,
+          "description": "Beef tenderloin with pepper and cream.",
+          "is_available": true
+        },
+        {
+          "name": "Roasted Beef",
+          "price": 900,
+          "description": "",
+          "is_available": true
+        }
+      ]
+    },
+    {
+      "name": "Room service · Chicken",
+      "items": [
+        {
+          "name": "Health Chicken Breasts",
+          "price": 850,
+          "description": "Grilled chicken breast with rice and vegetables.",
+          "is_available": true
+        },
+        {
+          "name": "Chicken Stroganoff",
+          "price": 850,
+          "description": "With mushroom and cream.",
+          "is_available": true
+        },
+        {
+          "name": "Roasted Chicken",
+          "price": 900,
+          "description": "",
+          "is_available": true
+        }
+      ]
+    },
+    {
+      "name": "Room service · Fish",
+      "items": [
+        {
+          "name": "Goulash",
+          "price": 650,
+          "description": "",
+          "is_available": true
+        },
+        {
+          "name": "Cutlet",
+          "price": 700,
+          "description": "",
+          "is_available": true
+        }
+      ]
+    },
+    {
+      "name": "Room service · National dishes",
+      "items": [
+        {
+          "name": "Tuna Fir-Fir",
+          "price": 700,
+          "description": "",
+          "is_available": true
+        },
+        {
+          "name": "Bozena Shiro",
+          "price": 650,
+          "description": "",
+          "is_available": true
+        },
+        {
+          "name": "Shero/Tomato",
+          "price": 600,
+          "description": "",
+          "is_available": true
+        },
+        {
+          "name": "Chekina Tibs",
+          "price": 850,
+          "description": "",
+          "is_available": true
+        },
+        {
+          "name": "Grilled Tibes",
+          "price": 850,
+          "description": "",
+          "is_available": true
+        }
+      ]
+    },
+    {
+      "name": "Drinks · Local wines",
+      "items": [
+        {
+          "name": "Acacia Dry Red",
+          "price": 2800,
+          "description": "",
+          "is_available": true
+        },
+        {
+          "name": "Acacia Medium Sweet Red",
+          "price": 2800,
+          "description": "",
+          "is_available": true
+        },
+        {
+          "name": "Acacia Rose",
+          "price": 2800,
+          "description": "",
+          "is_available": true
+        },
+        {
+          "name": "Acacia Medium Sweet White",
+          "price": 2800,
+          "description": "",
+          "is_available": true
+        },
+        {
+          "name": "Rift Valley Merlot",
+          "price": 2800,
+          "description": "",
+          "is_available": true
+        },
+        {
+          "name": "Rift Valley Cabernet Sauvignon",
+          "price": 2800,
+          "description": "",
+          "is_available": true
+        },
+        {
+          "name": "Rift Valley Syrah",
+          "price": 2800,
+          "description": "",
+          "is_available": true
+        },
+        {
+          "name": "Rift Valley Dry Red",
+          "price": 2800,
+          "description": "",
+          "is_available": true
+        },
+        {
+          "name": "Rift Valley Medium Dry Red",
+          "price": 2800,
+          "description": "",
+          "is_available": true
+        }
+      ]
+    },
+    {
+      "name": "Drinks · Imported wines",
+      "items": [
+        {
+          "name": "Glass of Wine",
+          "price": 600,
+          "description": "",
+          "is_available": true
+        },
+        {
+          "name": "Alexis Lichine Cabernet Sauvignon",
+          "price": 3500,
+          "description": "",
+          "is_available": true
+        },
+        {
+          "name": "Famille Castel Medium Sweet (France)",
+          "price": 3500,
+          "description": "",
+          "is_available": true
+        },
+        {
+          "name": "Famille Castel Medium Sweet Chardonnay Muscat (France)",
+          "price": 4000,
+          "description": "",
+          "is_available": true
+        },
+        {
+          "name": "Famille Castel Grand Reserve Chardonnay Muscat (France)",
+          "price": 4000,
+          "description": "",
+          "is_available": true
+        },
+        {
+          "name": "Nederburg Edelroud (South Africa)",
+          "price": 3500,
+          "description": "",
+          "is_available": true
+        },
+        {
+          "name": "Two Ocean Cabernet Merlot (South Africa)",
+          "price": 3500,
+          "description": "",
+          "is_available": true
+        },
+        {
+          "name": "Reserve De France Cabernet Sauvignon",
+          "price": 3500,
+          "description": "",
+          "is_available": true
+        },
+        {
+          "name": "Reserve De France Merlot",
+          "price": 3500,
+          "description": "",
+          "is_available": true
+        },
+        {
+          "name": "Famille Castel Cuvée De France Dry Red",
+          "price": 3500,
+          "description": "",
+          "is_available": true
+        },
+        {
+          "name": "Famille Castel Cuvée De France Medium Sweet",
+          "price": 3500,
+          "description": "",
+          "is_available": true
+        },
+        {
+          "name": "Famille Castel Côte Du Rhone (France)",
+          "price": 4000,
+          "description": "",
+          "is_available": true
+        },
+        {
+          "name": "Famille Castel Grande Réserve Syrah (France)",
+          "price": 3500,
+          "description": "",
+          "is_available": true
+        },
+        {
+          "name": "Drostedy Hof Claret Select 75cl Red",
+          "price": 3500,
+          "description": "",
+          "is_available": true
+        },
+        {
+          "name": "Bardolino Classic Zonin 75cl",
+          "price": 3500,
+          "description": "",
+          "is_available": true
+        },
+        {
+          "name": "Pavese Pinot Nero 75cl",
+          "price": 3500,
+          "description": "",
+          "is_available": true
+        },
+        {
+          "name": "Valpolocella Classico Doc Red 75cl",
+          "price": 3500,
+          "description": "",
+          "is_available": true
+        }
+      ]
+    },
+    {
+      "name": "Drinks · Spirits",
+      "items": [
+        {
+          "name": "Red Label 1l · Shot",
+          "price": 500,
+          "description": "",
+          "is_available": true
+        },
+        {
+          "name": "Red Label 1l · Bottle",
+          "price": 11000,
+          "description": "",
+          "is_available": true
+        },
+        {
+          "name": "Red Label 50cl · Bottle",
+          "price": 6000,
+          "description": "",
+          "is_available": true
+        },
+        {
+          "name": "Red Label 75cl · Bottle",
+          "price": 8000,
+          "description": "",
+          "is_available": true
+        },
+        {
+          "name": "White Horse · Shot",
+          "price": 450,
+          "description": "",
+          "is_available": true
+        },
+        {
+          "name": "White Horse · Bottle",
+          "price": 9500,
+          "description": "",
+          "is_available": true
+        },
+        {
+          "name": "Jack Daniel's · Shot",
+          "price": 500,
+          "description": "",
+          "is_available": true
+        },
+        {
+          "name": "Jack Daniel's · Bottle",
+          "price": 13000,
+          "description": "",
+          "is_available": true
+        },
+        {
+          "name": "Double Black Label · Shot",
+          "price": 600,
+          "description": "",
+          "is_available": true
+        },
+        {
+          "name": "Double Black Label · Bottle",
+          "price": 19000,
+          "description": "",
+          "is_available": true
+        },
+        {
+          "name": "Black Label 1l · Shot",
+          "price": 550,
+          "description": "",
+          "is_available": true
+        },
+        {
+          "name": "Black Label 1l · Bottle",
+          "price": 16500,
+          "description": "",
+          "is_available": true
+        },
+        {
+          "name": "Black Label 75cl · Bottle",
+          "price": 12000,
+          "description": "",
+          "is_available": true
+        },
+        {
+          "name": "Black Label 50cl · Bottle",
+          "price": 8500,
+          "description": "",
+          "is_available": true
+        },
+        {
+          "name": "Chivas Regal 12 1l · Shot",
+          "price": 500,
+          "description": "",
+          "is_available": true
+        },
+        {
+          "name": "Chivas Regal 12 1l · Bottle",
+          "price": 14000,
+          "description": "",
+          "is_available": true
+        },
+        {
+          "name": "Gold Label · Shot",
+          "price": 650,
+          "description": "",
+          "is_available": true
+        },
+        {
+          "name": "Gold Label · Bottle",
+          "price": 19000,
+          "description": "",
+          "is_available": true
+        },
+        {
+          "name": "William Grant's 100cl · Shot",
+          "price": 500,
+          "description": "",
+          "is_available": true
+        },
+        {
+          "name": "William Grant's 100cl · Bottle",
+          "price": 14000,
+          "description": "",
+          "is_available": true
+        },
+        {
+          "name": "Dimple 75cl · Shot",
+          "price": 500,
+          "description": "",
+          "is_available": true
+        },
+        {
+          "name": "Dimple 75cl · Bottle",
+          "price": 14000,
+          "description": "",
+          "is_available": true
+        },
+        {
+          "name": "Glen Fiddich Special Reserve 100cl · Shot",
+          "price": 500,
+          "description": "",
+          "is_available": true
+        },
+        {
+          "name": "Glen Fiddich Special Reserve 100cl · Bottle",
+          "price": 14000,
+          "description": "",
+          "is_available": true
+        },
+        {
+          "name": "Blue Label 1l · Bottle",
+          "price": 45000,
+          "description": "",
+          "is_available": true
+        },
+        {
+          "name": "Jameson · Shot",
+          "price": 450,
+          "description": "",
+          "is_available": true
+        },
+        {
+          "name": "Jameson · Bottle",
+          "price": 11000,
+          "description": "",
+          "is_available": true
+        }
+      ]
+    },
+    {
+      "name": "Drinks · Gin",
+      "items": [
+        {
+          "name": "Gordon's Dry Gin · Shot",
+          "price": 450,
+          "description": "",
+          "is_available": true
+        },
+        {
+          "name": "Gordon's Dry Gin · Bottle",
+          "price": 10000,
+          "description": "",
+          "is_available": true
+        }
+      ]
+    },
+    {
+      "name": "Drinks · Aperitif",
+      "items": [
+        {
+          "name": "Campari 75cl · Shot",
+          "price": 450,
+          "description": "",
+          "is_available": true
+        },
+        {
+          "name": "Campari 75cl · Bottle",
+          "price": 9000,
+          "description": "",
+          "is_available": true
+        },
+        {
+          "name": "Pastis 51 1l · Shot",
+          "price": 450,
+          "description": "",
+          "is_available": true
+        },
+        {
+          "name": "Pastis 51 1l · Bottle",
+          "price": 9000,
+          "description": "",
+          "is_available": true
+        },
+        {
+          "name": "Fernet Branca 70cl · Shot",
+          "price": 500,
+          "description": "",
+          "is_available": true
+        },
+        {
+          "name": "Fernet Branca 70cl · Bottle",
+          "price": 9500,
+          "description": "",
+          "is_available": true
+        },
+        {
+          "name": "Martini Rosso 1l · Shot",
+          "price": 500,
+          "description": "",
+          "is_available": true
+        },
+        {
+          "name": "Martini Rosso 1l · Bottle",
+          "price": 10000,
+          "description": "",
+          "is_available": true
+        },
+        {
+          "name": "Martini Bianco 1l · Shot",
+          "price": 500,
+          "description": "",
+          "is_available": true
+        },
+        {
+          "name": "Martini Bianco 1l · Bottle",
+          "price": 10000,
+          "description": "",
+          "is_available": true
+        }
+      ]
+    },
+    {
+      "name": "Drinks · Liquor",
+      "items": [
+        {
+          "name": "Malibu 1l · Shot",
+          "price": 450,
+          "description": "",
+          "is_available": true
+        },
+        {
+          "name": "Malibu 1l · Bottle",
+          "price": 8000,
+          "description": "",
+          "is_available": true
+        },
+        {
+          "name": "Baileys 1l · Shot",
+          "price": 450,
+          "description": "",
+          "is_available": true
+        },
+        {
+          "name": "Baileys 1l · Bottle",
+          "price": 8000,
+          "description": "",
+          "is_available": true
+        },
+        {
+          "name": "Amarula Cream 1l · Shot",
+          "price": 450,
+          "description": "",
+          "is_available": true
+        },
+        {
+          "name": "Amarula Cream 1l · Bottle",
+          "price": 8000,
+          "description": "",
+          "is_available": true
+        },
+        {
+          "name": "Cointreau · Shot",
+          "price": 470,
+          "description": "",
+          "is_available": true
+        },
+        {
+          "name": "Cointreau · Bottle",
+          "price": 9000,
+          "description": "",
+          "is_available": true
+        },
+        {
+          "name": "Tia Maria 1l · Shot",
+          "price": 470,
+          "description": "",
+          "is_available": true
+        },
+        {
+          "name": "Tia Maria 1l · Bottle",
+          "price": 9000,
+          "description": "",
+          "is_available": true
+        },
+        {
+          "name": "Sambuca 70cl · Shot",
+          "price": 450,
+          "description": "",
+          "is_available": true
+        },
+        {
+          "name": "Sambuca 70cl · Bottle",
+          "price": 8500,
+          "description": "",
+          "is_available": true
+        },
+        {
+          "name": "Amaretto 70cl · Shot",
+          "price": 450,
+          "description": "",
+          "is_available": true
+        },
+        {
+          "name": "Amaretto 70cl · Bottle",
+          "price": 8000,
+          "description": "",
+          "is_available": true
+        },
+        {
+          "name": "Smirnoff 70cl · Shot",
+          "price": 450,
+          "description": "",
+          "is_available": true
+        },
+        {
+          "name": "Smirnoff 70cl · Bottle",
+          "price": 8000,
+          "description": "",
+          "is_available": true
+        }
+      ]
+    },
+    {
+      "name": "Drinks · Tequila",
+      "items": [
+        {
+          "name": "Camino Tequila · Shot",
+          "price": 400,
+          "description": "",
+          "is_available": true
+        },
+        {
+          "name": "Camino Tequila · Bottle",
+          "price": 8000,
+          "description": "",
+          "is_available": true
+        }
+      ]
+    },
+    {
+      "name": "Drinks · Vodka",
+      "items": [
+        {
+          "name": "Stolichnaya 75cl · Shot",
+          "price": 450,
+          "description": "",
+          "is_available": true
+        },
+        {
+          "name": "Stolichnaya 75cl · Bottle",
+          "price": 9000,
+          "description": "",
+          "is_available": true
+        },
+        {
+          "name": "Absolut Vodka 1l · Shot",
+          "price": 480,
+          "description": "",
+          "is_available": true
+        },
+        {
+          "name": "Absolut Vodka 1l · Bottle",
+          "price": 10000,
+          "description": "",
+          "is_available": true
+        },
+        {
+          "name": "Grey Goose · Shot",
+          "price": 450,
+          "description": "",
+          "is_available": true
+        },
+        {
+          "name": "Grey Goose · Bottle",
+          "price": 9000,
+          "description": "",
+          "is_available": true
+        },
+        {
+          "name": "Ciroc Vodka 1l · Shot",
+          "price": 500,
+          "description": "",
+          "is_available": true
+        },
+        {
+          "name": "Ciroc Vodka 1l · Bottle",
+          "price": 11000,
+          "description": "",
+          "is_available": true
+        },
+        {
+          "name": "Skyy Vodka 50cl · Bottle",
+          "price": 6000,
+          "description": "",
+          "is_available": true
+        },
+        {
+          "name": "Skyy Vodka 100cl · Shot",
+          "price": 450,
+          "description": "",
+          "is_available": true
+        },
+        {
+          "name": "Skyy Vodka 100cl · Bottle",
+          "price": 10000,
+          "description": "",
+          "is_available": true
+        },
+        {
+          "name": "Winter Palace 1l · Shot",
+          "price": 450,
+          "description": "",
+          "is_available": true
+        },
+        {
+          "name": "Winter Palace 1l · Bottle",
+          "price": 10000,
+          "description": "",
+          "is_available": true
+        },
+        {
+          "name": "Winter Palace ½l · Bottle",
+          "price": 6000,
+          "description": "",
+          "is_available": true
+        }
+      ]
+    },
+    {
+      "name": "Drinks · Rum",
+      "items": [
+        {
+          "name": "Bacardi Blanco · Shot",
+          "price": 450,
+          "description": "",
+          "is_available": true
+        },
+        {
+          "name": "Bacardi Blanco · Bottle",
+          "price": 9000,
+          "description": "",
+          "is_available": true
+        },
+        {
+          "name": "Bacardi Gold · Shot",
+          "price": 450,
+          "description": "",
+          "is_available": true
+        },
+        {
+          "name": "Bacardi Gold · Bottle",
+          "price": 9000,
+          "description": "",
+          "is_available": true
+        }
+      ]
+    },
+    {
+      "name": "Drinks · Cognac",
+      "items": [
+        {
+          "name": "Rémy Martin V.S.O.P 70cl · Shot",
+          "price": 650,
+          "description": "",
+          "is_available": true
+        },
+        {
+          "name": "Rémy Martin V.S.O.P 70cl · Bottle",
+          "price": 20000,
+          "description": "",
+          "is_available": true
+        },
+        {
+          "name": "Rémy Martin V.S. 70cl · Shot",
+          "price": 550,
+          "description": "",
+          "is_available": true
+        },
+        {
+          "name": "Rémy Martin V.S. 70cl · Bottle",
+          "price": 17000,
+          "description": "",
+          "is_available": true
+        },
+        {
+          "name": "Courvoisier V.S.O.P 1l · Shot",
+          "price": 850,
+          "description": "",
+          "is_available": true
+        },
+        {
+          "name": "Courvoisier V.S.O.P 1l · Bottle",
+          "price": 30000,
+          "description": "",
+          "is_available": true
+        },
+        {
+          "name": "Courvoisier V.S. 1l · Shot",
+          "price": 550,
+          "description": "",
+          "is_available": true
+        },
+        {
+          "name": "Courvoisier V.S. 1l · Bottle",
+          "price": 17000,
+          "description": "",
+          "is_available": true
+        }
+      ]
+    },
+    {
+      "name": "Drinks · Beer",
+      "items": [
+        {
+          "name": "St. George",
+          "price": 180,
+          "description": "",
+          "is_available": true
+        },
+        {
+          "name": "Habesha",
+          "price": 180,
+          "description": "",
+          "is_available": true
+        },
+        {
+          "name": "Heineken",
+          "price": 300,
+          "description": "",
+          "is_available": true
+        }
+      ]
+    },
+    {
+      "name": "Drinks · Non-alcoholic",
+      "items": [
+        {
+          "name": "Seasonal Juice",
+          "price": 250,
+          "description": "",
+          "is_available": true
+        },
+        {
+          "name": "Soft Drinks",
+          "price": 120,
+          "description": "",
+          "is_available": true
+        },
+        {
+          "name": "Sparkling Water (Ambo)",
+          "price": 120,
+          "description": "",
+          "is_available": true
+        },
+        {
+          "name": "Spring Water ½l",
+          "price": 100,
+          "description": "",
+          "is_available": true
+        },
+        {
+          "name": "Spring Water 1l",
+          "price": 120,
+          "description": "",
+          "is_available": true
+        },
+        {
+          "name": "Spring Water 2l",
+          "price": 150,
+          "description": "",
+          "is_available": true
+        }
+      ]
+    },
+    {
+      "name": "Drinks · Cocktails",
+      "items": [
+        {
+          "name": "Long Island Iced Tea",
+          "price": 800,
+          "description": "Vodka, tequila, rum, gin, coca and lemon juice.",
+          "is_available": true
+        },
+        {
+          "name": "BE52",
+          "price": 800,
+          "description": "Tia Maria, Baileys and Vointreau (as supplied).",
+          "is_available": true
+        },
+        {
+          "name": "Margarita Cocktail",
+          "price": 850,
+          "description": "Cointreau, Stolichnaya, Bacardi, Red Label and iced lemon juice.",
+          "is_available": true
+        },
+        {
+          "name": "Screw Driver",
+          "price": 800,
+          "description": "Stolichyana vodka and orange juice.",
+          "is_available": true
+        },
+        {
+          "name": "Kamakazi",
+          "price": 800,
+          "description": "Stolichyana, Cointreau and lemon juice.",
+          "is_available": true
+        }
+      ]
+    },
+    {
+      "name": "Drinks · Hot drinks",
+      "items": [
+        {
+          "name": "Tea",
+          "price": 80,
+          "description": "",
+          "is_available": true
+        },
+        {
+          "name": "Special Tea Normal",
+          "price": 200,
+          "description": "",
+          "is_available": true
+        },
+        {
+          "name": "Special Tea Alcohol",
+          "price": 200,
+          "description": "",
+          "is_available": true
+        },
+        {
+          "name": "Coffee",
+          "price": 120,
+          "description": "",
+          "is_available": true
+        },
+        {
+          "name": "Macchiato",
+          "price": 140,
+          "description": "",
+          "is_available": true
+        },
+        {
+          "name": "Fasting Macchiato",
+          "price": 130,
+          "description": "",
+          "is_available": true
+        },
+        {
+          "name": "Café Latte",
+          "price": 120,
+          "description": "",
+          "is_available": true
+        },
+        {
+          "name": "Tea with Coffee",
+          "price": 100,
+          "description": "",
+          "is_available": true
+        },
+        {
+          "name": "Cappuccino",
+          "price": 130,
+          "description": "",
+          "is_available": true
+        },
+        {
+          "name": "Flavored Tea",
+          "price": 80,
+          "description": "",
+          "is_available": true
+        },
+        {
+          "name": "Ouzo with Tea",
+          "price": 140,
+          "description": "",
+          "is_available": true
+        },
+        {
+          "name": "Hot Chocolate",
+          "price": 140,
+          "description": "",
+          "is_available": true
+        },
+        {
+          "name": "Tea with Honey",
+          "price": 150,
+          "description": "",
+          "is_available": true
+        },
+        {
+          "name": "Milk with Honey",
+          "price": 150,
+          "description": "",
+          "is_available": true
+        }
+      ]
+    }
+  ]
+}

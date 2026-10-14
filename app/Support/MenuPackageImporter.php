@@ -35,6 +35,10 @@ final class MenuPackageImporter
                 throw new RuntimeException('The menu image directory could not be created.');
             }
             foreach ($rows['items'] as $index => $row) {
+                if ($row['source_image'] === null) {
+                    $rows['items'][$index]['stored_image_path'] = null;
+                    continue;
+                }
                 $extension = strtolower(pathinfo($row['source_image'], PATHINFO_EXTENSION));
                 $filename = Str::slug($row['category_key'].'-'.$row['name']).'-'.substr($row['image_hash'], 0, 10).'.'.$extension;
                 $destination = public_path('uploads/menu-items/'.$filename);
@@ -49,10 +53,15 @@ final class MenuPackageImporter
             }
 
             $hasImageSource = Schema::hasColumn('menu_items', 'image_source_url');
-            DB::transaction(function () use ($restaurant, $rows, $hasImageSource): void {
+            DB::transaction(function () use ($restaurant, $rows, $hasImageSource, $manifest): void {
                 DB::table('menu_items')->where('restaurant_id', $restaurant->id)->delete();
                 DB::table('categories')->where('restaurant_id', $restaurant->id)->delete();
 
+                $lockedRestaurant = Restaurant::whereKey($restaurant->id)->lockForUpdate()->firstOrFail();
+                $settings = $lockedRestaurant->settings ?? [];
+                if (($manifest['photo_mode'] ?? null) === 'text_only') $settings['menu_photos_enabled'] = false;
+                $settings['menu_price_note'] = mb_substr((string) ($manifest['price_note'] ?? ''), 0, 1000);
+                $lockedRestaurant->update(['settings' => $settings]);
                 $categoryIds = [];
                 foreach ($rows['categories'] as $category) {
                     $categoryIds[$category['name_key']] = DB::table('categories')->insertGetId([
@@ -92,7 +101,7 @@ final class MenuPackageImporter
             return [
                 'categories' => count($rows['categories']),
                 'items' => count($rows['items']),
-                'images' => count($rows['items']),
+                'images' => count(array_filter($rows['items'], fn ($item) => $item['source_image'] !== null)),
             ];
         } finally {
             if (! $committed) {
@@ -187,28 +196,34 @@ final class MenuPackageImporter
                     throw new RuntimeException("Item '{$name}' must have a valid non-negative price.");
                 }
 
-                $sourceImage = $this->safePath($workDir, (string) ($item['image'] ?? ''));
-                $imageInfo = @getimagesize($sourceImage);
-                if (! $imageInfo || ! in_array($imageInfo['mime'] ?? '', ['image/jpeg', 'image/png', 'image/webp'], true)) {
-                    throw new RuntimeException("Item '{$name}' does not have a valid JPG, PNG, or WebP image.");
-                }
-                if (filesize($sourceImage) > 12 * 1024 * 1024) {
-                    throw new RuntimeException("Image for '{$name}' is larger than 12 MB.");
-                }
+                $sourceImage = null;
+                $imageHash = null;
+                if (! empty($item['image'])) {
+                    $sourceImage = $this->safePath($workDir, (string) ($item['image'] ?? ''));
+                    $imageInfo = @getimagesize($sourceImage);
+                    if (! $imageInfo || ! in_array($imageInfo['mime'] ?? '', ['image/jpeg', 'image/png', 'image/webp'], true)) {
+                        throw new RuntimeException("Item '{$name}' does not have a valid JPG, PNG, or WebP image.");
+                    }
+                    if (filesize($sourceImage) > 12 * 1024 * 1024) {
+                        throw new RuntimeException("Image for '{$name}' is larger than 12 MB.");
+                    }
 
-                $imageHash = sha1_file($sourceImage);
-                if (isset($usedImageHashes[$imageHash])) {
-                    throw new RuntimeException("The image for '{$name}' is repeated. Every menu item must have a unique photo.");
-                }
+                    $imageHash = sha1_file($sourceImage);
+                    if (isset($usedImageHashes[$imageHash])) {
+                        throw new RuntimeException("The image for '{$name}' is repeated. Every menu item must have a unique photo.");
+                    }
 
+                } elseif (($manifest['photo_mode'] ?? null) !== 'text_only') {
+                    throw new RuntimeException("Item '{$name}' requires a photo unless this is a text-only package.");
+                }
                 $usedItemKeys[$itemKey] = true;
-                $usedImageHashes[$imageHash] = true;
+                if ($imageHash !== null) $usedImageHashes[$imageHash] = true;
                 $itemRows[] = [
                     'category_key' => $categoryKey,
                     'name' => $name,
                     'description' => trim((string) ($item['description'] ?? '')),
                     'price' => round((float) $item['price'], 2),
-                    'image_path' => (string) $item['image'],
+                    'image_path' => (string) ($item['image'] ?? ''),
                     'source_image' => $sourceImage,
                     'image_hash' => $imageHash,
                     'image_source_url' => isset($item['image_source_url']) ? (string) $item['image_source_url'] : null,

@@ -152,6 +152,7 @@ Route::middleware(['auth', 'role:admin', 'locale'])->prefix('admin')->name('admi
     Route::post('/database/workboard-reset', [Admin\WorkboardResetController::class, 'reset'])->middleware('throttle:1,5')->name('database.workboard-reset');
     Route::post('/setup-run', [SetupController::class, 'run'])->name('setup.run');
     Route::post('/database/menu-refresh', [SetupController::class, 'refreshTulipMenu'])->name('database.menu-refresh');
+    Route::post('/information-import', [Admin\InformationImportController::class, 'store'])->name('information-import.store');
     Route::post('/menu-import', [Admin\MenuImportController::class, 'store'])->name('menu-import.store');
     Route::get('/location-import/template', [Admin\LocationImportController::class, 'template'])->name('location-import.template');
     Route::post('/location-import', [Admin\LocationImportController::class, 'store'])->name('location-import.store');

@@ -6,6 +6,7 @@
 ])
 
 @section('content')
+@if(!empty($restaurant->settings['menu_price_note']))<p style="padding:12px 20px;text-align:center;">{{ $restaurant->settings['menu_price_note'] }}</p>@endif
 @php
     $photos = $restaurant->menuPhotosEnabled();
     $logoPath = $restaurant->logo_path;
