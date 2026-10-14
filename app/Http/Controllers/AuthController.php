@@ -39,8 +39,13 @@ class AuthController extends Controller
         $restaurant = $request->user()->restaurant;
         abort_unless($restaurant, 403);
 
+        if ($restaurant->isMenuOnly() && $request->user()->role === 'restaurant_owner') {
+            return redirect()->route('restaurant.menu-items.index');
+        }
+
         $profiles = $restaurant->staffProfiles()
             ->where('is_active', true)
+            ->when($restaurant->isMenuOnly(), fn ($query) => $query->where('role', 'owner_manager'))
             ->when(! $restaurant->kitchenScreenEnabled(), fn ($query) => $query->where('role', '!=', 'kitchen'))
             ->orderByRaw("CASE role WHEN 'owner_manager' THEN 1 WHEN 'cashier' THEN 2 WHEN 'kitchen' THEN 3 ELSE 4 END")
             ->orderBy('name')
@@ -67,6 +72,7 @@ class AuthController extends Controller
             ->first();
 
         if (! $profile || ! in_array($profile->role, StaffProfile::ROLES, true)
+            || ($restaurant->isMenuOnly() && $profile->role !== 'owner_manager')
             || ($profile->role === 'kitchen' && ! $restaurant->kitchenScreenEnabled())
             || ! password_verify($credentials['password'], $profile->password)) {
             return back()->withErrors(['password' => 'Incorrect or unavailable profile.'])->withInput(['profile_id' => $credentials['profile_id']]);

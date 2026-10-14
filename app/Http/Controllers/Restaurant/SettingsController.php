@@ -57,6 +57,17 @@ class SettingsController extends Controller
         ]);
 
         $settings = $restaurant->settings ?? [];
+        // Hidden operational fields must survive menu-only branding edits and later upgrades.
+        if ($restaurant->isMenuOnly()) {
+            foreach (['service_charge_percentage', 'vat_percentage', 'payment_methods', 'telebirr_number',
+                'cbe_account_number', 'awash_account_number', 'abyssinia_account_number'] as $key) {
+                $data[$key] = $settings[$key] ?? match ($key) {
+                    'service_charge_percentage', 'vat_percentage' => 0,
+                    'payment_methods' => ['cash', 'telebirr', 'cbe'],
+                    default => null,
+                };
+            }
+        }
         $stickerSettings = [
             'background_color' => $data['sticker_background_color'],
             'border_color' => $data['sticker_border_color'],
@@ -110,7 +121,7 @@ class SettingsController extends Controller
 
         $request->user()->update(['email' => $data['email']]);
 
-        if ($isOwnerManager) {
+        if ($isOwnerManager && ! $restaurant->isMenuOnly()) {
             $restaurant->update(['kitchen_screen_enabled' => $request->boolean('kitchen_screen_enabled')]);
         }
 

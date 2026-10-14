@@ -12,6 +12,7 @@ class ServiceRequestController extends Controller
     public function store(Request $request, GuestVisitManager $visits, string $restaurant_slug, string $table_number)
     {
         $restaurant = Restaurant::where('slug', $restaurant_slug)->where('is_active', true)->firstOrFail();
+        abort_if($restaurant->isMenuOnly(), 403, 'Service requests are disabled for this digital menu.');
         $restaurantTable = $restaurant->tables()->where('table_number', $table_number)->where('is_active', true)->firstOrFail();
 
         $data = $request->validate([

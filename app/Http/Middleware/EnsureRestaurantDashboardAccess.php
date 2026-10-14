@@ -32,6 +32,16 @@ class EnsureRestaurantDashboardAccess
             return redirect()->route('restaurant.access-required');
         }
 
+        if ($restaurant->isMenuOnly()) {
+            if ($request->routeIs('restaurant.dashboard')) {
+                return redirect()->route('restaurant.menu-items.index');
+            }
+            abort_unless($request->routeIs(
+                'restaurant.menu-items.*', 'restaurant.categories.*',
+                'restaurant.tables.index', 'restaurant.tables.menu-qr', 'restaurant.settings.*'
+            ), 403, 'This account has digital menu access only.');
+        }
+
         return $next($request);
     }
 }

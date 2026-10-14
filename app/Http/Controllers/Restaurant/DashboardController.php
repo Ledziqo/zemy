@@ -300,6 +300,7 @@ class DashboardController extends Controller
 
     public function poll(Request $request, int $restaurantId)
     {
+        abort_if(\App\Support\PublicMenuCache::isMenuOnly($restaurantId), 403, 'Workboard access is disabled for this account.');
         abort_unless(hash_equals(
             (string) $request->query('session', ''),
             hash('sha256', $request->session()->getId())

@@ -16,6 +16,7 @@ class OrderController extends Controller
     public function store(Request $request, GuestVisitManager $visits, string $restaurant_slug, string $table_number)
     {
         $restaurant = Restaurant::where('slug', $restaurant_slug)->where('is_active', true)->firstOrFail();
+        abort_if($restaurant->isMenuOnly(), 403, 'Ordering is disabled for this digital menu.');
         $restaurantTable = $restaurant->tables()->where('table_number', $table_number)->where('is_active', true)->firstOrFail();
 
         $data = $request->validate([
@@ -116,6 +117,7 @@ class OrderController extends Controller
     public function cancel(Request $request, GuestVisitManager $visits, string $restaurant_slug, string $table_number, Order $order)
     {
         $restaurant = Restaurant::where('slug', $restaurant_slug)->where('is_active', true)->firstOrFail();
+        abort_if($restaurant->isMenuOnly(), 403, 'Ordering is disabled for this digital menu.');
         $restaurantTable = $restaurant->tables()->where('table_number', $table_number)->where('is_active', true)->firstOrFail();
         $visit = $visits->current($request, $restaurant, $restaurantTable);
         abort_unless($visit && $order->restaurant_id === $restaurant->id && $order->table_id === $restaurantTable->id && $order->guest_session_id === $visit->id, 404);

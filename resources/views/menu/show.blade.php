@@ -174,11 +174,12 @@
             @php($categoryLabel = match (strtolower(trim($category->name))) { 'food' => __('Food'), 'drinks' => __('Drinks'), default => $category->name })
             <section id="cat-{{ $category->id }}" x-show="categoryVisible({{ $category->id }})" class="scroll-mt-28">
                 <h2 class="mb-3 font-display text-2xl font-extrabold">{{ $categoryLabel }}</h2>
-                <div class="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
+                <div class="{{ $restaurant->menuPhotosEnabled() ? 'grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4' : 'space-y-3' }}">
                     @foreach($category->menuItems as $item)
-                        @php($imageUrl = \App\Support\MenuImage::url($item->image_path))
-                        @php($webpImageUrl = \App\Support\MenuImage::webpUrl($item->image_path))
+                        @php($imageUrl = $restaurant->menuPhotosEnabled() ? \App\Support\MenuImage::url($item->image_path) : null)
+                        @php($webpImageUrl = $restaurant->menuPhotosEnabled() ? \App\Support\MenuImage::webpUrl($item->image_path) : null)
                         <article x-show="itemVisible({{ $category->id }}, @js($item->name), @js($item->description ?? ''))" class="overflow-hidden rounded-2xl border border-black/10 bg-white shadow-sm" itemscope itemtype="https://schema.org/MenuItem">
+                            @if($restaurant->menuPhotosEnabled())
                             <button type="button" @click="selectedItem = { id: {{ $item->id }}, name: @js($item->name), description: @js($item->description ?? ''), price: {{ (float) $item->price }}, image: @js($imageUrl), available: {{ $item->is_available ? 'true' : 'false' }} }; selectedQuantity = 1" class="block aspect-square w-full bg-neutral-200 text-left" aria-label="View {{ $item->name }} details">
                                 @if($imageUrl)
                                     <picture>
@@ -189,6 +190,7 @@
                                     <div class="grid h-full place-items-center text-5xl font-extrabold text-white" style="background: linear-gradient(135deg, #111, var(--zem-accent));">{{ strtoupper(substr($item->name, 0, 1)) }}</div>
                                 @endif
                             </button>
+                            @endif
                             <div class="p-3">
                                 <div class="min-h-20">
                                     <button type="button" @click="selectedItem = { id: {{ $item->id }}, name: @js($item->name), description: @js($item->description ?? ''), price: {{ (float) $item->price }}, image: @js($imageUrl), available: {{ $item->is_available ? 'true' : 'false' }} }; selectedQuantity = 1" class="text-left font-extrabold leading-tight hover:text-zem-gold" itemprop="name">{{ $item->name }}</button>
@@ -217,9 +219,11 @@
         <section class="max-h-[94vh] w-full max-w-xl overflow-y-auto rounded-t-3xl bg-white text-zem-ink shadow-2xl sm:rounded-3xl" @click.stop>
             <template x-if="selectedItem">
                 <div>
-                    <div class="relative aspect-[4/3] bg-neutral-200">
+                    <div class="relative {{ $restaurant->menuPhotosEnabled() ? 'aspect-[4/3] bg-neutral-200' : 'h-16' }}">
+                        @if($restaurant->menuPhotosEnabled())
                         <template x-if="selectedItem.image"><img :src="selectedItem.image" :alt="selectedItem.name" class="h-full w-full object-cover"></template>
                         <template x-if="!selectedItem.image"><div class="grid h-full place-items-center bg-black text-7xl font-extrabold text-white" x-text="selectedItem.name.slice(0, 1).toUpperCase()"></div></template>
+                        @endif
                         <button type="button" @click="selectedItem = null" class="absolute right-3 top-3 rounded-full bg-black/75 px-4 py-2 font-bold text-white">Close</button>
                     </div>
                     <div class="p-5 sm:p-6">

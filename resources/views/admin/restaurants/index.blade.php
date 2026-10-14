@@ -14,6 +14,7 @@
             <option value="hotel">Hotel</option>
             <option value="both">Restaurant + Hotel</option>
         </select>
+        @include('admin.restaurants.menu-options', ['account' => null])
         <label class="flex items-center gap-2 rounded-md border border-zem-border px-3 py-2"><input name="kitchen_screen_enabled" type="checkbox" value="1" class="accent-zem-gold"> Kitchen screen enabled</label>
         <input name="phone" placeholder="Phone" class="rounded-md border border-zem-border bg-zem-bg px-3 py-2">
         <input name="email" type="email" placeholder="Owner login email" class="rounded-md border border-zem-border bg-zem-bg px-3 py-2">
@@ -50,6 +51,7 @@
                     <div class="flex flex-wrap items-center gap-2">
                         <h3 class="font-display text-lg font-bold">{{ $restaurant->name }}</h3>
                         <span class="rounded-full border border-zem-border bg-zem-soft px-3 py-1 text-xs font-bold text-zem-cream">{{ $restaurant->businessTypeLabel() }}</span>
+                        <span class="rounded-full border border-zem-border bg-zem-soft px-3 py-1 text-xs font-bold">{{ $restaurant->isMenuOnly() ? 'Digital menu only' : 'Full ordering system' }} · {{ $restaurant->menuPhotosEnabled() ? 'Photos' : 'Text only' }}</span>
                         <span class="rounded-full border border-zem-border bg-zem-soft px-3 py-1 text-xs font-bold text-zem-cream">{{ $restaurant->kitchenScreenEnabled() ? 'Kitchen screen' : 'Worker-only' }}</span>
                         <span class="rounded-full border px-3 py-1 text-xs font-bold {{ $subStatusColors[$subscription?->effectiveStatus() ?? 'trial'] ?? 'border-zem-border text-zem-muted' }}">Subscription: {{ $subscription?->effectiveStatus() ?? 'trial' }}</span>
                         <span class="rounded-full border px-3 py-1 text-xs font-bold {{ $accessStatusColors[$effectiveDashboardStatus] ?? 'border-zem-border text-zem-muted' }}">Access: {{ $effectiveDashboardStatus === 'payment_required' ? 'Payment required' : $effectiveDashboardStatus }}</span>
@@ -72,6 +74,7 @@
                             <option value="{{ $value }}" @selected(($restaurant->business_type ?? 'restaurant') === $value)>{{ $label }}</option>
                         @endforeach
                     </select>
+                    @include('admin.restaurants.menu-options', ['account' => $restaurant])
                     <label class="flex items-center gap-2 rounded-md border border-zem-border px-3 py-2"><input name="kitchen_screen_enabled" type="checkbox" value="1" @checked($restaurant->kitchenScreenEnabled()) class="accent-zem-gold"> Kitchen screen enabled</label>
                     <input name="phone" value="{{ $restaurant->phone }}" class="rounded-md border border-zem-border bg-zem-card px-3 py-2">
                     <input name="email" type="email" value="{{ $restaurant->email }}" class="rounded-md border border-zem-border bg-zem-card px-3 py-2">

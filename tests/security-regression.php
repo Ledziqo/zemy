@@ -122,6 +122,7 @@ $restaurant = new class {
     public int $id = 7;
     public bool $kitchen = true;
     public function kitchenScreenEnabled(): bool { return $this->kitchen; }
+    public function isMenuOnly(): bool { return false; }
 };
 $request = Request::create('/restaurant/dashboard', 'GET', [], [], [], ['HTTP_ACCEPT' => 'application/json']);
 $request->setUserResolver(fn () => (object) ['restaurant' => $restaurant]);

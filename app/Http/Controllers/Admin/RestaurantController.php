@@ -34,6 +34,7 @@ class RestaurantController extends Controller
         $this->ensureBusinessTypeColumn();
 
         $data = $this->validated($request);
+        $data = $this->withMenuSettings($data);
         $ownerPassword = $data['owner_password'] ?? null;
         unset($data['owner_password'], $data['subscription_status']);
 
@@ -78,6 +79,7 @@ class RestaurantController extends Controller
         $previousSlug = $restaurant->slug;
 
         $data = $this->validated($request, $restaurant->id);
+        $data = $this->withMenuSettings($data, $restaurant);
         $owner = $this->ownerLogin($restaurant);
         $ownerPassword = $data['owner_password'] ?? null;
         $subscriptionStatus = $data['subscription_status'] ?? null;
@@ -97,6 +99,7 @@ class RestaurantController extends Controller
         }
 
         $previousKitchenMode = $restaurant->kitchenScreenEnabled();
+        $wasMenuOnly = $restaurant->isMenuOnly();
         $restaurant->update($data);
         PublicMenuCache::bump($restaurant);
         PublicSitemapCache::forget();
@@ -127,6 +130,8 @@ class RestaurantController extends Controller
                 $owner->update(['password' => $ownerPassword]);
             }
         }
+
+        if ($wasMenuOnly && ! $restaurant->isMenuOnly()) $this->ensureOwnerProfile($restaurant);
 
         if (array_key_exists('kitchen_screen_enabled', $data) && $previousKitchenMode !== (bool) $data['kitchen_screen_enabled']) {
             $this->syncKitchenProfiles($restaurant, (bool) $data['kitchen_screen_enabled']);
@@ -192,6 +197,7 @@ class RestaurantController extends Controller
 
     public function destroy(Restaurant $restaurant)
     {
+        \Illuminate\Support\Facades\Cache::store('file')->forget(PublicMenuCache::modeKey((int) $restaurant->id));
         \Illuminate\Support\Facades\Cache::store('file')->forget(PublicMenuCache::payloadKey($restaurant->slug));
         PublicSitemapCache::forget();
         QrSetupPackStore::invalidate((int) $restaurant->id);
@@ -220,6 +226,8 @@ class RestaurantController extends Controller
             'slug' => ['required', 'alpha_dash', 'max:255', Rule::unique('restaurants', 'slug')->ignore($restaurantId)],
             'business_type' => [Rule::requiredIf(Schema::hasColumn('restaurants', 'business_type')), 'nullable', Rule::in(Restaurant::BUSINESS_TYPES)],
             'kitchen_screen_enabled' => ['nullable', 'boolean'],
+            'service_mode' => ['sometimes', 'required', Rule::in(Restaurant::SERVICE_MODES)],
+            'menu_photos_enabled' => ['sometimes', 'required', 'boolean'],
             'phone' => ['nullable', 'string', 'max:50'],
             'email' => $emailRules,
             'owner_password' => ['nullable', 'string', 'min:8', 'max:255'],
@@ -242,6 +250,29 @@ class RestaurantController extends Controller
             ->orderByRaw("CASE role WHEN 'restaurant_owner' THEN 0 ELSE 1 END")
             ->orderBy('id')
             ->first();
+    }
+
+    private function withMenuSettings(array $data, ?Restaurant $restaurant = null): array
+    {
+        $settings = $restaurant?->settings ?? [];
+        foreach (['service_mode', 'menu_photos_enabled'] as $key) {
+            if (array_key_exists($key, $data)) {
+                $settings[$key] = $key === 'menu_photos_enabled' ? (bool) $data[$key] : $data[$key];
+                unset($data[$key]);
+            }
+        }
+        $data['settings'] = $settings;
+        return $data;
+    }
+
+    private function ensureOwnerProfile(Restaurant $restaurant): void
+    {
+        if ($restaurant->staffProfiles()->where('role', 'owner_manager')->where('is_active', true)->exists()) return;
+        $owner = $this->ownerLogin($restaurant);
+        if ($owner) $restaurant->staffProfiles()->create([
+            'name' => 'Owner/Manager', 'role' => 'owner_manager',
+            'password' => $owner->password, 'is_active' => true,
+        ]);
     }
 
     private function subscriptionData(array $data): array

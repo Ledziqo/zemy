@@ -15,7 +15,7 @@ class MenuController extends Controller
     {
         [$restaurant, $restaurantTable] = $this->publicMenuPayload($restaurant_slug, $table_number);
 
-        return response()->view('menu.show', [
+        return response()->view($restaurant->isMenuOnly() ? 'menu.catalog' : 'menu.show', [
             'restaurant' => $restaurant,
             'table' => $restaurantTable,
             'categories' => $restaurant->categories->where('is_active', true),
@@ -26,9 +26,24 @@ class MenuController extends Controller
     public function confirmation(Request $request, string $restaurant_slug, string $table_number)
     {
         [$restaurant, $restaurantTable] = $this->publicMenuPayload($restaurant_slug, $table_number);
+        if ($restaurant->isMenuOnly()) {
+            return redirect()->route('menu.show', [$restaurant_slug, $table_number]);
+        }
         $table = $table_number;
         return response()->view('menu.confirmation', compact('restaurant', 'table'))
             ->header('Cache-Control', 'no-store');
+    }
+
+    public function catalog(Request $request, string $restaurant_slug)
+    {
+        $restaurant = Restaurant::where('slug', $restaurant_slug)->where('is_active', true)
+            ->with(['categories' => fn ($query) => $query->where('is_active', true),
+                'categories.menuItems' => fn ($query) => $query->orderBy('sort_order')->orderBy('id')])
+            ->firstOrFail();
+        return response()->view('menu.catalog', [
+            'restaurant' => $restaurant, 'table' => null, 'categories' => $restaurant->categories,
+        ])->header('Cache-Control', 'private, no-cache, must-revalidate')
+            ->header('Vary', 'Cookie, Accept-Encoding');
     }
 
     private function publicMenuPayload(string $restaurantSlug, string $tableNumber): array

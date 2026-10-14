@@ -49,6 +49,14 @@
                 ]
             )
         );
+    if (! $isAdmin && $dashboardRestaurant?->isMenuOnly()) {
+        $links = [
+            [__('Menu Items'), route('restaurant.menu-items.index')],
+            [__('Categories'), route('restaurant.categories.index')],
+            [__('Menu QR'), route('restaurant.tables.index')],
+            [__('Settings'), route('restaurant.settings.edit')],
+        ];
+    }
 @endphp
 <!doctype html>
 <html lang="{{ app()->getLocale() }}" dir="{{ app()->getLocale() === 'ar' ? 'rtl' : 'ltr' }}">
@@ -116,7 +124,7 @@
         </nav>
         <div :class="navigationOpen ? 'block' : 'hidden'" class="hidden border-t border-zem-border p-4 lg:!block">
             @unless($isAdmin)
-                <a href="{{ route('restaurant.profile-select') }}" class="mb-2 block rounded-lg px-3 py-2 text-sm font-semibold text-zem-muted hover:bg-zem-soft">{{ __('Switch profile') }}</a>
+                @unless($dashboardRestaurant?->isMenuOnly())<a href="{{ route('restaurant.profile-select') }}" class="mb-2 block rounded-lg px-3 py-2 text-sm font-semibold text-zem-muted hover:bg-zem-soft">{{ __('Switch profile') }}</a>@endunless
             @endunless
             <form method="post" action="{{ route('logout') }}">@csrf<button class="w-full rounded-lg px-3 py-2 text-left text-sm text-zem-muted hover:bg-zem-soft">{{ __('Logout') }}</button></form>
         </div>

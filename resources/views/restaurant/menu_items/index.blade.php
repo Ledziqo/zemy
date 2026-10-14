@@ -7,7 +7,7 @@
     <select name="category_id" class="rounded-md border border-zem-border bg-zem-bg px-3 py-3">@foreach($categories as $category)<option value="{{ $category->id }}">{{ $category->name }}</option>@endforeach</select>
     <input name="name" required placeholder="{{ __('Item name') }}" class="rounded-md border border-zem-border bg-zem-bg px-3 py-3">
     <input name="price" required type="number" step="0.01" placeholder="{{ __('Price') }}" class="rounded-md border border-zem-border bg-zem-bg px-3 py-3">
-    <input name="image" type="file" accept="image/*" class="rounded-md border border-zem-border bg-zem-bg px-3 py-3 text-sm" data-image-crop-input>
+    @if($restaurant->menuPhotosEnabled())<input name="image" type="file" accept="image/*" class="rounded-md border border-zem-border bg-zem-bg px-3 py-3 text-sm" data-image-crop-input>@endif
     <input name="cropped_image" type="hidden" data-cropped-image>
     <div class="flex flex-wrap items-center gap-4 rounded-md border border-zem-border bg-zem-bg px-3 py-3">
         <label class="flex items-center gap-2"><input name="is_available" type="checkbox" value="1" checked> {{ __('Available') }}</label>
@@ -46,6 +46,7 @@
 @foreach($items as $menuItem)
     @php($imageUrl = \App\Support\MenuImage::url($menuItem->image_path))
     <article class="overflow-hidden rounded-md border border-zem-border bg-zem-card transition" draggable="true" data-reorder-item data-menu-item-id="{{ $menuItem->id }}">
+        @if($restaurant->menuPhotosEnabled())
         <div class="relative aspect-square bg-zem-bg">
             @if($imageUrl)
                 <img src="{{ $imageUrl }}" alt="{{ $menuItem->name }}" width="640" height="640" loading="lazy" decoding="async" class="h-full w-full object-cover">
@@ -72,7 +73,9 @@
             </div>
             <div class="absolute bottom-3 right-3 rounded-full bg-black/80 px-3 py-1 text-sm font-extrabold text-white">{{ number_format($menuItem->price) }} ETB</div>
         </div>
+        @endif
         <div class="p-4">
+            @unless($restaurant->menuPhotosEnabled())<p class="mb-2 font-bold text-zem-gold">{{ number_format($menuItem->price, (float) $menuItem->price == floor((float) $menuItem->price) ? 0 : 2) }} ETB</p>@endunless
             <div class="flex items-start justify-between gap-3">
                 <div>
                     <p class="text-xs font-bold uppercase tracking-widest text-zem-gold">{{ $menuItem->category?->name }}</p>
@@ -92,6 +95,7 @@
                     <select name="category_id" class="rounded-md border border-zem-border bg-zem-card px-3 py-2">@foreach($categories as $category)<option value="{{ $category->id }}" @selected($menuItem->category_id===$category->id)>{{ $category->name }}</option>@endforeach</select>
                     <input name="name" value="{{ $menuItem->name }}" class="rounded-md border border-zem-border bg-zem-card px-3 py-2">
                     <input name="price" value="{{ $menuItem->price }}" type="number" step="0.01" class="rounded-md border border-zem-border bg-zem-card px-3 py-2">
+                    @if($restaurant->menuPhotosEnabled())
                     <div class="rounded-md border border-zem-border bg-zem-card p-3">
                         <p class="text-xs font-bold uppercase tracking-widest text-zem-muted">Photo</p>
                         <input name="image" type="file" accept="image/*" class="hidden" data-image-crop-input>
@@ -102,6 +106,7 @@
                             @endif
                         </div>
                     </div>
+                    @endif
                     <input name="cropped_image" type="hidden" data-cropped-image>
                     <textarea name="description" class="rounded-md border border-zem-border bg-zem-card px-3 py-2">{{ $menuItem->description }}</textarea>
                     <div class="flex flex-wrap gap-4 text-sm">
@@ -110,7 +115,7 @@
                     </div>
                     <button class="rounded-md bg-zem-gold px-4 py-2 font-bold text-white">Save</button>
                 </form>
-                @if($imageUrl)
+                @if($imageUrl && $restaurant->menuPhotosEnabled())
                     <form method="post" action="{{ route('restaurant.menu-items.remove-photo', $menuItem) }}" class="mt-3">
                         @csrf @method('PATCH')
                         <button class="w-full rounded-md border border-red-300 bg-red-50 px-4 py-2 text-sm font-bold text-red-700 transition hover:border-red-500 hover:bg-red-100">Remove photo</button>

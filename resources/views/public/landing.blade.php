@@ -163,6 +163,11 @@
     </section>
 
     {{-- Workflow Section --}}
+    <section class="mx-auto max-w-7xl px-5 py-12">
+        <h2 class="font-display text-2xl font-extrabold">{{ __('Start with a digital menu, or choose full ordering') }}</h2>
+        <p class="mt-3 max-w-3xl leading-7 text-zem-muted">{{ __('Restaurants and hotels can use ZemTab just for a live QR menu. Update items, prices, and availability anytime, with photos or a clean text-only layout. Add ordering, the staff workboard, and analytics whenever your venue is ready.') }}</p>
+        <a href="#demo" class="mt-5 inline-block rounded-lg bg-zem-gold px-6 py-3 font-bold text-white">{{ __('Request Demo') }}</a>
+    </section>
     <section id="workflow" class="scroll-mt-24 border-y border-zem-border bg-zem-soft py-12 sm:py-16">
         <div class="mx-auto max-w-7xl px-5">
             <div class="flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-end sm:justify-between">

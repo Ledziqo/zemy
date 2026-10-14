@@ -22,6 +22,9 @@ class TableController extends Controller
     public function index(Request $request)
     {
         $restaurant = $this->restaurant($request);
+        if ($restaurant->isMenuOnly()) {
+            return view('restaurant.tables.menu-only', ['restaurant' => $restaurant]);
+        }
         $tables = $restaurant->tables()->orderByRaw('CAST(table_number AS UNSIGNED)')->paginate(50);
         $designs = $this->qrCardDesigns($restaurant);
         $activeTables = $restaurant->tables()->where('is_active', true)->get();
@@ -47,6 +50,16 @@ class TableController extends Controller
             'designType' => $designType,
             'designOrientation' => $designOrientation,
         ]);
+    }
+
+    public function menuQr(Request $request)
+    {
+        $restaurant = $this->restaurant($request);
+        $result = new Builder(writer: new SvgWriter(), data: route('menu.catalog', $restaurant->slug),
+            errorCorrectionLevel: ErrorCorrectionLevel::High, size: 500, margin: 20);
+        return response($result->build()->getString())
+            ->header('Content-Type', 'image/svg+xml')
+            ->header('Content-Disposition', 'attachment; filename="zemtab-'.$restaurant->slug.'-menu.svg"');
     }
 
     public function saveDesign(Request $request)
@@ -471,6 +484,9 @@ class TableController extends Controller
                 $design['qr_background_color'] = $design['background_color'];
                 $design['table_scan_text'] = $design['table_scan_text'] ?? $defaults['table_scan_text'];
                 $design['room_scan_text'] = $design['room_scan_text'] ?? $defaults['room_scan_text'];
+                if ($restaurant->isMenuOnly()) {
+                    $design['table_scan_text'] = $design['room_scan_text'] = 'SCAN TO VIEW MENU';
+                }
                 $design['scan_text'] = $design[$type.'_scan_text'];
                 $storedOrientation = $orientationDesigns[$orientation] ?? [];
                 $hasExplicitQrLogo = array_key_exists('qr_logo_path', $storedOrientation)

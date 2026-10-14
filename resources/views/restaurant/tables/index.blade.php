@@ -5,6 +5,15 @@
 @php($placeTitle = $restaurant->locationLabelTitle())
 @php($tablePackOrientation = $qrCardDesigns['table']['preferred_orientation'])
 @php($roomPackOrientation = $qrCardDesigns['room']['preferred_orientation'])
+@if($restaurant->isMenuOnly())
+<section class="mb-6 rounded-xl border border-zem-border bg-zem-card p-4">
+    <h2 class="font-display text-lg font-bold">Digital menu QR</h2>
+    <p class="mt-2 text-sm text-zem-muted">One QR for your venue. Guests see your current menu and prices.</p>
+    <a href="{{ route('menu.catalog', $restaurant->slug) }}" target="_blank" class="mt-3 inline-block font-bold text-zem-gold">Open menu</a>
+    <a href="{{ route('restaurant.tables.menu-qr') }}" class="ml-4 font-bold text-zem-gold">Download menu QR</a>
+    <p class="mt-2 break-all text-sm text-zem-muted">{{ route('menu.catalog', $restaurant->slug) }}</p>
+</section>
+@endif
 @include('restaurant.tables.design-settings')
 <div class="mb-6 flex flex-wrap items-center justify-between gap-3">
     <h2 class="font-display text-lg font-bold">{{ __('Add table or room QR') }}</h2>

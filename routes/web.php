@@ -84,6 +84,8 @@ Route::get('/qr-setup-pack/{restaurantId}/{token}/{page}', [Restaurant\TableCont
 Route::get('/r/{restaurant_slug}/table/{table_number}', [MenuController::class, 'show'])
     ->middleware(['locale', 'throttle:300,1'])
     ->name('menu.show');
+Route::get('/r/{restaurant_slug}/menu', [MenuController::class, 'catalog'])
+    ->middleware(['locale', 'throttle:300,1'])->name('menu.catalog');
 Route::post('/r/{restaurant_slug}/table/{table_number}/orders', [OrderController::class, 'store'])->middleware(['locale', 'throttle:30,1'])->name('orders.store');
 Route::patch('/r/{restaurant_slug}/table/{table_number}/orders/{order}/cancel', [OrderController::class, 'cancel'])->name('orders.cancel');
 Route::post('/r/{restaurant_slug}/table/{table_number}/service-requests', [ServiceRequestController::class, 'store'])->middleware(['locale', 'throttle:30,1'])->name('service-requests.store');
@@ -110,6 +112,7 @@ Route::middleware(['auth', 'role:restaurant_owner,staff', 'locale'])->prefix('re
         Route::resource('/menu-items', Restaurant\MenuItemController::class)->only(['index', 'store', 'update', 'destroy']);
         Route::resource('/categories', Restaurant\CategoryController::class)->only(['index', 'store', 'update', 'destroy']);
         Route::get('/tables/{table}/qr', [Restaurant\TableController::class, 'qr'])->name('tables.qr');
+        Route::get('/menu-qr', [Restaurant\TableController::class, 'menuQr'])->name('tables.menu-qr');
         Route::get('/tables/qr/setup-pack', [Restaurant\TableController::class, 'setupPack'])->name('tables.setup-pack');
         Route::post('/tables/qr/setup-pack/publish', [Restaurant\TableController::class, 'publishSetupPack'])->middleware('throttle:5,1')->name('tables.setup-pack.publish');
         // Accept a native POST so multipart logo uploads are parsed reliably;

@@ -12,6 +12,12 @@ class EnsureStaffProfileSelected
     public function handle(Request $request, Closure $next): Response
     {
         $restaurant = $request->user()?->restaurant;
+        // Menu-only owners manage content using their account login; no workboard profile is needed.
+        if ($restaurant?->isMenuOnly() && $request->user()->role === 'restaurant_owner') {
+            $request->session()->put('staff_profile_role', 'owner_manager');
+            $request->session()->put('staff_profile_name', $request->user()->name);
+            return $next($request);
+        }
         $profile = $restaurant && $request->session()->has('staff_profile_id')
             ? StaffProfile::where('restaurant_id', $restaurant->id)
                 ->where('is_active', true)
@@ -19,6 +25,7 @@ class EnsureStaffProfileSelected
             : null;
 
         if (! $profile || ! in_array($profile->role, StaffProfile::ROLES, true)
+            || ($restaurant->isMenuOnly() && $profile->role !== 'owner_manager')
             || ($profile->role === 'kitchen' && ! $restaurant->kitchenScreenEnabled())) {
             $request->session()->forget(['staff_profile_id', 'staff_profile_role', 'staff_profile_name']);
 

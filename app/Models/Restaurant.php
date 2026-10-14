@@ -8,6 +8,17 @@ class Restaurant extends Model
 {
     public const DASHBOARD_ACCESS_STATUSES = ['active', 'payment_required', 'revoked'];
     public const BUSINESS_TYPES = ['restaurant', 'hotel', 'both'];
+    public const SERVICE_MODES = ['full', 'menu_only'];
+
+    public function isMenuOnly(): bool
+    {
+        return ($this->settings['service_mode'] ?? 'full') === 'menu_only';
+    }
+
+    public function menuPhotosEnabled(): bool
+    {
+        return (bool) ($this->settings['menu_photos_enabled'] ?? true);
+    }
 
     protected $fillable = [
         'name', 'slug', 'business_type', 'phone', 'email', 'location', 'logo_path', 'cover_image_path',

@@ -33,7 +33,7 @@
     </label>
     <input name="phone" value="{{ $restaurant->phone }}" placeholder="Phone" class="rounded-md border border-zem-border bg-zem-bg px-3 py-2">
     <input name="location" value="{{ $restaurant->location }}" placeholder="Location" class="rounded-md border border-zem-border bg-zem-bg px-3 py-2">
-    @if(session('staff_profile_role') === 'owner_manager')
+    @if(session('staff_profile_role') === 'owner_manager' && ! $restaurant->isMenuOnly())
         <label class="flex items-center gap-3 rounded-md border border-zem-border bg-zem-bg px-3 py-2 text-sm md:col-span-2">
             <input name="kitchen_screen_enabled" type="checkbox" value="1" @checked($restaurant->kitchenScreenEnabled()) class="accent-zem-gold">
             <span><strong class="block text-zem-cream">Enable Kitchen workflow</strong><span class="text-xs text-zem-muted">Off means the owner/cashier can complete orders directly. Turn it on when this venue uses Kitchen staff.</span></span>
@@ -67,6 +67,7 @@
         </div>
     </fieldset>
     <h2 class="font-display text-lg font-bold text-zem-gold md:col-span-2 xl:col-span-3">{{ __('Menu settings') }}</h2>
+    @unless($restaurant->isMenuOnly())
     <input name="service_charge_percentage" value="{{ $serviceCharge > 0 ? $serviceCharge : '' }}" type="number" step="0.01" placeholder="Service charge %" class="rounded-md border border-zem-border bg-zem-bg px-3 py-2">
     <input name="vat_percentage" value="{{ $vat > 0 ? $vat : '' }}" type="number" step="0.01" placeholder="VAT %" class="rounded-md border border-zem-border bg-zem-bg px-3 py-2">
 @php($paymentMethods = $restaurant->settings['payment_methods'] ?? ['cash', 'telebirr', 'cbe'])
@@ -115,6 +116,7 @@
             </label>
         </div>
     </fieldset>
+    @endunless
     <button class="rounded-md bg-zem-gold px-4 py-3 font-bold text-white md:col-span-2 xl:col-span-3">{{ __('Save settings') }}</button>
 </form>
 
