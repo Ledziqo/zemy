@@ -124,8 +124,9 @@
 <div class="mt-6 max-w-3xl rounded-md border border-emerald-400/40 bg-zem-card p-5">
     <h2 class="font-display text-xl font-bold">Replace information board from import file</h2>
     <p class="mt-1 text-sm text-zem-muted">Upload a ZemTab information JSON file for the selected restaurant. Its information QR will show the imported hotel guide.</p>
-    <form method="post" action="{{ route('admin.information-import.store') }}" enctype="multipart/form-data" class="mt-5 grid gap-3 md:grid-cols-2" onsubmit="return confirm('Replace the selected restaurant information board?');">
+    <form method="post" action="{{ \Illuminate\Support\Facades\Route::has('admin.information-import.store') ? route('admin.information-import.store') : route('admin.menu-import.store') }}" enctype="multipart/form-data" class="mt-5 grid gap-3 md:grid-cols-2" onsubmit="return confirm('Replace the selected restaurant information board?');">
         @csrf
+        <input type="hidden" name="import_type" value="information">
         <label class="grid gap-1 text-sm"><span class="font-bold text-zem-muted">Restaurant</span>
             <select name="restaurant_id" required class="rounded-md border border-zem-border bg-zem-bg px-3 py-2"><option value="">Choose restaurant</option>
                 @foreach($restaurants as $restaurant)<option value="{{ $restaurant->id }}">{{ $restaurant->name }} ({{ $restaurant->slug }})</option>@endforeach

@@ -13,6 +13,10 @@ class MenuImportController extends Controller
 {
     public function store(Request $request, MenuPackageImporter $importer)
     {
+        // Existing route remains usable while a deployment has its old route cache.
+        if ($request->input('import_type') === 'information') {
+            return app(InformationImportController::class)->store($request);
+        }
         $data = $request->validate([
             'restaurant_id' => ['required', 'integer', Rule::exists('restaurants', 'id')],
             'menu_package' => ['required', 'file', 'max:524288', 'extensions:zip'],
