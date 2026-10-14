@@ -13,6 +13,8 @@ class MenuController extends Controller
 
     public function show(Request $request, string $restaurant_slug, string $table_number)
     {
+        // Compatibility for shared menu QRs while a deployment still has its previous route cache.
+        if ($table_number === '__zemtab_menu__') return $this->catalog($request, $restaurant_slug);
         [$restaurant, $restaurantTable] = $this->publicMenuPayload($restaurant_slug, $table_number);
 
         return response()->view($restaurant->isMenuOnly() ? 'menu.catalog' : 'menu.show', [

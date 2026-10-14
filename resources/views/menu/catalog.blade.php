@@ -1,7 +1,7 @@
 @extends('layouts.app', [
     'title' => $restaurant->name.' Digital Menu | ZemTab',
     'description' => 'Browse the current menu and prices at '.$restaurant->name.'.',
-    'canonical' => $table ? route('menu.show', [$restaurant->slug, $table->table_number]) : route('menu.catalog', $restaurant->slug),
+    'canonical' => $table ? route('menu.show', [$restaurant->slug, $table->table_number]) : \App\Support\PublicMenuCache::catalogUrl($restaurant),
     'accentColor' => $restaurant->primary_color, 'robots' => 'index, follow', 'alpine' => true,
 ])
 

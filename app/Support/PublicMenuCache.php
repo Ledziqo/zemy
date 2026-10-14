@@ -7,6 +7,13 @@ use Illuminate\Support\Facades\Cache;
 
 class PublicMenuCache
 {
+    public static function catalogUrl(Restaurant $restaurant): string
+    {
+        return \Illuminate\Support\Facades\Route::has('menu.catalog')
+            ? route('menu.catalog', $restaurant->slug)
+            : route('menu.show', [$restaurant->slug, '__zemtab_menu__']);
+    }
+
     public static function bump(Restaurant $restaurant): void
     {
         Cache::store('file')->forget(self::payloadKey($restaurant->slug));

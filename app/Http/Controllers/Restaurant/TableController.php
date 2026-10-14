@@ -23,7 +23,12 @@ class TableController extends Controller
     {
         $restaurant = $this->restaurant($request);
         if ($restaurant->isMenuOnly()) {
-            return view('restaurant.tables.menu-only', ['restaurant' => $restaurant]);
+            if ($request->query('download') === 'menu-qr') return $this->menuQr($request);
+            return view('restaurant.tables.menu-only', [
+                'restaurant' => $restaurant,
+                'menuUrl' => PublicMenuCache::catalogUrl($restaurant),
+                'qrImage' => 'data:image/svg+xml;base64,'.base64_encode($this->menuQr($request)->getContent()),
+            ]);
         }
         $tables = $restaurant->tables()->orderByRaw('CAST(table_number AS UNSIGNED)')->paginate(50);
         $designs = $this->qrCardDesigns($restaurant);
@@ -55,7 +60,7 @@ class TableController extends Controller
     public function menuQr(Request $request)
     {
         $restaurant = $this->restaurant($request);
-        $result = new Builder(writer: new SvgWriter(), data: route('menu.catalog', $restaurant->slug),
+        $result = new Builder(writer: new SvgWriter(), data: PublicMenuCache::catalogUrl($restaurant),
             errorCorrectionLevel: ErrorCorrectionLevel::High, size: 500, margin: 20);
         return response($result->build()->getString())
             ->header('Content-Type', 'image/svg+xml')
