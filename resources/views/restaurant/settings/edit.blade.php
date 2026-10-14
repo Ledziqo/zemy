@@ -2,15 +2,15 @@
 
 @section('content')
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/cropperjs@1.6.2/dist/cropper.min.css">
-@php($logoUrl = $restaurant->logo_path ? (\Illuminate\Support\Str::startsWith($restaurant->logo_path, ['http://', 'https://', 'uploads/']) ? (str_starts_with($restaurant->logo_path, 'uploads/') ? asset($restaurant->logo_path) : $restaurant->logo_path) : asset('storage/'.$restaurant->logo_path)) : null)
-@php($primaryColor = $restaurant->primary_color ?: '#D22630')
-@php($sticker = array_merge(['background_color' => '#FFFFFF', 'border_color' => '#111111', 'text_color' => '#111111', 'accent_color' => $primaryColor, 'qr_color' => '#111111', 'qr_background_color' => '#FFFFFF', 'design' => 'classic', 'table_scan_text' => ($restaurant->isMenuOnly() ? 'SCAN FOR MENU' : 'SCAN TO ORDER'), 'room_scan_text' => 'SCAN FOR ROOM SERVICE'], $restaurant->settings['qr_sticker'] ?? []))
 @php
+    $logoUrl = $restaurant->logo_path ? (\Illuminate\Support\Str::startsWith($restaurant->logo_path, ['http://', 'https://', 'uploads/']) ? (str_starts_with($restaurant->logo_path, 'uploads/') ? asset($restaurant->logo_path) : $restaurant->logo_path) : asset('storage/'.$restaurant->logo_path)) : null;
+    $primaryColor = $restaurant->primary_color ?: '#D22630';
+    $sticker = array_merge(['background_color' => '#FFFFFF', 'border_color' => '#111111', 'text_color' => '#111111', 'accent_color' => $primaryColor, 'qr_color' => '#111111', 'qr_background_color' => '#FFFFFF', 'design' => 'classic', 'table_scan_text' => ($restaurant->isMenuOnly() ? 'SCAN FOR MENU' : 'SCAN TO ORDER'), 'room_scan_text' => 'SCAN FOR ROOM SERVICE'], $restaurant->settings['qr_sticker'] ?? []);
     if ($restaurant->isMenuOnly() && in_array(strtoupper(trim($sticker['table_scan_text'])), ['SCAN TO ORDER', 'SCAN TO VIEW MENU'], true)) $sticker['table_scan_text'] = 'SCAN FOR MENU';
+    $serviceCharge = (float) ($restaurant->settings['service_charge_percentage'] ?? 0);
+    $vat = (float) ($restaurant->settings['vat_percentage'] ?? 0);
+    $businessType = strtolower($restaurant->businessTypeLabel());
 @endphp
-@php($serviceCharge = (float) ($restaurant->settings['service_charge_percentage'] ?? 0))
-@php($vat = (float) ($restaurant->settings['vat_percentage'] ?? 0))
-@php($businessType = strtolower($restaurant->businessTypeLabel()))
 <form method="post" action="{{ route('restaurant.settings.update') }}" enctype="multipart/form-data" class="grid max-w-5xl gap-4 rounded-md border border-zem-border bg-zem-card p-5 md:grid-cols-2 xl:grid-cols-3">
     @csrf @method('PATCH')
     <div class="rounded-md border border-zem-border bg-zem-bg p-4 md:col-span-2 xl:col-span-3">
