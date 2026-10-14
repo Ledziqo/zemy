@@ -50,8 +50,14 @@
         @forelse($categories as $category)
             <section x-show="category === 'all' || category === '{{ $category->id }}'" aria-labelledby="catalog-category-{{ $category->id }}">
                 <h2 id="catalog-category-{{ $category->id }}" class="mb-3 font-display text-2xl font-bold">{{ $category->name }}</h2>
+                @php
+                    $sectionMap = $restaurant->settings['menu_sections'][\Illuminate\Support\Str::lower($category->name)] ?? [];
+                    $sections = $category->menuItems->groupBy(fn ($item) => $sectionMap[$item->name] ?? '');
+                @endphp
+                @foreach($sections as $sectionName => $sectionItems)
+                @if($sectionName !== '')<h3 class="mb-3 mt-6 font-display text-xl font-bold" x-show="@js($sectionItems->map(fn ($item) => ['name' => $item->name, 'description' => $item->description ?? ''])->values()).some(item => matches(item.name, item.description))">{{ $sectionName }}</h3>@endif
                 <div class="{{ $photos ? 'grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4' : 'space-y-3' }}">
-                    @foreach($category->menuItems as $item)
+                    @foreach($sectionItems as $item)
                         @php($imageUrl = $photos ? \App\Support\MenuImage::url($item->image_path) : null)
                         <article x-show="matches(@js($item->name), @js($item->description ?? ''))" class="overflow-hidden rounded-xl border border-black/10 bg-white shadow-sm" itemscope itemtype="https://schema.org/MenuItem">
                             @if($imageUrl)
@@ -68,11 +74,12 @@
                         </article>
                     @endforeach
                 </div>
+                @endforeach
             </section>
         @empty
             <p class="rounded-xl bg-white p-6 text-neutral-500">{{ __('The menu is being updated. Please check back soon.') }}</p>
         @endforelse
-        <footer class="text-center text-sm text-neutral-500">{{ __('Powered by') }} <a href="{{ route('home') }}" class="font-bold text-zem-gold">ZemTab</a></footer>
+        @include('menu.powered-by')
     </div>
 </main>
 @endsection

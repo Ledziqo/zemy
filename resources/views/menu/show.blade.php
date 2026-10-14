@@ -286,6 +286,7 @@
             </div>
         </form>
     </div>
+@include('menu.powered-by')
 </main>
 
 <noscript><div class="mx-auto mb-4 max-w-5xl rounded-xl border border-amber-300 bg-amber-50 px-4 py-3 text-sm font-bold text-amber-900">You can browse the menu and call staff here. Enable JavaScript to build and submit an order.</div></noscript>

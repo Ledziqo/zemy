@@ -7,6 +7,7 @@
         $e = $sticker['elements'][$key] ?? [];
         return 'translate:'.(float)($e['x'] ?? 0).'mm '.(float)($e['y'] ?? 0).'mm;scale:'.(float)($e['sx'] ?? 1).' '.(float)($e['sy'] ?? 1).';rotate:'.(float)($e['r'] ?? 0).'deg;';
     };
+    if ($restaurant->isMenuOnly() && ($sticker['card_purpose'] ?? 'table') !== 'information' && in_array(strtoupper(trim($scanText ?? '')), ['SCAN TO ORDER', 'SCAN TO VIEW MENU'], true)) $scanText = 'SCAN FOR MENU';
     $locationLabel = $locationLabel ?? (($table ?? null)?->displayLabel());
     if ($restaurant->isMenuOnly() || ($sticker['card_purpose'] ?? null) === 'information') $locationLabel = null;
 @endphp

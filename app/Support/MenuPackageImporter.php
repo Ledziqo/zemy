@@ -60,6 +60,10 @@ final class MenuPackageImporter
                 $lockedRestaurant = Restaurant::whereKey($restaurant->id)->lockForUpdate()->firstOrFail();
                 $settings = $lockedRestaurant->settings ?? [];
                 if (($manifest['photo_mode'] ?? null) === 'text_only') $settings['menu_photos_enabled'] = false;
+                $settings['menu_sections'] = [];
+                foreach ($rows['items'] as $row) {
+                    if ($row['section'] !== '') $settings['menu_sections'][$row['category_key']][$row['name']] = $row['section'];
+                }
                 $settings['menu_price_note'] = mb_substr((string) ($manifest['price_note'] ?? ''), 0, 1000);
                 $lockedRestaurant->update(['settings' => $settings]);
                 $categoryIds = [];
@@ -196,6 +200,8 @@ final class MenuPackageImporter
                     throw new RuntimeException("Item '{$name}' must have a valid non-negative price.");
                 }
 
+                $section = trim((string) ($item['section'] ?? ''));
+                if (mb_strlen($section) > 120) throw new RuntimeException("Section for '{$name}' is too long.");
                 $sourceImage = null;
                 $imageHash = null;
                 if (! empty($item['image'])) {
@@ -219,6 +225,7 @@ final class MenuPackageImporter
                 $usedItemKeys[$itemKey] = true;
                 if ($imageHash !== null) $usedImageHashes[$imageHash] = true;
                 $itemRows[] = [
+                    'section' => $section,
                     'category_key' => $categoryKey,
                     'name' => $name,
                     'description' => trim((string) ($item['description'] ?? '')),

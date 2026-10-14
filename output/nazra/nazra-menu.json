@@ -5,849 +5,866 @@
   "price_note": "All prices are in Ethiopian birr and include 10% service charge and 15% VAT. Room service: dial 147.",
   "categories": [
     {
-      "name": "All-day · Breakfast",
+      "name": "All Day",
       "items": [
         {
           "name": "French Toast",
           "price": 400,
           "description": "",
-          "is_available": true
+          "is_available": true,
+          "section": "Breakfast"
         },
         {
           "name": "Continental Breakfast",
           "price": 600,
           "description": "",
-          "is_available": true
+          "is_available": true,
+          "section": "Breakfast"
         },
         {
           "name": "English Breakfast",
           "price": 600,
           "description": "",
-          "is_available": true
+          "is_available": true,
+          "section": "Breakfast"
         },
         {
           "name": "Mini Breakfast",
           "price": 550,
           "description": "",
-          "is_available": true
+          "is_available": true,
+          "section": "Breakfast"
         },
         {
           "name": "Spinach Omelet",
           "price": 400,
           "description": "",
-          "is_available": true
+          "is_available": true,
+          "section": "Breakfast"
         },
         {
           "name": "Normal Omelet",
           "price": 400,
           "description": "",
-          "is_available": true
+          "is_available": true,
+          "section": "Breakfast"
         },
         {
           "name": "Cheese Omelet",
           "price": 450,
           "description": "",
-          "is_available": true
+          "is_available": true,
+          "section": "Breakfast"
         },
         {
           "name": "Special Omelet",
           "price": 500,
           "description": "",
-          "is_available": true
+          "is_available": true,
+          "section": "Breakfast"
         },
         {
           "name": "Scrambled Egg",
           "price": 450,
           "description": "",
-          "is_available": true
+          "is_available": true,
+          "section": "Breakfast"
         },
         {
           "name": "Egg Sandwich",
           "price": 450,
           "description": "",
-          "is_available": true
+          "is_available": true,
+          "section": "Breakfast"
         },
         {
           "name": "Fetira with Egg",
           "price": 600,
           "description": "",
-          "is_available": true
+          "is_available": true,
+          "section": "Breakfast"
         },
         {
           "name": "Fetira with Honey",
           "price": 600,
           "description": "",
-          "is_available": true
+          "is_available": true,
+          "section": "Breakfast"
         },
         {
           "name": "Foul Madams",
           "price": 550,
           "description": "",
-          "is_available": true
+          "is_available": true,
+          "section": "Breakfast"
         },
         {
           "name": "Normal Foul",
           "price": 500,
           "description": "",
-          "is_available": true
+          "is_available": true,
+          "section": "Breakfast"
         },
         {
           "name": "Special Foul",
           "price": 550,
           "description": "",
-          "is_available": true
+          "is_available": true,
+          "section": "Breakfast"
         },
         {
           "name": "Breakfast Buffet",
           "price": 600,
           "description": "",
-          "is_available": true
+          "is_available": true,
+          "section": "Breakfast"
         },
         {
           "name": "Chechebsa with Egg",
           "price": 450,
           "description": "",
-          "is_available": true
+          "is_available": true,
+          "section": "Breakfast"
         },
         {
           "name": "Chechebsa with Butter",
           "price": 450,
           "description": "",
-          "is_available": true
+          "is_available": true,
+          "section": "Breakfast"
         },
         {
           "name": "Chechebsa with Honey",
           "price": 450,
           "description": "",
-          "is_available": true
+          "is_available": true,
+          "section": "Breakfast"
         },
         {
           "name": "Fasting Firfir",
           "price": 500,
           "description": "",
-          "is_available": true
+          "is_available": true,
+          "section": "Breakfast"
         },
         {
           "name": "Quanta Firfir",
           "price": 600,
           "description": "",
-          "is_available": true
+          "is_available": true,
+          "section": "Breakfast"
         },
         {
           "name": "Siga Firfir",
           "price": 600,
           "description": "",
-          "is_available": true
+          "is_available": true,
+          "section": "Breakfast"
         },
         {
           "name": "Tuna Firfir",
           "price": 700,
           "description": "",
-          "is_available": true
-        }
-      ]
-    },
-    {
-      "name": "All-day · Cold starters",
-      "items": [
+          "is_available": true,
+          "section": "Breakfast"
+        },
         {
           "name": "Garden Salad",
           "price": 500,
           "description": "Salad greens, tomato, onion, carrot, olive, pepper and vinaigrette dressing.",
-          "is_available": true
+          "is_available": true,
+          "section": "Cold starters"
         },
         {
           "name": "Salad Nicosia",
           "price": 750,
           "description": "Salad greens, green beans, olive, onion, hot peppers, tomato, topped with tuna and boiled eggs.",
-          "is_available": true
+          "is_available": true,
+          "section": "Cold starters"
         },
         {
           "name": "Nazra Hotel Special Salad",
           "price": 700,
           "description": "",
-          "is_available": true
+          "is_available": true,
+          "section": "Cold starters"
         },
         {
           "name": "Assorted Salad",
           "price": 700,
           "description": "",
-          "is_available": true
+          "is_available": true,
+          "section": "Cold starters"
         },
         {
           "name": "Tuna Salad",
           "price": 800,
           "description": "",
-          "is_available": true
-        }
-      ]
-    },
-    {
-      "name": "All-day · Hot starters",
-      "items": [
+          "is_available": true,
+          "section": "Cold starters"
+        },
         {
           "name": "Vegetable Soup",
           "price": 500,
           "description": "",
-          "is_available": true
+          "is_available": true,
+          "section": "Hot starters"
         },
         {
           "name": "Tomato Cream Soup",
           "price": 500,
           "description": "",
-          "is_available": true
+          "is_available": true,
+          "section": "Hot starters"
         },
         {
           "name": "Chicken Cream Soup",
           "price": 550,
           "description": "",
-          "is_available": true
+          "is_available": true,
+          "section": "Hot starters"
         },
         {
           "name": "Beef Soup",
           "price": 550,
           "description": "",
-          "is_available": true
+          "is_available": true,
+          "section": "Hot starters"
         },
         {
           "name": "Fish Soup",
           "price": 500,
           "description": "",
-          "is_available": true
-        }
-      ]
-    },
-    {
-      "name": "All-day · Vegetarian",
-      "items": [
+          "is_available": true,
+          "section": "Hot starters"
+        },
         {
           "name": "Vegetarian Potpourri",
           "price": 500,
           "description": "Freshly oven-baked Mediterranean vegetables.",
-          "is_available": true
+          "is_available": true,
+          "section": "Vegetarian"
         },
         {
           "name": "Vegetarian Fruity Curry",
           "price": 550,
           "description": "Zucchini, paprika, champignons, banana and pineapple served with fresh curry sauce.",
-          "is_available": true
+          "is_available": true,
+          "section": "Vegetarian"
         },
         {
           "name": "Roasted Vegetable",
           "price": 500,
           "description": "",
-          "is_available": true
-        }
-      ]
-    },
-    {
-      "name": "All-day · Pasta",
-      "items": [
+          "is_available": true,
+          "section": "Vegetarian"
+        },
         {
           "name": "Alla Napolitano",
           "price": 550,
           "description": "Light tomato sauce.",
-          "is_available": true
+          "is_available": true,
+          "section": "Pasta"
         },
         {
           "name": "Alla Arrabbiata",
           "price": 550,
           "description": "Light tomato sauce, chilies and fresh garlic.",
-          "is_available": true
+          "is_available": true,
+          "section": "Pasta"
         },
         {
           "name": "Pasta Primavera",
           "price": 550,
           "description": "Light tomato sauce with vegetables.",
-          "is_available": true
+          "is_available": true,
+          "section": "Pasta"
         },
         {
           "name": "Alla Bolognese",
           "price": 650,
           "description": "Beef, tomato and herbs.",
-          "is_available": true
+          "is_available": true,
+          "section": "Pasta"
         },
         {
           "name": "Alla Carbonara",
           "price": 700,
           "description": "Bacon, cream, cream cheese and egg yolk.",
-          "is_available": true
+          "is_available": true,
+          "section": "Pasta"
         },
         {
           "name": "Champignon Alla Penne",
           "price": 650,
           "description": "Mushroom and cream sauce.",
-          "is_available": true
+          "is_available": true,
+          "section": "Pasta"
         },
         {
           "name": "Alla Tuna",
           "price": 750,
           "description": "",
-          "is_available": true
+          "is_available": true,
+          "section": "Pasta"
         },
         {
           "name": "Fettuccine Alfredo",
           "price": 700,
           "description": "",
-          "is_available": true
-        }
-      ]
-    },
-    {
-      "name": "All-day · Rice",
-      "items": [
+          "is_available": true,
+          "section": "Pasta"
+        },
         {
           "name": "Rice with Vegetable",
           "price": 500,
           "description": "Assorted vegetables served with rice.",
-          "is_available": true
+          "is_available": true,
+          "section": "Rice"
         },
         {
           "name": "Rice with Beef Sausage",
           "price": 600,
           "description": "",
-          "is_available": true
+          "is_available": true,
+          "section": "Rice"
         },
         {
           "name": "Rice with Curried Chicken",
           "price": 700,
           "description": "",
-          "is_available": true
+          "is_available": true,
+          "section": "Rice"
         },
         {
           "name": "Rice with Tomato Sauce",
           "price": 500,
           "description": "",
-          "is_available": true
-        }
-      ]
-    },
-    {
-      "name": "All-day · Beef",
-      "items": [
+          "is_available": true,
+          "section": "Rice"
+        },
         {
           "name": "Fillet Steak",
           "price": 900,
           "description": "With mushroom and cream.",
-          "is_available": true
+          "is_available": true,
+          "section": "Beef"
         },
         {
           "name": "Steak with Pepper",
           "price": 900,
           "description": "",
-          "is_available": true
+          "is_available": true,
+          "section": "Beef"
         },
         {
           "name": "Beef Stroganoff",
           "price": 850,
           "description": "With mushroom and cream.",
-          "is_available": true
+          "is_available": true,
+          "section": "Beef"
         },
         {
           "name": "Grilled Steak",
           "price": 900,
           "description": "Beef tenderloin with pepper and cream.",
-          "is_available": true
+          "is_available": true,
+          "section": "Beef"
         },
         {
           "name": "Grilled Sausage",
           "price": 850,
           "description": "Five pieces of sausage and sauce.",
-          "is_available": true
-        }
-      ]
-    },
-    {
-      "name": "All-day · Chicken",
-      "items": [
+          "is_available": true,
+          "section": "Beef"
+        },
         {
           "name": "Health Chicken Breasts",
           "price": 850,
           "description": "Grilled chicken breast with rice and vegetables.",
-          "is_available": true
+          "is_available": true,
+          "section": "Chicken"
         },
         {
           "name": "Chicken Schnitzel",
           "price": 850,
           "description": "Lightly crumbed chicken fillet.",
-          "is_available": true
+          "is_available": true,
+          "section": "Chicken"
         },
         {
           "name": "Chicken Stroganoff",
           "price": 850,
           "description": "With mushroom and cream.",
-          "is_available": true
+          "is_available": true,
+          "section": "Chicken"
         },
         {
           "name": "Chicken Nuggets",
           "price": 850,
           "description": "",
-          "is_available": true
-        }
-      ]
-    },
-    {
-      "name": "All-day · Roasted",
-      "items": [
+          "is_available": true,
+          "section": "Chicken"
+        },
         {
           "name": "Roasted Beef",
           "price": 900,
           "description": "",
-          "is_available": true
+          "is_available": true,
+          "section": "Roasted"
         },
         {
           "name": "Roasted Chicken",
           "price": 900,
           "description": "",
-          "is_available": true
-        }
-      ]
-    },
-    {
-      "name": "All-day · Fish",
-      "items": [
+          "is_available": true,
+          "section": "Roasted"
+        },
         {
           "name": "Grilled Tilapia",
           "price": 650,
           "description": "",
-          "is_available": true
+          "is_available": true,
+          "section": "Fish"
         },
         {
           "name": "Goulash",
           "price": 650,
           "description": "",
-          "is_available": true
+          "is_available": true,
+          "section": "Fish"
         },
         {
           "name": "Breaded Baked Tilapia",
           "price": 700,
           "description": "",
-          "is_available": true
+          "is_available": true,
+          "section": "Fish"
         },
         {
           "name": "Cutlet",
           "price": 700,
           "description": "",
-          "is_available": true
-        }
-      ]
-    },
-    {
-      "name": "All-day · Sandwiches",
-      "items": [
+          "is_available": true,
+          "section": "Fish"
+        },
         {
           "name": "Vegetable Sandwich",
           "price": 500,
           "description": "",
-          "is_available": true
+          "is_available": true,
+          "section": "Sandwiches"
         },
         {
           "name": "Club Sandwich",
           "price": 650,
           "description": "Toasted triple-decker sandwich with shredded chicken.",
-          "is_available": true
+          "is_available": true,
+          "section": "Sandwiches"
         },
         {
           "name": "Tuna Sandwich",
           "price": 750,
           "description": "Tuna, chopped onions and toasted bread, served with fries.",
-          "is_available": true
+          "is_available": true,
+          "section": "Sandwiches"
         },
         {
           "name": "Chicken Sandwich",
           "price": 700,
           "description": "Served with French fries.",
-          "is_available": true
+          "is_available": true,
+          "section": "Sandwiches"
         },
         {
           "name": "Steak Sandwich",
           "price": 750,
           "description": "Served with French fries.",
-          "is_available": true
+          "is_available": true,
+          "section": "Sandwiches"
         },
         {
           "name": "French Fries",
           "price": 450,
           "description": "",
-          "is_available": true
-        }
-      ]
-    },
-    {
-      "name": "All-day · Ethiopian corner",
-      "items": [
+          "is_available": true,
+          "section": "Sandwiches"
+        },
         {
           "name": "Fasting Fir-Fir",
           "price": 500,
           "description": "",
-          "is_available": true
+          "is_available": true,
+          "section": "Ethiopian corner"
         },
         {
           "name": "Quanta Fir-Fir",
           "price": 600,
           "description": "",
-          "is_available": true
+          "is_available": true,
+          "section": "Ethiopian corner"
         },
         {
           "name": "Tuna Fir-Fir",
           "price": 700,
           "description": "",
-          "is_available": true
+          "is_available": true,
+          "section": "Ethiopian corner"
         },
         {
           "name": "Shero/Quanta",
           "price": 600,
           "description": "",
-          "is_available": true
+          "is_available": true,
+          "section": "Ethiopian corner"
         },
         {
           "name": "Bozena Shiro",
           "price": 600,
           "description": "",
-          "is_available": true
+          "is_available": true,
+          "section": "Ethiopian corner"
         },
         {
           "name": "Shero/Tomato",
           "price": 550,
           "description": "",
-          "is_available": true
+          "is_available": true,
+          "section": "Ethiopian corner"
         },
         {
           "name": "Chekina Tibs",
           "price": 850,
           "description": "",
-          "is_available": true
+          "is_available": true,
+          "section": "Ethiopian corner"
         },
         {
           "name": "Grilled Tibes",
           "price": 850,
           "description": "",
-          "is_available": true
+          "is_available": true,
+          "section": "Ethiopian corner"
         },
         {
           "name": "Shero",
           "price": 500,
           "description": "",
-          "is_available": true
-        }
-      ]
-    },
-    {
-      "name": "All-day · Combination",
-      "items": [
+          "is_available": true,
+          "section": "Ethiopian corner"
+        },
         {
           "name": "Non-fasting Combo",
           "price": 850,
           "description": "Tibs firfir, shero, vegetables, rice and beef.",
-          "is_available": true
+          "is_available": true,
+          "section": "Combination"
         },
         {
           "name": "Fasting Combo",
           "price": 650,
           "description": "Shero, vegetables, spaghetti, rice and tomato.",
-          "is_available": true
+          "is_available": true,
+          "section": "Combination"
         }
       ]
     },
     {
-      "name": "Room service · Breakfast",
+      "name": "Room Service",
       "items": [
         {
           "name": "French Toast",
           "price": 450,
           "description": "",
-          "is_available": true
+          "is_available": true,
+          "section": "Breakfast"
         },
         {
           "name": "Normal Omelet",
           "price": 450,
           "description": "",
-          "is_available": true
+          "is_available": true,
+          "section": "Breakfast"
         },
         {
           "name": "Special Omelet",
           "price": 570,
           "description": "",
-          "is_available": true
+          "is_available": true,
+          "section": "Breakfast"
         },
         {
           "name": "Scrambled Egg",
           "price": 500,
           "description": "",
-          "is_available": true
+          "is_available": true,
+          "section": "Breakfast"
         },
         {
           "name": "Egg Sandwich",
           "price": 500,
           "description": "",
-          "is_available": true
+          "is_available": true,
+          "section": "Breakfast"
         },
         {
           "name": "Normal Foul",
           "price": 550,
           "description": "",
-          "is_available": true
+          "is_available": true,
+          "section": "Breakfast"
         },
         {
           "name": "Special Foul",
           "price": 600,
           "description": "",
-          "is_available": true
+          "is_available": true,
+          "section": "Breakfast"
         },
         {
           "name": "Chechebsa with Egg",
           "price": 500,
           "description": "",
-          "is_available": true
+          "is_available": true,
+          "section": "Breakfast"
         },
         {
           "name": "Chechebsa with Butter",
           "price": 500,
           "description": "",
-          "is_available": true
+          "is_available": true,
+          "section": "Breakfast"
         },
         {
           "name": "Fasting Firfir",
           "price": 550,
           "description": "",
-          "is_available": true
+          "is_available": true,
+          "section": "Breakfast"
         },
         {
           "name": "Siga Firfir",
           "price": 600,
           "description": "",
-          "is_available": true
-        }
-      ]
-    },
-    {
-      "name": "Room service · Cold starters",
-      "items": [
+          "is_available": true,
+          "section": "Breakfast"
+        },
         {
           "name": "Garden Salad",
           "price": 550,
           "description": "Salad greens, tomato, onion, carrot, olive, pepper and vinaigrette dressing.",
-          "is_available": true
+          "is_available": true,
+          "section": "Cold starters"
         },
         {
           "name": "Nazra Hotel Special Salad",
           "price": 750,
           "description": "",
-          "is_available": true
+          "is_available": true,
+          "section": "Cold starters"
         },
         {
           "name": "Tuna Salad",
           "price": 800,
           "description": "",
-          "is_available": true
-        }
-      ]
-    },
-    {
-      "name": "Room service · Hot starters",
-      "items": [
+          "is_available": true,
+          "section": "Cold starters"
+        },
         {
           "name": "Hot Soup",
           "price": 550,
           "description": "",
-          "is_available": true
+          "is_available": true,
+          "section": "Hot starters"
         },
         {
           "name": "Vegetable Soup",
           "price": 550,
           "description": "",
-          "is_available": true
+          "is_available": true,
+          "section": "Hot starters"
         },
         {
           "name": "Chicken Cream Soup",
           "price": 600,
           "description": "",
-          "is_available": true
+          "is_available": true,
+          "section": "Hot starters"
         },
         {
           "name": "Beef Soup",
           "price": 600,
           "description": "",
-          "is_available": true
-        }
-      ]
-    },
-    {
-      "name": "Room service · Vegetarian",
-      "items": [
+          "is_available": true,
+          "section": "Hot starters"
+        },
         {
           "name": "Vegetarian Potpourri",
           "price": 550,
           "description": "Freshly oven-baked Mediterranean vegetables.",
-          "is_available": true
+          "is_available": true,
+          "section": "Vegetarian"
         },
         {
           "name": "Roasted Vegetable",
           "price": 550,
           "description": "",
-          "is_available": true
-        }
-      ]
-    },
-    {
-      "name": "Room service · Pasta",
-      "items": [
+          "is_available": true,
+          "section": "Vegetarian"
+        },
         {
           "name": "Alla Napolitano",
           "price": 600,
           "description": "Light tomato sauce.",
-          "is_available": true
+          "is_available": true,
+          "section": "Pasta"
         },
         {
           "name": "Alla Bolognese",
           "price": 600,
           "description": "Beef, tomato and herbs.",
-          "is_available": true
+          "is_available": true,
+          "section": "Pasta"
         },
         {
           "name": "Alla Carbonara",
           "price": 750,
           "description": "Bacon, cream, cream cheese and egg yolk.",
-          "is_available": true
+          "is_available": true,
+          "section": "Pasta"
         },
         {
           "name": "Alla Tuna",
           "price": 800,
           "description": "",
-          "is_available": true
-        }
-      ]
-    },
-    {
-      "name": "Room service · Rice",
-      "items": [
+          "is_available": true,
+          "section": "Pasta"
+        },
         {
           "name": "Rice with Vegetable",
           "price": 550,
           "description": "Assorted vegetables served with rice.",
-          "is_available": true
+          "is_available": true,
+          "section": "Rice"
         },
         {
           "name": "Rice with Beef Sausage",
           "price": 650,
           "description": "",
-          "is_available": true
+          "is_available": true,
+          "section": "Rice"
         },
         {
           "name": "Rice with Curried Chicken",
           "price": 750,
           "description": "",
-          "is_available": true
+          "is_available": true,
+          "section": "Rice"
         },
         {
           "name": "Rice with Tomato Sauce",
           "price": 550,
           "description": "",
-          "is_available": true
-        }
-      ]
-    },
-    {
-      "name": "Room service · Beef",
-      "items": [
+          "is_available": true,
+          "section": "Rice"
+        },
         {
           "name": "Fillet Steak",
           "price": 900,
           "description": "With mushroom and cream.",
-          "is_available": true
+          "is_available": true,
+          "section": "Beef"
         },
         {
           "name": "Beef Stroganoff",
           "price": 850,
           "description": "With mushroom and cream.",
-          "is_available": true
+          "is_available": true,
+          "section": "Beef"
         },
         {
           "name": "Grilled Steak",
           "price": 900,
           "description": "Beef tenderloin with pepper and cream.",
-          "is_available": true
+          "is_available": true,
+          "section": "Beef"
         },
         {
           "name": "Roasted Beef",
           "price": 900,
           "description": "",
-          "is_available": true
-        }
-      ]
-    },
-    {
-      "name": "Room service · Chicken",
-      "items": [
+          "is_available": true,
+          "section": "Beef"
+        },
         {
           "name": "Health Chicken Breasts",
           "price": 850,
           "description": "Grilled chicken breast with rice and vegetables.",
-          "is_available": true
+          "is_available": true,
+          "section": "Chicken"
         },
         {
           "name": "Chicken Stroganoff",
           "price": 850,
           "description": "With mushroom and cream.",
-          "is_available": true
+          "is_available": true,
+          "section": "Chicken"
         },
         {
           "name": "Roasted Chicken",
           "price": 900,
           "description": "",
-          "is_available": true
-        }
-      ]
-    },
-    {
-      "name": "Room service · Fish",
-      "items": [
+          "is_available": true,
+          "section": "Chicken"
+        },
         {
           "name": "Goulash",
           "price": 650,
           "description": "",
-          "is_available": true
+          "is_available": true,
+          "section": "Fish"
         },
         {
           "name": "Cutlet",
           "price": 700,
           "description": "",
-          "is_available": true
-        }
-      ]
-    },
-    {
-      "name": "Room service · National dishes",
-      "items": [
+          "is_available": true,
+          "section": "Fish"
+        },
         {
           "name": "Tuna Fir-Fir",
           "price": 700,
           "description": "",
-          "is_available": true
+          "is_available": true,
+          "section": "National dishes"
         },
         {
           "name": "Bozena Shiro",
           "price": 650,
           "description": "",
-          "is_available": true
+          "is_available": true,
+          "section": "National dishes"
         },
         {
           "name": "Shero/Tomato",
           "price": 600,
           "description": "",
-          "is_available": true
+          "is_available": true,
+          "section": "National dishes"
         },
         {
           "name": "Chekina Tibs",
           "price": 850,
           "description": "",
-          "is_available": true
+          "is_available": true,
+          "section": "National dishes"
         },
         {
           "name": "Grilled Tibes",
           "price": 850,
           "description": "",
-          "is_available": true
+          "is_available": true,
+          "section": "National dishes"
         }
       ]
     },

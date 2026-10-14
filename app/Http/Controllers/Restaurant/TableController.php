@@ -454,7 +454,7 @@ class TableController extends Controller
             'design' => 'classic',
             'orientation' => 'portrait',
             'card_size' => 'large',
-            'table_scan_text' => $restaurant?->isMenuOnly() ? 'SCAN TO VIEW MENU' : 'SCAN TO ORDER',
+            'table_scan_text' => $restaurant?->isMenuOnly() ? 'SCAN FOR MENU' : 'SCAN TO ORDER',
             'room_scan_text' => 'SCAN FOR ROOM SERVICE',
             'logo_size' => 24,
             'logo_width' => 53,
@@ -530,6 +530,9 @@ class TableController extends Controller
                 }
                 $design['qr_background_color'] = $design['background_color'];
                 $design['table_scan_text'] = $design['table_scan_text'] ?? $defaults['table_scan_text'];
+                if ($restaurant->isMenuOnly() && in_array(strtoupper(trim($design['table_scan_text'])), ['SCAN TO ORDER', 'SCAN TO VIEW MENU'], true)) {
+                    $design['table_scan_text'] = 'SCAN FOR MENU';
+                }
                 $design['room_scan_text'] = $design['room_scan_text'] ?? $defaults['room_scan_text'];
                 $design['information_scan_text'] = $design['information_scan_text'] ?? 'SCAN FOR INFORMATION';
                 $design['card_purpose'] = $type;

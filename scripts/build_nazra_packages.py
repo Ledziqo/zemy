@@ -1,6 +1,6 @@
 """Build Nazra import files from supplied Word files and transcribed drink photos."""
 from pathlib import Path
-import json, zipfile, xml.etree.ElementTree as ET, shutil
+import json, zipfile, xml.etree.ElementTree as ET, shutil, base64
 ROOT = Path(__file__).resolve().parents[1]
 SOURCE = Path('C:/Users/mudim/OneDrive/Desktop/nazra')
 OUT = ROOT / 'output' / 'nazra'
@@ -57,6 +57,16 @@ add('Drinks · Beer', 'St. George|180;Habesha|180;Heineken|300')
 add('Drinks · Non-alcoholic', 'Seasonal Juice|250;Soft Drinks|120;Sparkling Water (Ambo)|120;Spring Water ½l|100;Spring Water 1l|120;Spring Water 2l|150')
 add('Drinks · Cocktails', 'Long Island Iced Tea|800|Vodka, tequila, rum, gin, coca and lemon juice.;BE52|800|Tia Maria, Baileys and Vointreau (as supplied).;Margarita Cocktail|850|Cointreau, Stolichnaya, Bacardi, Red Label and iced lemon juice.;Screw Driver|800|Stolichyana vodka and orange juice.;Kamakazi|800|Stolichyana, Cointreau and lemon juice.')
 add('Drinks · Hot drinks', 'Tea|80;Special Tea Normal|200;Special Tea Alcohol|200;Coffee|120;Macchiato|140;Fasting Macchiato|130;Café Latte|120;Tea with Coffee|100;Cappuccino|130;Flavored Tea|80;Ouzo with Tea|140;Hot Chocolate|140;Tea with Honey|150;Milk with Honey|150')
+# Group food under two main categories, retaining its original sections.
+grouped = []
+for prefix, name in [('All-day · ', 'All Day'), ('Room service · ', 'Room Service')]:
+    items = []
+    for category in categories:
+        if category['name'].startswith(prefix):
+            for item in category['items']:
+                items.append(dict(item, section=category['name'][len(prefix):].capitalize()))
+    grouped.append({'name':name, 'items':items})
+categories = grouped + [category for category in categories if category['name'].startswith('Drinks · ')]
 manifest={'format':'zemtab-menu','version':1,'photo_mode':'text_only','price_note':'All prices are in Ethiopian birr and include 10% service charge and 15% VAT. Room service: dial 147.','categories':categories}
 menu_json=json.dumps(manifest,ensure_ascii=False,indent=2)
 (OUT/'nazra-menu.json').write_text(menu_json,encoding='utf-8')
@@ -81,6 +91,8 @@ start=menu_paragraphs.index('WELCOME TO NAZRA HOTEL')+1
 end=menu_paragraphs.index('BREAKFAST')
 sections.insert(1, {'title':'About Nazra Hotel','body':'\n\n'.join(t for t in menu_paragraphs[start:end] if t)})
 board={'format':'zemtab-information','version':1,'title':'Hotel Guide','sections':sections}
+logo_file = OUT/'nazra-logo-transparent.png'
+if logo_file.exists(): board['logo_data'] = 'data:image/png;base64,' + base64.b64encode(logo_file.read_bytes()).decode('ascii')
 (OUT/'nazra-information.json').write_text(json.dumps(board,ensure_ascii=False,indent=2),encoding='utf-8')
 shutil.copyfile(SOURCE/'nazra logo.png',OUT/'nazra-logo.png')
 (OUT/'README.md').write_text("""# Nazra import files
