@@ -38,7 +38,7 @@ class EnsureRestaurantDashboardAccess
             }
             abort_unless($request->routeIs(
                 'restaurant.menu-items.*', 'restaurant.categories.*',
-                'restaurant.tables.index', 'restaurant.tables.menu-qr', 'restaurant.settings.*'
+                'restaurant.tables.index', 'restaurant.tables.menu-qr', 'restaurant.tables.design', 'restaurant.settings.*'
             ), 403, 'This account has digital menu access only.');
         }
 

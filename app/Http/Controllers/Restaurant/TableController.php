@@ -24,10 +24,19 @@ class TableController extends Controller
         $restaurant = $this->restaurant($request);
         if ($restaurant->isMenuOnly()) {
             if ($request->query('download') === 'menu-qr') return $this->menuQr($request);
-            return view('restaurant.tables.menu-only', [
+            $designs = $this->qrCardDesigns($restaurant);
+            $orientation = $designs['table']['preferred_orientation'];
+            $sticker = $designs['table']['orientations'][$orientation];
+            $qrImage = 'data:image/svg+xml;base64,'.base64_encode($this->buildQr($restaurant, null, $sticker));
+            return view($request->query('print') === 'menu-card' ? 'restaurant.tables.menu-print' : 'restaurant.tables.menu-only', [
                 'restaurant' => $restaurant,
                 'menuUrl' => PublicMenuCache::catalogUrl($restaurant),
-                'qrImage' => 'data:image/svg+xml;base64,'.base64_encode($this->menuQr($request)->getContent()),
+                'qrImage' => $qrImage,
+                'sticker' => $sticker,
+                'qrCardDesigns' => $designs,
+                'designType' => 'table',
+                'designOrientation' => $orientation,
+                'previewCards' => ['table' => ['qr' => $qrImage, 'label' => ''], 'room' => ['qr' => $qrImage, 'label' => '']],
             ]);
         }
         $tables = $restaurant->tables()->orderByRaw('CAST(table_number AS UNSIGNED)')->paginate(50);
@@ -60,9 +69,9 @@ class TableController extends Controller
     public function menuQr(Request $request)
     {
         $restaurant = $this->restaurant($request);
-        $result = new Builder(writer: new SvgWriter(), data: PublicMenuCache::catalogUrl($restaurant),
-            errorCorrectionLevel: ErrorCorrectionLevel::High, size: 500, margin: 20);
-        return response($result->build()->getString())
+        $designs = $this->qrCardDesigns($restaurant);
+        $sticker = $designs['table']['orientations'][$designs['table']['preferred_orientation']];
+        return response($this->buildQr($restaurant, null, $sticker))
             ->header('Content-Type', 'image/svg+xml')
             ->header('Content-Disposition', 'attachment; filename="zemtab-'.$restaurant->slug.'-menu.svg"');
     }
@@ -98,7 +107,7 @@ class TableController extends Controller
         unset($data['qr_logo'], $data['remove_qr_logo'], $data['apply_colors_to_all']);
         $restaurant = $this->restaurant($request);
         $settings = $restaurant->settings ?? [];
-        $type = $data['design_type'];
+        $type = $restaurant->isMenuOnly() ? 'table' : $data['design_type'];
         unset($data['design_type']);
         $orientation = $data['orientation'];
         $scanText = $data['scan_text'];
@@ -337,14 +346,14 @@ class TableController extends Controller
         return $svg;
     }
 
-    private function buildQr($restaurant, RestaurantTable $table, ?array $sticker = null)
+    private function buildQr($restaurant, ?RestaurantTable $table, ?array $sticker = null)
     {
-        $type = $table->isRoomServicePoint() ? 'room' : 'table';
+        $type = $table?->isRoomServicePoint() ? 'room' : 'table';
         $sticker ??= $this->qrCardDesigns($restaurant)[$type]['orientations'][$type === 'room' ? 'landscape' : 'portrait'];
 
         $result = (new Builder(
             writer: new SvgWriter(),
-            data: route('menu.show', [$restaurant->slug, $table->table_number]),
+            data: $table ? route('menu.show', [$restaurant->slug, $table->table_number]) : PublicMenuCache::catalogUrl($restaurant),
             errorCorrectionLevel: ErrorCorrectionLevel::High,
             size: 500,
             margin: 20,
@@ -412,7 +421,7 @@ class TableController extends Controller
             'design' => 'classic',
             'orientation' => 'portrait',
             'card_size' => 'large',
-            'table_scan_text' => 'SCAN TO ORDER',
+            'table_scan_text' => $restaurant?->isMenuOnly() ? 'SCAN TO VIEW MENU' : 'SCAN TO ORDER',
             'room_scan_text' => 'SCAN FOR ROOM SERVICE',
             'logo_size' => 24,
             'logo_width' => 53,
@@ -489,9 +498,6 @@ class TableController extends Controller
                 $design['qr_background_color'] = $design['background_color'];
                 $design['table_scan_text'] = $design['table_scan_text'] ?? $defaults['table_scan_text'];
                 $design['room_scan_text'] = $design['room_scan_text'] ?? $defaults['room_scan_text'];
-                if ($restaurant->isMenuOnly()) {
-                    $design['table_scan_text'] = $design['room_scan_text'] = 'SCAN TO VIEW MENU';
-                }
                 $design['scan_text'] = $design[$type.'_scan_text'];
                 $storedOrientation = $orientationDesigns[$orientation] ?? [];
                 $hasExplicitQrLogo = array_key_exists('qr_logo_path', $storedOrientation)

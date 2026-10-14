@@ -34,7 +34,7 @@
 .qr-preview{background:#d9d9d6;border-radius:12px;padding:20px 12px;color:#171717;align-self:start;display:flex;flex-direction:column;align-items:center;gap:14px;max-width:100%;overflow-x:auto}.qr-preview.is-landscape{align-items:flex-start}.qr-preview select{background:white}.qr-preview > p{font-size:12px;text-align:center;margin:0}.qr-preview-location{max-width:290px;padding:8px 12px;border:1px solid #17171733;border-radius:7px;background:#fff8;font-weight:600}.qr-save{background:#d22630;color:#fff;border:0;border-radius:8px;padding:12px 18px;font-weight:700;cursor:pointer}.qr-notice{font-size:12px;opacity:.75;margin:12px 0}
 @media(max-width:1000px){.qr-studio-body{grid-template-columns:1fr}.qr-preview{width:100%}}@media(max-width:480px){.qr-studio-body{padding:12px}.qr-controls{grid-template-columns:1fr}.qr-preview{padding:12px 0;overflow:auto}}
 </style>
-<details class="qr-studio">
+<details class="qr-studio" @if($restaurant->isMenuOnly()) open @endif>
 <summary class="qr-studio-head"><h2>QR design studio</h2><p>The ZemTab signature collection. Your brand, beautifully presented. Open to customize.</p></summary>
 @php($designSaveUrl = \Illuminate\Support\Facades\Route::has('restaurant.tables.design') ? route('restaurant.tables.design', [], false) : '/restaurant/tables/qr/design')
 <form method="post" action="{{ $designSaveUrl }}" id="qr-design-form" class="qr-studio-body" enctype="multipart/form-data">
@@ -48,7 +48,7 @@
 <div class="qr-orientation" role="radiogroup" aria-label="Card orientation">
 <label><input type="radio" name="orientation" value="portrait" @checked($designOrientation === 'portrait')><span><strong>Portrait</strong><small>Tall card layout</small></span></label>
 <label><input type="radio" name="orientation" value="landscape" @checked($designOrientation === 'landscape')><span><strong>Landscape</strong><small>Wide card layout</small></span></label>
-</div><p class="qr-notice">Choose this independently for table/lobby cards and room cards. The setup pack follows each type’s saved orientation.</p></fieldset>
+</div><p class="qr-notice">{{ $restaurant->isMenuOnly() ? 'Choose the orientation for your shared menu card.' : 'Choose this independently for table/lobby cards and room cards. The setup pack follows each type’s saved orientation.' }}</p></fieldset>
 <fieldset><legend>Card size</legend>
 <label>Printed size for this layout<select name="card_size" required>
 <option value="small" @selected(($sticker['card_size'] ?? 'large') === 'small')>Small · 50 × 93 mm</option>
@@ -63,7 +63,7 @@
 @endforeach
 </div></fieldset>
 <button type="button" class="qr-reset" id="qr-save-colors-all">Save these colours to all card layouts</button>
-<p class="qr-notice">This copies the card, artwork, border, QR, and QR background colours to table and room cards in both orientations. Positions, sizes, text, and artwork shapes stay independent.</p>
+<p class="qr-notice">{{ $restaurant->isMenuOnly() ? 'This copies the colours to both menu card orientations.' : 'This copies the card, artwork, border, QR, and QR background colours to table and room cards in both orientations.' }} Positions, sizes, text, and artwork shapes stay independent.</p>
 <fieldset><legend>02 / Scale & detail</legend><div class="qr-controls">
 @foreach(['logo_size'=>['Logo height',1,200,'mm'],'logo_width'=>['Logo width',1,200,'mm'],'text_size'=>['Headline size',14,22,'pt'],'qr_size'=>['QR size',38,50,'mm'],'detail_size'=>['Small text',6,9,'pt'],'footer_size'=>['Powered-by size',50,200,'%'],'art_opacity'=>['Artwork intensity',10,100,'%']] as $key=>[$label,$min,$max,$unit])
 <label>{{ $label }} <output data-value="{{ $key }}"></output><input type="range" name="{{ $key }}" min="{{ $min }}" max="{{ $max }}" step="1" value="{{ old($key,$sticker[$key]) }}" data-unit="{{ $unit }}"></label>
@@ -81,7 +81,7 @@
 <input type="hidden" name="{{ $key }}" value="{{ old($key,$sticker[$key] ?? $default) }}">
 @endforeach
 <p class="qr-notice">Drag the logo, headline, QR block, or ZemTab pill anywhere on the preview. Resize elements with the controls. Dragged elements can overlap without moving anything else. Save before opening the print pack.</p>
-<button class="qr-save" id="qr-design-save">Save {{ $designOrientation }} {{ $designType }} card design</button> <button type="button" class="qr-reset" id="qr-design-reset">Reset this layout</button>
+<button class="qr-save" id="qr-design-save">Save {{ $designOrientation }} {{ $restaurant->isMenuOnly() ? 'menu' : $designType }} card design</button> <button type="button" class="qr-reset" id="qr-design-reset">Reset this layout</button>
 <p id="qr-design-status" class="qr-notice" role="status">Preview of saved settings.</p>
 </div>
 <aside class="qr-preview">
@@ -110,10 +110,13 @@
 <input type="hidden" name="elements[{{ $element }}][{{ $dimension }}]" value="{{ old('elements.'.$element.'.'.$dimension,$sticker['elements'][$element][$dimension] ?? $default) }}">
 @endforeach
 @endforeach
-<select id="qr-preview-type" aria-label="Choose card type to edit"><option value="table" @selected($designType === 'table')>Table card design & preview</option><option value="room" @selected($designType === 'room')>Room card design & preview</option></select>
+<select id="qr-preview-type" aria-label="Choose card type to edit">
+@if($restaurant->isMenuOnly())<option value="table">Menu card design & preview</option>
+@else<option value="table" @selected($designType === 'table')>Table card design & preview</option><option value="room" @selected($designType === 'room')>Room card design & preview</option>@endif
+</select>
 @if($previewCards[$designType]['qr'])
 @include('restaurant.tables.card',['sticker'=>$sticker,'qrImage'=>$previewCards[$designType]['qr'],'scanText'=>$sticker['scan_text'] ?? $sticker[$designType.'_scan_text'],'locationLabel'=>$previewCards[$designType]['label']])
-<p class="qr-preview-location"><strong>Preview label:</strong> <span id="qr-preview-label">{{ $previewCards[$designType]['label'] }}</span></p>
+@if(!$restaurant->isMenuOnly())<p class="qr-preview-location"><strong>Preview label:</strong> <span id="qr-preview-label">{{ $previewCards[$designType]['label'] }}</span></p>@endif
 @else
 <p>Add your first table or room to preview its QR card. You can save your design now.</p>
 @endif
@@ -123,6 +126,8 @@
 <script>
 (() => {
  const form=document.getElementById('qr-design-form'),card=form.querySelector('.signature-card'),preview=form.querySelector('.qr-preview'),type=document.getElementById('qr-preview-type'),typeValue=document.getElementById('qr-design-type-value'),status=document.getElementById('qr-design-status'),logoInput=form.elements.namedItem('qr_logo'),logoWrap=card?.querySelector('.signature-logo-wrap'),logoSizeInput=form.elements.namedItem('logo_size'),logoWidthInput=form.elements.namedItem('logo_width');
+ const menuOnly=@json($restaurant->isMenuOnly());
+ const designName=()=>menuOnly?'menu':type.value;
  const designs=@json($qrCardDesigns),previewCards=@json($previewCards),fileDrafts={table:{portrait:null,landscape:null},room:{portrait:null,landscape:null}},fileDraftIds={table:{portrait:null,landscape:null},room:{portrait:null,landscape:null}},qrFileRegistry=new Map(),dirty=new Set();
  let activeOrientation=field('orientation').value;
  let logo=card?.querySelector('.signature-logo');
@@ -136,7 +141,7 @@
   const colors=Object.fromEntries(colorKeys.map(key=>[key,field(key).value]));
   for(const allType of ['table','room'])for(const allOrientation of ['portrait','landscape'])Object.assign(designs[allType].orientations[allOrientation],colors);
   field('apply_colors_to_all').value='1';
-  status.textContent='These colours will be saved across all table and room layouts.';
+  status.textContent=menuOnly?'These colours will be saved across both menu layouts.':'These colours will be saved across all table and room layouts.';
   update();
  });
  function capture(){const state={};scalarKeys.forEach(key=>{if(key==='orientation')state[key]=activeOrientation;else state[key]=field(key).value});state.elements={};['logo','cross','line_left','line_right','kicker_text','title','location','frame','hint','footer','credit','zemtab','art'].forEach(name=>{state.elements[name]={};['x','y','sx','sy','r'].forEach(d=>{const input=field(`elements[${name}][${d}]`);if(input)state.elements[name][d]=input.value})});state.qr_logo_path=activeDesign().qr_logo_path;state.logo_url=activeDesign().logo_url;state.restaurant_logo_url=activeDesign().restaurant_logo_url;state.qr_logo_draft_id=fileDraftIds[type.value][activeOrientation];state.remove_qr_logo=field('remove_qr_logo').checked;return state}
@@ -155,6 +160,7 @@
  function setLogo(src){if(!card)return;if(src){if(!logo){logo=document.createElement('img');logo.className='signature-logo';logo.dataset.layer='logo';logo.alt='QR logo';logo.setAttribute('data-print-resource','');logoWrap.appendChild(logo)}logo.src=src;logo.hidden=false}else if(logo){logo.remove();logo=null}}
  function renderLocation(label){
  const el=card.querySelector('.signature-location'),parts=label.trim().split(/\s+(?=\S+$)/u);
+ if(!el)return;
  el.replaceChildren();const name=document.createElement('span');name.textContent=parts[0];el.append(name);
  if(parts[1]){const number=document.createElement('strong');number.textContent=parts[1];el.append(number);}
  }
@@ -181,15 +187,15 @@
   const artwork=card?.querySelector('.signature-art');
   if(artwork){artwork.setAttribute('viewBox',orientation==='landscape'?'0 0 560 297':'0 0 297 560');card.querySelector('.signature-artwork-landscape')?.style.setProperty('display',orientation==='landscape'?'':'none');card.querySelector('.signature-artwork-portrait')?.style.setProperty('display',orientation==='portrait'?'':'none');}
   if(card){card.querySelector('.signature-title').textContent=field('scan_text').value;renderLocation(previewCards[type.value].label);renderQr(previewCards[type.value].qr);const label=document.getElementById('qr-preview-label');if(label)label.textContent=previewCards[type.value].label;const uploaded=fileDrafts[type.value][activeOrientation];setLogo(uploaded?URL.createObjectURL(uploaded):(field('remove_qr_logo').checked?activeDesign().restaurant_logo_url:activeDesign().logo_url));window.fitSignatureTitles(form);}
-  if(markDirty){designs[type.value].orientations[activeOrientation]=capture();dirty.add(`${type.value}:${activeOrientation}`);status.textContent=`Unsaved ${activeOrientation} ${type.value} design — save to apply this exact layout to the print pack.`;}
+  if(markDirty){designs[type.value].orientations[activeOrientation]=capture();dirty.add(`${type.value}:${activeOrientation}`);status.textContent=`Unsaved ${activeOrientation} ${designName()} design — save to apply this exact layout to the print pack.`;}
  }
- type.addEventListener('change',()=>{const previous=typeValue.value;designs[previous].orientations[activeOrientation]=capture();if(logoInput?.files?.[0])fileDrafts[previous][activeOrientation]=logoInput.files[0];typeValue.value=type.value;applyDesign(designs[type.value].orientations[activeOrientation]);clearUndo();document.getElementById('qr-design-save').textContent=`Save ${activeOrientation} ${type.value} card design`;status.textContent=`Editing ${activeOrientation} ${type.value} cards.`});
- form.querySelectorAll('input[name="orientation"]').forEach(input=>input.addEventListener('change',()=>{const next=input.value;if(next===activeOrientation)return;designs[type.value].orientations[activeOrientation]=capture();if(logoInput?.files?.[0])fileDrafts[type.value][activeOrientation]=logoInput.files[0];activeOrientation=next;applyDesign(designs[type.value].orientations[activeOrientation]);clearUndo();document.getElementById('qr-design-save').textContent=`Save ${activeOrientation} ${type.value} card design`;status.textContent=`Editing the independent ${activeOrientation} ${type.value} layout.`}));
+ type.addEventListener('change',()=>{const previous=typeValue.value;designs[previous].orientations[activeOrientation]=capture();if(logoInput?.files?.[0])fileDrafts[previous][activeOrientation]=logoInput.files[0];typeValue.value=type.value;applyDesign(designs[type.value].orientations[activeOrientation]);clearUndo();document.getElementById('qr-design-save').textContent=`Save ${activeOrientation} ${designName()} card design`;status.textContent=`Editing ${activeOrientation} ${designName()} cards.`});
+ form.querySelectorAll('input[name="orientation"]').forEach(input=>input.addEventListener('change',()=>{const next=input.value;if(next===activeOrientation)return;designs[type.value].orientations[activeOrientation]=capture();if(logoInput?.files?.[0])fileDrafts[type.value][activeOrientation]=logoInput.files[0];activeOrientation=next;applyDesign(designs[type.value].orientations[activeOrientation]);clearUndo();document.getElementById('qr-design-save').textContent=`Save ${activeOrientation} ${designName()} card design`;status.textContent=`Editing the independent ${activeOrientation} ${designName()} layout.`}));
  logoInput?.addEventListener('change',()=>{const file=logoInput.files?.[0]||null;fileDrafts[type.value][activeOrientation]=file;const id=file?`${Date.now()}-${Math.random()}`:null;fileDraftIds[type.value][activeOrientation]=id;if(id)qrFileRegistry.set(id,file);update();});
  form.elements.namedItem('remove_qr_logo').addEventListener('change',()=>update());
- form.addEventListener('submit',event=>{const current=`${type.value}:${activeOrientation}`,others=[...dirty].filter(key=>key!==current);if(others.length&&!confirm(`Only the ${activeOrientation} ${type.value} layout will be saved. Other unsaved card layouts will be discarded. Continue?`)){event.preventDefault();return}dirty.delete(current)});
+ form.addEventListener('submit',event=>{const current=`${type.value}:${activeOrientation}`,others=[...dirty].filter(key=>key!==current);if(others.length&&!confirm(`Only the ${activeOrientation} ${designName()} layout will be saved. Other unsaved card layouts will be discarded. Continue?`)){event.preventDefault();return}dirty.delete(current)});
  form.querySelectorAll('[data-palette]').forEach(button=>button.addEventListener('click',()=>{keys.forEach((key,index)=>field(key).value=palettes[button.dataset.palette][index]);update()}));
- document.getElementById('qr-design-reset').addEventListener('click',()=>{keys.forEach((key,index)=>field(key).value=palettes.signature[index]);Object.entries({orientation:activeOrientation,card_size:'large',qr_color:'#111111',qr_background_color:'#F4F1EC',logo_size:24,logo_width:53,logo_x:37,logo_y:18,heading_x:0,heading_y:0,kicker_x:0,kicker_y:0,title_x:0,title_y:0,location_x:0,location_y:0,scan_x:0,scan_y:-3,frame_x:0,frame_y:0,hint_x:0,hint_y:0,footer_x:0,footer_y:0,text_size:18,qr_size:activeOrientation==='portrait'?50:46,detail_size:7,footer_size:100,art_opacity:100,scan_text:type.value==='table'?'SCAN TO ORDER':'SCAN FOR ROOM SERVICE'}).forEach(([key,value])=>field(key).value=value);fileDrafts[type.value][activeOrientation]=null;fileDraftIds[type.value][activeOrientation]=null;restoreFileInput(null);field('remove_qr_logo').checked=false;logoWrap?.classList.remove('is-selected');update()});
+ document.getElementById('qr-design-reset').addEventListener('click',()=>{keys.forEach((key,index)=>field(key).value=palettes.signature[index]);Object.entries({orientation:activeOrientation,card_size:'large',qr_color:'#111111',qr_background_color:'#F4F1EC',logo_size:24,logo_width:53,logo_x:37,logo_y:18,heading_x:0,heading_y:0,kicker_x:0,kicker_y:0,title_x:0,title_y:0,location_x:0,location_y:0,scan_x:0,scan_y:-3,frame_x:0,frame_y:0,hint_x:0,hint_y:0,footer_x:0,footer_y:0,text_size:18,qr_size:activeOrientation==='portrait'?50:46,detail_size:7,footer_size:100,art_opacity:100,scan_text:menuOnly?'SCAN TO VIEW MENU':(type.value==='table'?'SCAN TO ORDER':'SCAN FOR ROOM SERVICE')}).forEach(([key,value])=>field(key).value=value);fileDrafts[type.value][activeOrientation]=null;fileDraftIds[type.value][activeOrientation]=null;restoreFileInput(null);field('remove_qr_logo').checked=false;logoWrap?.classList.remove('is-selected');update()});
  form.addEventListener('input',event=>{if(event.target!==type&&event.target.name!=='orientation')update()});
  field('card_size').addEventListener('change',()=>update());
  document.getElementById('qr-find-zemtab-pill').addEventListener('click',()=>{
@@ -224,7 +230,7 @@
  function trackUndo(){const next=JSON.stringify(capture());if(actionUndoSnapshot!==null){lastUndoSnapshot=next;return}if(next===lastUndoSnapshot)return;if(pendingUndoSnapshot===null)pendingUndoSnapshot=lastUndoSnapshot;lastUndoSnapshot=next;clearTimeout(undoTimer);undoTimer=setTimeout(()=>{commitUndo(pendingUndoSnapshot);pendingUndoSnapshot=null;undoTimer=null;paintUndo()},450);paintUndo()}
  form.addEventListener('qr-editor-action-start',()=>{clearTimeout(undoTimer);if(pendingUndoSnapshot!==null){commitUndo(pendingUndoSnapshot);pendingUndoSnapshot=null}actionUndoSnapshot=JSON.stringify(capture())});
  form.addEventListener('qr-editor-action-end',()=>{const next=JSON.stringify(capture());if(actionUndoSnapshot&&next!==actionUndoSnapshot)commitUndo(actionUndoSnapshot);actionUndoSnapshot=null;lastUndoSnapshot=next;paintUndo()});
- undoButton.addEventListener('click',()=>{clearTimeout(undoTimer);if(pendingUndoSnapshot!==null){commitUndo(pendingUndoSnapshot);pendingUndoSnapshot=null}const previous=undoStack.pop();if(!previous)return;applyDesign(JSON.parse(previous));designs[type.value].orientations[activeOrientation]=capture();dirty.add(`${type.value}:${activeOrientation}`);status.textContent=`Undid the last change. Save to keep this ${activeOrientation} ${type.value} design.`;paintUndo()});
+ undoButton.addEventListener('click',()=>{clearTimeout(undoTimer);if(pendingUndoSnapshot!==null){commitUndo(pendingUndoSnapshot);pendingUndoSnapshot=null}const previous=undoStack.pop();if(!previous)return;applyDesign(JSON.parse(previous));designs[type.value].orientations[activeOrientation]=capture();dirty.add(`${type.value}:${activeOrientation}`);status.textContent=`Undid the last change. Save to keep this ${activeOrientation} ${designName()} design.`;paintUndo()});
  form.addEventListener('qr-editor-change',()=>update());
  window.initQrEditor(form, card);
 })();
