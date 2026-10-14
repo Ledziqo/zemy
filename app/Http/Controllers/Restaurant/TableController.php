@@ -112,12 +112,14 @@ class TableController extends Controller
         $rules['qr_logo'] = ['nullable', 'file', 'mimes:png,jpg,jpeg,webp,svg', 'max:4096'];
         $rules['remove_qr_logo'] = ['nullable', 'boolean'];
         $rules['apply_colors_to_all'] = ['nullable', 'boolean'];
+        $rules['sync_to_all'] = ['nullable', 'boolean'];
         $data = $request->validate($rules);
         $data['qr_background_color'] = $data['background_color'];
         // These controls are request-only; never store the UploadedFile or the
         // checkbox itself inside the JSON settings column.
         $applyColorsToAll = $request->boolean('apply_colors_to_all');
-        unset($data['qr_logo'], $data['remove_qr_logo'], $data['apply_colors_to_all']);
+        $syncToAll = $request->boolean('sync_to_all');
+        unset($data['qr_logo'], $data['remove_qr_logo'], $data['apply_colors_to_all'], $data['sync_to_all']);
         $restaurant = $this->restaurant($request);
         $settings = $restaurant->settings ?? [];
         $type = $restaurant->isMenuOnly() && $data['design_type'] === 'room' ? 'table' : $data['design_type'];
@@ -170,10 +172,28 @@ class TableController extends Controller
             'preferred_orientation' => $orientation,
             'orientations' => $orientationDesigns,
         ];
+        if ($syncToAll) {
+            // Share appearance while retaining each card's headline, destination,
+            // orientation and preferred print orientation.
+            $appearanceKeys = array_diff(array_keys($rules), [
+                'orientation', 'design_type', 'scan_text', 'qr_logo',
+                'remove_qr_logo', 'apply_colors_to_all', 'sync_to_all',
+            ]);
+            $appearanceKeys[] = 'qr_logo_path';
+            $appearance = array_intersect_key($orientationDesigns[$orientation], array_flip($appearanceKeys));
+            foreach (['table', 'room', 'information'] as $targetType) {
+                foreach (['portrait', 'landscape'] as $targetOrientation) {
+                    $target = $qrSticker['designs'][$targetType]['orientations'][$targetOrientation]
+                        ?? $designs[$targetType]['orientations'][$targetOrientation];
+                    $qrSticker['designs'][$targetType]['orientations'][$targetOrientation] = array_merge($target, $appearance);
+                }
+                $qrSticker['designs'][$targetType]['preferred_orientation'] ??= $designs[$targetType]['preferred_orientation'];
+            }
+        }
         $settings['qr_sticker'] = $qrSticker;
         $restaurant->update(['settings' => $settings]);
         QrSetupPackStore::invalidate((int) $restaurant->id);
-        return redirect()->route('restaurant.tables.index', $type === 'information' ? ['card' => 'information'] : [], 303)->with('success', 'QR design saved. Open the setup pack to print your updated cards.');
+        return redirect()->route('restaurant.tables.index', $type === 'information' ? ['card' => 'information'] : [], 303)->with('success', $syncToAll ? 'Design synced to all cards and both orientations.' : 'QR design saved. Open the setup pack to print your updated cards.');
     }
 
     public function setupPack(Request $request)
