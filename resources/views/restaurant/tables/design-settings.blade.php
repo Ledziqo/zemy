@@ -113,7 +113,7 @@
 <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;max-width:100%;"><select id="qr-preview-type" aria-label="Choose card type to edit">
 @if($restaurant->isMenuOnly())<option value="table">Menu card design & preview</option>
 @else<option value="table" @selected($designType === 'table')>Table card design & preview</option><option value="room" @selected($designType === 'room')>Room card design & preview</option>@endif
-<option value="information" @selected($designType === 'information')>Information card design & preview</option></select>
+@if($restaurant->informationBoardEnabled())<option value="information" @selected($designType === 'information')>Information card design & preview</option>@endif</select>
 <button type="submit" name="sync_to_all" value="1" class="qr-save" id="qr-sync-all">Sync to all</button></div>
 <p>Sync saves this appearance to every card in portrait and landscape. Each card keeps its own headline and QR destination.</p>
 @if($previewCards[$designType]['qr'])
@@ -141,7 +141,7 @@
  function activeDesign(){return designs[type.value].orientations[activeOrientation]}
  document.getElementById('qr-save-colors-all').addEventListener('click',()=>{
   const colors=Object.fromEntries(colorKeys.map(key=>[key,field(key).value]));
-  for(const allType of ['table','room','information'])for(const allOrientation of ['portrait','landscape'])Object.assign(designs[allType].orientations[allOrientation],colors);
+  for(const allType of [...type.options].map(option=>option.value))for(const allOrientation of ['portrait','landscape'])Object.assign(designs[allType].orientations[allOrientation],colors);
   field('apply_colors_to_all').value='1';
   status.textContent=menuOnly?'These colours will be saved across both menu layouts.':'These colours will be saved across all table and room layouts.';
   update();

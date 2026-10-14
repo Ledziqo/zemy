@@ -14,14 +14,17 @@ class SettingsController extends Controller
 {
     public function edit(Request $request)
     {
+        if ($request->boolean('information_board')) return app(InformationBoardController::class)->edit($request);
         return view('restaurant.settings.edit', ['restaurant' => $request->user()->restaurant]);
     }
 
     public function update(Request $request)
     {
+        if ($request->input('editor') === 'information_board') return app(InformationBoardController::class)->update($request);
         $restaurant = $request->user()->restaurant;
         $isOwnerManager = $request->session()->get('staff_profile_role') === 'owner_manager';
         $data = $request->validate([
+            'information_board_enabled' => ['nullable', 'boolean'],
             'name' => ['required', 'string', 'max:255'],
             'slug' => ['required', 'alpha_dash', 'max:255', 'unique:restaurants,slug,'.$restaurant->id],
             'phone' => ['nullable', 'string', 'max:50'],
@@ -57,6 +60,8 @@ class SettingsController extends Controller
         ]);
 
         $settings = $restaurant->settings ?? [];
+        $settings['information_board_enabled'] = $request->boolean('information_board_enabled');
+        unset($data['information_board_enabled']);
         // Hidden operational fields must survive menu-only branding edits and later upgrades.
         if ($restaurant->isMenuOnly()) {
             foreach (['service_charge_percentage', 'vat_percentage', 'payment_methods', 'telebirr_number',

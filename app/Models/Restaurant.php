@@ -10,6 +10,11 @@ class Restaurant extends Model
     public const BUSINESS_TYPES = ['restaurant', 'hotel', 'both'];
     public const SERVICE_MODES = ['full', 'menu_only'];
 
+    public function informationBoardEnabled(): bool
+    {
+        return (bool) ($this->settings['information_board_enabled'] ?? false);
+    }
+
     public function isMenuOnly(): bool
     {
         return ($this->settings['service_mode'] ?? 'full') === 'menu_only';

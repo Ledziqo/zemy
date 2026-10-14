@@ -14,6 +14,11 @@
 <form method="post" action="{{ route('restaurant.settings.update') }}" enctype="multipart/form-data" class="grid max-w-5xl gap-4 rounded-md border border-zem-border bg-zem-card p-5 md:grid-cols-2 xl:grid-cols-3">
     @csrf @method('PATCH')
     <div class="rounded-md border border-zem-border bg-zem-bg p-4 md:col-span-2 xl:col-span-3">
+        <input type="hidden" name="information_board_enabled" value="0">
+        <label class="flex items-center gap-3 font-bold"><input type="checkbox" name="information_board_enabled" value="1" @checked(old('information_board_enabled', $restaurant->informationBoardEnabled()))>Enable information board</label>
+        <p class="mt-2 text-sm text-zem-muted">Show the information board editor and guest guide QR cards. Save settings to apply.</p>
+    </div>
+    <div class="rounded-md border border-zem-border bg-zem-bg p-4 md:col-span-2 xl:col-span-3">
         <p class="text-sm font-bold text-zem-muted">{{ $restaurant->businessTypeLabel() }} logo shown on scanned menu</p>
         <div class="mt-3 flex flex-wrap items-center gap-4">
             @if($logoUrl)

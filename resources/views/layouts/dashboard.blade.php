@@ -57,6 +57,12 @@
             [__('Settings'), route('restaurant.settings.edit')],
         ];
     }
+    if (!$isAdmin && $staffRole === 'owner_manager' && $dashboardRestaurant?->informationBoardEnabled()) {
+        $qrIndex = collect($links)->search(fn ($link) => $link[1] === route('restaurant.tables.index'));
+        array_splice($links, $qrIndex === false ? count($links) : $qrIndex + 1, 0, [
+            [__('Information board'), route('restaurant.settings.edit', ['information_board' => 1])],
+        ]);
+    }
 @endphp
 <!doctype html>
 <html lang="{{ app()->getLocale() }}" dir="{{ app()->getLocale() === 'ar' ? 'rtl' : 'ltr' }}">
@@ -119,7 +125,7 @@
                 @if(($isAdmin && $loop->index === 4) || (!$isAdmin && $staffRole === 'owner_manager' && $loop->index === 4))
                     <p class="px-3 pb-2 pt-5 text-[11px] font-semibold uppercase tracking-widest text-zem-muted">{{ $isAdmin ? __('Billing & settings') : __('Manage your space') }}</p>
                 @endif
-                <a href="{{ $url }}" @if(url()->current() === $url) aria-current="page" @endif class="rounded-lg px-3 py-2 text-sm font-medium text-zem-muted transition hover:bg-zem-soft hover:text-zem-cream">{{ $label }}</a>
+                <a href="{{ $url }}" @if(str_contains($url, '?') ? request()->fullUrl() === $url : (url()->current() === $url && !request()->boolean('information_board'))) aria-current="page" @endif class="rounded-lg px-3 py-2 text-sm font-medium text-zem-muted transition hover:bg-zem-soft hover:text-zem-cream">{{ $label }}</a>
             @endforeach
         </nav>
         <div :class="navigationOpen ? 'block' : 'hidden'" class="hidden border-t border-zem-border p-4 lg:!block">

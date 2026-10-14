@@ -43,6 +43,7 @@ class MenuController extends Controller
                 'categories.menuItems' => fn ($query) => $query->orderBy('sort_order')->orderBy('id')])
             ->firstOrFail();
         if ($request->boolean('information')) {
+            abort_unless($restaurant->informationBoardEnabled(), 404);
             return response()->view('menu.information', ['restaurant' => $restaurant])->header('Cache-Control', 'no-store');
         }
         return response()->view('menu.catalog', [

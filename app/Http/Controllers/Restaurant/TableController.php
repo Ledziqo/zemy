@@ -22,6 +22,7 @@ class TableController extends Controller
     public function index(Request $request)
     {
         $restaurant = $this->restaurant($request);
+        if ($request->query('card') === 'information') abort_unless($restaurant->informationBoardEnabled(), 403);
         if ($restaurant->isMenuOnly() || $request->query('card') === 'information') {
             if ($request->query('download') === 'menu-qr') return $this->menuQr($request);
             $designs = $this->qrCardDesigns($restaurant);
@@ -52,8 +53,9 @@ class TableController extends Controller
                 'label' => $previewTable?->displayLabel() ?? ($type === 'room' ? 'Room 204' : 'Table 1'),
             ];
         }
-        $previewCards['information'] = $this->sharedPreviewCards($restaurant, $designs)['information'];
-        $designType = in_array(old('design_type', 'table'), ['table', 'room', 'information'], true) ? old('design_type', 'table') : 'table';
+        if ($restaurant->informationBoardEnabled()) $previewCards['information'] = $this->sharedPreviewCards($restaurant, $designs)['information'];
+        $allowedTypes = $restaurant->informationBoardEnabled() ? ['table', 'room', 'information'] : ['table', 'room'];
+        $designType = in_array(old('design_type', 'table'), $allowedTypes, true) ? old('design_type', 'table') : 'table';
         $designOrientation = old('orientation', $designs[$designType]['preferred_orientation']);
         $designOrientation = in_array($designOrientation, ['portrait', 'landscape'], true) ? $designOrientation : $designs[$designType]['preferred_orientation'];
         $sticker = $designs[$designType]['orientations'][$designOrientation];
@@ -72,6 +74,7 @@ class TableController extends Controller
     {
         $cards = [];
         foreach (['table', 'room', 'information'] as $type) {
+            if ($type === 'information' && !$restaurant->informationBoardEnabled()) continue;
             $sticker = $designs[$type]['orientations'][$designs[$type]['preferred_orientation']];
             $cards[$type] = ['qr' => 'data:image/svg+xml;base64,'.base64_encode($this->buildQr($restaurant, null, $sticker)), 'label' => ''];
         }
@@ -81,6 +84,7 @@ class TableController extends Controller
     public function menuQr(Request $request)
     {
         $restaurant = $this->restaurant($request);
+        if ($request->query('card') === 'information') abort_unless($restaurant->informationBoardEnabled(), 403);
         $designs = $this->qrCardDesigns($restaurant);
         $type = $request->query('card') === 'information' ? 'information' : 'table';
         $sticker = $designs[$type]['orientations'][$designs[$type]['preferred_orientation']];
@@ -123,6 +127,7 @@ class TableController extends Controller
         $restaurant = $this->restaurant($request);
         $settings = $restaurant->settings ?? [];
         $type = $restaurant->isMenuOnly() && $data['design_type'] === 'room' ? 'table' : $data['design_type'];
+        if ($type === 'information') abort_unless($restaurant->informationBoardEnabled(), 403);
         unset($data['design_type']);
         $orientation = $data['orientation'];
         $scanText = $data['scan_text'];
@@ -153,6 +158,7 @@ class TableController extends Controller
             $colorKeys = ['background_color', 'text_color', 'accent_color', 'border_color', 'qr_color', 'qr_background_color'];
             $colors = array_intersect_key($data, array_flip($colorKeys));
             foreach (['table', 'room', 'information'] as $allType) {
+                if ($allType === 'information' && !$restaurant->informationBoardEnabled()) continue;
                 $allDesign = $qrSticker['designs'][$allType] ?? [];
                 $allOrientations = $allDesign['orientations'] ?? [];
                 foreach (['portrait', 'landscape'] as $allOrientation) {
@@ -182,6 +188,7 @@ class TableController extends Controller
             $appearanceKeys[] = 'qr_logo_path';
             $appearance = array_intersect_key($orientationDesigns[$orientation], array_flip($appearanceKeys));
             foreach (['table', 'room', 'information'] as $targetType) {
+                if ($targetType === 'information' && !$restaurant->informationBoardEnabled()) continue;
                 foreach (['portrait', 'landscape'] as $targetOrientation) {
                     $target = $qrSticker['designs'][$targetType]['orientations'][$targetOrientation]
                         ?? $designs[$targetType]['orientations'][$targetOrientation];
