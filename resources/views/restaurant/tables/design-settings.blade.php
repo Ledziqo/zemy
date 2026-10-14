@@ -220,7 +220,9 @@
   window.setTimeout(()=>{pill.style.outline='';pill.style.outlineOffset='';},1800);
   status.textContent='ZemTab pill restored, selected, and brought into view. Save to keep its position.';
  });
- card?.addEventListener('pointerup',()=>update());
+ // Selecting a layer must not rewrite or refit the headline. Layer edits
+ // already update their values through the editor change/action events.
+ card?.addEventListener('pointerup',()=>{form.refreshQrEditor?.();});
  update(false);
  const undoButton=form.querySelector('#qr-layer-undo'),undoStack=[];
  let lastUndoSnapshot=JSON.stringify(capture()),pendingUndoSnapshot=null,undoTimer=null,actionUndoSnapshot=null;

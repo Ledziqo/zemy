@@ -99,8 +99,10 @@ window.fitSignatureTitles = function(root = document) {
     root.querySelectorAll('.signature-heading').forEach(heading => {
         const title = heading.querySelector('.signature-title');
         title.style.fontSize = '';
+        // Fit only actual horizontal text overflow. Translated/scaled editor
+        // layers can extend the heading scroll area without needing smaller text.
         let size = parseFloat(getComputedStyle(title).fontSize);
-        while (heading.scrollHeight > heading.clientHeight + 1 && size > 12) {
+        while (title.scrollWidth > title.clientWidth + 1 && size > 12) {
             size -= .5;
             title.style.fontSize = size + 'px';
         }
