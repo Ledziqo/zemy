@@ -14,6 +14,11 @@ class PublicMenuCache
             : route('menu.show', [$restaurant->slug, '__zemtab_menu__']);
     }
 
+    public static function informationUrl(Restaurant $restaurant): string
+    {
+        return self::catalogUrl($restaurant).'?information=1';
+    }
+
     public static function bump(Restaurant $restaurant): void
     {
         Cache::store('file')->forget(self::payloadKey($restaurant->slug));

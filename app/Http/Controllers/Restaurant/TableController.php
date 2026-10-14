@@ -22,11 +22,12 @@ class TableController extends Controller
     public function index(Request $request)
     {
         $restaurant = $this->restaurant($request);
-        if ($restaurant->isMenuOnly()) {
+        if ($restaurant->isMenuOnly() || $request->query('card') === 'information') {
             if ($request->query('download') === 'menu-qr') return $this->menuQr($request);
             $designs = $this->qrCardDesigns($restaurant);
-            $orientation = $designs['table']['preferred_orientation'];
-            $sticker = $designs['table']['orientations'][$orientation];
+            $type = $request->query('card') === 'information' ? 'information' : 'table';
+            $orientation = $designs[$type]['preferred_orientation'];
+            $sticker = $designs[$type]['orientations'][$orientation];
             $qrImage = 'data:image/svg+xml;base64,'.base64_encode($this->buildQr($restaurant, null, $sticker));
             return view($request->query('print') === 'menu-card' ? 'restaurant.tables.menu-print' : 'restaurant.tables.menu-only', [
                 'restaurant' => $restaurant,
@@ -34,9 +35,9 @@ class TableController extends Controller
                 'qrImage' => $qrImage,
                 'sticker' => $sticker,
                 'qrCardDesigns' => $designs,
-                'designType' => 'table',
+                'designType' => $type,
                 'designOrientation' => $orientation,
-                'previewCards' => ['table' => ['qr' => $qrImage, 'label' => ''], 'room' => ['qr' => $qrImage, 'label' => '']],
+                'previewCards' => $this->sharedPreviewCards($restaurant, $designs),
             ]);
         }
         $tables = $restaurant->tables()->orderByRaw('CAST(table_number AS UNSIGNED)')->paginate(50);
@@ -51,7 +52,8 @@ class TableController extends Controller
                 'label' => $previewTable?->displayLabel() ?? ($type === 'room' ? 'Room 204' : 'Table 1'),
             ];
         }
-        $designType = in_array(old('design_type', 'table'), ['table', 'room'], true) ? old('design_type', 'table') : 'table';
+        $previewCards['information'] = $this->sharedPreviewCards($restaurant, $designs)['information'];
+        $designType = in_array(old('design_type', 'table'), ['table', 'room', 'information'], true) ? old('design_type', 'table') : 'table';
         $designOrientation = old('orientation', $designs[$designType]['preferred_orientation']);
         $designOrientation = in_array($designOrientation, ['portrait', 'landscape'], true) ? $designOrientation : $designs[$designType]['preferred_orientation'];
         $sticker = $designs[$designType]['orientations'][$designOrientation];
@@ -66,11 +68,22 @@ class TableController extends Controller
         ]);
     }
 
+    private function sharedPreviewCards($restaurant, array $designs): array
+    {
+        $cards = [];
+        foreach (['table', 'room', 'information'] as $type) {
+            $sticker = $designs[$type]['orientations'][$designs[$type]['preferred_orientation']];
+            $cards[$type] = ['qr' => 'data:image/svg+xml;base64,'.base64_encode($this->buildQr($restaurant, null, $sticker)), 'label' => ''];
+        }
+        return $cards;
+    }
+
     public function menuQr(Request $request)
     {
         $restaurant = $this->restaurant($request);
         $designs = $this->qrCardDesigns($restaurant);
-        $sticker = $designs['table']['orientations'][$designs['table']['preferred_orientation']];
+        $type = $request->query('card') === 'information' ? 'information' : 'table';
+        $sticker = $designs[$type]['orientations'][$designs[$type]['preferred_orientation']];
         return response($this->buildQr($restaurant, null, $sticker))
             ->header('Content-Type', 'image/svg+xml')
             ->header('Content-Disposition', 'attachment; filename="zemtab-'.$restaurant->slug.'-menu.svg"');
@@ -87,7 +100,7 @@ class TableController extends Controller
         foreach (['logo_size' => [1, 200], 'logo_width' => [1, 200], 'logo_x' => [-200, 300], 'logo_y' => [-200, 400], 'heading_x' => [-300, 300], 'heading_y' => [-300, 400], 'kicker_x' => [-300, 300], 'kicker_y' => [-300, 400], 'title_x' => [-300, 300], 'title_y' => [-300, 400], 'location_x' => [-300, 300], 'location_y' => [-300, 400], 'scan_x' => [-300, 300], 'scan_y' => [-300, 400], 'frame_x' => [-300, 300], 'frame_y' => [-300, 400], 'hint_x' => [-300, 300], 'hint_y' => [-300, 400], 'footer_x' => [-300, 300], 'footer_y' => [-300, 400], 'text_size' => [14, 22], 'qr_size' => [38, 50], 'detail_size' => [6, 9], 'footer_size' => [50, 200], 'art_opacity' => [10, 100]] as $key => [$min, $max]) {
             $rules[$key] = ['required', 'integer', "between:$min,$max"];
         }
-        $rules['design_type'] = ['required', 'in:table,room'];
+        $rules['design_type'] = ['required', 'in:table,room,information'];
         $rules['scan_text'] = ['required', 'string', 'max:40'];
         $rules['elements'] = ['sometimes', 'array'];
         foreach (['logo','cross','line_left','line_right','kicker_text','title','location','frame','hint','footer','credit','zemtab','art'] as $element) {
@@ -107,7 +120,7 @@ class TableController extends Controller
         unset($data['qr_logo'], $data['remove_qr_logo'], $data['apply_colors_to_all']);
         $restaurant = $this->restaurant($request);
         $settings = $restaurant->settings ?? [];
-        $type = $restaurant->isMenuOnly() ? 'table' : $data['design_type'];
+        $type = $restaurant->isMenuOnly() && $data['design_type'] === 'room' ? 'table' : $data['design_type'];
         unset($data['design_type']);
         $orientation = $data['orientation'];
         $scanText = $data['scan_text'];
@@ -137,7 +150,7 @@ class TableController extends Controller
         if ($applyColorsToAll) {
             $colorKeys = ['background_color', 'text_color', 'accent_color', 'border_color', 'qr_color', 'qr_background_color'];
             $colors = array_intersect_key($data, array_flip($colorKeys));
-            foreach (['table', 'room'] as $allType) {
+            foreach (['table', 'room', 'information'] as $allType) {
                 $allDesign = $qrSticker['designs'][$allType] ?? [];
                 $allOrientations = $allDesign['orientations'] ?? [];
                 foreach (['portrait', 'landscape'] as $allOrientation) {
@@ -160,7 +173,7 @@ class TableController extends Controller
         $settings['qr_sticker'] = $qrSticker;
         $restaurant->update(['settings' => $settings]);
         QrSetupPackStore::invalidate((int) $restaurant->id);
-        return redirect()->route('restaurant.tables.index', [], 303)->with('success', 'QR design saved. Open the setup pack to print your updated cards.');
+        return redirect()->route('restaurant.tables.index', $type === 'information' ? ['card' => 'information'] : [], 303)->with('success', 'QR design saved. Open the setup pack to print your updated cards.');
     }
 
     public function setupPack(Request $request)
@@ -353,7 +366,7 @@ class TableController extends Controller
 
         $result = (new Builder(
             writer: new SvgWriter(),
-            data: $table ? route('menu.show', [$restaurant->slug, $table->table_number]) : PublicMenuCache::catalogUrl($restaurant),
+            data: ($sticker['card_purpose'] ?? null) === 'information' ? PublicMenuCache::informationUrl($restaurant) : ($table ? route('menu.show', [$restaurant->slug, $table->table_number]) : PublicMenuCache::catalogUrl($restaurant)),
             errorCorrectionLevel: ErrorCorrectionLevel::High,
             size: 500,
             margin: 20,
@@ -466,7 +479,7 @@ class TableController extends Controller
                 : asset('storage/'.$restaurantLogoPath))
             : null;
         $designs = [];
-        foreach (['table', 'room'] as $type) {
+        foreach (['table', 'room', 'information'] as $type) {
             $typeDesign = $storedDesigns[$type] ?? [];
             $orientationDesigns = $typeDesign['orientations'] ?? [];
             if (! array_key_exists('orientations', $typeDesign)) {
@@ -498,6 +511,8 @@ class TableController extends Controller
                 $design['qr_background_color'] = $design['background_color'];
                 $design['table_scan_text'] = $design['table_scan_text'] ?? $defaults['table_scan_text'];
                 $design['room_scan_text'] = $design['room_scan_text'] ?? $defaults['room_scan_text'];
+                $design['information_scan_text'] = $design['information_scan_text'] ?? 'SCAN FOR INFORMATION';
+                $design['card_purpose'] = $type;
                 $design['scan_text'] = $design[$type.'_scan_text'];
                 $storedOrientation = $orientationDesigns[$orientation] ?? [];
                 $hasExplicitQrLogo = array_key_exists('qr_logo_path', $storedOrientation)

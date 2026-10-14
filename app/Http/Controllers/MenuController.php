@@ -42,6 +42,9 @@ class MenuController extends Controller
             ->with(['categories' => fn ($query) => $query->where('is_active', true),
                 'categories.menuItems' => fn ($query) => $query->orderBy('sort_order')->orderBy('id')])
             ->firstOrFail();
+        if ($request->boolean('information')) {
+            return response()->view('menu.information', ['restaurant' => $restaurant])->header('Cache-Control', 'no-store');
+        }
         return response()->view('menu.catalog', [
             'restaurant' => $restaurant, 'table' => null, 'categories' => $restaurant->categories,
         ])->header('Cache-Control', 'private, no-cache, must-revalidate')

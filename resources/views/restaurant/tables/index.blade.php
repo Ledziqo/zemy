@@ -15,6 +15,7 @@
 </section>
 @endif
 @include('restaurant.tables.design-settings')
+<p class="mb-6"><a href="{{ route('restaurant.tables.index', ['card' => 'information']) }}" class="font-bold text-zem-gold">Information QR studio / Print card</a></p>
 <div class="mb-6 flex flex-wrap items-center justify-between gap-3">
     <h2 class="font-display text-lg font-bold">{{ __('Add table or room QR') }}</h2>
     <button type="button" id="open-qr-pack-options" class="rounded-md bg-zem-gold px-4 py-2 text-sm font-bold text-white">{{ __('Print setup pack') }}</button>
