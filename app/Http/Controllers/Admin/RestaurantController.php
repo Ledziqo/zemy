@@ -104,7 +104,6 @@ class RestaurantController extends Controller
         }
 
         $previousKitchenMode = $restaurant->kitchenScreenEnabled();
-        $wasMenuOnly = $restaurant->isMenuOnly();
         $restaurant->update($data);
         PublicMenuCache::bump($restaurant);
         PublicSitemapCache::forget();
@@ -135,8 +134,6 @@ class RestaurantController extends Controller
                 $owner->update(['password' => $ownerPassword]);
             }
         }
-
-        if ($wasMenuOnly && ! $restaurant->isMenuOnly()) $this->ensureOwnerProfile($restaurant);
 
         if (array_key_exists('kitchen_screen_enabled', $data) && $previousKitchenMode !== (bool) $data['kitchen_screen_enabled']) {
             $this->syncKitchenProfiles($restaurant, (bool) $data['kitchen_screen_enabled']);
@@ -268,16 +265,6 @@ class RestaurantController extends Controller
         }
         $data['settings'] = $settings;
         return $data;
-    }
-
-    private function ensureOwnerProfile(Restaurant $restaurant): void
-    {
-        if ($restaurant->staffProfiles()->where('role', 'owner_manager')->where('is_active', true)->exists()) return;
-        $owner = $this->ownerLogin($restaurant);
-        if ($owner) $restaurant->staffProfiles()->create([
-            'name' => 'Owner/Manager', 'role' => 'owner_manager',
-            'password' => $owner->password, 'is_active' => true,
-        ]);
     }
 
     private function subscriptionData(array $data): array

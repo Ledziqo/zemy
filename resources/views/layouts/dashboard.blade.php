@@ -124,7 +124,7 @@
         </nav>
         <div :class="navigationOpen ? 'block' : 'hidden'" class="hidden border-t border-zem-border p-4 lg:!block">
             @unless($isAdmin)
-                @unless($dashboardRestaurant?->isMenuOnly())<a href="{{ route('restaurant.profile-select') }}" class="mb-2 block rounded-lg px-3 py-2 text-sm font-semibold text-zem-muted hover:bg-zem-soft">{{ __('Switch profile') }}</a>@endunless
+                @unless($dashboardRestaurant?->isMenuOnly() || session('account_login_without_profile'))<a href="{{ route('restaurant.profile-select') }}" class="mb-2 block rounded-lg px-3 py-2 text-sm font-semibold text-zem-muted hover:bg-zem-soft">{{ __('Switch profile') }}</a>@endunless
             @endunless
             <form method="post" action="{{ route('logout') }}">@csrf<button class="w-full rounded-lg px-3 py-2 text-left text-sm text-zem-muted hover:bg-zem-soft">{{ __('Logout') }}</button></form>
         </div>

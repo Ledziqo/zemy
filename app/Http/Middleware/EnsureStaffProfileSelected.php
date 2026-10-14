@@ -12,17 +12,19 @@ class EnsureStaffProfileSelected
     public function handle(Request $request, Closure $next): Response
     {
         $restaurant = $request->user()?->restaurant;
-        // Menu-only owners manage content using their account login; no workboard profile is needed.
-        if ($restaurant?->isMenuOnly() && $request->user()->role === 'restaurant_owner') {
-            $request->session()->put('staff_profile_role', 'owner_manager');
-            $request->session()->put('staff_profile_name', $request->user()->name);
-            return $next($request);
+        $accountLogin = $restaurant && ! $restaurant->requiresStaffProfile($request->user());
+        if ($accountLogin) {
+            $request->session()->forget('staff_profile_id');
         }
-        $profile = $restaurant && $request->session()->has('staff_profile_id')
+        $request->session()->put('account_login_without_profile', $accountLogin);
+        $profile = $accountLogin
+            ? new StaffProfile(['name' => $request->user()->name,
+                'role' => $request->user()->role === 'restaurant_owner' ? 'owner_manager' : 'cashier'])
+            : ($restaurant && $request->session()->has('staff_profile_id')
             ? StaffProfile::where('restaurant_id', $restaurant->id)
                 ->where('is_active', true)
                 ->find($request->session()->get('staff_profile_id'))
-            : null;
+            : null);
 
         if (! $profile || ! in_array($profile->role, StaffProfile::ROLES, true)
             || ($restaurant->isMenuOnly() && $profile->role !== 'owner_manager')

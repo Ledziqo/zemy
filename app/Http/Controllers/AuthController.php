@@ -26,11 +26,14 @@ class AuthController extends Controller
         }
 
         $request->session()->regenerate();
-        $request->session()->forget(['staff_profile_id', 'staff_profile_role', 'staff_profile_name']);
+        $request->session()->forget(['staff_profile_id', 'staff_profile_role', 'staff_profile_name', 'account_login_without_profile']);
 
-        return match (Auth::user()->role) {
+        $user = Auth::user();
+        $restaurant = $user->restaurant;
+        return match ($user->role) {
             'admin' => redirect()->route('admin.dashboard'),
-            default => redirect()->route('restaurant.profile-select'),
+            default => redirect()->route($restaurant && ! $restaurant->requiresStaffProfile($user)
+                ? 'restaurant.dashboard' : 'restaurant.profile-select'),
         };
     }
 
@@ -39,8 +42,8 @@ class AuthController extends Controller
         $restaurant = $request->user()->restaurant;
         abort_unless($restaurant, 403);
 
-        if ($restaurant->isMenuOnly() && $request->user()->role === 'restaurant_owner') {
-            return redirect()->route('restaurant.menu-items.index');
+        if (! $restaurant->requiresStaffProfile($request->user())) {
+            return redirect()->route('restaurant.dashboard');
         }
 
         $profiles = $restaurant->staffProfiles()

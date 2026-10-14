@@ -20,6 +20,14 @@ class Restaurant extends Model
         return (bool) ($this->settings['menu_photos_enabled'] ?? true);
     }
 
+    public function requiresStaffProfile(User $user): bool
+    {
+        if ($this->isMenuOnly() && $user->role === 'restaurant_owner') return false;
+
+        // Disabled profiles still require profile authentication; disabling them must not grant account access.
+        return $this->staffProfiles()->exists();
+    }
+
     protected $fillable = [
         'name', 'slug', 'business_type', 'phone', 'email', 'location', 'logo_path', 'cover_image_path',
         'primary_color', 'is_active', 'dashboard_access_status', 'kitchen_screen_enabled', 'settings', 'menu_cache_version',

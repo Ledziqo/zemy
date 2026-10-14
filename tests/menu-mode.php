@@ -81,41 +81,12 @@ $restaurant->settings = $data['settings'];
 $options = view('admin.restaurants.menu-options', ['account' => $restaurant])->render();
 $check((bool) preg_match('/value="menu_only"\s+selected/', $options) && (bool) preg_match('/value="0"\s+selected/', $options), 'Edit account renders saved mode and photo choices');
 
-$profileVenue = new class extends Restaurant {
-    public object $profileQuery;
-    public App\Models\User $owner;
-    public function staffProfiles() { return $this->profileQuery; }
-    public function users() { return new class($this->owner) {
-        public function __construct(public App\Models\User $owner) {}
-        public function orderByRaw(...$args): self { return $this; }
-        public function orderBy(...$args): self { return $this; }
-        public function first(): App\Models\User { return $this->owner; }
-    }; }
-};
-$profileVenue->owner = new App\Models\User(['password' => 'latest-owner-password']);
-$profileVenue->profileQuery = new class {
-    public bool $exists = false;
-    public array $created = [];
-    public function where(...$args): self { return $this; }
-    public function exists(): bool { return $this->exists; }
-    public function create(array $data): App\Models\StaffProfile {
-        $profile = new App\Models\StaffProfile($data);
-        $this->created[] = $profile;
-        $this->exists = true;
-        return $profile;
-    }
-};
-$ensureProfile = new ReflectionMethod(App\Http\Controllers\Admin\RestaurantController::class, 'ensureOwnerProfile');
-$ensureProfile->invoke(new App\Http\Controllers\Admin\RestaurantController(), $profileVenue);
-$check(password_verify('latest-owner-password', $profileVenue->profileQuery->created[0]->password), 'Upgrade creates owner profile using current account password without rehashing the hash');
-$ensureProfile->invoke(new App\Http\Controllers\Admin\RestaurantController(), $profileVenue);
-$check(count($profileVenue->profileQuery->created) === 1, 'Repeated upgrades preserve existing active owner profiles');
-
 $venue = new class {
     public bool $menuOnly = true;
     public bool $is_active = true;
     public string $dashboard_access_status = 'active';
     public function isMenuOnly(): bool { return $this->menuOnly; }
+    public function requiresStaffProfile($user): bool { return false; }
     public function subscriptions(): object {
         return new class {
             public function latest(...$args): self { return $this; }
