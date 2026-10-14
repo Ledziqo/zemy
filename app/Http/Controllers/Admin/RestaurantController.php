@@ -55,7 +55,12 @@ class RestaurantController extends Controller
 
             $subscriptionData = $this->subscriptionData($data);
             if ($subscriptionData !== []) {
-                $restaurant->subscriptions()->create($subscriptionData);
+                $restaurant->subscriptions()->create([
+                    ...$subscriptionData,
+                    'plan_name' => $restaurant->isMenuOnly() ? 'Digital Menu' : 'Pro',
+                    'status' => 'trial',
+                    'starts_at' => $subscriptionData['starts_at'] ?? now()->toDateString(),
+                ]);
             }
 
             if ($ownerPassword && $restaurant->email) {
