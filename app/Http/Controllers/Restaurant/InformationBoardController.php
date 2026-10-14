@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Restaurant;
 use App\Http\Controllers\Controller;
 use App\Models\Restaurant;
 use App\Support\PublicMenuCache;
+use App\Support\ImageOptimizer;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 
@@ -28,12 +29,16 @@ class InformationBoardController extends Controller
         $restaurant = $request->user()->restaurant;
         abort_unless($restaurant->informationBoardEnabled(), 403);
         $data = $request->validate([
+            'logo' => ['nullable', 'image', 'mimes:png,jpg,jpeg,webp', 'max:4096'],
+            'logo_width' => ['required', 'integer', 'between:80,400'],
             'title' => ['required', 'string', 'max:120'],
             'sections' => ['required', 'array', 'min:1', 'max:100'],
             'sections.*' => ['required', 'array:title,body'],
             'sections.*.title' => ['required', 'string', 'max:200'],
             'sections.*.body' => ['required', 'string', 'max:20000'],
         ]);
+        unset($data['logo']);
+        if ($request->hasFile('logo')) $data['logo_path'] = ImageOptimizer::storeUpload($request->file('logo'), 'information-logos', 2000, 95);
         DB::transaction(function () use ($restaurant, $data) {
             $locked = Restaurant::whereKey($restaurant->id)->lockForUpdate()->firstOrFail();
             abort_unless($locked->informationBoardEnabled(), 403);
