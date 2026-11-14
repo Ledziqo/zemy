@@ -30,6 +30,7 @@
         <div class="qr-pack-options">
             <fieldset>
                 <legend>Table & lobby cards</legend>
+<div style="width:228px;height:228px;overflow:hidden;background:white;border-radius:8px;margin:12px auto;"><iframe data-pack-preview="table" title="Table card preview" style="width:600px;height:600px;border:0;transform:scale(.38);transform-origin:top left;pointer-events:none;" tabindex="-1"></iframe></div>
                 <label for="table-pack-orientation">Orientation</label>
                 <select id="table-pack-orientation" name="table_orientation"><option value="portrait" @selected($tablePackOrientation === 'portrait')>Portrait</option><option value="landscape" @selected($tablePackOrientation === 'landscape')>Landscape</option></select>
                 <label for="table-pack-size">Card size</label>
@@ -38,6 +39,7 @@
             </fieldset>
             <fieldset>
                 <legend>Hotel room cards</legend>
+<div style="width:228px;height:228px;overflow:hidden;background:white;border-radius:8px;margin:12px auto;"><iframe data-pack-preview="room" title="Room card preview" style="width:600px;height:600px;border:0;transform:scale(.38);transform-origin:top left;pointer-events:none;" tabindex="-1"></iframe></div>
                 <label for="room-pack-orientation">Orientation</label>
                 <select id="room-pack-orientation" name="room_orientation"><option value="portrait" @selected($roomPackOrientation === 'portrait')>Portrait</option><option value="landscape" @selected($roomPackOrientation === 'landscape')>Landscape</option></select>
                 <label for="room-pack-size">Card size</label>
@@ -49,7 +51,9 @@
     </form>
 </dialog>
 <script>
-(()=>{const dialog=document.getElementById('qr-pack-options');document.getElementById('open-qr-pack-options').addEventListener('click',()=>dialog.showModal());document.getElementById('close-qr-pack-options').addEventListener('click',()=>dialog.close());document.getElementById('qr-pack-options-form').addEventListener('submit',()=>dialog.close());})();
+(()=>{const dialog=document.getElementById('qr-pack-options'),form=document.getElementById('qr-pack-options-form');
+function refreshPreviews(){for(const type of ['table','room']){const url=new URL(@json(route('restaurant.tables.index')));url.searchParams.set('preview_card',type);url.searchParams.set('preview','1');url.searchParams.set('orientation',document.getElementById(type+'-pack-orientation').value);url.searchParams.set('size',document.getElementById(type+'-pack-size').value);const frame=form.querySelector('[data-pack-preview="'+type+'"]');if(frame.getAttribute('src')!==url.href)frame.src=url.href;}}
+document.getElementById('open-qr-pack-options').addEventListener('click',()=>{dialog.showModal();refreshPreviews();});document.getElementById('close-qr-pack-options').addEventListener('click',()=>dialog.close());form.addEventListener('change',refreshPreviews);form.addEventListener('submit',()=>dialog.close());})();
 </script>
 <form method="post" action="{{ route('restaurant.tables.store') }}" class="mb-6 grid gap-3 rounded-md border border-zem-border bg-zem-card p-4 md:grid-cols-[1fr_1fr_1fr_auto_auto]">
     @csrf

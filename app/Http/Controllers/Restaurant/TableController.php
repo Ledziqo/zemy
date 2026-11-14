@@ -22,6 +22,23 @@ class TableController extends Controller
     public function index(Request $request)
     {
         $restaurant = $this->restaurant($request);
+        if ($request->has('preview_card') && !$restaurant->isMenuOnly()) {
+            $options = $request->validate([
+                'preview_card' => ['required', 'in:table,room'],
+                'orientation' => ['required', 'in:portrait,landscape'],
+                'size' => ['required', 'in:small,medium,large'],
+            ]);
+            $type = $options['preview_card'];
+            $table = $restaurant->tables()->where('is_active', true)->get()->first(
+                fn (RestaurantTable $table) => $type === 'room' ? $table->isRoomServicePoint() : !$table->isRoomServicePoint()
+            );
+            if (!$table) return response('Add an active '.($type === 'room' ? 'room' : 'table').' to preview its card.');
+            $table->setRelation('restaurant', $restaurant);
+            $sticker = $this->qrCardDesigns($restaurant)[$type]['orientations'][$options['orientation']];
+            $sticker['card_size'] = $options['size'];
+            $printCards = [['sticker' => $sticker, 'qrImage' => 'data:image/svg+xml;base64,'.base64_encode($this->buildQr($restaurant, $table, $sticker)), 'locationLabel' => $table->displayLabel()]];
+            return view('restaurant.tables.menu-print', compact('restaurant', 'printCards'));
+        }
         if ($request->query('card') === 'information') abort_unless($restaurant->informationBoardEnabled(), 403);
         if ($restaurant->isMenuOnly() || $request->query('card') === 'information') {
             if ($request->query('download') === 'menu-qr') return $this->menuQr($request);

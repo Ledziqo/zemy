@@ -9,10 +9,11 @@ body { margin: 0; font-family: Arial, sans-serif; }
 .print-actions button { padding: 12px 20px; cursor: pointer; }
 @media print { .print-actions { display: none; } * { print-color-adjust: exact; -webkit-print-color-adjust: exact; } }
 </style></head><body>
-<div class="print-actions"><button onclick="window.print()">Print / Save PDF</button><p>Print at 100% scale with background graphics enabled.</p></div>
+@unless(request()->boolean('preview'))<div class="print-actions"><button onclick="window.print()">Print / Save PDF</button><p>Print at 100% scale with background graphics enabled.</p></div>@endunless
 @foreach($printCards as $printCard)
-<div class="print-card">@include('restaurant.tables.card', ['sticker' => $printCard['sticker'], 'qrImage' => $printCard['qrImage'], 'scanText' => $printCard['sticker']['scan_text'], 'locationLabel' => null])</div>
+<div class="print-card">@include('restaurant.tables.card', ['sticker' => $printCard['sticker'], 'qrImage' => $printCard['qrImage'], 'scanText' => $printCard['sticker']['scan_text'], 'locationLabel' => $printCard['locationLabel'] ?? null])</div>
 @endforeach
+@unless(request()->boolean('preview'))
 <script>
 window.addEventListener('load',async()=>{
  await Promise.all([...document.images].map(img=>img.decode?.().catch(()=>{})));
@@ -21,4 +22,5 @@ window.addEventListener('load',async()=>{
  requestAnimationFrame(()=>requestAnimationFrame(()=>window.print()));
 });
 </script>
+@endunless
 </body></html>
