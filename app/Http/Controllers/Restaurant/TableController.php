@@ -25,6 +25,31 @@ class TableController extends Controller
         if ($request->query('card') === 'information') abort_unless($restaurant->informationBoardEnabled(), 403);
         if ($restaurant->isMenuOnly() || $request->query('card') === 'information') {
             if ($request->query('download') === 'menu-qr') return $this->menuQr($request);
+            if ($request->query('print') === 'menu-card') {
+                $options = $request->validate([
+                    'print_card' => ['sometimes', 'in:menu,information,both'],
+                    'menu_orientation' => ['sometimes', 'in:portrait,landscape'],
+                    'menu_size' => ['sometimes', 'in:small,medium,large'],
+                    'information_orientation' => ['sometimes', 'in:portrait,landscape'],
+                    'information_size' => ['sometimes', 'in:small,medium,large'],
+                ]);
+                $choice = $options['print_card'] ?? ($request->query('card') === 'information' ? 'information' : 'menu');
+                if (in_array($choice, ['information', 'both'], true)) abort_unless($restaurant->informationBoardEnabled(), 403);
+                abort_unless($restaurant->isMenuOnly() || $choice === 'information', 403);
+                $designs = $this->qrCardDesigns($restaurant);
+                $printCards = [];
+                foreach ($choice === 'both' ? ['menu', 'information'] : [$choice] as $purpose) {
+                    $type = $purpose === 'information' ? 'information' : 'table';
+                    $orientation = $options[$purpose.'_orientation'] ?? $designs[$type]['preferred_orientation'];
+                    $sticker = $designs[$type]['orientations'][$orientation];
+                    $sticker['card_size'] = $options[$purpose.'_size'] ?? $sticker['card_size'];
+                    $printCards[] = [
+                        'sticker' => $sticker,
+                        'qrImage' => 'data:image/svg+xml;base64,'.base64_encode($this->buildQr($restaurant, null, $sticker)),
+                    ];
+                }
+                return view('restaurant.tables.menu-print', compact('restaurant', 'printCards'));
+            }
             $designs = $this->qrCardDesigns($restaurant);
             $type = $request->query('card') === 'information' ? 'information' : 'table';
             $orientation = $designs[$type]['preferred_orientation'];
