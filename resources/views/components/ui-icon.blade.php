@@ -1,6 +1,9 @@
 @props(['name' => 'overview'])
 @php
     $paths = [
+        'bell' => 'M18 8a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9 M10 21h4',
+        'receipt' => 'M5 3h14v18l-3-2-4 2-4-2-3 2z M9 8h6 M9 12h4',
+        'wallet' => 'M3 7h18v14H3z M3 7V4h15v3 M21 12h-6v5h6 M17 14.5h1',
         'overview' => 'M3 3h7v7H3z M14 3h7v7h-7z M3 14h7v7H3z M14 14h7v7h-7z',
         'menu' => 'M4 3v6a3 3 0 0 0 6 0V3 M7 3v18 M17 3v18 M17 3c5 3 5 9 0 9',
         'categories' => 'M3 5h7l2 3h9v12H3z',

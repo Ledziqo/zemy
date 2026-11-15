@@ -23,8 +23,8 @@
         <label class="text-xs font-semibold text-zem-muted">Subscription starts
             <input name="subscription_starts_at" type="date" class="mt-1 block w-full rounded-md border border-zem-border bg-zem-bg px-3 py-2 text-sm text-zem-cream">
         </label>
-        <label class="text-xs font-semibold text-zem-muted">Subscription ends
-            <input name="subscription_ends_at" type="date" class="mt-1 block w-full rounded-md border border-zem-border bg-zem-bg px-3 py-2 text-sm text-zem-cream">
+        <label class="text-xs font-semibold text-zem-muted">Next payment due (1st)
+            <input title="Dates are aligned forward to the 1st. Grace: 1st–7th; locked on the 8th if unpaid." name="subscription_ends_at" type="date" class="mt-1 block w-full rounded-md border border-zem-border bg-zem-bg px-3 py-2 text-sm text-zem-cream">
         </label>
         <input name="monthly_price" type="number" step="0.01" placeholder="Monthly price (ETB)" class="rounded-md border border-zem-border bg-zem-bg px-3 py-2">
         <label class="flex items-center gap-2"><input name="is_active" type="checkbox" value="1" checked class="accent-zem-gold"> Public account active</label>
@@ -38,13 +38,13 @@
 
 <div class="grid gap-3">
     @foreach($restaurants as $restaurant)
-        @php($subscription = $restaurant->subscriptions->sortByDesc('created_at')->first())
+        @php($subscription = $restaurant->subscriptions->sortBy([['starts_at', 'desc'], ['id', 'desc']])->first())
         @php($owner = $restaurant->users->firstWhere('role', 'restaurant_owner') ?? $restaurant->users->first())
-        @php($subStatusColors = ['active' => 'bg-green-100 text-green-700 border-green-300', 'unpaid' => 'bg-red-100 text-red-700 border-red-300', 'trial' => 'bg-zem-gold/20 text-zem-gold border-zem-gold/40', 'cancelled' => 'bg-gray-100 text-gray-600 border-gray-300', 'expired' => 'bg-red-100 text-red-700 border-red-300'])
+        @php($subStatusColors = ['active' => 'bg-green-100 text-green-700 border-green-300', 'unpaid' => 'bg-red-100 text-red-700 border-red-300', 'trial' => 'bg-zem-gold/20 text-zem-gold border-zem-gold/40', 'cancelled' => 'bg-gray-100 text-gray-600 border-gray-300', 'payment_due' => 'bg-zem-gold/20 text-zem-gold border-zem-gold/40', 'expired' => 'bg-red-100 text-red-700 border-red-300'])
         @php($accessStatusColors = ['active' => 'bg-green-100 text-green-700 border-green-300', 'payment_required' => 'bg-zem-gold/20 text-zem-gold border-zem-gold/40', 'revoked' => 'bg-red-100 text-red-700 border-red-300'])
-        @php($daysRemaining = $subscription?->ends_at ? now()->startOfDay()->diffInDays($subscription->ends_at, false) : null)
+        @php($daysRemaining = $subscription?->daysRemaining())
         @php($dashboardStatus = $restaurant->dashboard_access_status ?? 'active')
-        @php($effectiveDashboardStatus = $dashboardStatus === 'active' && (($daysRemaining !== null && $daysRemaining < 0) || $subscription?->status === 'unpaid') ? 'payment_required' : $dashboardStatus)
+        @php($effectiveDashboardStatus = $restaurant->serviceAccessAllowed($subscription) ? 'active' : ($dashboardStatus === 'revoked' ? 'revoked' : (!$restaurant->is_active ? 'inactive' : 'payment_required')))
         <article class="rounded-md border border-zem-border bg-zem-card p-4">
             <div class="flex flex-wrap items-start justify-between gap-3">
                 <div>
@@ -53,10 +53,13 @@
                         <span class="rounded-full border border-zem-border bg-zem-soft px-3 py-1 text-xs font-bold text-zem-cream">{{ $restaurant->businessTypeLabel() }}</span>
                         <span class="rounded-full border border-zem-border bg-zem-soft px-3 py-1 text-xs font-bold">{{ $restaurant->isMenuOnly() ? 'Digital menu only' : 'Full ordering system' }} · {{ $restaurant->menuPhotosEnabled() ? 'Photos' : 'Text only' }}</span>
                         <span class="rounded-full border border-zem-border bg-zem-soft px-3 py-1 text-xs font-bold text-zem-cream">{{ $restaurant->kitchenScreenEnabled() ? 'Kitchen screen' : 'Worker-only' }}</span>
-                        <span class="rounded-full border px-3 py-1 text-xs font-bold {{ $subStatusColors[$subscription?->effectiveStatus() ?? 'trial'] ?? 'border-zem-border text-zem-muted' }}">Subscription: {{ $subscription?->effectiveStatus() ?? 'trial' }}</span>
+                        <span class="rounded-full border px-3 py-1 text-xs font-bold {{ $subStatusColors[$subscription?->effectiveStatus() ?? 'trial'] ?? 'border-zem-border text-zem-muted' }}">Subscription: {{ str_replace('_', ' ', $subscription?->effectiveStatus() ?? 'trial') }}</span>
                         <span class="rounded-full border px-3 py-1 text-xs font-bold {{ $accessStatusColors[$effectiveDashboardStatus] ?? 'border-zem-border text-zem-muted' }}">Access: {{ $effectiveDashboardStatus === 'payment_required' ? 'Payment required' : $effectiveDashboardStatus }}</span>
                         <span class="rounded-full border px-3 py-1 text-xs font-bold {{ $daysRemaining === null ? 'border-zem-border text-zem-muted' : ($daysRemaining < 0 ? 'border-red-300 bg-red-100 text-red-700' : ($daysRemaining <= 3 ? 'border-zem-gold/40 bg-zem-gold/20 text-zem-gold' : 'border-green-300 bg-green-100 text-green-700')) }}">
-                            @if($daysRemaining === null) No expiry set @elseif($daysRemaining < 0) Expired {{ abs($daysRemaining) }} {{ abs($daysRemaining) === 1 ? 'day' : 'days' }} ago @elseif($daysRemaining === 0) Expires today @else {{ $daysRemaining }} {{ $daysRemaining === 1 ? 'day' : 'days' }} left @endif
+                            @if($subscription?->isInPaymentGrace()) Payment due — grace through {{ $subscription->graceEndsAt()->format('M j') }}
+                            @elseif($subscription?->isExpired()) Suspended
+                            @elseif($daysRemaining === null) No payment date set
+                            @else {{ $daysRemaining }} {{ $daysRemaining === 1 ? 'day' : 'days' }} until payment @endif
                         </span>
                     </div>
                     <p class="mt-2 text-sm text-zem-muted">{{ $restaurant->location ?: 'No location' }} - {{ number_format($restaurant->orders_count) }} orders - Login: {{ $owner?->email ?? 'No login account yet' }}</p>
@@ -84,8 +87,8 @@
                     <label class="text-xs font-semibold text-zem-muted">Subscription starts
                         <input name="subscription_starts_at" type="date" value="{{ optional($subscription?->starts_at)->format('Y-m-d') }}" class="mt-1 block w-full rounded-md border border-zem-border bg-zem-card px-3 py-2 text-sm text-zem-cream">
                     </label>
-                    <label class="text-xs font-semibold text-zem-muted">Subscription ends
-                        <input name="subscription_ends_at" type="date" value="{{ optional($subscription?->ends_at)->format('Y-m-d') }}" class="mt-1 block w-full rounded-md border border-zem-border bg-zem-card px-3 py-2 text-sm text-zem-cream">
+                    <label class="text-xs font-semibold text-zem-muted">Next payment due (1st)
+                        <input title="Dates are aligned forward to the 1st. Grace: 1st–7th; locked on the 8th if unpaid." name="subscription_ends_at" type="date" value="{{ $subscription?->paymentDueAt()?->format('Y-m-d') }}" class="mt-1 block w-full rounded-md border border-zem-border bg-zem-card px-3 py-2 text-sm text-zem-cream">
                     </label>
                     <label class="text-xs font-semibold text-zem-muted">Monthly price (ETB)
                         <input name="monthly_price" type="number" min="0" step="0.01" value="{{ $subscription?->monthly_price }}" class="mt-1 block w-full rounded-md border border-zem-border bg-zem-card px-3 py-2 text-sm text-zem-cream">

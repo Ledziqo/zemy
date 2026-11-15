@@ -1,4 +1,4 @@
-const CACHE_NAME = 'zemtab-guest-menu-v2';
+const CACHE_NAME = 'zemtab-guest-menu-v3';
 const STATIC_ASSETS = [
     '/assets/app.css',
     '/assets/alpine.min.js',
@@ -39,12 +39,13 @@ self.addEventListener('fetch', (event) => {
 
     const url = new URL(request.url);
     if (!isGuestMenu(url) && !isPublicAsset(url)) return;
+    if (/\/(confirmation|orders)(\/|$)/.test(url.pathname)) return;
 
     if (isGuestMenu(url)) {
         event.respondWith(
             fetch(request)
                 .then((response) => {
-                    if (response.ok) {
+                    if (response.ok && !/no-store/i.test(response.headers.get('Cache-Control') || '')) {
                         const copy = response.clone();
                         caches.open(CACHE_NAME).then((cache) => cache.put(request, copy));
                     }

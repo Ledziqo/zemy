@@ -2,7 +2,7 @@
 
 @section('content')
 <div class="mb-6 rounded-md border border-zem-border bg-zem-card p-4">
-    <h2 class="mb-3 font-display text-lg font-bold">Add subscription</h2>
+    <h2 class="mb-3 font-display text-lg font-bold">Add subscription</h2><p class="mb-4 text-sm text-zem-muted">All subscriptions renew on the 1st of the month. Access stays open with a payment warning on the 1st–7th and locks on the 8th if unpaid. Dates selected on another day move forward to the next 1st.</p>
     <form method="post" action="{{ route('admin.subscriptions.store') }}" class="grid gap-3 md:grid-cols-5">
         @csrf
         <select name="restaurant_id" class="rounded-md border border-zem-border bg-zem-bg px-3 py-2">
@@ -31,15 +31,19 @@
                 <div>
                     <div class="flex flex-wrap items-center gap-2">
                         <h3 class="font-display text-lg font-bold">{{ $subscription->restaurant->name ?? 'Unknown' }}</h3>
-                        @php($statusColors = ['active' => 'bg-green-100 text-green-700 border-green-300', 'unpaid' => 'bg-red-100 text-red-700 border-red-300', 'trial' => 'bg-zem-gold/20 text-zem-gold border-zem-gold/40', 'cancelled' => 'bg-gray-100 text-gray-600 border-gray-300', 'expired' => 'bg-red-100 text-red-700 border-red-300'])
-                        <span class="rounded-full border px-3 py-1 text-xs font-bold {{ $statusColors[$subscription->effectiveStatus()] ?? 'border-zem-border text-zem-muted' }}">{{ $subscription->effectiveStatus() }}</span>
+                        @php($statusColors = ['active' => 'bg-green-100 text-green-700 border-green-300', 'unpaid' => 'bg-red-100 text-red-700 border-red-300', 'trial' => 'bg-zem-gold/20 text-zem-gold border-zem-gold/40', 'cancelled' => 'bg-gray-100 text-gray-600 border-gray-300', 'payment_due' => 'bg-zem-gold/20 text-zem-gold border-zem-gold/40', 'expired' => 'bg-red-100 text-red-700 border-red-300'])
+                        <span class="rounded-full border px-3 py-1 text-xs font-bold {{ $statusColors[$subscription->effectiveStatus()] ?? 'border-zem-border text-zem-muted' }}">{{ str_replace('_', ' ', $subscription->effectiveStatus()) }}</span>
                     </div>
                     <p class="mt-1 text-sm text-zem-muted">{{ $subscription->plan_name }} - {{ number_format($subscription->monthly_price) }} ETB/month</p>
                     @if($subscription->starts_at || $subscription->ends_at)
-                        <p class="mt-1 text-sm text-zem-muted">{{ optional($subscription->starts_at)->format('M j, Y') }} to {{ optional($subscription->ends_at)->format('M j, Y') }}</p>
+                        <p class="mt-1 text-sm text-zem-muted">{{ optional($subscription->starts_at)->format('M j, Y') }} · Payment due {{ $subscription->paymentDueAt()?->format('M j, Y') }}</p>
                     @endif
                     <p class="mt-2 text-sm font-bold {{ $daysRemaining === null ? 'text-zem-muted' : ($daysRemaining < 0 ? 'text-red-600' : ($daysRemaining <= 3 ? 'text-zem-gold' : 'text-green-700')) }}">
-                        @if($daysRemaining === null) No expiry set @elseif($daysRemaining < 0) Expired {{ abs($daysRemaining) }} {{ abs($daysRemaining) === 1 ? 'day' : 'days' }} ago @elseif($daysRemaining === 0) Expires today @else {{ $daysRemaining }} {{ $daysRemaining === 1 ? 'day' : 'days' }} left @endif
+                        @if($subscription->isInPaymentGrace()) Payment due — access stays open through {{ $subscription->graceEndsAt()->format('M j') }}. Locks {{ $subscription->graceEndsAt()->addDay()->format('M j') }} if unpaid.
+                        @elseif($subscription->isExpired()) Suspended — payment overdue
+                        @elseif($daysRemaining === null) No payment date set
+                        @elseif($daysRemaining === 0) Payment due today
+                        @else Next payment in {{ $daysRemaining }} {{ $daysRemaining === 1 ? 'day' : 'days' }} @endif
                     </p>
                 </div>
             </div>
@@ -59,7 +63,7 @@
                         @endforeach
                     </select>
                     <input name="starts_at" type="date" value="{{ optional($subscription->starts_at)->format('Y-m-d') }}" class="rounded-md border border-zem-border bg-zem-card px-3 py-2">
-                    <input name="ends_at" aria-label="Paid-through date; seven grace days follow" title="Paid-through date. Use the last day of the month for payment due on the 1st, grace through the 7th, and suspension on the 8th." type="date" value="{{ optional($subscription->ends_at)->format('Y-m-d') }}" class="rounded-md border border-zem-border bg-zem-card px-3 py-2">
+                    <input name="ends_at" aria-label="Next payment due on the 1st" title="Next payment due. Non-first dates move forward to the next 1st. Grace: 1st–7th; lock: 8th." type="date" value="{{ $subscription->paymentDueAt()?->format('Y-m-d') }}" class="rounded-md border border-zem-border bg-zem-card px-3 py-2">
                     <button class="rounded-md bg-zem-gold px-4 py-2 font-bold text-white md:col-span-6">Save changes</button>
                 </div>
             </details>

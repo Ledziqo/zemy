@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Restaurant;
+use App\Models\Order;
 use App\Support\PublicMenuCache;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
@@ -32,7 +33,9 @@ class MenuController extends Controller
             return redirect()->route('menu.show', [$restaurant_slug, $table_number]);
         }
         $table = $table_number;
-        return response()->view('menu.confirmation', compact('restaurant', 'table'))
+        $orderId = $request->query('order', session('order_id'));
+        $order = $orderId ? $this->guestOrder($request, $restaurant, $restaurantTable, $orderId)->load('items') : null;
+        return response()->view('menu.confirmation', compact('restaurant', 'table', 'order'))
             ->header('Cache-Control', 'no-store');
     }
 

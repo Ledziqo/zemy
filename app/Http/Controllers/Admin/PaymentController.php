@@ -35,8 +35,8 @@ class PaymentController extends Controller
                 ];
             }
 
-            $isExpired = $daysLeft !== null && $daysLeft < -Subscription::PAYMENT_GRACE_DAYS;
-            $isExpiring = $daysLeft !== null && $daysLeft >= -Subscription::PAYMENT_GRACE_DAYS && $daysLeft <= Subscription::PAYMENT_GRACE_DAYS;
+            $isExpired = $sub->isExpired();
+            $isExpiring = $daysLeft !== null && $daysLeft >= -(Subscription::PAYMENT_GRACE_DAYS - 1) && $daysLeft <= Subscription::PAYMENT_GRACE_DAYS;
 
             if ($isExpired) { $summary['expired']++; }
             elseif ($sub->status === 'unpaid') { $summary['unpaid']++; }
@@ -48,7 +48,7 @@ class PaymentController extends Controller
                 : ($sub->status === 'unpaid' ? 'bg-red-100 text-red-700 border-red-300'
                 : 'bg-green-100 text-green-700 border-green-300'));
 
-            $label = $sub->isInPaymentGrace() ? 'Payment grace until '.$sub->graceEndsAt()->format('M j') : ($isExpired ? 'Suspended' : ($isExpiring ? $daysLeft . ' days left' : ($sub->status === 'unpaid' ? 'Unpaid' : 'Active')));
+            $label = $sub->isInPaymentGrace() ? 'Payment due — grace until '.$sub->graceEndsAt()->format('M j') : ($isExpired ? 'Suspended' : ($isExpiring ? $daysLeft . ' days left' : ($sub->status === 'unpaid' ? 'Unpaid' : 'Active')));
 
             return (object) [
                 'restaurant' => $restaurant, 'subscription' => $sub, 'daysLeft' => $daysLeft,
@@ -128,41 +128,25 @@ class PaymentController extends Controller
     {
         $data = $request->validate([
             'payment_method' => ['nullable', 'string', 'max:255'],
-            'extend_days' => ['nullable', 'integer'],
-            'custom_ends_at' => ['nullable', 'date'],
+            'extend_days' => ['nullable', 'integer', 'min:30', 'max:3600', 'multiple_of:30'],
+            'renew_months' => ['nullable', 'integer', 'min:1', 'max:120'],
+            'custom_ends_at' => ['nullable', 'date', 'after:today'],
         ]);
 
-        // If custom date is set, use it directly
-        if (! empty($data['custom_ends_at'])) {
-            $subscription->update([
-                'status' => 'active',
-                'ends_at' => $data['custom_ends_at'],
-                'payment_method' => $data['payment_method'] ?? $subscription->payment_method,
-            ]);
-
-            if (Schema::hasColumn('restaurants', 'dashboard_access_status')) {
-                $subscription->restaurant->update(['dashboard_access_status' => 'active']);
-            }
-
-            return back()->with('success', 'Subscription end date set to ' . $data['custom_ends_at']);
-        }
-
-        $extendDays = (int) ($data['extend_days'] ?? 30); // Can be negative to subtract days
-        $baseDate = now();
-        if ($subscription->ends_at) {
-            try {
-                $endDate = \Carbon\Carbon::parse($subscription->ends_at);
-                if ($endDate->greaterThan(now())) {
-                    $baseDate = $endDate;
-                }
-            } catch (\Exception $e) {
-                // If parsing fails, use now()
-            }
+        if (!empty($data['custom_ends_at'])) {
+            $nextDue = Subscription::monthlyDueDate($data['custom_ends_at']);
+        } else {
+            // Old cached forms can still submit +30/+60 days. Convert these to
+            // calendar months; never let day arithmetic move billing off the 1st.
+            $months = (int) ($data['renew_months'] ?? (isset($data['extend_days']) ? (int) ceil($data['extend_days'] / 30) : 1));
+            $due = $subscription->paymentDueAt();
+            $base = $due && $due->greaterThan(today()) ? $due : today()->startOfMonth();
+            $nextDue = $base->copy()->addMonthsNoOverflow($months);
         }
 
         $subscription->update([
             'status' => 'active',
-            'ends_at' => $baseDate->addDays($extendDays)->toDateString(),
+            'ends_at' => $nextDue->toDateString(),
             'payment_method' => $data['payment_method'] ?? $subscription->payment_method,
         ]);
 
@@ -170,6 +154,6 @@ class PaymentController extends Controller
             $subscription->restaurant->update(['dashboard_access_status' => 'active']);
         }
 
-        return back()->with('success', 'Subscription marked as paid. Extended by ' . $extendDays . ' days.');
+        return back()->with('success', 'Payment verified. Next payment due '.$nextDue->format('M j, Y').'. Access is restored immediately.');
     }
 }

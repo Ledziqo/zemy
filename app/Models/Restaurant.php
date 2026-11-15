@@ -72,20 +72,18 @@ class Restaurant extends Model
     public function daysUntilExpiry(): ?int
     {
         $sub = $this->latestSubscription();
-        if (! $sub || ! $sub->ends_at) return null;
-        return (int) now()->startOfDay()->diffInDays($sub->ends_at, false);
+        return $sub?->daysRemaining();
     }
 
     public function isExpired(): bool
     {
-        $days = $this->daysUntilExpiry();
-        return $days !== null && $days < 0;
+        return $this->latestSubscription()?->isExpired() ?? false;
     }
 
     public function isExpiringSoon(): bool
     {
         $days = $this->daysUntilExpiry();
-        return $days !== null && $days >= -Subscription::PAYMENT_GRACE_DAYS && $days <= Subscription::PAYMENT_GRACE_DAYS;
+        return $days !== null && $days >= -(Subscription::PAYMENT_GRACE_DAYS - 1) && $days <= Subscription::PAYMENT_GRACE_DAYS;
     }
 
     public function isHotel(): bool

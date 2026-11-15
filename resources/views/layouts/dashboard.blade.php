@@ -186,15 +186,21 @@
         </header>
         @if(session('success'))<div role="status" class="mb-5 rounded-lg border border-zem-green/40 bg-zem-green/10 px-4 py-3 text-sm text-zem-cream">{{ session('success') }}</div>@endif
         @if($errors->any())<div role="alert" class="mb-5 rounded-lg border border-red-500/40 bg-red-500/10 px-4 py-3 text-sm text-zem-cream">{{ $errors->first() }}</div>@endif
-        @php($showWarning = $dashboardRestaurant && $staffRole === 'owner_manager' && $dashboardRestaurant->isExpiringSoon())
+        @php
+            $billingSubscription = $dashboardRestaurant?->latestSubscription();
+            $paymentGrace = $billingSubscription?->isInPaymentGrace() ?? false;
+            $showWarning = $dashboardRestaurant && ($paymentGrace || ($staffRole === 'owner_manager' && $dashboardRestaurant->isExpiringSoon()));
+        @endphp
         @if($showWarning)
-            <div class="mb-5 rounded-lg border border-zem-gold/40 bg-zem-gold/10 px-4 py-3 text-sm">
-                <p class="font-bold text-zem-gold">{{ __('Subscription expiring soon') }}</p>
-                <p class="mt-1 text-zem-muted">@if($dashboardRestaurant->daysUntilExpiry() < 0)
-                    Your payment is overdue. The seven-day grace period ends {{ $dashboardRestaurant->latestSubscription()?->graceEndsAt()?->format('M j, Y') }}. Pay before then to keep your dashboard and guest pages available.
+            <div role="{{ $paymentGrace ? 'alert' : 'status' }}" data-subscription-warning class="subscription-payment-warning mb-5 rounded-lg border border-zem-gold/40 bg-zem-gold/10 px-4 py-3 text-sm {{ $paymentGrace ? 'payment-grace-warning' : '' }}">
+                <p class="font-bold text-zem-gold">{{ $paymentGrace ? __('Payment due — your account is in the 7-day grace period') : __('Your monthly payment is coming up') }}</p>
+                <p class="mt-2 text-zem-muted">@if($paymentGrace)
+                    Payment was due {{ $billingSubscription->paymentDueAt()->format('M j, Y') }}. Your dashboard and guest menus still work during the seven-day grace period (the 1st–7th).
+                    <strong class="text-zem-cream">{{ $billingSubscription->graceDaysRemaining() }} {{ $billingSubscription->graceDaysRemaining() === 1 ? 'day remains' : 'days remain' }}. Pay by {{ $billingSubscription->graceEndsAt()->format('M j, Y') }} to avoid the account locking on {{ $billingSubscription->graceEndsAt()->addDay()->format('M j, Y') }}.</strong>
                 @else
-                    Your subscription is paid through {{ $dashboardRestaurant->latestSubscription()?->ends_at?->format('M j, Y') }}. A seven-day payment grace period follows this date.
+                    Your next payment is due {{ $billingSubscription?->paymentDueAt()?->format('M j, Y') }}. Payments are due on the 1st; access remains available through the 7th and is locked on the 8th if unpaid.
                 @endif</p>
+                @if($staffRole === 'owner_manager')
                 <details class="mt-3"><summary class="cursor-pointer font-semibold">{{ __('Payment details') }}</summary>
                 <div class="mt-3 grid gap-2 rounded-md border border-zem-gold/30 bg-zem-card/60 p-3 text-zem-muted sm:grid-cols-2">
                     <p>Telebirr: <strong class="text-zem-cream">{{ config('payment.telebirr') }}</strong></p>
@@ -204,6 +210,7 @@
                 </div>
                 <p class="mt-3 text-zem-muted">After paying, send your payment screenshot with your restaurant name to Telegram: <strong class="text-zem-cream">{{ config('payment.telegram') }}</strong></p>
                 </details>
+                @endif
             </div>
         @endif
         @yield('content')

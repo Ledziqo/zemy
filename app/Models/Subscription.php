@@ -6,7 +6,31 @@ use Illuminate\Database\Eloquent\Model;
 
 class Subscription extends Model
 {
+    public const PAYMENT_GRACE_DAYS = 7;
+
     protected $fillable = ['restaurant_id', 'plan_name', 'monthly_price', 'status', 'starts_at', 'ends_at', 'payment_method'];
+
+    protected static function booted(): void
+    {
+        static::saving(function (self $subscription) {
+            $subscription->starts_at ??= today();
+            $subscription->ends_at = $subscription->ends_at
+                ? self::monthlyDueDate($subscription->ends_at)
+                : $subscription->starts_at->copy()->startOfMonth()->addMonth();
+        });
+    }
+
+    /** Move legacy dates forward to the first, never shorten an existing period. */
+    public static function monthlyDueDate($date): \Carbon\CarbonInterface
+    {
+        $date = \Illuminate\Support\Carbon::parse($date)->startOfDay();
+        return $date->day === 1 ? $date : $date->startOfMonth()->addMonth();
+    }
+
+    public function paymentDueAt(): ?\Carbon\CarbonInterface
+    {
+        return $this->ends_at ? self::monthlyDueDate($this->ends_at) : null;
+    }
 
     protected function casts(): array
     {
@@ -15,26 +39,31 @@ class Subscription extends Model
 
     public function daysRemaining(): ?int
     {
-        if (! $this->ends_at) return null;
-
-        return (int) today()->diffInDays($this->ends_at, false);
+        $due = $this->paymentDueAt();
+        return $due ? (int) today()->diffInDays($due, false) : null;
     }
 
     public function isExpired(): bool
     {
-        return ($this->daysRemaining() ?? 0) < 0;
+        return $this->graceEndsAt() && now()->greaterThan($this->graceEndsAt());
     }
-
-    public const PAYMENT_GRACE_DAYS = 7;
 
     public function graceEndsAt(): ?\Carbon\CarbonInterface
     {
-        return $this->ends_at?->copy()->addDays(self::PAYMENT_GRACE_DAYS)->endOfDay();
+        // Due on the 1st: seven inclusive grace days (1st–7th), locked on the 8th.
+        return $this->paymentDueAt()?->addDays(self::PAYMENT_GRACE_DAYS - 1)->endOfDay();
     }
 
     public function isInPaymentGrace(): bool
     {
-        return $this->isExpired() && $this->allowsServiceAccess();
+        return $this->paymentDueAt() && now()->gte($this->paymentDueAt()) && $this->allowsServiceAccess();
+    }
+
+    public function graceDaysRemaining(): ?int
+    {
+        return $this->isInPaymentGrace()
+            ? (int) today()->diffInDays($this->graceEndsAt()->startOfDay(), false) + 1
+            : null;
     }
 
     public function allowsServiceAccess(): bool
@@ -46,7 +75,9 @@ class Subscription extends Model
 
     public function effectiveStatus(): string
     {
-        return $this->isExpired() ? 'expired' : $this->status;
+        if ($this->status === 'cancelled') return 'cancelled';
+        if ($this->isExpired()) return 'expired';
+        return $this->isInPaymentGrace() ? 'payment_due' : $this->status;
     }
 
     public function restaurant() { return $this->belongsTo(Restaurant::class); }

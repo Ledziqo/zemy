@@ -13,7 +13,12 @@
     $logoUrl = $logoPath ? (\Illuminate\Support\Str::startsWith($logoPath, ['http://', 'https://', 'uploads/'])
         ? (str_starts_with($logoPath, 'uploads/') ? asset($logoPath) : $logoPath) : asset('storage/'.$logoPath)) : null;
 @endphp
-<main class="guest-menu guest-catalog min-h-screen bg-neutral-100 pb-8 text-zem-ink" x-data="{ search: '', category: 'all', matches(name, description) { const q = this.search.trim().toLowerCase(); return !q || (name + ' ' + description).toLowerCase().includes(q); } }">
+@php
+    $guestImageIndex = 0;
+    $guestSearchItems = $categories->flatMap(fn ($category) => $category->menuItems->map(fn ($item) => ['category' => $category->id, 'name' => $item->name, 'description' => $item->description ?? '']))->values();
+@endphp
+@include('menu.browser-assets')
+<main class="guest-menu guest-catalog min-h-screen bg-neutral-100 pb-8 text-zem-ink" x-data="guestBrowser(@js($guestSearchItems))" @keydown.escape.window="selectedItem = null">
     <header class="sticky top-0 z-30 border-b border-black/10 bg-white px-4 py-4 shadow-sm">
         <div class="mx-auto max-w-5xl">
             <div class="flex items-center justify-between gap-3">
@@ -36,37 +41,40 @@
             </div>
             <label class="js-only mt-4 block">
                 <span class="sr-only">{{ __('Search menu') }}</span>
-                <input type="search" x-model="search" placeholder="{{ __('Search the menu...') }}" class="w-full rounded-xl border border-black/10 bg-neutral-100 px-4 py-3 outline-none focus:border-zem-gold">
+                <input type="search" x-model="menuSearch" placeholder="{{ __('Search the menu...') }}" class="w-full rounded-xl border border-black/10 bg-neutral-100 px-4 py-3 outline-none focus:border-zem-gold">
             </label>
             <nav aria-label="{{ __('Menu categories') }}" class="js-only mt-3 flex gap-2 overflow-x-auto pb-1">
-                <button type="button" @click="category = 'all'" :class="category === 'all' ? 'bg-zem-gold text-white' : 'bg-neutral-100'" class="whitespace-nowrap rounded-full px-4 py-2 font-bold">{{ __('All') }}</button>
+                <button type="button" :aria-pressed="activeCategory === 'all'" @click="activeCategory = 'all'" :class="activeCategory === 'all' ? 'bg-zem-gold text-white' : 'bg-neutral-100'" class="whitespace-nowrap rounded-full px-4 py-2 font-bold">{{ __('All') }}</button>
                 @foreach($categories as $category)
-                    <button type="button" @click="category = '{{ $category->id }}'" :class="category === '{{ $category->id }}' ? 'bg-zem-gold text-white' : 'bg-neutral-100'" class="whitespace-nowrap rounded-full px-4 py-2 font-bold">{{ $category->name }}</button>
+                    <button type="button" :aria-pressed="activeCategory === 'cat-{{ $category->id }}'" @click="activeCategory = 'cat-{{ $category->id }}'" :class="activeCategory === 'cat-{{ $category->id }}' ? 'bg-zem-gold text-white' : 'bg-neutral-100'" class="whitespace-nowrap rounded-full px-4 py-2 font-bold">{{ __($category->name) }}</button>
                 @endforeach
             </nav>
         </div>
     </header>
     <div class="mx-auto max-w-5xl space-y-8 px-4 py-6">
         @forelse($categories as $category)
-            <section x-show="category === 'all' || category === '{{ $category->id }}'" aria-labelledby="catalog-category-{{ $category->id }}">
-                <h2 id="catalog-category-{{ $category->id }}" class="mb-3 font-display text-2xl font-bold">{{ $category->name }}</h2>
+            <section x-show="categoryVisible({{ $category->id }}) && categoryHasVisibleItems({{ $category->id }})" aria-labelledby="catalog-category-{{ $category->id }}">
+                <h2 id="catalog-category-{{ $category->id }}" class="mb-3 font-display text-2xl font-bold">{{ __($category->name) }}</h2>
                 @php
                     $sectionMap = $restaurant->settings['menu_sections'][\Illuminate\Support\Str::lower($category->name)] ?? [];
                     $sections = $category->menuItems->groupBy(fn ($item) => $sectionMap[$item->name] ?? '');
                 @endphp
                 @foreach($sections as $sectionName => $sectionItems)
-                @if($sectionName !== '')<h3 class="mb-3 mt-6 font-display text-xl font-bold" x-show="@js($sectionItems->map(fn ($item) => ['name' => $item->name, 'description' => $item->description ?? ''])->values()).some(item => matches(item.name, item.description))">{{ $sectionName }}</h3>@endif
-                <div class="{{ $photos ? 'grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4' : 'space-y-3' }}">
+                @if($sectionName !== '')<h3 class="mb-3 mt-6 font-display text-xl font-bold" x-show="@js($sectionItems->map(fn ($item) => ['name' => $item->name, 'description' => $item->description ?? ''])->values()).some(item => itemVisible({{ $category->id }}, item.name, item.description))">{{ $sectionName }}</h3>@endif
+                <div class="{{ $photos ? 'guest-photo-grid grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4' : 'space-y-3' }}">
                     @foreach($sectionItems as $item)
+                        @php($webpImageUrl = $photos ? \App\Support\MenuImage::webpUrl($item->image_path) : null)
                         @php($imageUrl = $photos ? \App\Support\MenuImage::url($item->image_path) : null)
-                        <article x-show="matches(@js($item->name), @js($item->description ?? ''))" class="overflow-hidden rounded-xl border border-black/10 bg-white shadow-sm" itemscope itemtype="https://schema.org/MenuItem">
+                        <article x-show="itemVisible({{ $category->id }}, @js($item->name), @js($item->description ?? ''))" class="guest-item-card overflow-hidden rounded-xl border border-black/10 bg-white shadow-sm" itemscope itemtype="https://schema.org/MenuItem">
                             @if($imageUrl)
-                                <img src="{{ $imageUrl }}" alt="{{ $item->name }}" width="480" height="480" loading="lazy" decoding="async" class="aspect-square w-full object-cover">
+                                <button type="button" class="guest-photo-button" aria-label="{{ __('View details') }}: {{ $item->name }}" @click="selectedItem = { name: @js($item->name), description: @js($item->description ?? ''), image: @js($imageUrl), price: @js(number_format($item->price, (float) $item->price == floor((float) $item->price) ? 0 : 2).' ETB'), available: @js((bool) $item->is_available) }">
+                                    <picture>@if($webpImageUrl)<source srcset="{{ $webpImageUrl }}" type="image/webp">@endif<img src="{{ $imageUrl }}" alt="{{ $item->name }}" width="480" height="480" loading="{{ $guestImageIndex++ < 2 ? 'eager' : 'lazy' }}" decoding="async" class="aspect-square w-full object-cover"></picture>
+                                </button>
                             @endif
-                            <div class="{{ $photos ? 'p-3' : 'flex items-start justify-between gap-3 p-4' }}">
+                            <div class="{{ $photos ? 'guest-item-copy p-3' : 'flex items-start justify-between gap-3 p-4' }}">
                                 <div class="min-w-0">
-                                    <h3 class="font-bold" itemprop="name">{{ $item->name }}</h3>
-                                    @if($item->description)<p class="mt-1 whitespace-pre-line text-sm text-neutral-500" itemprop="description">{{ $item->description }}</p>@endif
+                                    <h3 class="font-bold" itemprop="name"><button class="guest-item-name" type="button" @click="selectedItem = { name: @js($item->name), description: @js($item->description ?? ''), image: @js($imageUrl), price: @js(number_format($item->price, (float) $item->price == floor((float) $item->price) ? 0 : 2).' ETB'), available: @js((bool) $item->is_available) }">{{ $item->name }}</button></h3>
+                                    @if($item->description)<p class="mt-1 line-clamp-2 text-sm text-neutral-500" itemprop="description">{{ $item->description }}</p>@endif
                                     @unless($item->is_available)<span class="mt-2 inline-block rounded-full bg-red-100 px-2 py-1 text-xs font-bold text-red-700">{{ __('Unavailable') }}</span>@endunless
                                 </div>
                                 <p class="{{ $photos ? 'mt-3' : 'shrink-0' }} font-bold text-zem-gold" itemprop="offers" itemscope itemtype="https://schema.org/Offer"><span itemprop="price" content="{{ $item->price }}">{{ number_format($item->price, (float) $item->price == floor((float) $item->price) ? 0 : 2) }}</span> <span itemprop="priceCurrency" content="ETB">ETB</span></p>
@@ -79,7 +87,15 @@
         @empty
             <p class="rounded-xl bg-white p-6 text-neutral-500">{{ __('The menu is being updated. Please check back soon.') }}</p>
         @endforelse
+        <div x-show="!hasVisibleItems()" x-cloak class="guest-empty" role="status"><h2>{{ __('No matching dishes') }}</h2><p>{{ __('Try another name or browse all categories.') }}</p><button type="button" @click="resetSearch()">{{ __('Show all items') }}</button></div>
         @include('menu.powered-by')
+    </div>
+    <div x-show="selectedItem" x-cloak x-effect="guestDialogState($el, !!selectedItem)" class="guest-detail-overlay" @click.self="selectedItem = null" role="dialog" aria-modal="true" aria-label="{{ __('Menu item details') }}">
+        <section class="guest-detail-sheet"><template x-if="selectedItem"><div>
+            <button type="button" class="guest-detail-close" @click="selectedItem = null">{{ __('Close') }}</button>
+            <template x-if="selectedItem.image"><img :src="selectedItem.image" :alt="selectedItem.name" class="guest-detail-photo"></template>
+            <div class="guest-detail-copy"><h2 x-text="selectedItem.name"></h2><p class="guest-detail-price" x-text="selectedItem.price"></p><p x-text="selectedItem.description" class="guest-detail-description"></p><p x-show="!selectedItem.available">{{ __('Currently unavailable') }}</p></div>
+        </div></template></section>
     </div>
 </main>
 @endsection

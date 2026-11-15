@@ -1,27 +1,44 @@
-@extends('layouts.app', [
-    'title' => 'Order Confirmed - '.$restaurant->name.' | ZemTab',
-    'description' => 'Your order has been sent successfully to '.$restaurant->name.'. '.$restaurant->locationLabelTitle().' '.$table.'. Staff will be with you shortly.',
-    'robots' => 'noindex, nofollow',
-    'canonical' => route('menu.confirmation', [$restaurant->slug, $table]),
-    'accentColor' => $restaurant->primary_color,
-    'alpine' => true,
-])
-
+@extends('layouts.app', ['title' => 'Your order | '.$restaurant->name, 'robots' => 'noindex, nofollow', 'accentColor' => $restaurant->primary_color, 'alpine' => true])
 @section('content')
-<main class="guest-confirmation grid min-h-screen place-items-center bg-white px-5 text-zem-ink">
-    <div class="max-w-md rounded-2xl border border-black/10 bg-white p-8 text-center shadow-2xl">
-        <p class="mx-auto grid h-16 w-16 place-items-center rounded-full bg-zem-gold text-3xl font-extrabold text-white">OK</p>
-        <h1 class="mt-5 font-display text-3xl font-extrabold">Order sent.</h1>
-        <p class="mt-3 text-neutral-500">You can reload the menu, add more items, or pay at the end of this visit.</p>
-        @if(session('order_id'))
-            <p class="mt-4 rounded-xl bg-neutral-50 p-4 text-sm font-bold text-neutral-600">Order #{{ session('order_id') }} was sent to staff. They will confirm it directly.</p>
+<script src="{{ asset('assets/guest-experience.js') }}?v={{ filemtime(public_path('assets/guest-experience.js')) }}"></script>
+@php
+    $statusLabels = [
+        'new' => [__('Sent to staff'), __('Your order is waiting for staff to start preparing it.')],
+        'preparing' => [__('Being prepared'), __('The team is preparing your order.')],
+        'served' => [__('Served'), __('Enjoy your meal. Ask staff when you are ready for the bill.')],
+        'paid' => [__('Paid'), __('Payment has been recorded. Thank you for visiting.')],
+        'completed' => [__('Completed'), __('Thank you for visiting.')],
+        'cancelled' => [__('Cancelled'), __('This order has been cancelled. Please ask staff if you need help.')],
+    ];
+@endphp
+<main class="guest-confirmation min-h-screen bg-white px-5 py-8 text-zem-ink">
+    <div class="mx-auto w-full max-w-md rounded-2xl border border-black/10 bg-white p-6 shadow-xl">
+        <p class="text-sm font-bold">{{ $restaurant->name }}</p>
+        <h1 class="mt-3 text-3xl font-bold">{{ $order ? __('Order received') : __('Your order') }}</h1>
+        @if($order)
+            <p class="mt-2 font-bold">{{ __('Order') }} #{{ $order->id }}</p>
+            <section class="guest-progress">
+                <div><h2>{{ $statusLabels[$order->status][0] ?? $order->status }}</h2><p>{{ $statusLabels[$order->status][1] ?? '' }}</p></div>
+            </section>
+            <ul class="guest-receipt">
+                @foreach($order->items as $item)
+                    <li><div><strong>{{ $item->quantity }} × {{ $item->item_name }}</strong>@if($item->note)<p>{{ $item->note }}</p>@endif</div><span>{{ number_format($item->total_price, 2) }} ETB</span></li>
+                @endforeach
+            </ul>
+            @if($order->note)<p class="my-3 text-sm">{{ __('Order note') }}: {{ $order->note }}</p>@endif
+            <dl class="guest-receipt-totals">
+                <div><dt>{{ __('Items total') }}</dt><dd>{{ number_format($order->subtotal, 2) }} ETB</dd></div>
+                @if((float) $order->service_charge > 0)<div><dt>{{ __('Service charge') }}</dt><dd>{{ number_format($order->service_charge, 2) }} ETB</dd></div>@endif
+                @if((float) $order->tax > 0)<div><dt>{{ __('VAT') }}</dt><dd>{{ number_format($order->tax, 2) }} ETB</dd></div>@endif
+                <div><dt>{{ __('Final total') }}</dt><dd>{{ number_format($order->total, 2) }} ETB</dd></div>
+            </dl>
+        @else
+            <p class="mt-4">{{ __('Return to the menu to browse or place an order.') }}</p>
         @endif
-        <a href="{{ route('menu.show', [$restaurant->slug, $table]) }}" class="mt-6 inline-flex rounded-lg bg-black px-5 py-3 font-bold text-white">Back to menu</a>
+        <a href="{{ route('menu.show', [$restaurant->slug, $table]) }}" class="mt-6 inline-flex rounded-lg bg-black px-5 py-3 font-bold text-white">{{ __('Back to menu') }}</a>
     </div>
 </main>
-<script>
-@if(session('order_id'))
-try { localStorage.removeItem(@js('zemtab-cart:'.$restaurant->id.':'.$table)); } catch (_) {}
+@if($order && session('order_id') == $order->id)
+<script>try { localStorage.removeItem(@js('zemtab-cart:'.$restaurant->id.':'.$table)); } catch (_) {}</script>
 @endif
-</script>
 @endsection

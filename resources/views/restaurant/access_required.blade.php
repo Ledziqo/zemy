@@ -12,7 +12,7 @@
             <p class="mt-3 text-zem-muted">{{ $restaurant->name }}'s account is currently inactive. Please contact ZemTab support or your account manager.</p>
         @else
             <h2 class="font-display text-2xl font-bold">Payment required</h2>
-            <p class="mt-3 text-zem-muted">Access to {{ $restaurant->name }}'s dashboard, digital menu and information board is suspended. A seven-day grace period follows the paid-through date. Access is restored as soon as payment is verified.</p>
+            <p class="mt-3 text-zem-muted">Access to {{ $restaurant->name }}'s dashboard, digital menu and information board is suspended. Monthly payment is due on the 1st. Access remains open through the 7th and is locked on the 8th if unpaid. Access is restored as soon as payment is verified.</p>
         @endif
         @if($accessReason !== 'payment')
             <p class="mt-3 text-sm text-zem-muted">Contact ZemTab support on Telegram: <strong class="text-zem-cream">{{ config('payment.telegram') }}</strong></p>
@@ -26,7 +26,7 @@
             <div class="grid gap-2 text-sm">
                 <div class="flex justify-between"><span class="text-zem-muted">Plan:</span><strong>{{ $sub->plan_name }}</strong></div>
                 <div class="flex justify-between"><span class="text-zem-muted">Monthly price:</span><strong>{{ number_format($sub->monthly_price) }} ETB</strong></div>
-                <div class="flex justify-between"><span class="text-zem-muted">Paid through:</span><strong>{{ $sub->ends_at ? \Carbon\Carbon::parse($sub->ends_at)->format('M j, Y') : 'N/A' }}</strong></div>
+                <div class="flex justify-between"><span class="text-zem-muted">Payment due:</span><strong>{{ $sub->paymentDueAt() ? $sub->paymentDueAt()->format('M j, Y') : 'N/A' }}</strong></div>
                 @if($sub->graceEndsAt())<div class="flex justify-between"><span class="text-zem-muted">Grace deadline:</span><strong>{{ $sub->graceEndsAt()->format('M j, Y') }}</strong></div>@endif
             </div>
         @else
@@ -43,7 +43,7 @@
             <p>Bank of Abyssinia: <strong class="text-zem-cream">{{ config('payment.abyssinia') }}</strong></p>
             <p>Telegram: <strong class="text-zem-cream">{{ config('payment.telegram') }}</strong></p>
         </div>
-        <p class="mt-3 text-xs text-zem-muted">After paying, send your payment screenshot with your restaurant name to {{ config('payment.telegram') }} on Telegram. Access will be restored within minutes.</p>
+        <p class="mt-3 text-xs text-zem-muted">After paying, send your payment screenshot with your restaurant name to {{ config('payment.telegram') }} on Telegram. Access is restored immediately after payment is verified.</p>
     </div>
     @endif
 

@@ -26,7 +26,12 @@
     ];
     $activePaymentMethods = collect($allPaymentMethods)->filter(fn ($m, $key) => in_array($key, $enabledPaymentMethods, true));
 @endphp
-<main x-data="{ ...menuCart({ cartKey: @js('zemtab-cart:'.$restaurant->id.':'.$table->table_number), paymentDetails: {}, serviceChargePercentage: {{ (float) ($settings['service_charge_percentage'] ?? 0) }}, vatPercentage: {{ (float) ($settings['vat_percentage'] ?? 0) }} }), paymentOpen: false, selectedPayment: null, selectedItem: null, selectedQuantity: 1 }" @keydown.escape.window="selectedItem = null" class="guest-menu guest-ordering min-h-screen bg-neutral-100 pb-28 text-zem-ink">
+@php
+    $guestImageIndex = 0;
+    $guestSearchItems = $categories->flatMap(fn ($category) => $category->menuItems->map(fn ($item) => ['category' => $category->id, 'name' => $item->name, 'description' => $item->description ?? '']))->values();
+@endphp
+@include('menu.browser-assets')
+<main x-data="{ ...menuCart({ labels: { sendingRequest: @js(__('Sending your request…')), requestFailed: @js(__('Request could not be confirmed. Check your connection and try again, or ask staff directly.')) }, menuItems: @js($guestSearchItems), cartKey: @js('zemtab-cart:'.$restaurant->id.':'.$table->table_number), paymentDetails: {}, serviceChargePercentage: {{ (float) ($settings['service_charge_percentage'] ?? 0) }}, vatPercentage: {{ (float) ($settings['vat_percentage'] ?? 0) }} }), paymentOpen: false, selectedPayment: null, selectedItem: null, selectedQuantity: 1 }" @keydown.escape.window="selectedItem = null; open = false; paymentOpen = false" :style="count() > 0 ? '--guest-cart-space: 92px' : '--guest-cart-space: 24px'" class="guest-menu guest-ordering guest-bottom-actions min-h-screen bg-neutral-100 pb-28 text-zem-ink">
     <header class="sticky top-0 z-30 border-b border-black/10 bg-white/95 px-4 py-3 shadow-sm backdrop-blur">
         <div class="mx-auto max-w-5xl">
             <div class="flex items-center justify-between gap-3">
@@ -60,32 +65,32 @@
                 <span class="sr-only">{{ __('Search menu') }}</span>
                 <input type="search" x-model="menuSearch" placeholder="{{ __('Search the menu...') }}" class="w-full rounded-xl border border-black/10 bg-neutral-100 px-4 py-3 text-sm font-semibold outline-none transition focus:border-zem-gold focus:bg-white">
             </label>
-            <nav class="js-only mt-3 flex gap-2 overflow-x-auto pb-1">
-                <button type="button" @click="activeCategory = 'all'" :class="activeCategory === 'all' ? 'bg-zem-gold text-white' : 'border border-black/10 bg-white text-neutral-700'" class="whitespace-nowrap rounded-full px-4 py-2 text-sm font-extrabold transition">{{ __('All') }}</button>
+            <nav aria-label="{{ __('Menu categories') }}" class="js-only mt-3 flex gap-2 overflow-x-auto pb-1">
+                <button type="button" :aria-pressed="activeCategory === 'all'" @click="activeCategory = 'all'" :class="activeCategory === 'all' ? 'bg-zem-gold text-white' : 'border border-black/10 bg-white text-neutral-700'" class="whitespace-nowrap rounded-full px-4 py-2 text-sm font-extrabold transition">{{ __('All') }}</button>
                 @foreach($categories as $category)
                     @php($categoryLabel = match (strtolower(trim($category->name))) { 'food' => __('Food'), 'drinks' => __('Drinks'), default => $category->name })
-                    <button type="button" @click="activeCategory = 'cat-{{ $category->id }}'" :class="activeCategory === 'cat-{{ $category->id }}' ? 'bg-zem-gold text-white' : 'border border-black/10 bg-white text-neutral-700'" class="whitespace-nowrap rounded-full px-4 py-2 text-sm font-extrabold transition">{{ $categoryLabel }}</button>
+                    <button type="button" :aria-pressed="activeCategory === 'cat-{{ $category->id }}'" @click="activeCategory = 'cat-{{ $category->id }}'" :class="activeCategory === 'cat-{{ $category->id }}' ? 'bg-zem-gold text-white' : 'border border-black/10 bg-white text-neutral-700'" class="whitespace-nowrap rounded-full px-4 py-2 text-sm font-extrabold transition">{{ $categoryLabel }}</button>
                 @endforeach
             </nav>
         </div>
     </header>
     <section class="mx-auto max-w-5xl px-4 py-4">
-        @if(session('success'))<div class="mb-4 rounded-xl bg-zem-green px-4 py-3 text-sm font-bold text-white">{{ session('success') }}</div>@endif
-        @if($errors->any())<div class="mb-4 rounded-xl bg-red-600 px-4 py-3 text-sm font-bold text-white">{{ $errors->first() }}</div>@endif
-        <div class="grid grid-cols-3 gap-3">
-            <form method="post" action="{{ route('service-requests.store', [$restaurant->slug, $table->table_number]) }}">@csrf<input type="hidden" name="type" value="call_waiter"><button class="w-full rounded-xl bg-black px-4 py-3 font-extrabold text-white">{{ __($restaurant->staffRequestLabel()) }}</button></form>
-            <form method="post" action="{{ route('service-requests.store', [$restaurant->slug, $table->table_number]) }}">@csrf<input type="hidden" name="type" value="request_bill"><button class="w-full rounded-xl bg-zem-gold px-4 py-3 font-extrabold text-white">{{ __('Request Bill') }}</button></form>
-            @if($activePaymentMethods->isNotEmpty())
-                <button type="button" @click="paymentOpen = true; selectedPayment = null" class="w-full rounded-xl border-2 border-black/10 bg-white px-4 py-3 font-extrabold text-black">
-                    {{ __('Payment') }}
-                </button>
-            @endif
-        </div>
+        @if(session('success'))<div role="status" class="mb-4 rounded-xl bg-zem-green px-4 py-3 text-sm font-bold text-white">{{ session('success') }}</div>@endif
+        @if($errors->any())<div role="alert" class="mb-4 rounded-xl bg-red-600 px-4 py-3 text-sm font-bold text-white">{{ $errors->first() }}</div>@endif
     </section>
+    <nav class="guest-actions" aria-label="{{ __('Guest services') }}">
+        <div class="guest-actions-inner" style="--guest-action-count:{{ $activePaymentMethods->isNotEmpty() ? 3 : 2 }}">
+            @foreach(['call_waiter' => ['bell', $restaurant->staffRequestLabel()], 'request_bill' => ['receipt', 'Request Bill']] as $requestType => $requestButton)
+            <form @submit.prevent="sendRequest($event)" method="post" action="{{ route('service-requests.store', [$restaurant->slug, $table->table_number]) }}">@csrf<input type="hidden" name="type" value="{{ $requestType }}"><button :disabled="requestBusy || requestCooling(@js($requestType))" class="guest-action-button"><x-ui-icon :name="$requestButton[0]"/><span x-text="requestCooling(@js($requestType)) ? @js(__('Request sent')) : @js(__($requestButton[1]))">{{ __($requestButton[1]) }}</span></button></form>
+            @endforeach
+            @if($activePaymentMethods->isNotEmpty())<button type="button" @click="paymentOpen = true; selectedPayment = null" class="guest-action-button guest-payment-action js-only"><x-ui-icon name="wallet"/><span>{{ __('Payment') }}</span></button>@endif
+        </div>
+    </nav>
+    <div class="guest-toast" x-show="requestMessage" x-cloak><p role="status" x-text="requestMessage"></p><button type="button" @click="requestMessage = ''" aria-label="{{ __('Dismiss') }}">{{ __('Close') }}</button></div>
 
     {{-- Payment Methods Modal --}}
     @if($activePaymentMethods->isNotEmpty())
-    <div x-show="paymentOpen" x-cloak class="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm" @click.self="paymentOpen=false">
+    <div x-show="paymentOpen" x-effect="guestDialogState($el, !!paymentOpen)" role="dialog" aria-modal="true" aria-label="Payment methods" x-cloak class="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm" @click.self="paymentOpen=false">
         <div class="absolute bottom-0 max-h-[92vh] w-full overflow-y-auto rounded-t-3xl bg-white p-4 text-zem-ink shadow-2xl">
             <div class="mx-auto max-w-3xl">
                 <div class="flex items-center justify-between">
@@ -172,36 +177,36 @@
     <section id="all" class="mx-auto max-w-5xl space-y-8 px-4">
         @foreach($categories as $category)
             @php($categoryLabel = match (strtolower(trim($category->name))) { 'food' => __('Food'), 'drinks' => __('Drinks'), default => $category->name })
-            <section id="cat-{{ $category->id }}" x-show="categoryVisible({{ $category->id }})" class="scroll-mt-28">
+            <section id="cat-{{ $category->id }}" x-show="categoryVisible({{ $category->id }}) && categoryHasVisibleItems({{ $category->id }})" class="scroll-mt-28">
                 <h2 class="mb-3 font-display text-2xl font-extrabold">{{ $categoryLabel }}</h2>
-                <div class="{{ $restaurant->menuPhotosEnabled() ? 'grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4' : 'space-y-3' }}">
+                <div class="{{ $restaurant->menuPhotosEnabled() ? 'guest-photo-grid grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4' : 'space-y-3' }}">
                     @foreach($category->menuItems as $item)
                         @php($imageUrl = $restaurant->menuPhotosEnabled() ? \App\Support\MenuImage::url($item->image_path) : null)
                         @php($webpImageUrl = $restaurant->menuPhotosEnabled() ? \App\Support\MenuImage::webpUrl($item->image_path) : null)
-                        <article x-show="itemVisible({{ $category->id }}, @js($item->name), @js($item->description ?? ''))" class="overflow-hidden rounded-2xl border border-black/10 bg-white shadow-sm" itemscope itemtype="https://schema.org/MenuItem">
+                        <article x-show="itemVisible({{ $category->id }}, @js($item->name), @js($item->description ?? ''))" class="guest-item-card overflow-hidden rounded-2xl border border-black/10 bg-white shadow-sm" itemscope itemtype="https://schema.org/MenuItem">
                             @if($restaurant->menuPhotosEnabled())
                             <button type="button" @click="selectedItem = { id: {{ $item->id }}, name: @js($item->name), description: @js($item->description ?? ''), price: {{ (float) $item->price }}, image: @js($imageUrl), available: {{ $item->is_available ? 'true' : 'false' }} }; selectedQuantity = 1" class="block aspect-square w-full bg-neutral-200 text-left" aria-label="View {{ $item->name }} details">
                                 @if($imageUrl)
                                     <picture>
                                         @if($webpImageUrl)<source srcset="{{ $webpImageUrl }}" type="image/webp" sizes="(max-width: 640px) 46vw, (max-width: 1024px) 31vw, 240px">@endif
-                                        <img src="{{ $imageUrl }}" alt="{{ $item->name }}" width="480" height="480" sizes="(max-width: 640px) 46vw, (max-width: 1024px) 31vw, 240px" class="h-full w-full object-cover" loading="lazy" decoding="async">
+                                        <img src="{{ $imageUrl }}" alt="{{ $item->name }}" width="480" height="480" sizes="(max-width: 640px) 46vw, (max-width: 1024px) 31vw, 240px" class="h-full w-full object-cover" loading="{{ $guestImageIndex++ < 2 ? 'eager' : 'lazy' }}" decoding="async">
                                     </picture>
                                 @else
                                     <div class="grid h-full place-items-center text-5xl font-extrabold text-white" style="background: linear-gradient(135deg, #111, var(--zem-accent));">{{ strtoupper(substr($item->name, 0, 1)) }}</div>
                                 @endif
                             </button>
                             @endif
-                            <div class="p-3">
-                                <div class="min-h-20">
+                            <div class="guest-item-copy p-3">
+                                <div class="guest-item-summary">
                                     <button type="button" @click="selectedItem = { id: {{ $item->id }}, name: @js($item->name), description: @js($item->description ?? ''), price: {{ (float) $item->price }}, image: @js($imageUrl), available: {{ $item->is_available ? 'true' : 'false' }} }; selectedQuantity = 1" class="text-left font-extrabold leading-tight hover:text-zem-gold" itemprop="name">{{ $item->name }}</button>
                                     <p class="mt-1 line-clamp-2 text-xs text-neutral-500" itemprop="description">{{ $item->description }}</p>
                                 </div>
                                 <p class="mt-2 font-extrabold text-zem-gold" itemprop="offers" itemscope itemtype="https://schema.org/Offer">
-                                    <span itemprop="price" content="{{ $item->price }}">{{ number_format($item->price) }}</span>
+                                    <span itemprop="price" content="{{ $item->price }}">{{ number_format($item->price, (float) $item->price == floor((float) $item->price) ? 0 : 2) }}</span>
                                     <span itemprop="priceCurrency" content="ETB">ETB</span>
                                 </p>
                                 @if($item->is_available)
-                                    <button type="button" @click="selectedItem = { id: {{ $item->id }}, name: @js($item->name), description: @js($item->description ?? ''), price: {{ (float) $item->price }}, image: @js($imageUrl), available: true }; selectedQuantity = 1" class="js-only mt-3 w-full rounded-xl bg-black px-3 py-3 text-sm font-extrabold text-white">View details &amp; order</button>
+                                    <button type="button" @click="selectedItem = { id: {{ $item->id }}, name: @js($item->name), description: @js($item->description ?? ''), price: {{ (float) $item->price }}, image: @js($imageUrl), available: true }; selectedQuantity = 1" class="js-only mt-3 w-full rounded-xl bg-black px-3 py-3 text-sm font-extrabold text-white">{{ __('View & add') }}</button>
                                 @else
                                     <span class="mt-3 block rounded-xl bg-red-100 px-3 py-3 text-center text-sm font-extrabold text-red-700">Unavailable</span>
                                 @endif
@@ -209,13 +214,12 @@
                         </article>
                     @endforeach
                 </div>
-                <p x-show="categoryVisible({{ $category->id }}) && !categoryHasVisibleItems({{ $category->id }})" x-cloak class="rounded-xl border border-dashed border-black/10 bg-white p-5 text-sm font-bold text-neutral-500">No matching items in this category.</p>
             </section>
         @endforeach
-        <p x-show="!hasVisibleItems()" x-cloak class="rounded-xl border border-dashed border-black/10 bg-white p-6 text-center font-bold text-neutral-500">No menu items match your search.</p>
+        <div x-show="!hasVisibleItems()" x-cloak class="guest-empty" role="status"><h2>{{ __('No matching dishes') }}</h2><p>{{ __('Try another name or browse all categories.') }}</p><button type="button" @click="resetSearch()">{{ __('Show all items') }}</button></div>
     </section>
 
-    <div x-show="selectedItem" x-cloak class="fixed inset-0 z-50 grid place-items-end bg-black/70 p-0 backdrop-blur-sm sm:place-items-center sm:p-4" @click.self="selectedItem = null" role="dialog" aria-modal="true" aria-label="Menu item details">
+    <div x-show="selectedItem" x-effect="guestDialogState($el, !!selectedItem)" x-cloak class="fixed inset-0 z-50 grid place-items-end bg-black/70 p-0 backdrop-blur-sm sm:place-items-center sm:p-4" @click.self="selectedItem = null" role="dialog" aria-modal="true" aria-label="Menu item details">
         <section class="max-h-[94vh] w-full max-w-xl overflow-y-auto rounded-t-3xl bg-white text-zem-ink shadow-2xl sm:rounded-3xl" @click.stop>
             <template x-if="selectedItem">
                 <div>
@@ -233,11 +237,11 @@
                         </div>
                         <p class="mt-3 whitespace-pre-line text-sm leading-6 text-neutral-600" x-text="selectedItem.description || 'No description provided.'"></p>
                         <template x-if="selectedItem.available">
-                            <div class="mt-6 flex items-center justify-between gap-4">
+                            <div class="guest-item-add mt-6 flex items-center justify-between gap-4">
                                 <div class="flex items-center gap-3 rounded-xl border border-black/10 p-1">
                                     <button type="button" @click="selectedQuantity = Math.max(1, selectedQuantity - 1)" class="h-11 w-11 rounded-lg border border-black/10 text-xl font-bold" aria-label="Decrease quantity">−</button>
                                     <span class="w-8 text-center font-extrabold" x-text="selectedQuantity"></span>
-                                    <button type="button" @click="selectedQuantity = Math.min(99, selectedQuantity + 1)" class="h-11 w-11 rounded-lg border border-black/10 text-xl font-bold" aria-label="Increase quantity">+</button>
+                                    <button type="button" @click="selectedQuantity = Math.min(50, selectedQuantity + 1)" class="h-11 w-11 rounded-lg border border-black/10 text-xl font-bold" aria-label="Increase quantity">+</button>
                                 </div>
                                 <button type="button" @click="add(selectedItem, selectedQuantity); selectedItem = null" class="flex-1 rounded-xl bg-black px-4 py-4 font-extrabold text-white">Add to order · <span x-text="money(selectedItem.price * selectedQuantity)"></span></button>
                             </div>
@@ -249,12 +253,12 @@
         </section>
     </div>
 
-    <button type="button" @click="open = true" x-show="count() > 0" class="js-only fixed bottom-4 left-1/2 z-40 flex w-[calc(100%-2rem)] max-w-3xl -translate-x-1/2 items-center justify-between rounded-2xl bg-black px-5 py-4 font-extrabold text-white shadow-2xl shadow-black/40">
-        <span x-text="count() + ' item(s)'"></span><span class="text-zem-gold" x-text="money(total())"></span>
+    <button type="button" @click="open = true" x-show="count() > 0" class="guest-cart-dock js-only fixed bottom-4 left-1/2 z-40 flex w-[calc(100%-2rem)] max-w-3xl -translate-x-1/2 items-center justify-between rounded-2xl bg-black px-5 py-4 font-extrabold text-white shadow-2xl shadow-black/40">
+        <span x-text="count() + ' item(s)'"></span><span class="text-zem-gold" x-text="money(finalTotal())"></span>
     </button>
 
-    <div x-show="open" x-cloak class="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm" @click.self="open=false">
-        <form method="post" action="{{ route('orders.store', [$restaurant->slug, $table->table_number]) }}" @submit="syncForm" class="absolute bottom-0 max-h-[92vh] w-full overflow-y-auto rounded-t-3xl bg-white p-4 text-zem-ink shadow-2xl">
+    <div x-show="open" x-effect="guestDialogState($el, !!open)" role="dialog" aria-modal="true" aria-label="Your order" x-cloak class="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm" @click.self="open=false">
+        <form method="post" action="{{ route('orders.store', [$restaurant->slug, $table->table_number]) }}" @submit="syncForm($event)" class="absolute bottom-0 max-h-[92vh] w-full overflow-y-auto rounded-t-3xl bg-white p-4 text-zem-ink shadow-2xl">
             @csrf
             <div class="mx-auto max-w-3xl">
                 <div class="flex items-center justify-between">
@@ -267,21 +271,22 @@
                     <div class="mt-4 rounded-2xl border border-black/10 bg-neutral-50 p-3">
                         <div class="flex items-center justify-between gap-3">
                             <div><p class="font-extrabold" x-text="item.name"></p><p class="text-sm text-neutral-500" x-text="money(item.price)"></p></div>
-                            <div class="flex items-center gap-2"><button type="button" @click="dec(item.id)" class="h-10 w-10 rounded-lg border border-black/10 font-bold">-</button><span class="w-7 text-center font-bold" x-text="item.quantity"></span><button type="button" @click="add(item)" class="h-10 w-10 rounded-lg border border-black/10 font-bold">+</button></div>
+                            <div class="flex items-center gap-2"><button type="button" @click="dec(item.id)" aria-label="Decrease quantity" class="h-11 w-11 rounded-lg border border-black/10 font-bold">−</button><span class="w-7 text-center font-bold" x-text="item.quantity"></span><button type="button" @click="add(item)" aria-label="Increase quantity" :disabled="item.quantity >= 50" class="h-11 w-11 rounded-lg border border-black/10 font-bold">+</button></div>
                         </div>
-                        <input x-model="item.note" placeholder="{{ __('Special note for this item') }}" class="mt-3 w-full rounded-lg border border-black/10 px-3 py-3 text-sm outline-none focus:border-zem-gold">
+                        <input :aria-label="'Note for ' + item.name" maxlength="1000" @input.debounce.250ms="persistCart()" x-model="item.note" placeholder="{{ __('Special note for this item') }}" class="mt-3 w-full rounded-lg border border-black/10 px-3 py-3 text-sm outline-none focus:border-zem-gold">
                     </div>
                 </template>
 
                 <div class="mt-5 grid gap-3">
-                    <textarea name="note" rows="3" placeholder="{{ __('Order note') }}" class="rounded-lg border border-black/10 px-3 py-3 outline-none focus:border-zem-gold"></textarea>
+                    <textarea aria-label="Order note" maxlength="2000" name="note" rows="3" placeholder="{{ __('Order note') }}" class="rounded-lg border border-black/10 px-3 py-3 outline-none focus:border-zem-gold"></textarea>
                     <div id="cart-fields"></div>
                     <div class="rounded-xl bg-neutral-100 p-4">
                         <div class="flex items-center justify-between text-sm font-bold text-neutral-600"><span>{{ __('Items total') }}</span><span x-text="money(total())"></span></div>
-                        <div x-show="extraPercentage() > 0" class="mt-2 flex items-center justify-between text-sm font-bold text-neutral-600"><span>{{ __('VAT + service charge') }} (<span x-text="extraPercentage()"></span>%)</span><span x-text="'+ ' + money(extraCharges())"></span></div>
+                        <div x-show="serviceChargePercentage > 0" class="mt-2 flex items-center justify-between text-sm"><span>{{ __('Service charge') }} (<span x-text="serviceChargePercentage"></span>%)</span><span x-text="money(total() * serviceChargePercentage / 100)"></span></div>
+                        <div x-show="vatPercentage > 0" class="mt-2 flex items-center justify-between text-sm"><span>{{ __('VAT') }} (<span x-text="vatPercentage"></span>%)</span><span x-text="money(total() * vatPercentage / 100)"></span></div>
                         <div class="mt-3 flex items-center justify-between border-t border-black/10 pt-3 text-lg font-extrabold"><span>{{ __('Final total') }}</span><span x-text="money(finalTotal())"></span></div>
                     </div>
-                    <button class="rounded-xl bg-zem-gold py-4 font-extrabold text-white" :disabled="items.length === 0">{{ __('Place order') }}</button>
+                    <button class="rounded-xl bg-zem-gold py-4 font-extrabold text-white" :disabled="items.length === 0 || submitting" x-text="submitting ? 'Sending order…' : @js(__('Place order'))">{{ __('Place order') }}</button>
                 </div>
             </div>
         </form>
@@ -304,64 +309,6 @@ window.addEventListener('online', updateConnectionStatus);
 window.addEventListener('offline', updateConnectionStatus);
 updateConnectionStatus();
 
-function menuCart(config) {
-    return {
-        open: false,
-        activeCategory: 'all',
-        menuSearch: '',
-        items: [],
-        clientRequestId: null,
-        cartKey: config.cartKey,
-        paymentDetails: config.paymentDetails || {},
-        serviceChargePercentage: Number(config.serviceChargePercentage || 0),
-        vatPercentage: Number(config.vatPercentage || 0),
-        init() {
-            try {
-                const saved = JSON.parse(localStorage.getItem(this.cartKey) || 'null');
-                if (Array.isArray(saved?.items)) this.items = saved.items.filter(item => Number.isInteger(item.id) && item.quantity > 0);
-                if (typeof saved?.clientRequestId === 'string') this.clientRequestId = saved.clientRequestId;
-            } catch (_) {}
-        },
-        persistCart() {
-            try { localStorage.setItem(this.cartKey, JSON.stringify({ items: this.items, clientRequestId: this.clientRequestId })); } catch (_) {}
-        },
-        add(item, quantity = 1) { const existing = this.items.find(i => i.id === item.id); existing ? existing.quantity += quantity : this.items.push({...item, quantity, note: ''}); this.persistCart(); },
-        dec(id) { const item = this.items.find(i => i.id === id); if (!item) return; item.quantity--; if (item.quantity <= 0) this.items = this.items.filter(i => i.id !== id); this.persistCart(); },
-        count() { return this.items.reduce((sum, item) => sum + item.quantity, 0); },
-        total() { return this.items.reduce((sum, item) => sum + item.quantity * item.price, 0); },
-        extraPercentage() { return this.serviceChargePercentage + this.vatPercentage; },
-        extraCharges() { return this.total() * (this.extraPercentage() / 100); },
-        finalTotal() { return this.total() + this.extraCharges(); },
-        normalized(value) { return String(value || '').toLowerCase().trim(); },
-        categoryVisible(categoryId) { return this.activeCategory === 'all' || this.activeCategory === 'cat-' + categoryId; },
-        itemVisible(categoryId, name, description) { return this.categoryVisible(categoryId) && (!this.menuSearch || this.normalized(name + ' ' + description).includes(this.normalized(this.menuSearch))); },
-        categoryHasVisibleItems(categoryId) { return [...document.querySelectorAll('#cat-' + categoryId + ' article')].some((item) => item.offsetParent !== null); },
-        hasVisibleItems() { return [...document.querySelectorAll('#all article')].some((item) => item.offsetParent !== null); },
-        money(value) { return new Intl.NumberFormat('en-US', { maximumFractionDigits: 2 }).format(value) + ' ETB'; },
-        syncForm() {
-            const holder = document.getElementById('cart-fields');
-            holder.innerHTML = '';
-            this.items.forEach((item, index) => {
-                [['id', item.id], ['quantity', item.quantity], ['note', item.note || '']].forEach(([field, value]) => {
-                    const input = document.createElement('input');
-                    input.type = 'hidden';
-                    input.name = `items[${index}][${field}]`;
-                    input.value = value;
-                    holder.appendChild(input);
-                });
-            });
-            if (!this.clientRequestId) {
-                this.clientRequestId = window.crypto?.randomUUID?.() || ('zemtab-' + Date.now() + '-' + Math.random().toString(16).slice(2));
-            }
-            const requestId = document.createElement('input');
-            requestId.type = 'hidden';
-            requestId.name = 'client_request_id';
-            requestId.value = this.clientRequestId;
-            holder.appendChild(requestId);
-            this.persistCart();
-        }
-    }
-}
 
 </script>
 @endsection

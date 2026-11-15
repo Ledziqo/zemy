@@ -53,7 +53,7 @@ class OrderController extends Controller
                 ->first();
 
             if ($existing) {
-                return redirect()->route('menu.confirmation', [$restaurant->slug, $table_number])
+                return redirect()->route('menu.confirmation', [$restaurant->slug, $table_number, 'order' => $existing->id])
                     ->with('order_id', $existing->id)
                     ->withCookie($visits->cookie($visit));
             }
@@ -118,7 +118,7 @@ class OrderController extends Controller
 
         $visits->keepOpen($visit);
 
-        return redirect()->route('menu.confirmation', [$restaurant->slug, $table_number])
+        return redirect()->route('menu.confirmation', [$restaurant->slug, $table_number, 'order' => $order->id])
             ->with('order_id', $order->id)
             ->withCookie($visits->cookie($visit));
     }

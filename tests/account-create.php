@@ -72,7 +72,7 @@ foreach (['full', 'menu_only'] as $mode) foreach (['none', 'dates', 'price'] as 
         $sub = $connection->rows['subscriptions'][0];
         $check($sub['plan_name'] === ($mode === 'menu_only' ? 'Digital Menu' : 'Pro') && $sub['status'] === 'trial', 'Every subscription supplies its required plan name and trial status');
         $check(! empty($sub['starts_at']), 'Price-only subscription receives a start date');
-        if ($subscription === 'dates') $check(substr($sub['starts_at'], 0, 10) === '2026-10-14' && substr($sub['ends_at'], 0, 10) === '2026-11-14', 'Entered dates are preserved');
+        if ($subscription === 'dates') $check(substr($sub['starts_at'], 0, 10) === '2026-10-14' && substr($sub['ends_at'], 0, 10) === '2026-12-01', 'Start date is preserved and billing aligns forward to the first');
         if ($subscription === 'price') $check((float) $sub['monthly_price'] === 1500.0, 'Entered price is preserved');
     }
 }

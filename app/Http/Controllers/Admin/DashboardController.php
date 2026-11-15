@@ -20,7 +20,7 @@ class DashboardController extends Controller
         $currentSubscriptions = $hasSubscriptions
             ? Subscription::query()
                 ->whereIn('status', ['active', 'trial'])
-                ->where(fn ($query) => $query->whereNull('ends_at')->orWhereDate('ends_at', '>=', today()))
+                ->where(fn ($query) => $query->whereNull('ends_at')->orWhereDate('ends_at', '>=', today()->subDays(\App\Models\Subscription::PAYMENT_GRACE_DAYS - 1)))
             : null;
         $activeSubscribers = $currentSubscriptions
             ? (clone $currentSubscriptions)->where('status', 'active')
@@ -36,9 +36,12 @@ class DashboardController extends Controller
                 if (! $subscription) {
                     $attention = 'missing';
                     $label = 'No subscription';
-                } elseif ($daysRemaining !== null && $daysRemaining < 0) {
+                } elseif ($subscription->isExpired()) {
                     $attention = 'overdue';
-                    $label = 'Expired '.abs($daysRemaining).' days ago';
+                    $label = 'Suspended — payment overdue';
+                } elseif ($subscription->isInPaymentGrace()) {
+                    $attention = 'due_soon';
+                    $label = 'Payment due — grace through '.$subscription->graceEndsAt()->format('M j');
                 } elseif ($subscription->status === 'unpaid') {
                     $attention = 'overdue';
                     $label = 'Payment required';
