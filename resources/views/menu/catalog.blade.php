@@ -22,9 +22,9 @@
     <header class="sticky top-0 z-30 border-b border-black/10 bg-white px-4 py-4 shadow-sm">
         <div class="mx-auto max-w-5xl">
             <div class="flex items-center justify-between gap-3">
-                <div class="flex min-w-0 items-center gap-3">
-                    @if($logoUrl)<img src="{{ $logoUrl }}" alt="{{ $restaurant->name }} logo" class="h-14 w-14 shrink-0 rounded-xl border border-black/10 bg-white object-contain p-1">@endif
-                    <div class="min-w-0">
+                <div class="guest-venue-brand flex min-w-0 items-center gap-3">
+                    @if($logoUrl)<img src="{{ $logoUrl }}" alt="{{ $restaurant->name }} logo" class="guest-venue-logo h-14 w-14 shrink-0 rounded-xl border border-black/10 bg-white object-contain p-1">@endif
+                    <div class="guest-venue-copy min-w-0">
                         <p class="text-xs font-bold uppercase tracking-widest text-zem-gold">{{ __('Digital menu') }}</p>
                         <h1 class="font-display text-2xl font-extrabold">{{ $restaurant->name }}</h1>
                         @if($restaurant->location)<p class="text-sm text-neutral-500">{{ $restaurant->location }}</p>@endif

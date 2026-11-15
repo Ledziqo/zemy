@@ -35,13 +35,13 @@
     <header class="sticky top-0 z-30 border-b border-black/10 bg-white/95 px-4 py-3 shadow-sm backdrop-blur">
         <div class="mx-auto max-w-5xl">
             <div class="flex items-center justify-between gap-3">
-                <div class="flex min-w-0 items-center gap-3">
+                <div class="guest-venue-brand flex min-w-0 items-center gap-3">
                     @if($logoUrl)
-                        <img src="{{ $logoUrl }}" alt="{{ $restaurant->name }} logo" class="h-14 w-14 shrink-0 rounded-xl border border-black/10 bg-white object-contain p-1">
+                        <img src="{{ $logoUrl }}" alt="{{ $restaurant->name }} logo" class="guest-venue-logo h-14 w-14 shrink-0 rounded-xl border border-black/10 bg-white object-contain p-1">
                     @else
-                        <div class="grid h-14 w-14 shrink-0 place-items-center rounded-xl bg-black text-xl font-extrabold text-white">{{ strtoupper(substr($restaurant->name, 0, 1)) }}</div>
+                        <div class="guest-venue-logo grid h-14 w-14 shrink-0 place-items-center rounded-xl bg-black text-xl font-extrabold text-white">{{ strtoupper(substr($restaurant->name, 0, 1)) }}</div>
                     @endif
-                    <div class="min-w-0">
+                    <div class="guest-venue-copy min-w-0">
                         <p class="text-xs font-extrabold uppercase tracking-widest text-zem-gold">{{ $table->displayLabel() }}</p>
                         <h1 class="truncate font-display text-2xl font-extrabold">{{ $restaurant->name }}</h1>
                         <p class="truncate text-sm text-neutral-500">{{ $restaurant->location ?: __('Digital menu') }}</p>
