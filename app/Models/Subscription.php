@@ -25,6 +25,25 @@ class Subscription extends Model
         return ($this->daysRemaining() ?? 0) < 0;
     }
 
+    public const PAYMENT_GRACE_DAYS = 7;
+
+    public function graceEndsAt(): ?\Carbon\CarbonInterface
+    {
+        return $this->ends_at?->copy()->addDays(self::PAYMENT_GRACE_DAYS)->endOfDay();
+    }
+
+    public function isInPaymentGrace(): bool
+    {
+        return $this->isExpired() && $this->allowsServiceAccess();
+    }
+
+    public function allowsServiceAccess(): bool
+    {
+        if (!in_array($this->status, ['active', 'trial', 'unpaid'], true)) return false;
+        if (!$this->ends_at) return $this->status !== 'unpaid';
+        return now()->lte($this->graceEndsAt());
+    }
+
     public function effectiveStatus(): string
     {
         return $this->isExpired() ? 'expired' : $this->status;

@@ -32,7 +32,7 @@ for (const file of views) {
     for (const literal of (expression[1] || expression[2] || expression[3]).matchAll(/'([^']*)'/g)) {
       if (literal[1].includes('{{')) continue;
       for (const candidate of literal[1].split(/\s+/)) {
-        if (candidate && !['dark', 'active', 'completed', 'all', 'en', 'am', 'error', 'guest', 'staff', 'animate-slide-in'].includes(candidate) && !candidate.startsWith('cat-')) {
+        if (candidate && !['credit', 'signature-logo', 'is-landscape', 'landscape', 'is-selected', 'dark', 'active', 'completed', 'all', 'en', 'am', 'error', 'guest', 'staff', 'animate-slide-in'].includes(candidate) && !candidate.startsWith('cat-')) {
           classes.add(candidate);
         }
       }

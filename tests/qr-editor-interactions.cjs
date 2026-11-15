@@ -4,7 +4,7 @@ const {chromium}=require(process.env.QR_PLAYWRIGHT||'playwright');
 (async()=>{
  const editor=fs.readFileSync('public/assets/qr-editor.js','utf8');
  const fixture=execFileSync('php',['tests/qr-editor-fixture.php'],{encoding:'utf8'});
- const html=fixture.replace(/<script src="[^"]*qr-editor.js[^"]*"><\/script>/,()=>'<script>'+editor+'</script>').replace('<details class="qr-studio">','<details class="qr-studio" open>');
+ const html=fixture.replace(/<script src="[^"]*qr-editor.js[^"]*"><\/script>/,()=>'<script>'+editor+'</script>').replace(/<details class="qr-studio"[^>]*>/,'<details class="qr-studio" open>');
  const browser=await chromium.launch({...(process.platform==='win32'?{channel:'msedge'}:{}),headless:true});
  try{
   const page=await browser.newPage({viewport:{width:1450,height:1800}}),errors=[];

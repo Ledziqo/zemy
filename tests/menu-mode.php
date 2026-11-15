@@ -86,6 +86,7 @@ $venue = new class {
     public bool $is_active = true;
     public string $dashboard_access_status = 'active';
     public function isMenuOnly(): bool { return $this->menuOnly; }
+    public function serviceAccessAllowed($subscription): bool { return $this->is_active && $this->dashboard_access_status === 'active'; }
     public function requiresStaffProfile($user): bool { return false; }
     public function subscriptions(): object {
         return new class {
@@ -108,7 +109,7 @@ foreach (['restaurant.menu-items.index', 'restaurant.categories.store', 'restaur
         $status = (new EnsureRestaurantDashboardAccess())->handle($request, fn () => new Response('', 204))->getStatusCode();
     } catch (HttpException $exception) { $status = $exception->getStatusCode(); }
     $expected = in_array($name, ['restaurant.menu-items.index', 'restaurant.categories.store',
-        'restaurant.tables.menu-qr', 'restaurant.tables.index', 'restaurant.settings.update']) ? 204 : 403;
+        'restaurant.tables.menu-qr', 'restaurant.tables.index', 'restaurant.tables.design', 'restaurant.settings.update']) ? 204 : 403;
     $check($status === $expected, 'Menu-only access restriction: '.$name);
 }
 $route = new Route('GET', 'test', fn () => null);

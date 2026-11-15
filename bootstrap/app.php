@@ -21,6 +21,7 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->validateCsrfTokens(except: [
             'release-test/callback/*',
         ]);
+        $middleware->appendToGroup('web', \App\Http\Middleware\EnsurePublicSubscriptionAccess::class);
         $middleware->alias([
             'throttle' => \App\Http\Middleware\RouteThrottleRequests::class,
             'restaurant.access' => EnsureRestaurantDashboardAccess::class,

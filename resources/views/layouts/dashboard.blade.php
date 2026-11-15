@@ -160,7 +160,11 @@
         @if($showWarning)
             <div class="mb-5 rounded-lg border border-zem-gold/40 bg-zem-gold/10 px-4 py-3 text-sm">
                 <p class="font-bold text-zem-gold">{{ __('Subscription expiring soon') }}</p>
-                <p class="mt-1 text-zem-muted">Your subscription expires in {{ $dashboardRestaurant->daysUntilExpiry() }} day(s). Please pay to keep your dashboard active.</p>
+                <p class="mt-1 text-zem-muted">@if($dashboardRestaurant->daysUntilExpiry() < 0)
+                    Your payment is overdue. The seven-day grace period ends {{ $dashboardRestaurant->latestSubscription()?->graceEndsAt()?->format('M j, Y') }}. Pay before then to keep your dashboard and guest pages available.
+                @else
+                    Your subscription is paid through {{ $dashboardRestaurant->latestSubscription()?->ends_at?->format('M j, Y') }}. A seven-day payment grace period follows this date.
+                @endif</p>
                 <details class="mt-3"><summary class="cursor-pointer font-semibold">{{ __('Payment details') }}</summary>
                 <div class="mt-3 grid gap-2 rounded-md border border-zem-gold/30 bg-zem-card/60 p-3 text-zem-muted sm:grid-cols-2">
                     <p>Telebirr: <strong class="text-zem-cream">{{ config('payment.telebirr') }}</strong></p>

@@ -306,6 +306,9 @@ class DashboardController extends Controller
             hash('sha256', $request->session()->getId())
         ), 403);
 
+        $accessUntil = $request->session()->get('billing_access_until');
+        abort_if($accessUntil !== null && now()->getTimestamp() > (int) $accessUntil, 403, 'Payment grace period has ended.');
+
         $revision = WorkBoardRevision::current($restaurantId);
         if ($request->header('X-Board-Revision') !== null && hash_equals($revision, (string) $request->header('X-Board-Revision'))) {
             return response('', 304)
@@ -314,6 +317,7 @@ class DashboardController extends Controller
         }
 
         $restaurant = Restaurant::findOrFail($restaurantId);
+        abort_unless($restaurant->serviceAccessAllowed($restaurant->latestSubscription()), 403, 'Dashboard access is unavailable.');
         $role = (string) $request->session()->get('staff_profile_role', 'owner_manager');
         $filter = $this->orderFilter($request);
         $page = max(1, (int) $request->query('page', 1));

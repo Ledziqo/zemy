@@ -59,7 +59,7 @@
                         @endforeach
                     </select>
                     <input name="starts_at" type="date" value="{{ optional($subscription->starts_at)->format('Y-m-d') }}" class="rounded-md border border-zem-border bg-zem-card px-3 py-2">
-                    <input name="ends_at" type="date" value="{{ optional($subscription->ends_at)->format('Y-m-d') }}" class="rounded-md border border-zem-border bg-zem-card px-3 py-2">
+                    <input name="ends_at" aria-label="Paid-through date; seven grace days follow" title="Paid-through date. Use the last day of the month for payment due on the 1st, grace through the 7th, and suspension on the 8th." type="date" value="{{ optional($subscription->ends_at)->format('Y-m-d') }}" class="rounded-md border border-zem-border bg-zem-card px-3 py-2">
                     <button class="rounded-md bg-zem-gold px-4 py-2 font-bold text-white md:col-span-6">Save changes</button>
                 </div>
             </details>

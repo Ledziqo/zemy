@@ -35,8 +35,8 @@ class PaymentController extends Controller
                 ];
             }
 
-            $isExpired = $daysLeft !== null && $daysLeft < 0;
-            $isExpiring = $daysLeft !== null && $daysLeft >= 0 && $daysLeft <= 3;
+            $isExpired = $daysLeft !== null && $daysLeft < -Subscription::PAYMENT_GRACE_DAYS;
+            $isExpiring = $daysLeft !== null && $daysLeft >= -Subscription::PAYMENT_GRACE_DAYS && $daysLeft <= Subscription::PAYMENT_GRACE_DAYS;
 
             if ($isExpired) { $summary['expired']++; }
             elseif ($sub->status === 'unpaid') { $summary['unpaid']++; }
@@ -48,7 +48,7 @@ class PaymentController extends Controller
                 : ($sub->status === 'unpaid' ? 'bg-red-100 text-red-700 border-red-300'
                 : 'bg-green-100 text-green-700 border-green-300'));
 
-            $label = $isExpired ? 'Expired' : ($isExpiring ? $daysLeft . ' days left' : ($sub->status === 'unpaid' ? 'Unpaid' : 'Active'));
+            $label = $sub->isInPaymentGrace() ? 'Payment grace until '.$sub->graceEndsAt()->format('M j') : ($isExpired ? 'Suspended' : ($isExpiring ? $daysLeft . ' days left' : ($sub->status === 'unpaid' ? 'Unpaid' : 'Active')));
 
             return (object) [
                 'restaurant' => $restaurant, 'subscription' => $sub, 'daysLeft' => $daysLeft,

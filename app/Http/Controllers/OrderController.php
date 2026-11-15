@@ -61,51 +61,60 @@ class OrderController extends Controller
 
         $clientRequestId ??= (string) Str::uuid();
 
-        $order = DB::transaction(function () use ($data, $restaurant, $restaurantTable, $visit, $table_number, $menuItems, $clientRequestId) {
-            $subtotal = 0;
-            foreach ($data['items'] as $line) {
-                $item = $menuItems[$line['id']];
-                $subtotal += (float) $item->price * (int) $line['quantity'];
-            }
+        try {
+            $order = DB::transaction(function () use ($data, $restaurant, $restaurantTable, $visit, $table_number, $menuItems, $clientRequestId) {
+                $subtotal = 0;
+                foreach ($data['items'] as $line) {
+                    $item = $menuItems[$line['id']];
+                    $subtotal += (float) $item->price * (int) $line['quantity'];
+                }
 
-            $settings = $restaurant->settings ?? [];
-            $serviceCharge = $subtotal * ((float) ($settings['service_charge_percentage'] ?? 0) / 100);
-            $tax = $subtotal * ((float) ($settings['vat_percentage'] ?? 0) / 100);
-            $total = $subtotal + $serviceCharge + $tax;
+                $settings = $restaurant->settings ?? [];
+                $serviceCharge = $subtotal * ((float) ($settings['service_charge_percentage'] ?? 0) / 100);
+                $tax = $subtotal * ((float) ($settings['vat_percentage'] ?? 0) / 100);
+                $total = $subtotal + $serviceCharge + $tax;
 
-            $order = Order::create([
-                'restaurant_id' => $restaurant->id,
-                'table_id' => $restaurantTable->id,
-                'guest_session_id' => $visit->id,
-                'client_request_id' => $clientRequestId,
-                'table_number' => $table_number,
-                'customer_name' => $data['customer_name'] ?? null,
-                'customer_phone' => $data['customer_phone'] ?? null,
-                'note' => $data['note'] ?? null,
-                'status' => 'new',
-                'payment_method' => $data['payment_method'] ?? null,
-                'payment_status' => 'unpaid',
-                'confirmed_at' => null,
-                'subtotal' => $subtotal,
-                'service_charge' => $serviceCharge,
-                'tax' => $tax,
-                'total' => $total,
-            ]);
-
-            foreach ($data['items'] as $line) {
-                $item = $menuItems[$line['id']];
-                $order->items()->create([
-                    'menu_item_id' => $item->id,
-                    'item_name' => $item->name,
-                    'quantity' => $line['quantity'],
-                    'unit_price' => $item->price,
-                    'total_price' => (float) $item->price * (int) $line['quantity'],
-                    'note' => $line['note'] ?? null,
+                $order = Order::create([
+                    'restaurant_id' => $restaurant->id,
+                    'table_id' => $restaurantTable->id,
+                    'guest_session_id' => $visit->id,
+                    'client_request_id' => $clientRequestId,
+                    'table_number' => $table_number,
+                    'customer_name' => $data['customer_name'] ?? null,
+                    'customer_phone' => $data['customer_phone'] ?? null,
+                    'note' => $data['note'] ?? null,
+                    'status' => 'new',
+                    'payment_method' => $data['payment_method'] ?? null,
+                    'payment_status' => 'unpaid',
+                    'confirmed_at' => null,
+                    'subtotal' => $subtotal,
+                    'service_charge' => $serviceCharge,
+                    'tax' => $tax,
+                    'total' => $total,
                 ]);
-            }
 
-            return $order;
-        });
+                foreach ($data['items'] as $line) {
+                    $item = $menuItems[$line['id']];
+                    $order->items()->create([
+                        'menu_item_id' => $item->id,
+                        'item_name' => $item->name,
+                        'quantity' => $line['quantity'],
+                        'unit_price' => $item->price,
+                        'total_price' => (float) $item->price * (int) $line['quantity'],
+                        'note' => $line['note'] ?? null,
+                    ]);
+                }
+
+                return $order;
+            });
+        } catch (\Illuminate\Database\UniqueConstraintViolationException $exception) {
+            // A concurrent retry or a reused request ID must not become a server error.
+            $order = Order::where('restaurant_id', $restaurant->id)
+                ->where('client_request_id', $clientRequestId)
+                ->where('table_id', $restaurantTable->id)
+                ->where('guest_session_id', $visit->id)->first();
+            abort_unless($order, 409, 'This order request has already been used. Refresh the menu before trying again.');
+        }
 
         $visits->keepOpen($visit);
 

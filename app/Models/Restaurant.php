@@ -56,7 +56,17 @@ class Restaurant extends Model
 
     public function latestSubscription()
     {
-        return $this->subscriptions()->latest('starts_at')->first();
+        return $this->subscriptions()->latest('starts_at')->latest('id')->first();
+    }
+
+    public function serviceAccessAllowed($subscription): bool
+    {
+        if (!$this->is_active || ($this->dashboard_access_status ?? 'active') === 'revoked') return false;
+        $access = $this->dashboard_access_status ?? 'active';
+        // Automatically flagged unpaid subscriptions still receive their grace period.
+        // A manual payment hold with no unpaid subscription remains an immediate hold.
+        if ($access !== 'active' && !($access === 'payment_required' && $subscription?->status === 'unpaid')) return false;
+        return !$subscription || $subscription->allowsServiceAccess();
     }
 
     public function daysUntilExpiry(): ?int
@@ -75,7 +85,7 @@ class Restaurant extends Model
     public function isExpiringSoon(): bool
     {
         $days = $this->daysUntilExpiry();
-        return $days !== null && $days >= 0 && $days <= 3;
+        return $days !== null && $days >= -Subscription::PAYMENT_GRACE_DAYS && $days <= Subscription::PAYMENT_GRACE_DAYS;
     }
 
     public function isHotel(): bool

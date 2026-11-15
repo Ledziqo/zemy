@@ -12,7 +12,7 @@
             <p class="mt-3 text-zem-muted">{{ $restaurant->name }}'s account is currently inactive. Please contact ZemTab support or your account manager.</p>
         @else
             <h2 class="font-display text-2xl font-bold">Payment required</h2>
-            <p class="mt-3 text-zem-muted">{{ $restaurant->name }} can still be found by customers from existing QR menu links, but dashboard management is paused because the subscription needs payment. Pay the subscription to restore full access.</p>
+            <p class="mt-3 text-zem-muted">Access to {{ $restaurant->name }}'s dashboard, digital menu and information board is suspended. A seven-day grace period follows the paid-through date. Access is restored as soon as payment is verified.</p>
         @endif
         @if($accessReason !== 'payment')
             <p class="mt-3 text-sm text-zem-muted">Contact ZemTab support on Telegram: <strong class="text-zem-cream">{{ config('payment.telegram') }}</strong></p>
@@ -21,12 +21,13 @@
 
     @if($accessReason === 'payment')
     <div class="mt-6 rounded-md border border-zem-border bg-zem-bg p-4">
-        @php($sub = $restaurant->subscriptions()->latest('starts_at')->first())
+        @php($sub = $subscription)
         @if($sub)
             <div class="grid gap-2 text-sm">
                 <div class="flex justify-between"><span class="text-zem-muted">Plan:</span><strong>{{ $sub->plan_name }}</strong></div>
                 <div class="flex justify-between"><span class="text-zem-muted">Monthly price:</span><strong>{{ number_format($sub->monthly_price) }} ETB</strong></div>
-                <div class="flex justify-between"><span class="text-zem-muted">Expired on:</span><strong>{{ $sub->ends_at ? \Carbon\Carbon::parse($sub->ends_at)->format('M j, Y') : 'N/A' }}</strong></div>
+                <div class="flex justify-between"><span class="text-zem-muted">Paid through:</span><strong>{{ $sub->ends_at ? \Carbon\Carbon::parse($sub->ends_at)->format('M j, Y') : 'N/A' }}</strong></div>
+                @if($sub->graceEndsAt())<div class="flex justify-between"><span class="text-zem-muted">Grace deadline:</span><strong>{{ $sub->graceEndsAt()->format('M j, Y') }}</strong></div>@endif
             </div>
         @else
             <p class="text-sm text-zem-muted">No subscription information available.</p>

@@ -18,12 +18,7 @@ class EnsureRestaurantDashboardAccess
         // Access changes take effect on the next request, including an existing staff session.
         // Do not mutate billing state during reads or retain an obsolete permission in cache.
         $subscription = $restaurant->subscriptions()->latest('starts_at')->latest('id')->first();
-        $allowed = $restaurant->is_active
-            && ($restaurant->dashboard_access_status ?? 'active') === 'active'
-            && (! $subscription || (
-                in_array($subscription->status, ['active', 'trial'], true)
-                && (! $subscription->ends_at || ! $subscription->ends_at->lessThan(today()))
-            ));
+        $allowed = $restaurant->serviceAccessAllowed($subscription);
 
         if (! $allowed) {
             if ($request->expectsJson()) {
@@ -31,6 +26,8 @@ class EnsureRestaurantDashboardAccess
             }
             return redirect()->route('restaurant.access-required');
         }
+
+        $request->session()->put('billing_access_until', $subscription?->graceEndsAt()?->getTimestamp());
 
         if ($restaurant->isMenuOnly()) {
             if ($request->routeIs('restaurant.dashboard')) {

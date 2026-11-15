@@ -35,7 +35,7 @@ foreach (['current', 'previous-cache'] as $version) {
     $controller = new App\Http\Controllers\Restaurant\TableController();
     $html = $controller->index($request)->render();
     $check(str_contains($html, 'data:image/svg+xml;base64,'), $version.': whole page renders with embedded QR');
-    $check(str_contains($html, 'download=menu-qr'), $version.': download uses existing route');
+    $check(str_contains($html, 'id="open-shared-print"'), $version.': unified print dialog is available');
     $check(! str_contains($html, 'Select your profile'), $version.': no profile selection required');
     $request->query->set('download', 'menu-qr');
     $response = $controller->index($request);

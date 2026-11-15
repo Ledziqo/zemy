@@ -12,8 +12,8 @@ class AccessController extends Controller
         $restaurant = $request->user()->restaurant;
         $subscription = $restaurant->subscriptions()->latest('starts_at')->latest('id')->first();
         $accessStatus = $restaurant->dashboard_access_status ?? 'active';
-        $paymentBlocked = $accessStatus === 'payment_required'
-            || ($subscription && ($subscription->status === 'unpaid' || $subscription->isExpired()));
+        $paymentBlocked = !$restaurant->serviceAccessAllowed($subscription);
+        if (!$paymentBlocked) return redirect()->route('restaurant.dashboard');
 
         return view('restaurant.access_required', [
             'restaurant' => $restaurant,
