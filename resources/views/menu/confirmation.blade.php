@@ -8,7 +8,7 @@
 ])
 
 @section('content')
-<main class="grid min-h-screen place-items-center bg-white px-5 text-zem-ink">
+<main class="guest-confirmation grid min-h-screen place-items-center bg-white px-5 text-zem-ink">
     <div class="max-w-md rounded-2xl border border-black/10 bg-white p-8 text-center shadow-2xl">
         <p class="mx-auto grid h-16 w-16 place-items-center rounded-full bg-zem-gold text-3xl font-extrabold text-white">OK</p>
         <h1 class="mt-5 font-display text-3xl font-extrabold">Order sent.</h1>

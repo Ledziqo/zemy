@@ -5,7 +5,7 @@
     <div class="mb-6 rounded-lg border border-zem-border bg-zem-card p-5">
         <h2 class="font-display text-lg font-bold">New Driver Pickup Order</h2>
         <p class="mt-1 text-sm text-zem-muted">Create the order here so it appears on the same work board. ZemTab tracks the restaurant handoff, not the driver route.</p>
-        <form method="post" action="{{ route('restaurant.delivery.store') }}" class="mt-4 space-y-4" x-data="{ items: [] }">
+        <form method="post" action="{{ route('restaurant.delivery.store') }}" class="mt-4 space-y-4" x-data="{ items: [], selectedItem: '', qty: 1 }">
             @csrf
             <div class="grid gap-4 sm:grid-cols-2">
                 <label class="grid gap-1 text-sm">
@@ -19,15 +19,15 @@
             </div>
             <div class="rounded-md border border-zem-border bg-zem-bg p-4">
                 <p class="mb-3 text-sm font-bold">Add Items</p>
-                <div class="flex gap-2">
-                    <select x-model="selectedItem" class="flex-1 rounded-lg border border-zem-border bg-white px-3 py-2 text-sm">
+                <div class="flex flex-wrap gap-2">
+                    <select x-ref="pickupItem" aria-label="Menu item" x-model="selectedItem" class="flex-1 rounded-lg border border-zem-border bg-white px-3 py-2 text-sm">
                         <option value="">Select menu item...</option>
                         @foreach($menuItems as $item)
-                            <option value="{{ $item->id }}" data-price="{{ $item->price }}">{{ $item->name }} - {{ number_format($item->price) }} ETB</option>
+                            <option value="{{ $item->id }}" data-price="{{ $item->price }}" data-name="{{ $item->name }}">{{ $item->name }} - {{ number_format($item->price) }} ETB</option>
                         @endforeach
                     </select>
-                    <input type="number" x-model="qty" placeholder="Qty" min="1" value="1" class="w-20 rounded-lg border border-zem-border bg-white px-3 py-2 text-sm">
-                    <button type="button" @click="if (selectedItem) { items.push({id: selectedItem, name: $event.target.options[selectedIndex].text.split(' - ')[0], qty: qty}); selectedItem=''; qty=1 }" class="rounded-lg bg-zem-gold px-4 py-2 text-sm font-bold text-white">Add</button>
+                    <input type="number" x-model="qty" aria-label="Quantity" placeholder="Qty" min="1" max="50" value="1" class="w-20 rounded-lg border border-zem-border bg-white px-3 py-2 text-sm">
+                    <button type="button" @click="if (selectedItem) { const option = $refs.pickupItem.selectedOptions[0]; const quantity = Math.max(1, Math.min(50, Math.floor(Number(qty) || 1))); const existing = items.find(item => item.id === selectedItem); if (existing) existing.qty = Math.min(50, existing.qty + quantity); else items.push({id: selectedItem, name: option.dataset.name, qty: quantity}); selectedItem=''; qty=1 }" class="rounded-lg bg-zem-gold px-4 py-2 text-sm font-bold text-white">Add</button>
                 </div>
                 <div class="mt-3 space-y-2">
                     <template x-for="(item, i) in items" :key="i">

@@ -2,18 +2,20 @@
 
 @section('content')
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/cropperjs@1.6.2/dist/cropper.min.css">
+<div class="workspace-intro"><div><h2>{{ $restaurant->isMenuOnly() ? __('Your menu, always up to date.') : __('Good service starts with a great menu.') }}</h2><p>{{ __('Add a dish, adjust a price or mark an item unavailable. Your guests see the latest version when they open your menu.') }}</p></div><div class="workspace-shortcuts"><a href="{{ route('restaurant.tables.index') }}"><x-ui-icon name="qr" />{{ __('Menu QR') }}</a>@if($restaurant->informationBoardEnabled())<a href="{{ route('restaurant.settings.edit', ['information_board' => 1]) }}"><x-ui-icon name="guide" />{{ __('Information board') }}</a>@endif</div></div>
 <form method="post" action="{{ route('restaurant.menu-items.store') }}" enctype="multipart/form-data" class="mb-6 grid gap-3 rounded-md border border-zem-border bg-zem-card p-4 md:grid-cols-2 xl:grid-cols-5">
     @csrf
-    <select name="category_id" class="rounded-md border border-zem-border bg-zem-bg px-3 py-3">@foreach($categories as $category)<option value="{{ $category->id }}">{{ $category->name }}</option>@endforeach</select>
-    <input name="name" required placeholder="{{ __('Item name') }}" class="rounded-md border border-zem-border bg-zem-bg px-3 py-3">
-    <input name="price" required type="number" step="0.01" placeholder="{{ __('Price') }}" class="rounded-md border border-zem-border bg-zem-bg px-3 py-3">
+    <div class="md:col-span-2 xl:col-span-5"><h2 class="text-base font-semibold">{{ __('Add to your menu') }}</h2><p class="mt-1 text-xs text-zem-muted">{{ __('Choose a category, add the details and set your price.') }}</p></div>
+    <select aria-label="{{ __('Category') }}" name="category_id" class="rounded-md border border-zem-border bg-zem-bg px-3 py-3">@foreach($categories as $category)<option value="{{ $category->id }}">{{ $category->name }}</option>@endforeach</select>
+    <input name="name" aria-label="{{ __('Item name') }}" required placeholder="{{ __('Item name') }}" class="rounded-md border border-zem-border bg-zem-bg px-3 py-3">
+    <input name="price" aria-label="{{ __('Price in ETB') }}" required type="number" step="0.01" placeholder="{{ __('Price') }}" class="rounded-md border border-zem-border bg-zem-bg px-3 py-3">
     @if($restaurant->menuPhotosEnabled())<input name="image" type="file" accept="image/*" class="rounded-md border border-zem-border bg-zem-bg px-3 py-3 text-sm" data-image-crop-input>@endif
     <input name="cropped_image" type="hidden" data-cropped-image>
     <div class="flex flex-wrap items-center gap-4 rounded-md border border-zem-border bg-zem-bg px-3 py-3">
         <label class="flex items-center gap-2"><input name="is_available" type="checkbox" value="1" checked> {{ __('Available') }}</label>
         <label class="flex items-center gap-2"><input name="is_featured" type="checkbox" value="1"> {{ __('Featured') }}</label>
     </div>
-    <textarea name="description" placeholder="{{ __('Description') }}" class="rounded-md border border-zem-border bg-zem-bg px-3 py-3 md:col-span-2 xl:col-span-4"></textarea>
+    <textarea name="description" aria-label="{{ __('Description') }}" placeholder="{{ __('Description') }}" class="rounded-md border border-zem-border bg-zem-bg px-3 py-3 md:col-span-2 xl:col-span-4"></textarea>
     <button class="rounded-md bg-zem-gold px-4 py-3 font-bold text-white">{{ __('Add item') }}</button>
 </form>
 

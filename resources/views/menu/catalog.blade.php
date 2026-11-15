@@ -13,7 +13,7 @@
     $logoUrl = $logoPath ? (\Illuminate\Support\Str::startsWith($logoPath, ['http://', 'https://', 'uploads/'])
         ? (str_starts_with($logoPath, 'uploads/') ? asset($logoPath) : $logoPath) : asset('storage/'.$logoPath)) : null;
 @endphp
-<main class="min-h-screen bg-neutral-100 pb-8 text-zem-ink" x-data="{ search: '', category: 'all', matches(name, description) { const q = this.search.trim().toLowerCase(); return !q || (name + ' ' + description).toLowerCase().includes(q); } }">
+<main class="guest-menu guest-catalog min-h-screen bg-neutral-100 pb-8 text-zem-ink" x-data="{ search: '', category: 'all', matches(name, description) { const q = this.search.trim().toLowerCase(); return !q || (name + ' ' + description).toLowerCase().includes(q); } }">
     <header class="sticky top-0 z-30 border-b border-black/10 bg-white px-4 py-4 shadow-sm">
         <div class="mx-auto max-w-5xl">
             <div class="flex items-center justify-between gap-3">

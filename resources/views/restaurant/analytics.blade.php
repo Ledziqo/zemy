@@ -4,7 +4,7 @@
 @php($placeTitle = $restaurant->locationLabelTitle())
 <div class="grid gap-4 md:grid-cols-3 xl:grid-cols-5">
     @foreach([['Today orders',$todayOrders],['Today revenue',number_format($todayRevenue).' ETB'],['30-day orders',$last30Orders],['30-day revenue',number_format($last30Revenue).' ETB'],['Completed',$completedOrders]] as $card)
-        <div class="rounded-md border border-zem-border bg-zem-card p-4"><p class="text-sm text-zem-muted">{{ __($card[0]) }}</p><p class="mt-2 text-2xl font-extrabold">{{ $card[1] }}</p></div>
+        <div class="rounded-md border border-zem-border bg-zem-card p-4"><p class="text-sm text-zem-muted">{{ __($card[0]) }}</p><p class="metric-value mt-3 text-2xl font-semibold">{{ $card[1] }}</p></div>
     @endforeach
 </div>
 

@@ -1,0 +1,88 @@
+{
+  "started": "2026-11-15T17:48:34.747Z",
+  "checks": [
+    {
+      "name": "Owner logs in without staff profiles during grace day 7",
+      "status": "PASS"
+    },
+    {
+      "name": "Guest menu and hotel guide available on grace day 7",
+      "status": "PASS"
+    },
+    {
+      "name": "Add menu item through real form and see it on guest menu",
+      "status": "PASS"
+    },
+    {
+      "name": "Cross-hotel item edits are denied",
+      "status": "PASS"
+    },
+    {
+      "name": "Settings opens and links to information editor",
+      "status": "PASS"
+    },
+    {
+      "name": "Edit guide, add and reorder sections, save and view public changes",
+      "status": "PASS"
+    },
+    {
+      "name": "Replace and resize information logo",
+      "status": "PASS"
+    },
+    {
+      "name": "Menu-only QR studio renders without room labels and retains title size on selection",
+      "status": "PASS"
+    },
+    {
+      "name": "Sync appearance to all designs and persist information layout",
+      "status": "PASS"
+    },
+    {
+      "name": "Both print cards have live previews with independent orientation and size",
+      "status": "PASS"
+    },
+    {
+      "name": "Mobile guest menu and guide have no horizontal overflow",
+      "status": "PASS"
+    },
+    {
+      "name": "Settings toggle hides information tools and blocks direct guest URL",
+      "status": "PASS"
+    },
+    {
+      "name": "Day 8 blocks dashboard, cached guest menu and guide, and crafted orders",
+      "status": "PASS"
+    },
+    {
+      "name": "Admin verifies payment and access restores on the next request",
+      "status": "PASS"
+    },
+    {
+      "name": "Admin database and information importer render",
+      "status": "PASS"
+    },
+    {
+      "name": "Admin creates a new menu-only account and the new owner can log in",
+      "status": "PASS"
+    },
+    {
+      "name": "Menu ZIP importer replaces only the selected hotel",
+      "status": "PASS"
+    },
+    {
+      "name": "Information JSON import publishes sections and embedded logo",
+      "status": "PASS"
+    },
+    {
+      "name": "Full-service guest cart and table/room print previews",
+      "status": "PASS"
+    },
+    {
+      "name": "No JavaScript runtime errors or server 500s",
+      "status": "PASS"
+    }
+  ],
+  "errors": [],
+  "http500": [],
+  "completed": "2026-11-15T17:48:56.789Z"
+}

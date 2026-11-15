@@ -17,6 +17,18 @@
     $accountLabel = $isAdmin ? __('Admin') : ($dashboardRestaurant?->name ?? __('Restaurant')) . ' - ' . ($staffRole === 'owner_manager' ? __('Owner/Manager') : ($staffRole === 'cashier' ? __('Cashier') : __('Kitchen')));
     $supportedLocales = ['en' => 'English', 'am' => 'አማርኛ', 'ar' => 'العربية', 'zh' => '中文'];
 
+    $pageDescription = match(request()->route()?->getName()) {
+        'restaurant.menu-items.index' => 'Keep your dishes, prices and availability up to date.',
+        'restaurant.categories.index' => 'Organise your menu so guests can find their favourites.',
+        'restaurant.tables.index' => 'Design your QR cards and prepare a printout in a few simple steps.',
+        'restaurant.settings.edit' => request()->boolean('information_board') ? 'A helpful, beautifully presented guide for your guests.' : 'Make ZemTab work for your venue and your team.',
+        'restaurant.dashboard' => 'A clear view of your orders, service and sales.',
+        'restaurant.orders.index' => 'Stay on top of every order and guest request.',
+        'restaurant.analytics' => 'Understand your sales and discover what guests love.',
+        'restaurant.staff-profiles.index' => 'Give every team member the right tools and access.',
+        'restaurant.cashier-reports' => 'Review your team collections and payment activity.',
+        default => $isAdmin ? 'Your venues, accounts and platform operations in one place.' : '',
+    };
     $links = $isAdmin
         ? [
             ['Overview', route('admin.dashboard')],
@@ -103,11 +115,11 @@
         @media(prefers-reduced-motion:reduce){*,*::before,*::after{animation:none!important;scroll-behavior:auto!important;transition:none!important}}
     </style>
 </head>
-<body class="bg-zem-bg text-zem-cream font-sans antialiased">
+<body class="zem-dashboard bg-zem-bg text-zem-cream font-sans antialiased">
 <a href="#main-content" class="sr-only focus:not-sr-only focus:fixed focus:top-2 focus:left-2 focus:z-50 focus:bg-zem-card focus:p-3">{{ __('Skip to content') }}</a>
-<div class="min-h-screen bg-zem-bg lg:flex" x-data="{ navigationOpen: false }">
-    <aside class="border-b border-zem-border bg-zem-card lg:fixed lg:inset-y-0 lg:z-30 lg:flex lg:w-60 lg:flex-col lg:border-b-0 lg:border-r">
-        <div class="flex items-center justify-between px-5 py-5">
+<div class="min-h-screen bg-zem-bg lg:flex" x-data="{ navigationOpen: false }" @keydown.escape.window="navigationOpen = false">
+    <aside class="dashboard-sidebar border-b border-zem-border bg-zem-card lg:fixed lg:inset-y-0 lg:z-30 lg:flex lg:w-60 lg:flex-col lg:border-b-0 lg:border-r">
+        <div class="dashboard-brand flex items-center justify-between">
             <a href="{{ route('home') }}" class="relative inline-flex items-center pb-3 pr-8" aria-label="ZemTab Home">
                 <img src="{{ asset('logo/zemtab-pantone-1795-c-icon-text-transparent.png') }}" alt="ZemTab" class="h-9 w-auto dark:rounded-md dark:bg-white dark:p-1">
                 @if($zemtabBrandBadge)
@@ -116,19 +128,36 @@
             </a>
             <button type="button" @click="navigationOpen = !navigationOpen" :aria-expanded="navigationOpen" aria-controls="dashboard-navigation" class="rounded-lg border border-zem-border px-3 py-2 text-sm font-semibold lg:hidden">{{ __('Menu') }}</button>
         </div>
-        <div class="hidden px-5 pb-5 lg:block">
+        <div class="dashboard-venue hidden lg:block">
             <p class="truncate text-sm font-bold">{{ $isAdmin ? __('Platform administration') : $dashboardRestaurant?->name }}</p>
             <p class="mt-1 text-xs text-zem-muted">{{ $isAdmin ? auth()->user()->name : $profileName }}</p>
         </div>
-        <nav id="dashboard-navigation" aria-label="{{ __('Main navigation') }}" :class="navigationOpen ? 'block' : 'hidden'" class="dashboard-nav hidden space-y-1 overflow-y-auto px-3 pb-4 lg:!block lg:flex-1">
+        <nav id="dashboard-navigation" aria-label="{{ __('Main navigation') }}" :class="navigationOpen ? '!block' : 'hidden'" class="dashboard-nav hidden space-y-1 overflow-y-auto px-3 pb-4 lg:!block lg:flex-1">
             @foreach($links as [$label, $url])
                 @if(($isAdmin && $loop->index === 4) || (!$isAdmin && $staffRole === 'owner_manager' && $loop->index === 4))
-                    <p class="px-3 pb-2 pt-5 text-[11px] font-semibold uppercase tracking-widest text-zem-muted">{{ $isAdmin ? __('Billing & settings') : __('Manage your space') }}</p>
+                    <p class="dashboard-nav-label">{{ $isAdmin ? __('Billing & settings') : __('Manage your space') }}</p>
                 @endif
-                <a href="{{ $url }}" @if(str_contains($url, '?') ? request()->fullUrl() === $url : (url()->current() === $url && !request()->boolean('information_board'))) aria-current="page" @endif class="rounded-lg px-3 py-2 text-sm font-medium text-zem-muted transition hover:bg-zem-soft hover:text-zem-cream">{{ $label }}</a>
+                <a href="{{ $url }}" @if(str_contains($url, '?') ? request()->fullUrl() === $url : (url()->current() === $url && !request()->boolean('information_board'))) aria-current="page" @endif class="rounded-lg px-3 py-2 text-sm font-medium text-zem-muted transition hover:bg-zem-soft hover:text-zem-cream">@php
+                    $path = parse_url($url, PHP_URL_PATH);
+                    $iconName = match (true) {
+                        str_contains($url, 'information_board=1') => 'guide',
+                        str_contains($path, 'menu-items') => 'menu',
+                        str_contains($path, 'categories') => 'categories',
+                        str_contains($path, 'tables') => 'qr',
+                        str_contains($path, 'orders') => 'orders',
+                        str_contains($path, 'analytics'), str_contains($path, 'cashier') => 'analytics',
+                        str_contains($path, 'staff-profiles'), str_contains($path, 'users'), str_contains($path, 'demo-requests') => 'people',
+                        str_contains($path, 'settings') => 'settings',
+                        str_contains($path, 'subscriptions'), str_contains($path, 'payments') => 'billing',
+                        str_contains($path, 'database') => 'database',
+                        str_contains($path, 'restaurants') => 'menu',
+                        default => 'overview',
+                    };
+                @endphp
+                <x-ui-icon :name="$iconName" /><span>{{ $label }}</span></a>
             @endforeach
         </nav>
-        <div :class="navigationOpen ? 'block' : 'hidden'" class="hidden border-t border-zem-border p-4 lg:!block">
+        <div :class="navigationOpen ? '!block' : 'hidden'" class="hidden border-t border-zem-border p-4 lg:!block">
             @unless($isAdmin)
                 @unless($dashboardRestaurant?->isMenuOnly() || session('account_login_without_profile'))<a href="{{ route('restaurant.profile-select') }}" class="mb-2 block rounded-lg px-3 py-2 text-sm font-semibold text-zem-muted hover:bg-zem-soft">{{ __('Switch profile') }}</a>@endunless
             @endunless
@@ -136,21 +165,22 @@
         </div>
     </aside>
     <main id="main-content" class="dashboard-main min-w-0 w-full px-4 py-6 md:px-6 lg:ml-60 lg:px-8">
-        <header class="mb-7 flex flex-wrap items-center justify-between gap-4">
+        <header class="dashboard-page-header mb-7 flex flex-wrap items-center justify-between gap-4">
             <div class="min-w-0">
                 <p class="mb-1 text-xs font-medium text-zem-muted">{{ $eyebrow ?? ($isAdmin ? 'ZemTab' : $dashboardRestaurant?->name) }}</p>
                 <h1 class="font-display text-2xl font-bold md:text-3xl">{{ $heading ?? 'Dashboard' }}</h1>
+                @if($pageDescription)<p class="page-description">{{ __($pageDescription) }}</p>@endif
             </div>
             <div class="flex flex-wrap items-center gap-2">
                 <form method="post" action="{{ route('locale.update') }}" class="flex items-center gap-2">@csrf
                     <label for="dashboard-locale" class="sr-only">{{ __('Language') }}</label>
-                    <select id="dashboard-locale" name="locale" onchange="this.form.submit()" class="rounded-full border border-zem-border bg-zem-card px-3 py-2 text-sm font-bold text-zem-muted">
+                    <select id="dashboard-locale" name="locale" onchange="this.form.submit()" class="dashboard-toolbar-control rounded-full border border-zem-border bg-zem-card px-3 py-2 text-sm font-bold text-zem-muted">
                         @foreach($supportedLocales as $localeCode => $localeLabel)
                             <option value="{{ $localeCode }}" @selected(app()->getLocale() === $localeCode)>{{ $localeLabel }}</option>
                         @endforeach
                     </select>
                 </form>
-                <button type="button" onclick="toggleZemtabTheme()" class="rounded-full border border-zem-border bg-zem-card px-3 py-2 text-sm font-bold text-zem-muted" aria-label="{{ __('Switch color theme') }}"><span class="dark:hidden">{{ __('Dark') }}</span><span class="hidden dark:inline">{{ __('Light') }}</span></button>
+                <button type="button" onclick="toggleZemtabTheme()" class="dashboard-toolbar-control rounded-full border border-zem-border bg-zem-card px-3 py-2 text-sm font-bold text-zem-muted" aria-label="{{ __('Switch color theme') }}"><span class="dark:hidden">{{ __('Dark') }}</span><span class="hidden dark:inline">{{ __('Light') }}</span></button>
                 <span class="hidden text-xs text-zem-muted xl:inline">{{ $isAdmin ? 'Admin' : ($staffRole === 'owner_manager' ? __('Owner/Manager') : ucfirst($staffRole)) }}</span>
             </div>
         </header>
@@ -177,6 +207,7 @@
             </div>
         @endif
         @yield('content')
+        <footer class="dashboard-footer"><span>ZemTab &middot; {{ $isAdmin ? __('Platform administration') : ($dashboardRestaurant?->isMenuOnly() ? __('Digital menu workspace') : __('Restaurant & hotel workspace')) }}</span><a href="https://t.me/Zemtab" target="_blank" rel="noopener noreferrer">{{ __('Need a hand? Contact support') }} &nearr;</a></footer>
     </main>
 </div>
 <script>

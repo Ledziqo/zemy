@@ -8,12 +8,16 @@
     <link rel="icon" type="image/png" href="{{ asset('logo/zemtab-pantone-1795-c-icon-transparent.png') }}">
     @include('components.frontend-assets')
 </head>
-<body class="min-h-screen bg-[radial-gradient(circle_at_top_right,rgba(210,38,48,.16),transparent_28%),linear-gradient(180deg,#F8FAFC,#EEF3F7)] font-sans">
-    <div class="min-h-screen flex flex-col items-center justify-center px-4 py-8">
-        <a href="{{ route('home') }}" class="mb-8">
-            <img src="{{ asset('logo/zemtab-pantone-1795-c-icon-text-transparent.png') }}" alt="ZemTab" class="h-16 w-auto">
-        </a>
-        <div class="w-full max-w-sm rounded-2xl border border-zem-border bg-zem-card p-6 shadow-xl">
+<body class="auth-page font-sans antialiased">
+    <div class="auth-shell">
+        <aside class="auth-story" aria-label="Welcome to ZemTab">
+            <a href="{{ route('home') }}"><img src="{{ asset('logo/zemtab-pantone-1795-c-icon-text-transparent.png') }}" alt="ZemTab" class="auth-story-brand"></a>
+            <div><div class="auth-story-label">Made for hospitality</div><h2>A better guest experience starts here.</h2><p>Keep your menu fresh, your team connected and your service moving. All from one simple workspace.</p><div class="auth-story-features"><span>Digital menus</span><span>Table &amp; room ordering</span><span>Hotel information</span></div></div>
+            <div class="auth-story-footer">Your venue. Your team. A little more effortless.</div>
+        </aside>
+        <div class="auth-form-side">
+        <a href="{{ route('home') }}" class="auth-mobile-logo"><img src="{{ asset('logo/zemtab-pantone-1795-c-icon-text-transparent.png') }}" alt="ZemTab"></a>
+        <div class="auth-card w-full max-w-sm rounded-2xl border border-zem-border bg-zem-card p-6 shadow-xl">
             <h1 class="font-display text-2xl font-extrabold text-center">Welcome back</h1>
             <p class="mt-1 text-center text-sm text-zem-muted">Sign in to your ZemTab dashboard</p>
             <form method="post" action="{{ route('login.store') }}" class="mt-6 grid gap-4">
@@ -25,13 +29,13 @@
                     <div class="rounded-lg border border-red-300 bg-red-50 px-4 py-3 text-sm text-red-700">{{ $errors->first() }}</div>
                 @endif
                 <div class="grid gap-2">
-                    <label class="text-sm font-bold text-zem-muted">Email</label>
-                    <input name="email" type="email" required value="{{ old('email') }}" placeholder="you@restaurant.com" class="rounded-lg border border-zem-border bg-zem-bg px-4 py-3 outline-none focus:border-zem-gold">
+                    <label for="login-email" class="text-sm font-bold text-zem-muted">Email</label>
+                    <input id="login-email" name="email" type="email" autocomplete="username" required value="{{ old('email') }}" placeholder="you@restaurant.com" class="rounded-lg border border-zem-border bg-zem-bg px-4 py-3 outline-none focus:border-zem-gold">
                 </div>
                 <div class="grid gap-2">
-                    <label class="text-sm font-bold text-zem-muted">Password</label>
+                    <label for="password" class="text-sm font-bold text-zem-muted">Password</label>
                     <div class="relative">
-                        <input id="password" name="password" type="password" required placeholder="Your password" class="w-full rounded-lg border border-zem-border bg-zem-bg px-4 py-3 pr-12 outline-none focus:border-zem-gold">
+                        <input id="password" name="password" type="password" autocomplete="current-password" required placeholder="Your password" class="w-full rounded-lg border border-zem-border bg-zem-bg px-4 py-3 pr-12 outline-none focus:border-zem-gold">
                         <button type="button" id="password-toggle" class="absolute inset-y-0 right-0 flex w-12 items-center justify-center text-zem-muted transition hover:text-zem-gold" aria-label="Show password" aria-pressed="false">
                             <svg id="password-eye" class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg>
                             <svg id="password-eye-off" class="hidden h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M3 3l18 18M10.6 10.6A2 2 0 0012 14a2 2 0 001.4-.6M9.9 5.2A9.6 9.6 0 0112 5c6.5 0 10 7 10 7a17.7 17.7 0 01-2.7 3.7M6.1 6.7C3.5 8.5 2 12 2 12s3.5 7 10 7a9.7 9.7 0 005.3-1.6"/></svg>
@@ -52,6 +56,7 @@
                 <a href="{{ route('home') }}" class="text-sm text-zem-muted hover:text-zem-gold">Back to ZemTab.com</a>
             </div>
         </div>
+    </div>
     </div>
     <script>
         document.getElementById('password-toggle')?.addEventListener('click', function() {

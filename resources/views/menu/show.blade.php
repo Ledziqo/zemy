@@ -26,7 +26,7 @@
     ];
     $activePaymentMethods = collect($allPaymentMethods)->filter(fn ($m, $key) => in_array($key, $enabledPaymentMethods, true));
 @endphp
-<main x-data="{ ...menuCart({ cartKey: @js('zemtab-cart:'.$restaurant->id.':'.$table->table_number), paymentDetails: {}, serviceChargePercentage: {{ (float) ($settings['service_charge_percentage'] ?? 0) }}, vatPercentage: {{ (float) ($settings['vat_percentage'] ?? 0) }} }), paymentOpen: false, selectedPayment: null, selectedItem: null, selectedQuantity: 1 }" @keydown.escape.window="selectedItem = null" class="min-h-screen bg-neutral-100 pb-28 text-zem-ink">
+<main x-data="{ ...menuCart({ cartKey: @js('zemtab-cart:'.$restaurant->id.':'.$table->table_number), paymentDetails: {}, serviceChargePercentage: {{ (float) ($settings['service_charge_percentage'] ?? 0) }}, vatPercentage: {{ (float) ($settings['vat_percentage'] ?? 0) }} }), paymentOpen: false, selectedPayment: null, selectedItem: null, selectedQuantity: 1 }" @keydown.escape.window="selectedItem = null" class="guest-menu guest-ordering min-h-screen bg-neutral-100 pb-28 text-zem-ink">
     <header class="sticky top-0 z-30 border-b border-black/10 bg-white/95 px-4 py-3 shadow-sm backdrop-blur">
         <div class="mx-auto max-w-5xl">
             <div class="flex items-center justify-between gap-3">

@@ -9,7 +9,7 @@
 ])
 
 @section('content')
-<main class="scroll-smooth overflow-hidden bg-zem-bg text-zem-cream" itemscope itemtype="https://schema.org/SoftwareApplication">
+<main class="zem-landing scroll-smooth overflow-hidden bg-zem-bg text-zem-cream" itemscope itemtype="https://schema.org/SoftwareApplication">
     <meta itemprop="name" content="ZemTab">
     <meta itemprop="applicationCategory" content="BusinessApplication">
     <meta itemprop="operatingSystem" content="Any (Web-based)">
@@ -84,25 +84,12 @@
         <span class="hidden text-sm font-extrabold sm:inline">{{ __('Chat on Telegram') }}</span>
     </a>
 
-    {{-- Hero Section --}}
-    <section class="relative px-5 pt-24 sm:pt-28" aria-label="Hero">
-        <div class="absolute inset-0 bg-[linear-gradient(135deg,#F8FAFC_0%,#FFFFFF_44%,#EEF3F7_100%)]"></div>
-        <div class="absolute inset-y-0 right-0 hidden w-[68%] lg:block">
-            <img
-                src="{{ asset('uploads/zemtab-right-hand-cafe-hero-optimized.webp') }}"
-                alt=""
-                aria-hidden="true"
-                class="h-full w-full translate-y-12 object-cover object-[72%_42%] opacity-95 [mask-image:linear-gradient(90deg,transparent_0%,rgba(0,0,0,.12)_12%,rgba(0,0,0,.76)_32%,black_54%,black_82%,rgba(0,0,0,.5)_92%,transparent_100%),linear-gradient(180deg,transparent_0%,rgba(0,0,0,.65)_10%,black_22%,black_74%,rgba(0,0,0,.58)_86%,transparent_100%)] [mask-composite:intersect] [-webkit-mask-image:linear-gradient(90deg,transparent_0%,rgba(0,0,0,.12)_12%,rgba(0,0,0,.76)_32%,black_54%,black_82%,rgba(0,0,0,.5)_92%,transparent_100%),linear-gradient(180deg,transparent_0%,rgba(0,0,0,.65)_10%,black_22%,black_74%,rgba(0,0,0,.58)_86%,transparent_100%)] [-webkit-mask-composite:source-in]"
-            >
-        </div>
-        <div class="absolute inset-y-0 right-0 hidden w-[70%] bg-[linear-gradient(90deg,#F8FAFC_0%,rgba(248,250,252,.88)_16%,rgba(248,250,252,.38)_34%,transparent_58%),linear-gradient(180deg,transparent_0%,transparent_68%,#F8FAFC_100%)] lg:block"></div>
-        <div class="absolute inset-x-0 top-0 h-36 bg-gradient-to-b from-white to-transparent"></div>
-        <div class="absolute inset-x-0 bottom-0 h-40 bg-gradient-to-t from-zem-bg to-transparent"></div>
-        <div class="relative mx-auto grid min-h-[88vh] max-w-7xl items-center gap-8 pb-24 lg:grid-cols-[.92fr_1.08fr] lg:gap-10 lg:pb-20">
-            <div class="max-w-3xl">
+    <section class="landing-hero" aria-labelledby="landing-title">
+        <div class="landing-hero-grid">
+            <div class="landing-legacy-copy max-w-3xl">
                 <p class="mb-4 inline-flex rounded-full border border-zem-gold/30 bg-zem-gold/10 px-4 py-2 text-[.68rem] font-extrabold uppercase tracking-[.22em] text-zem-gold sm:mb-5 sm:text-xs sm:tracking-[.26em]">{{ __('Scan. Order. Pay.') }}</p>
                 <img src="{{ asset('logo/zemtab-pantone-1795-c-icon-text-transparent.png') }}" alt="ZemTab - Digital Menu, Table Ordering and Hotel Room Ordering" class="-ml-2 h-auto w-full max-w-[18.5rem] sm:-ml-4 sm:max-w-xl">
-                <h1 class="mt-4 font-display text-2xl font-extrabold leading-tight sm:text-3xl md:text-4xl">{{ __('QR Menu, Table & Room Ordering') }}</h1>
+                <h1 id="landing-title" class="mt-4 font-display text-2xl font-extrabold leading-tight sm:text-3xl md:text-4xl">{{ __('QR Menu, Table & Room Ordering') }}</h1>
                 <p class="sr-only">ZemTab - Modern QR Menu, Table Ordering and Hotel Room Ordering System in Ethiopia</p>
                 <p class="mt-3 text-sm font-bold text-zem-muted">{{ __('German-made · Ethiopia-based') }}</p>
                 <p class="mt-5 max-w-2xl text-base leading-7 text-zem-muted sm:text-xl sm:leading-8">{{ __('A QR ordering system for restaurants, cafes, lounges, and hotels. Guests scan from a table or room, order from their phone, request service, and pay at the end.') }}</p>
@@ -141,13 +128,6 @@
                     <span class="h-4 w-px bg-zem-border"></span>
                     <span class="font-bold text-zem-gold">{{ __('0 setup fees') }}</span>
                 </div>
-                <div class="relative -mx-5 mt-6 h-[29rem] overflow-hidden bg-white sm:mx-0 sm:h-[34rem] lg:hidden" aria-label="ZemTab QR menu and table ordering shown clearly on a phone held in a guest's right hand in a cafe">
-                    <img
-                        src="{{ asset('uploads/zemtab-right-hand-cafe-hero-optimized.webp') }}"
-                        alt="ZemTab QR menu and table ordering shown clearly on a phone held in a guest's right hand in a cafe"
-                        class="absolute inset-0 h-full w-full object-cover object-[72%_50%] [mask-image:linear-gradient(180deg,black_0%,black_82%,transparent_100%)] [-webkit-mask-image:linear-gradient(180deg,black_0%,black_82%,transparent_100%)]"
-                    >
-                </div>
                 <div class="mt-8 grid max-w-2xl grid-cols-3 gap-3 sm:mt-12">
                     @foreach([['30s','guest ordering flow'],['24/7','menu and room service access'],['1 scan','to start ordering']] as $metric)
                         <div class="border-l border-zem-gold pl-4">
@@ -157,16 +137,15 @@
                     @endforeach
                 </div>
             </div>
-
-            <div class="relative hidden min-h-[42rem] lg:block" aria-hidden="true"></div>
+            @include('components.landing-product-preview')
         </div>
     </section>
 
     {{-- Workflow Section --}}
-    <section class="mx-auto max-w-7xl px-5 py-12">
-        <h2 class="font-display text-2xl font-extrabold">{{ __('Start with a digital menu, or choose full ordering') }}</h2>
-        <p class="mt-3 max-w-3xl leading-7 text-zem-muted">{{ __('Restaurants and hotels can use ZemTab just for a live QR menu. Update items, prices, and availability anytime, with photos or a clean text-only layout. Add ordering, the staff workboard, and analytics whenever your venue is ready.') }}</p>
-        <a href="#demo" class="mt-5 inline-block rounded-lg bg-zem-gold px-6 py-3 font-bold text-white">{{ __('Request Demo') }}</a>
+    <section class="mx-auto max-w-7xl px-5 py-12" aria-labelledby="choose-experience">
+        <p class="landing-eyebrow">{{ __('Your venue, your pace') }}</p>
+        <h2 id="choose-experience" class="font-display text-3xl">{{ __('Start with the menu. Grow into more.') }}</h2>
+        <div class="plan-choice-grid"><article class="plan-choice"><span class="plan-choice-label">{{ __('Digital menu') }}</span><h3>{{ __('Always fresh. Never a stale PDF.') }}</h3><p>{{ __('A polished QR menu with photos or a clean text-only layout. Change prices and availability anytime, and give hotel guests a helpful information board.') }}</p><a href="#demo">{{ __('Explore digital menus') }} <x-ui-icon name="arrow"/></a></article><article class="plan-choice"><span class="plan-choice-label">{{ __('Full service') }}</span><h3>{{ __('From the first scan to the last order.') }}</h3><p>{{ __('Bring table and room ordering, guest requests, staff workboards and analytics into the same workspace. Upgrade whenever your venue is ready.') }}</p><a href="#demo">{{ __('Explore full service') }} <x-ui-icon name="arrow"/></a></article></div>
     </section>
     <section id="workflow" class="scroll-mt-24 border-y border-zem-border bg-zem-soft py-12 sm:py-16">
         <div class="mx-auto max-w-7xl px-5">
@@ -446,6 +425,10 @@
                 menu.classList.toggle('hidden');
             });
         }
+        menu?.querySelectorAll('a').forEach(link => link.addEventListener('click', () => {
+            menu.classList.add('hidden');
+            toggle?.setAttribute('aria-expanded', 'false');
+        }));
         const backToTop = document.getElementById('back-to-top');
         if (backToTop) {
             backToTop.addEventListener('click', function() {
@@ -465,7 +448,6 @@
     "applicationCategory": "BusinessApplication",
     "operatingSystem": "Web Browser",
     "softwareVersion": "1.0",
-    "aggregateRating": { "@type": "AggregateRating", "ratingValue": "4.8", "ratingCount": "12" },
     "description": "ZemTab is a German-made, Ethiopia-based QR menu, table ordering, hotel room ordering, service request, and staff dashboard system. Guests scan, order, request service, and pay from their phone. No app download needed.",
     "url": "https://zemtab.com",
     "image": "https://zemtab.com/logo/zemtab-pantone-1795-c-icon-text-transparent.png",
