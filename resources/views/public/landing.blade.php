@@ -128,25 +128,11 @@
                     <span class="h-4 w-px bg-zem-border"></span>
                     <span class="font-bold text-zem-gold">{{ __('0 setup fees') }}</span>
                 </div>
-                <div class="mt-8 grid max-w-2xl grid-cols-3 gap-3 sm:mt-12">
-                    @foreach([['30s','guest ordering flow'],['24/7','menu and room service access'],['1 scan','to start ordering']] as $metric)
-                        <div class="border-l border-zem-gold pl-4">
-                            <p class="font-display text-2xl font-extrabold sm:text-3xl">{{ $metric[0] }}</p>
-                            <p class="text-xs leading-4 text-zem-muted sm:text-sm sm:leading-normal">{{ __($metric[1]) }}</p>
-                        </div>
-                    @endforeach
-                </div>
             </div>
             @include('components.landing-product-preview')
         </div>
     </section>
 
-    {{-- Workflow Section --}}
-    <section class="mx-auto max-w-7xl px-5 py-12" aria-labelledby="choose-experience">
-        <p class="landing-eyebrow">{{ __('Your venue, your pace') }}</p>
-        <h2 id="choose-experience" class="font-display text-3xl">{{ __('Start with the menu. Grow into more.') }}</h2>
-        <div class="plan-choice-grid"><article class="plan-choice"><span class="plan-choice-label">{{ __('Digital menu') }}</span><h3>{{ __('Always fresh. Never a stale PDF.') }}</h3><p>{{ __('A polished QR menu with photos or a clean text-only layout. Change prices and availability anytime, and give hotel guests a helpful information board.') }}</p><a href="#demo">{{ __('Explore digital menus') }} <x-ui-icon name="arrow"/></a></article><article class="plan-choice"><span class="plan-choice-label">{{ __('Full service') }}</span><h3>{{ __('From the first scan to the last order.') }}</h3><p>{{ __('Bring table and room ordering, guest requests, staff workboards and analytics into the same workspace. Upgrade whenever your venue is ready.') }}</p><a href="#demo">{{ __('Explore full service') }} <x-ui-icon name="arrow"/></a></article></div>
-    </section>
     <section id="workflow" class="scroll-mt-24 border-y border-zem-border bg-zem-soft py-12 sm:py-16">
         <div class="mx-auto max-w-7xl px-5">
             <div class="flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-end sm:justify-between">
