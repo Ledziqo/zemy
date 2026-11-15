@@ -51,27 +51,27 @@
                     {{ __('Cart') }} <span x-text="count()"></span>
                 </button>
             </div>
-            <div class="mt-3 flex justify-end">
-                <form method="post" action="{{ route('locale.update') }}">@csrf
+            <label class="js-only mt-3 block">
+                <span class="sr-only">{{ __('Search menu') }}</span>
+                <input type="search" x-model="menuSearch" placeholder="{{ __('Search the menu...') }}" class="w-full rounded-xl border border-black/10 bg-neutral-100 px-4 py-3 text-sm font-semibold outline-none transition focus:border-zem-gold focus:bg-white">
+            </label>
+            <div class="js-only mt-3 flex min-w-0 items-center gap-2">
+                <nav aria-label="{{ __('Menu categories') }}" class="flex min-w-0 flex-1 gap-2 overflow-x-auto pb-1">
+                    <button type="button" :aria-pressed="activeCategory === 'all'" @click="activeCategory = 'all'" :class="activeCategory === 'all' ? 'bg-zem-gold text-white' : 'border border-black/10 bg-white text-neutral-700'" class="whitespace-nowrap rounded-full px-4 py-2 text-sm font-extrabold transition">{{ __('All') }}</button>
+                    @foreach($categories as $category)
+                        @php($categoryLabel = match (strtolower(trim($category->name))) { 'food' => __('Food'), 'drinks' => __('Drinks'), default => $category->name })
+                        <button type="button" :aria-pressed="activeCategory === 'cat-{{ $category->id }}'" @click="activeCategory = 'cat-{{ $category->id }}'" :class="activeCategory === 'cat-{{ $category->id }}' ? 'bg-zem-gold text-white' : 'border border-black/10 bg-white text-neutral-700'" class="whitespace-nowrap rounded-full px-4 py-2 text-sm font-extrabold transition">{{ $categoryLabel }}</button>
+                    @endforeach
+                </nav>
+                <form method="post" action="{{ route('locale.update') }}" class="shrink-0">@csrf
                     <label for="menu-locale" class="sr-only">{{ __('Language') }}</label>
-                    <select id="menu-locale" name="locale" onchange="this.form.submit()" class="rounded-full border border-black/10 bg-white px-3 py-2 text-xs font-bold text-black shadow-sm outline-none">
+                    <select id="menu-locale" name="locale" onchange="this.form.submit()" class="max-w-28 rounded-full border border-black/10 bg-white px-3 py-2 text-xs font-bold text-black shadow-sm outline-none">
                         @foreach(['en' => 'English', 'am' => 'አማርኛ', 'ar' => 'العربية', 'zh' => '中文'] as $localeCode => $localeLabel)
                             <option value="{{ $localeCode }}" @selected(app()->getLocale() === $localeCode)>{{ $localeLabel }}</option>
                         @endforeach
                     </select>
                 </form>
             </div>
-            <label class="js-only mt-3 block">
-                <span class="sr-only">{{ __('Search menu') }}</span>
-                <input type="search" x-model="menuSearch" placeholder="{{ __('Search the menu...') }}" class="w-full rounded-xl border border-black/10 bg-neutral-100 px-4 py-3 text-sm font-semibold outline-none transition focus:border-zem-gold focus:bg-white">
-            </label>
-            <nav aria-label="{{ __('Menu categories') }}" class="js-only mt-3 flex gap-2 overflow-x-auto pb-1">
-                <button type="button" :aria-pressed="activeCategory === 'all'" @click="activeCategory = 'all'" :class="activeCategory === 'all' ? 'bg-zem-gold text-white' : 'border border-black/10 bg-white text-neutral-700'" class="whitespace-nowrap rounded-full px-4 py-2 text-sm font-extrabold transition">{{ __('All') }}</button>
-                @foreach($categories as $category)
-                    @php($categoryLabel = match (strtolower(trim($category->name))) { 'food' => __('Food'), 'drinks' => __('Drinks'), default => $category->name })
-                    <button type="button" :aria-pressed="activeCategory === 'cat-{{ $category->id }}'" @click="activeCategory = 'cat-{{ $category->id }}'" :class="activeCategory === 'cat-{{ $category->id }}' ? 'bg-zem-gold text-white' : 'border border-black/10 bg-white text-neutral-700'" class="whitespace-nowrap rounded-full px-4 py-2 text-sm font-extrabold transition">{{ $categoryLabel }}</button>
-                @endforeach
-            </nav>
         </div>
     </header>
     <section class="mx-auto max-w-5xl px-4 py-4">

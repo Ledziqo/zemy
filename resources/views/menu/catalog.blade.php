@@ -30,25 +30,27 @@
                         @if($restaurant->location)<p class="text-sm text-neutral-500">{{ $restaurant->location }}</p>@endif
                     </div>
                 </div>
-                <form method="post" action="{{ route('locale.update') }}">@csrf
+            </div>
+            <label class="js-only mt-4 block">
+                <span class="sr-only">{{ __('Search menu') }}</span>
+                <input type="search" x-model="menuSearch" placeholder="{{ __('Search the menu...') }}" class="w-full rounded-xl border border-black/10 bg-neutral-100 px-4 py-3 outline-none focus:border-zem-gold">
+            </label>
+            <div class="js-only mt-3 flex min-w-0 items-center gap-2">
+                <nav aria-label="{{ __('Menu categories') }}" class="flex min-w-0 flex-1 gap-2 overflow-x-auto pb-1">
+                    <button type="button" :aria-pressed="activeCategory === 'all'" @click="activeCategory = 'all'" :class="activeCategory === 'all' ? 'bg-zem-gold text-white' : 'bg-neutral-100'" class="whitespace-nowrap rounded-full px-4 py-2 font-bold">{{ __('All') }}</button>
+                    @foreach($categories as $category)
+                        <button type="button" :aria-pressed="activeCategory === 'cat-{{ $category->id }}'" @click="activeCategory = 'cat-{{ $category->id }}'" :class="activeCategory === 'cat-{{ $category->id }}' ? 'bg-zem-gold text-white' : 'bg-neutral-100'" class="whitespace-nowrap rounded-full px-4 py-2 font-bold">{{ __($category->name) }}</button>
+                    @endforeach
+                </nav>
+                <form method="post" action="{{ route('locale.update') }}" class="shrink-0">@csrf
                     <label for="catalog-locale" class="sr-only">{{ __('Language') }}</label>
-                    <select id="catalog-locale" name="locale" onchange="this.form.submit()" class="rounded-full border border-black/10 bg-white px-3 py-2 text-xs font-bold">
+                    <select id="catalog-locale" name="locale" onchange="this.form.submit()" class="max-w-28 rounded-full border border-black/10 bg-white px-3 py-2 text-xs font-bold">
                         @foreach(['en' => 'English', 'am' => 'አማርኛ', 'ar' => 'العربية', 'zh' => '中文'] as $code => $label)
                             <option value="{{ $code }}" @selected(app()->getLocale() === $code)>{{ $label }}</option>
                         @endforeach
                     </select>
                 </form>
             </div>
-            <label class="js-only mt-4 block">
-                <span class="sr-only">{{ __('Search menu') }}</span>
-                <input type="search" x-model="menuSearch" placeholder="{{ __('Search the menu...') }}" class="w-full rounded-xl border border-black/10 bg-neutral-100 px-4 py-3 outline-none focus:border-zem-gold">
-            </label>
-            <nav aria-label="{{ __('Menu categories') }}" class="js-only mt-3 flex gap-2 overflow-x-auto pb-1">
-                <button type="button" :aria-pressed="activeCategory === 'all'" @click="activeCategory = 'all'" :class="activeCategory === 'all' ? 'bg-zem-gold text-white' : 'bg-neutral-100'" class="whitespace-nowrap rounded-full px-4 py-2 font-bold">{{ __('All') }}</button>
-                @foreach($categories as $category)
-                    <button type="button" :aria-pressed="activeCategory === 'cat-{{ $category->id }}'" @click="activeCategory = 'cat-{{ $category->id }}'" :class="activeCategory === 'cat-{{ $category->id }}' ? 'bg-zem-gold text-white' : 'bg-neutral-100'" class="whitespace-nowrap rounded-full px-4 py-2 font-bold">{{ __($category->name) }}</button>
-                @endforeach
-            </nav>
         </div>
     </header>
     <div class="mx-auto max-w-5xl space-y-8 px-4 py-6">
